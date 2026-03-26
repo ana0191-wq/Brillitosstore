@@ -1565,15 +1565,4 @@ document.addEventListener('DOMContentLoaded', () => fetchBCVRates());
 </script>
 </body>
 </html>
-function testJSON() {
-  const products = leerCatalogo();
-  const json = JSON.stringify(products);
-  Logger.log('JSON length: ' + json.length);
-  const conSaltos = products.filter(p => 
-    (p.nombre && p.nombre.includes('\n')) ||
-    (p.descripcion && p.descripcion.includes('\n')) ||
-    (p.observaciones && p.observaciones.includes('\n'))
-  );
-  Logger.log('Productos con saltos de línea: ' + conSaltos.length);
-  conSaltos.forEach(p => Logger.log('ID ' + p.id + ': ' + p.nombre));
-}
+
