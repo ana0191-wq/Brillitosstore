@@ -937,7 +937,7 @@ function applyFilters(){
   else if(sortMode==='price-desc') res=[...res].sort((a,b)=>(b.precio!==null?b.precio:0)-(a.precio!==null?a.precio:0));
   filtered=res; displayed=0;
   document.getElementById('product-grid').innerHTML='';
-  document.getElementById('results-count').textContent=filtered.length===0?'Sin resultados 🌸':`${filtered.length} producto${filtered.length!==1?'s':''} encontrados ✨`;
+  document.getElementById('results-count').textContent=filtered.length===0?'Sin resultados 🌸':(filtered.length+' producto'+(filtered.length!==1?'s':'')+' encontrados ✨');
   renderPage();
 }
 
@@ -954,7 +954,7 @@ function renderPage(){
   displayed+=batch.length;
   const has=displayed<filtered.length;
   document.getElementById('lm-wrap').style.display=has?'block':'none';
-  if(has) document.getElementById('lm-btn').textContent=`Cargar más (${filtered.length-displayed} restantes) 🌸`;
+  if(has) document.getElementById('lm-btn').textContent='Cargar más ('+(filtered.length-displayed)+' restantes) 🌸';
 }
 function loadMore(){renderPage();}
 
@@ -971,37 +971,37 @@ function buildCard(p,idx){
 
   
   const unicoBadge=(p.stock===1)
-    ?`<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#ff6b35,#e53e3e);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(229,62,62,.4)">¡Único!</div>`
+    ?'<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#ff6b35,#e53e3e);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(229,62,62,.4)">¡Único!</div>'
     :(p.stock>1&&p.stock<=3)
-    ?`<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#dd6b20,#c05621);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(192,86,33,.4)">Solo ${p.stock}</div>`
+    ?'<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#dd6b20,#c05621);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(192,86,33,.4)">Solo '+p.stock+'</div>'
     :'';
 
   
   const thumbsHtml=hasMulti
-    ?`<div class="cthumbs">${imgs.slice(0,5).map((src,i)=>`<img class="cthumb${i===0?' act':''}" src="${src}" alt="" loading="lazy" data-src="${src}" onerror="this.style.display='none'">`).join('')}</div>`
+    ?'<div class="cthumbs">'+imgs.slice(0,5).map((src,i)=>'<img class="cthumb'+(i===0?' act':'')+('" src="')+src+'" alt="" loading="lazy" data-src="'+src+'" onerror="this.style.display=\'none\'">').join('')+'</div>'
     :'';
 
-  // Category icon from name
+  
   const catIcon=catFull.match(/[\u{1F000}-\u{1FFFF}💎✨🌟🎀🎁📝✏️🖊️🔖🛒👜📅🗒️🎵🧸🎌📁👗]/gu)?catFull.match(/[\u{1F000}-\u{1FFFF}💎✨🌟🎀🎁📝✏️🖊️🔖🛒👜📅🗒️🎵🧸🎌📁👗]/gu)[0]:'🌸';
 
-  card.innerHTML=`
-    <div class="cimg">
-      <img class="cimg-main" loading="lazy" src="${imgs[0]||''}" alt="${esc(p.nombre)}" onerror="imgFallback(this)">
-      ${thumbsHtml}
-      ${unicoBadge}
-    </div>
-    <div class="cbody">
-      <div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">
-        <span style="font-size:.78rem;font-weight:800;color:var(--pk)">${catIcon} ${esc(catT.toUpperCase())}</span>
-      </div>
-      ${p.subcategoria?`<div class="csubcat">${esc(p.subcategoria)}</div>`:''}
-      <div class="cname">${esc(p.nombre)}</div>
-      ${p.descripcion?`<div class="cdesc">${esc(p.descripcion)}</div>`:''}
-      <div class="cfoot">
-        <div class="cprice${hasP?'':' nop'}">${hasP?'$'+p.precio.toFixed(2):'Consultar 💬'}</div>
-        <button class="cadd"${out?' disabled':''} onclick="event.stopPropagation();cardAddToCart(${p.id})">${out?'😢 Agotado':'+ Carrito'}</button>
-      </div>
-    </div>`;
+  card.innerHTML=
+    '<div class="cimg">'+
+    '<img class="cimg-main" loading="lazy" src="'+( imgs[0]||'' )+'" alt="'+esc(p.nombre)+'" onerror="imgFallback(this)">'+
+    thumbsHtml+
+    unicoBadge+
+    '</div>'+
+    '<div class="cbody">'+
+    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'+
+    '<span style="font-size:.78rem;font-weight:800;color:var(--pk)">'+catIcon+' '+esc(catT.toUpperCase())+'</span>'+
+    '</div>'+
+    (p.subcategoria?'<div class="csubcat">'+esc(p.subcategoria)+'</div>':'')+
+    '<div class="cname">'+esc(p.nombre)+'</div>'+
+    (p.descripcion?'<div class="cdesc">'+esc(p.descripcion)+'</div>':'')+
+    '<div class="cfoot">'+
+    '<div class="cprice'+(hasP?'':' nop')+'">'+( hasP?'$'+p.precio.toFixed(2):'Consultar 💬' )+'</div>'+
+    '<button class="cadd"'+(out?' disabled':'')+' onclick="event.stopPropagation();cardAddToCart('+p.id+')">'+(out?'😢 Agotado':'+ Carrito')+'</button>'+
+    '</div>'+
+    '</div>';
 
   card.addEventListener('click',(e)=>{
     if(e.target.classList.contains('cthumb')||e.target.classList.contains('cadd')) return;
@@ -1088,7 +1088,7 @@ function openModal(p){
   chips.forEach(ch=>{
     const div=document.createElement('div');
     div.className='detail-chip';
-    div.innerHTML=`<span class="chip-label">${ch.label}</span><span>${ch.value}</span>`;
+    div.innerHTML='<span class="chip-label">'+ch.label+'</span><span>'+ch.value+'</span>';
     details.appendChild(div);
   });
 
@@ -1247,20 +1247,20 @@ function updateCartUI(){
       const d=document.createElement('div'); d.className='cart-item';
       const catT=(p.categoria||'').replace(/[\u{1F000}-\u{1FFFF}]/gu,'').trim();
       const ck=p._cartKey||String(p.id);
-      d.innerHTML=`
-        <img class="ci-img" src="${p.imagen||''}" alt="${esc(p.nombre)}" onerror="this.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';this.src=''">
-        <div class="ci-info">
-          <div class="ci-name">${esc(p.nombre)}</div>
-          ${p.variant?`<div class="ci-variant">✨ ${esc(p.variant)}</div>`:''}
-          <div class="ci-cat">${esc(catT)}</div>
-          <div class="ci-price">${p.precio!==null?'$'+(p.precio*(p.qty||1)).toFixed(2)+' '+(p.qty>1?'(x'+p.qty+')':''):'Consultar 💬'}</div>
-          <div class="ci-qty">
-            <button onclick="changeQty('${ck}',-1)">−</button>
-            <span>${p.qty||1}</span>
-            <button onclick="changeQty('${ck}',+1)">+</button>
-          </div>
-        </div>
-        <button class="ci-rm" onclick="removeFromCart('${ck}')">✕</button>`;
+      d.innerHTML=
+        '<img class="ci-img" src="'+(p.imagen||'')+' " alt="'+esc(p.nombre)+'" onerror="this.style.background=\'linear-gradient(135deg,#FFB3D9,#FFF0F8)\';this.src=\'\'">'+
+        '<div class="ci-info">'+
+        '<div class="ci-name">'+esc(p.nombre)+'</div>'+
+        (p.variant?'<div class="ci-variant">✨ '+esc(p.variant)+'</div>':'')+
+        '<div class="ci-cat">'+esc(catT)+'</div>'+
+        '<div class="ci-price">'+(p.precio!==null?'$'+(p.precio*(p.qty||1)).toFixed(2)+' '+(p.qty>1?'(x'+p.qty+')':''):'Consultar 💬')+'</div>'+
+        '<div class="ci-qty">'+
+        '<button onclick="changeQty(\''+ck+'\', -1)">−</button>'+
+        '<span>'+(p.qty||1)+'</span>'+
+        '<button onclick="changeQty(\''+ck+'\',+1)">+</button>'+
+        '</div>'+
+        '</div>'+
+        '<button class="ci-rm" onclick="removeFromCart(\''+ck+'\')" >✕</button>';
       frag.appendChild(d);
     });
     c.appendChild(frag);
@@ -1326,7 +1326,7 @@ function buildOrderLines(){
   return cart.map((p,i)=>{
     const price=p.precio!==null?'$'+p.precio.toFixed(2):'(sin precio)';
     const variantStr=p.variant?' ['+p.variant+']':'';
-    return `${i+1}. ${p.nombre}${variantStr} x${p.qty||1} — ${price}`;
+    return (i+1)+'. '+p.nombre+variantStr+' x'+(p.qty||1)+' — '+price;
   }).join('\n');
 }
 
@@ -1339,23 +1339,23 @@ function sendWA(method){
     const pct=parseFloat(document.getElementById('pp-pct').value)||5.4;
     const fix=parseFloat(document.getElementById('pp-fix').value)||0.30;
     const charge=(sub+fix)/(1-pct/100);
-    payLine=`\n🅿️ *Pago por PayPal*\nEnviar a: ana0191@gmail.com\nSubtotal: ${sub.toFixed(2)}\nComisión PayPal (${pct}% + ${fix}): ${(charge-sub).toFixed(2)}\n💰 *Total a pagar: ${charge.toFixed(2)} USD*`;
+    payLine='\n🅿️ *Pago por PayPal*\nEnviar a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\nComisión PayPal ('+pct+'% + '+fix+'): '+(charge-sub).toFixed(2)+'\n💰 *Total a pagar: '+charge.toFixed(2)+' USD*';
   } else if(method==='binance'){
     const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
     const pct=parseFloat(document.getElementById('bnc-pct').value)||0;
     const fee=sub*(pct/100);
     const total=(sub+fee)/rate;
-    payLine=`\n₿ *Pago por Binance Pay (USDT)*\nEnviar a: ana0191@gmail.com\nSubtotal: ${sub.toFixed(2)}\n💰 *Total a pagar: ${total.toFixed(4)} USDT*`;
+    payLine='\n₿ *Pago por Binance Pay (USDT)*\nEnviar a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\n💰 *Total a pagar: '+total.toFixed(4)+' USDT*';
   } else if(method==='bolivares'){
     const rate=parseFloat(document.getElementById('bs-rate').value)||40;
     const bs=sub*rate;
-    payLine=`\n🇻🇪 *Pago móvil / Bs.*\nSubtotal: $${sub.toFixed(2)}\nTasa BCV: Bs.${rate}/$\n💰 *Total a pagar: Bs. ${bs.toFixed(2)}*`;
+    payLine='\n🇻🇪 *Pago móvil / Bs.*\nSubtotal: $'+sub.toFixed(2)+'\nTasa BCV: Bs.'+rate+'/$\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*';
   } else {
-    payLine=sub>0?`\n💰 Subtotal estimado: $${sub.toFixed(2)} USD\n(productos sin precio se consultan aparte)`:'\n(Precios a consultar)';
+    payLine=sub>0?'\n💰 Subtotal estimado: $'+sub.toFixed(2)+' USD\n(productos sin precio se consultan aparte)':'\n(Precios a consultar)';
   }
-  const msg=`🌸 *Pedido Brillitos 2026* 🌸\n\n${lines}\n${payLine}\n\n¡Hola! Quiero hacer este pedido 💖`;
+  const msg='🌸 *Pedido Brillitos 2026* 🌸\n\n'+lines+'\n'+payLine+'\n\n¡Hola! Quiero hacer este pedido 💖';
   const num=document.getElementById('wa-num')?.value?.replace(/\D/g,'')||WA_NUMBER;
-  const url=num?`https:
+  const url=num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
   window.open(url,'_blank');
 }
 
@@ -1376,9 +1376,9 @@ function closeOrders(){document.getElementById('orders-ov').classList.remove('op
 function handleOOv(e){if(e.target.id==='orders-ov')closeOrders();}
 
 function sendStoreWA(store){
- const msg='🌸 ¡Hola Brillitos! 🌸\n\nQuiero hacer un pedido de *'+store+'*.\n\nAquí te paso el link del producto que quiero:\n\n(pega aquí el link)\n\n¿Me pueden cotizar? 💖';
+  const msg='🌸 ¡Hola Brillitos! 🌸\n\nQuiero hacer un pedido de *'+store+'*.\n\nAquí te paso el link del producto que quiero:\n\n(pega aquí el link)\n\n¿Me pueden cotizar? 💖';
   const num=WA_NUMBER;
-  const url=num?`https:
+  const url=num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
   window.open(url,'_blank');
 }
 
@@ -1529,7 +1529,7 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
   try {
     const d = new Date(fecha + (fecha.length === 10 ? 'T12:00:00' : ''));
     const dias = ['dom','lun','mar','mié','jue','vie','sáb'];
-    fechaLabel = `${dias[d.getDay()]} ${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`;
+    fechaLabel = dias[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
   } catch(e) { fechaLabel = fecha; }
 
   
@@ -1548,21 +1548,20 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
     const viernes_tag = esViernes
       ? ' <span style="color:#FF6EB4;font-weight:700">📅 Viernes: tasa BCV publicada hoy</span>'
       : '';
-    noteEl.innerHTML = `✅ Tasa BCV oficial: <strong>Bs. ${parseFloat(usd).toFixed(2)} / $</strong> · ${fechaLabel}${cache_tag}${viernes_tag}`;
+    noteEl.innerHTML = '✅ Tasa BCV oficial: <strong>Bs. '+parseFloat(usd).toFixed(2)+' / $</strong> · '+fechaLabel+cache_tag+viernes_tag;
   }
 
   
   if (eurEl) {
-    eurEl.textContent = eur ? `Bs. ${parseFloat(eur).toFixed(2)} / €` : '—';
+    eurEl.textContent = eur ? 'Bs. '+parseFloat(eur).toFixed(2)+' / €' : '—';
   }
 
   if (btn) { btn.textContent = '🔄'; btn.disabled = false; }
 }
 
-// Auto-cargar al abrir el carrito (tab bolívares) y al inicio
+
 document.addEventListener('DOMContentLoaded', () => fetchBCVRates());
 
 </script>
 </body>
 </html>
-
