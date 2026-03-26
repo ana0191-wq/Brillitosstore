@@ -1376,7 +1376,7 @@ function closeOrders(){document.getElementById('orders-ov').classList.remove('op
 function handleOOv(e){if(e.target.id==='orders-ov')closeOrders();}
 
 function sendStoreWA(store){
-  const msg=`🌸 ¡Hola Brillitos! 🌸\n\nQuiero hacer un pedido de *${store}*.\n\nAquí te paso el link del producto que quiero:\n\n(pega aquí el link)\n\n¿Me pueden cotizar? 💖`;
+ const msg='🌸 ¡Hola Brillitos! 🌸\n\nQuiero hacer un pedido de *'+store+'*.\n\nAquí te paso el link del producto que quiero:\n\n(pega aquí el link)\n\n¿Me pueden cotizar? 💖';
   const num=WA_NUMBER;
   const url=num?`https:
   window.open(url,'_blank');
