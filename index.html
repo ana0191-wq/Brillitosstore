@@ -544,6 +544,9 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
 }
  
 
+
+@keyframes pulsenuevo{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.modal-nav-btn-hide{display:none!important;}
 </style>
 </head>
 <body>
@@ -648,7 +651,11 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
     
     <div class="modal-left">
       <button class="modal-close-x" onclick="closeModal()">✕</button>
+      <div style="position:relative;">
+      <button onclick="modalPrevImg()" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.15);line-height:1">‹</button>
       <img id="modal-main-img" class="modal-main-img" src="" alt="">
+      <button onclick="modalNextImg()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.15);line-height:1">›</button>
+    </div>
       <div class="modal-thumbs" id="modal-thumbs"></div>
     </div>
 
@@ -971,6 +978,9 @@ function buildCard(p,idx){
   const hasMulti=imgs.length>1;
 
   
+  const nuevoBadge=p.esNuevo
+    ?'<div style="position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#ff6eb4,#ff3d9a);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:4;box-shadow:0 2px 8px rgba(255,61,154,.45);animation:pulsenuevo 1.4s infinite">✨ NUEVO</div>'
+    :'';
   const unicoBadge=(p.stock===1)
     ?'<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#ff6b35,#e53e3e);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(229,62,62,.4)">¡Único!</div>'
     :(p.stock>1&&p.stock<=3)
@@ -989,7 +999,7 @@ function buildCard(p,idx){
     '<div class="cimg">'+
     '<img class="cimg-main" loading="lazy" src="'+( imgs[0]||'' )+'" alt="'+esc(p.nombre)+'" onerror="imgFallback(this)">'+
     thumbsHtml+
-    unicoBadge+
+    nuevoBadge+unicoBadge+
     '</div>'+
     '<div class="cbody">'+
     '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'+
@@ -1036,13 +1046,18 @@ function imgFallback(el){el.onerror=null;el.style.display='none';var fb=document
 
 
 function openModal(p){
-  
- const imgs=((p.imagenes&&p.imagenes.length>0)?p.imagenes:[p.imagen]).filter(u=>u&&u.startsWith('http'));
+  window._modalImgs=((p.imagenes&&p.imagenes.length>0)?p.imagenes:[p.imagen]).filter(u=>u&&u.startsWith('http'));
+  window._modalImgIdx=0;
+  const imgs=window._modalImgs;
 const mainImg=document.getElementById('modal-main-img');
 if(imgs.length>0){
   mainImg.src=imgs[0];
   mainImg.style.display='block';
-}else{
+}
+  
+  document.querySelectorAll('.modal-ov button[onclick^="modal"]').forEach(b=>{
+    b.style.display=imgs.length>1?'block':'none';
+  });else{
   mainImg.style.display='none';
   mainImg.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';
 }
@@ -1570,6 +1585,21 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
 
 document.addEventListener('DOMContentLoaded', () => fetchBCVRates());
 
+
+function modalPrevImg(){
+  const imgs=window._modalImgs||[];if(!imgs.length)return;
+  window._modalImgIdx=(window._modalImgIdx-1+imgs.length)%imgs.length;
+  const m=document.getElementById('modal-main-img');
+  m.style.opacity='0';setTimeout(()=>{m.src=imgs[window._modalImgIdx];m.style.opacity='1';},120);
+  document.querySelectorAll('#modal-thumbs .modal-thumb').forEach((t,i)=>t.classList.toggle('active',i===window._modalImgIdx));
+}
+function modalNextImg(){
+  const imgs=window._modalImgs||[];if(!imgs.length)return;
+  window._modalImgIdx=(window._modalImgIdx+1)%imgs.length;
+  const m=document.getElementById('modal-main-img');
+  m.style.opacity='0';setTimeout(()=>{m.src=imgs[window._modalImgIdx];m.style.opacity='1';},120);
+  document.querySelectorAll('#modal-thumbs .modal-thumb').forEach((t,i)=>t.classList.toggle('active',i===window._modalImgIdx));
+}
 </script>
 </body>
 </html>
