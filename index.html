@@ -547,6 +547,13 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
 
 @keyframes pulsenuevo{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
 .modal-nav-btn-hide{display:none!important;}
+
+.pg-wrap{display:flex;gap:6px;justify-content:center;align-items:center;padding:16px 0 32px;flex-wrap:wrap;}
+.pg-btn{background:white;border:2px solid var(--pk);color:var(--pk);font-family:var(--fb);font-weight:800;font-size:.9rem;width:38px;height:38px;border-radius:50%;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
+.pg-btn:hover{background:var(--pk);color:white;}
+.pg-btn.pg-active{background:var(--pk);color:white;transform:scale(1.1);}
+.pg-btn.pg-disabled{opacity:.35;cursor:default;pointer-events:none;}
+.pg-dots{color:var(--pk);font-weight:800;padding:0 4px;}
 </style>
 </head>
 <body>
@@ -634,9 +641,7 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
 
 <section class="grid-section">
   <div id="product-grid"></div>
-  <div class="lm-wrap" id="lm-wrap" style="display:none">
-    <button class="lm-btn" id="lm-btn" onclick="loadMore()">Cargar más 🌸</button>
-  </div>
+  <div class="lm-wrap" id="lm-wrap" style="display:none"></div>
 </section>
 
 <footer>
@@ -874,8 +879,8 @@ const WA_NUMBER = '584249006350';
 
 
 
-const PAGE = 24;
-let filtered=[], displayed=0, activeCat='all', searchQ='', sortMode='default', maxPrice=99, onlyStock=false;
+const PAGE = 20;
+let filtered=[], currentPage=0, activeCat='all', searchQ='', sortMode='default', maxPrice=99, onlyStock=false;
 let cart = JSON.parse(localStorage.getItem('brl_cart3')||'[]');
 
 
@@ -942,7 +947,7 @@ function applyFilters(){
   else if(sortMode==='za') res=[...res].sort((a,b)=>b.nombre.localeCompare(a.nombre));
   else if(sortMode==='price-asc') res=[...res].sort((a,b)=>(a.precio!==null?a.precio:999)-(b.precio!==null?b.precio:999));
   else if(sortMode==='price-desc') res=[...res].sort((a,b)=>(b.precio!==null?b.precio:0)-(a.precio!==null?a.precio:0));
-  filtered=res; displayed=0;
+  filtered=res; currentPage=0;
   document.getElementById('product-grid').innerHTML='';
   document.getElementById('results-count').textContent=filtered.length===0?'Sin resultados 🌸':(filtered.length+' producto'+(filtered.length!==1?'s':'')+' encontrados ✨');
   renderPage();
@@ -952,18 +957,49 @@ function applyFilters(){
 
 
 function renderPage(){
-  const batch=filtered.slice(displayed,displayed+PAGE);
   const grid=document.getElementById('product-grid');
-  if(displayed===0&&batch.length===0){grid.innerHTML='<div class="state-msg"><span class="em">🌸</span>No hay productos que coincidan.</div>';document.getElementById('lm-wrap').style.display='none';return;}
+  const totalPages=Math.ceil(filtered.length/PAGE);
+  if(filtered.length===0){
+    grid.innerHTML='<div class="state-msg"><span class="em">🌸</span>No hay productos que coincidan.</div>';
+    document.getElementById('lm-wrap').style.display='none';
+    return;
+  }
+  const start=currentPage*PAGE;
+  const batch=filtered.slice(start,start+PAGE);
+  grid.innerHTML='';
   const frag=document.createDocumentFragment();
-  batch.forEach((p,i)=>frag.appendChild(buildCard(p,displayed+i)));
+  batch.forEach((p,i)=>frag.appendChild(buildCard(p,start+i)));
   grid.appendChild(frag);
-  displayed+=batch.length;
-  const has=displayed<filtered.length;
-  document.getElementById('lm-wrap').style.display=has?'block':'none';
-  if(has) document.getElementById('lm-btn').textContent='Cargar más ('+(filtered.length-displayed)+' restantes) 🌸';
+  
+  grid.scrollIntoView({behavior:'smooth',block:'start'});
+  renderPagination(totalPages);
 }
-function loadMore(){renderPage();}
+function renderPagination(totalPages){
+  const wrap=document.getElementById('lm-wrap');
+  if(totalPages<=1){wrap.style.display='none';return;}
+  wrap.style.display='block';
+  let btns='';
+  
+  btns+=`<button class="pg-btn${currentPage===0?' pg-disabled':''}" onclick="goPage(${currentPage-1})" ${currentPage===0?'disabled':''}>‹</button>`;
+  // Page numbers
+  for(let i=0;i<totalPages;i++){
+    if(totalPages>7&&i>1&&i<totalPages-1&&Math.abs(i-currentPage)>1){
+      if(i===2||i===totalPages-2) btns+='<span class="pg-dots">…</span>';
+      continue;
+    }
+    btns+=`<button class="pg-btn${i===currentPage?' pg-active':''}" onclick="goPage(${i})">${i+1}</button>`;
+  }
+  // Next
+  btns+=`<button class="pg-btn${currentPage===totalPages-1?' pg-disabled':''}" onclick="goPage(${currentPage+1})" ${currentPage===totalPages-1?'disabled':''}>›</button>`;
+  wrap.innerHTML=`<div class="pg-wrap">${btns}</div>`;
+}
+function goPage(p){
+  const totalPages=Math.ceil(filtered.length/PAGE);
+  if(p<0||p>=totalPages)return;
+  currentPage=p;
+  renderPage();
+}
+function loadMore(){goPage(currentPage+1);}
 
 function buildCard(p,idx){
   const card=document.createElement('div');
