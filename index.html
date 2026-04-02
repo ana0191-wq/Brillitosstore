@@ -1053,14 +1053,14 @@ const mainImg=document.getElementById('modal-main-img');
 if(imgs.length>0){
   mainImg.src=imgs[0];
   mainImg.style.display='block';
+}else{
+  mainImg.style.display='none';
+  mainImg.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';
 }
   
   document.querySelectorAll('.modal-ov button[onclick^="modal"]').forEach(b=>{
     b.style.display=imgs.length>1?'block':'none';
-  });else{
-  mainImg.style.display='none';
-  mainImg.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';
-}
+  });
 
   mainImg.alt=p.nombre;
   mainImg.onerror=function(){this.onerror=null;this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';};
