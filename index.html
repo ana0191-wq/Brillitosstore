@@ -966,7 +966,8 @@ function buildCard(p,idx){
   const hasP=p.precio!==null&&p.precio!==undefined&&p.precio>0;
   const catT=(p.categoria||'').replace(/[\u{1F000}-\u{1FFFF}]/gu,'').trim();
   const catFull=p.categoria||'';
-  const imgs=(p.imagenes&&p.imagenes.length>0)?p.imagenes:[p.imagen].filter(Boolean);
+  const imgs=((p.imagenes&&p.imagenes.length>0)?p.imagenes:[p.imagen]).filter(u=>u&&u.startsWith('http'));
+
   const hasMulti=imgs.length>1;
 
   
@@ -1036,9 +1037,16 @@ function imgFallback(el){el.onerror=null;el.style.display='none';var fb=document
 
 function openModal(p){
   
-  const imgs=(p.imagenes&&p.imagenes.length>0)?p.imagenes:[p.imagen].filter(Boolean);
-  const mainImg=document.getElementById('modal-main-img');
-  mainImg.src=imgs[0]||'';
+ const imgs=((p.imagenes&&p.imagenes.length>0)?p.imagenes:[p.imagen]).filter(u=>u&&u.startsWith('http'));
+const mainImg=document.getElementById('modal-main-img');
+if(imgs.length>0){
+  mainImg.src=imgs[0];
+  mainImg.style.display='block';
+}else{
+  mainImg.style.display='none';
+  mainImg.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';
+}
+
   mainImg.alt=p.nombre;
   mainImg.onerror=function(){this.onerror=null;this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';};
 
