@@ -1800,7 +1800,7 @@ function openProductPage(p) {
   if(variants.length>0){
     let vhtml = '<div class="pp-variant-label">Variante:</div><div class="pp-variant-opts">';
     variants.forEach(v=>{
-      vhtml += '<button class="pp-variant-btn" onclick="ppSelectVariant(this,''+v+'')">'+v+'</button>';
+      vhtml += '<button class="pp-variant-btn" onclick="ppSelectVariant(this,`'+v+'`)">' + v + '</button>';
     });
     vhtml += '</div>';
     variantsEl.innerHTML = vhtml;
