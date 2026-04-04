@@ -601,6 +601,14 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
   .pp-name{font-size:1.3rem;}
   .pp-price{font-size:1.6rem;}
 }
+
+ 
+.pp-related-grid .product-card{
+  background:white;
+  border:2px solid white;
+  box-shadow:0 4px 18px rgba(255,105,180,.13);
+  border-radius:18px;
+}
 </style>
 </head>
 <body>
@@ -1032,7 +1040,7 @@ function applyFilters(){
   else if(sortMode==='za') res=[...res].sort((a,b)=>b.nombre.localeCompare(a.nombre));
   else if(sortMode==='price-asc') res=[...res].sort((a,b)=>(a.precio!==null?a.precio:999)-(b.precio!==null?b.precio:999));
   else if(sortMode==='price-desc') res=[...res].sort((a,b)=>(b.precio!==null?b.precio:0)-(a.precio!==null?a.precio:0));
-  filtered=res; currentPage=0;
+  filtered=res; currentPage=0; window._lastFiltered=[...res];
   document.getElementById('product-grid').innerHTML='';
   document.getElementById('results-count').textContent=filtered.length===0?'Sin resultados 🌸':(filtered.length+' producto'+(filtered.length!==1?'s':'')+' encontrados ✨');
   renderPage();
@@ -1777,10 +1785,25 @@ function openProductPage(p) {
   document.getElementById('pp-name').textContent = p.nombre;
 
   
-  const bsRate = window._bsRate || null;
-  let priceHtml = '<span>$'+p.precio.toFixed(2)+'</span>';
-  if(bsRate && p.precio>0) priceHtml += '<span style="font-size:1rem;font-weight:600;color:#888;margin-left:10px;">Bs. '+(p.precio*bsRate).toLocaleString('es-VE',{maximumFractionDigits:2})+'</span>';
-  document.getElementById('pp-price').innerHTML = priceHtml;
+  const _precio = p.precio;
+  function _renderPPPrice(){
+    const bsRate = window._bsRate || null;
+    let priceHtml = _precio>0 ? '<span>$'+_precio.toFixed(2)+'</span>' : '<span style="font-size:1.2rem">Consultar 💬</span>';
+    if(bsRate && _precio>0){
+      const bs = (_precio*bsRate).toLocaleString('es-VE',{maximumFractionDigits:2});
+      priceHtml += '<div style="font-size:1rem;font-weight:600;color:#888;margin-top:4px;">Bs. '+bs+'</div>';
+    }
+    const el = document.getElementById('pp-price');
+    if(el) el.innerHTML = priceHtml;
+  }
+  _renderPPPrice();
+  
+  if(!window._bsRate && _precio>0){
+    const _ppPriceRetry = setInterval(()=>{
+      if(window._bsRate){ _renderPPPrice(); clearInterval(_ppPriceRetry); }
+    }, 300);
+    setTimeout(()=>clearInterval(_ppPriceRetry), 10000);
+  }
 
   
   const stockEl = document.getElementById('pp-stock');
@@ -1816,7 +1839,14 @@ function openProductPage(p) {
   addBtn.textContent = p.stock<=0 ? '😢 Agotado' : '🛒 Agregar al carrito';
 
   
-  const related = CATALOG.filter(r=>r.id!==p.id && r.stock>0 && r.categoria===p.categoria).slice(0,8);
+  const _pool = (window._lastFiltered && window._lastFiltered.length>1)
+    ? window._lastFiltered
+    : CATALOG;
+  let related = _pool.filter(r=>r.id!==p.id && r.stock>0);
+  
+  const sameCat = related.filter(r=>r.categoria===p.categoria);
+  const otherCat = related.filter(r=>r.categoria!==p.categoria);
+  related = [...sameCat, ...otherCat].slice(0,8);
   const relGrid = document.getElementById('pp-related-grid');
   relGrid.innerHTML = '';
   if(related.length>0){
