@@ -89,7 +89,9 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 .toggle-label{font-size:.8rem;font-weight:700;color:var(--ts)}
 
  
-.results-bar{max-width:1400px;margin:0 auto;padding:10px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.results-bar{max-width:1400px;margin:0 auto;padding:10px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap
+  display:none;
+}
 .results-count{font-size:.85rem;color:var(--ts);font-weight:700}
 .sort-select{padding:7px 13px;border:2px solid var(--br);border-radius:var(--rb);background:white;font-family:var(--fb);font-size:.82rem;color:var(--tx);cursor:pointer;outline:none}
 .sort-select:focus{border-color:var(--pk)}
@@ -694,6 +696,170 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
  
 .cbody > div:first-child span { font-size:.68rem !important; }
 .csubcat { display:none; }
+
+ 
+#cat-sections { padding: 0 0 20px; }
+.cat-section  { margin-bottom: 32px; }
+
+.cat-row {
+  display: flex;
+  gap: 14px;
+  align-items: stretch;
+}
+
+ 
+.cat-banner {
+  flex: 0 0 180px;
+  background: linear-gradient(145deg,#fff0f8,#ffe4f4);
+  border: 1.5px solid var(--br);
+  border-radius: 20px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 16px rgba(255,110,180,.10);
+  min-height: 210px;
+}
+.cat-banner-icon { font-size: 1.9rem; margin-bottom: 7px; }
+.cat-banner-name {
+  font-family: var(--fh);
+  font-size: 1rem;
+  color: var(--tx);
+  line-height: 1.3;
+  margin-bottom: 7px;
+}
+.cat-banner-count {
+  font-size: .72rem;
+  color: var(--ts);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.cat-banner-btn {
+  background: var(--tx);
+  color: white;
+  border: none;
+  border-radius: 30px;
+  padding: 8px 14px;
+  font-family: var(--fb);
+  font-size: .76rem;
+  font-weight: 800;
+  cursor: pointer;
+  width: 100%;
+  transition: background .2s;
+  margin-top: auto;
+}
+.cat-banner-btn:hover { background: var(--pk); }
+
+ 
+.cat-carousel-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+}
+.cat-carousel {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 4px 6px 10px;
+  scrollbar-width: none;
+}
+.cat-carousel::-webkit-scrollbar { display: none; }
+
+ 
+.cat-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-65%);
+  width: 32px; height: 32px;
+  background: white;
+  border: 1.5px solid var(--br);
+  border-radius: 50%;
+  font-size: 18px;
+  color: var(--pk);
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(255,110,180,.2);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 10;
+  transition: all .2s;
+  padding: 0;
+}
+.cat-arrow:hover { background: var(--pk); color: white; border-color: var(--pk); }
+.cat-arrow-l { left: 2px; }
+.cat-arrow-r { right: 2px; }
+.cat-arrow.hidden { opacity: 0; pointer-events: none; }
+
+ 
+.cat-carousel .product-card {
+  flex: 0 0 148px !important;
+  min-width: 148px !important;
+  flex-direction: column !important;
+  border-radius: 16px !important;
+}
+.cat-carousel .product-card .cimg {
+  width: 100% !important;
+  min-width: unset !important;
+  height: 148px !important;
+  border-radius: 0 !important;
+}
+.cat-carousel .product-card .cimg-main {
+  height: 148px !important;
+}
+.cat-carousel .product-card .cbody {
+  padding: 7px 9px 9px !important;
+  gap: 2px !important;
+}
+.cat-carousel .product-card .cname {
+  font-size: .76rem !important;
+  font-weight: 700 !important;
+  -webkit-line-clamp: 2 !important;
+}
+.cat-carousel .product-card .cdesc { display: none !important; }
+.cat-carousel .product-card .csubcat { display: none !important; }
+.cat-carousel .product-card .cthumbs { display: none !important; }
+.cat-carousel .product-card .cprice {
+  font-size: .92rem !important;
+}
+.cat-carousel .product-card .cfoot {
+  flex-direction: column !important;
+  gap: 4px !important;
+  padding-top: 5px !important;
+}
+.cat-carousel .product-card .cadd {
+  width: 100% !important;
+  padding: 6px 8px !important;
+  font-size: .72rem !important;
+}
+
+ 
+.cat-scroll-bar {
+  height: 3px;
+  background: #FFD6EC;
+  border-radius: 10px;
+  margin-top: 4px;
+  overflow: hidden;
+  margin-left: 2px;
+}
+.cat-scroll-fill {
+  height: 100%;
+  background: linear-gradient(90deg,var(--pk),var(--pa));
+  border-radius: 10px;
+  width: 30%;
+  transition: width .15s;
+}
+
+ 
+.filtering #cat-sections { display: none; }
+.filtering #product-grid { display: grid !important; }
+
+@media(max-width:600px){
+  .cat-banner { flex: 0 0 130px; padding: 14px 12px; min-height: 180px; }
+  .cat-banner-name { font-size: .88rem; }
+  .cat-carousel .product-card { flex: 0 0 128px !important; min-width: 128px !important; }
+  .cat-carousel .product-card .cimg,
+  .cat-carousel .product-card .cimg-main { height: 128px !important; }
+}
 </style>
 </head>
 <body>
@@ -767,7 +933,7 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
   </div>
 </section>
 
-<div class="results-bar">
+<div class="results-bar" id="results-bar">
   <span class="results-count" id="results-count">Cargando...</span>
   <select class="sort-select" id="sort-sel">
     <option value="default">Orden original</option>
@@ -780,8 +946,11 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
 
 
 <section class="grid-section">
-  <div id="product-grid"></div>
+  
+  <div id="product-grid" style="display:none"></div>
   <div class="lm-wrap" id="lm-wrap" style="display:none"></div>
+  
+  <div id="cat-sections"></div>
 </section>
 
 
@@ -1067,6 +1236,7 @@ let cart = JSON.parse(localStorage.getItem('brl_cart3')||'[]');
 function init(){
   buildCats();
   setupPriceRange();
+  buildCatSections();
   applyFilters();
   updateCartUI();
 }
@@ -1126,6 +1296,16 @@ function applyFilters(){
   else if(sortMode==='price-asc') res=[...res].sort((a,b)=>(a.precio!==null?a.precio:999)-(b.precio!==null?b.precio:999));
   else if(sortMode==='price-desc') res=[...res].sort((a,b)=>(b.precio!==null?b.precio:0)-(a.precio!==null?a.precio:0));
   filtered=res; currentPage=0; window._lastFiltered=[...res];
+  
+  const isFiltering = activeCat!=='all' || searchQ!=='' || onlyStock || maxPrice<99;
+  const gridSec = document.querySelector('.grid-section');
+  const resultsBar = document.getElementById('results-bar');
+  if(gridSec){
+    if(isFiltering){ gridSec.classList.add('filtering'); }
+    else { gridSec.classList.remove('filtering'); }
+  }
+  if(resultsBar) resultsBar.style.display = isFiltering ? '' : 'none';
+  if(!isFiltering) return;
   document.getElementById('product-grid').innerHTML='';
   document.getElementById('results-count').textContent=filtered.length===0?'Sin resultados 🌸':(filtered.length+' producto'+(filtered.length!==1?'s':'')+' encontrados ✨');
   renderPage();
@@ -1995,6 +2175,118 @@ function ppAddToCart(){
     return;
   }
   addToCart(_ppProduct.id, _ppVariant);
+}
+
+
+
+
+
+const CAT_ICONS = {
+  'bisutería':'💎','bisuteria':'💎',
+  'papelería':'📝','papeleria':'📝',
+  'stickers':'✨','sticker':'✨',
+  'washitape':'🎀','washi':'🎀',
+  'peluches':'🧸','peluche':'🧸',
+  'libretas':'📓','libreta':'📓',
+  'agendas':'📅','agenda':'📅',
+  'cuadernos':'📒','cuaderno':'📒',
+  'lapiceros':'🖊️','lapicero':'🖊️',
+  'marcadores':'🖌️',
+  'kpop':'🎵','k-pop':'🎵',
+  'anime':'🎌',
+  'ropa':'👗',
+  'accesorios':'👜','accesorio':'👜',
+  'bolsos':'👜','carteras':'👜',
+  'otros':'🛒',
+  'correctores':'✏️',
+  'borradores':'🧹',
+  'sacapuntas':'✏️',
+  'carpetas':'📁',
+  'cartucheras':'🎒',
+  'portaminas':'🖊️',
+  'sticky notes':'📌','sticky':'📌',
+  'post its':'📌','post-its':'📌',
+  'marcapáginas':'🔖','marcapaginas':'🔖',
+  'bolígrafos':'🖊️','boligrafo':'🖊️',
+};
+
+function getCatIcon(cat){
+  const key = cat.replace(/[\u{1F000}-\u{1FFFF}💎✨🌟🎀🎁📝✏️🖊️🔖🛒👜📅🗒️🎵🧸🎌📁👗]/gu,'').trim().toLowerCase();
+  for(const k in CAT_ICONS){ if(key.includes(k)) return CAT_ICONS[k]; }
+  return '🌸';
+}
+
+function buildCatSections(){
+  const container = document.getElementById('cat-sections');
+  if(!container) return;
+  container.innerHTML = '';
+
+  
+  const catMap = new Map();
+  CATALOG.forEach(p => {
+    if(!p.categoria) return;
+    const key = p.categoria;
+    if(!catMap.has(key)) catMap.set(key, []);
+    catMap.get(key).push(p);
+  });
+
+  let secIdx = 0;
+  catMap.forEach((products, catName) => {
+    const icon = getCatIcon(catName);
+    const cleanName = catName.replace(/[\u{1F000}-\u{1FFFF}💎✨🌟🎀🎁📝✏️🖊️🔖🛒👜📅🗒️🎵🧸🎌📁👗]/gu,'').trim();
+    const carouselId = 'carousel-' + secIdx;
+
+    const sec = document.createElement('div');
+    sec.className = 'cat-section';
+    sec.innerHTML = `
+      <div class="cat-row">
+        <div class="cat-banner">
+          <div>
+            <div class="cat-banner-icon">${icon}</div>
+            <div class="cat-banner-name">${cleanName}</div>
+            <div class="cat-banner-count">${products.length} producto${products.length!==1?'s':''}</div>
+          </div>
+          <button class="cat-banner-btn" onclick="filterByCat(${JSON.stringify(catName)})">Ver todo →</button>
+        </div>
+        <div class="cat-carousel-wrap">
+          <button class="cat-arrow cat-arrow-l" onclick="catScroll('${carouselId}',-1)">‹</button>
+          <div class="cat-carousel" id="${carouselId}"></div>
+          <button class="cat-arrow cat-arrow-r" onclick="catScroll('${carouselId}',1)">›</button>
+          <div class="cat-scroll-bar"><div class="cat-scroll-fill" id="fill-${carouselId}"></div></div>
+        </div>
+      </div>`;
+
+    const carousel = sec.querySelector('.cat-carousel');
+    products.forEach((p, i) => carousel.appendChild(buildCard(p, i)));
+
+    // Update scroll indicator
+    const fillEl = sec.querySelector('.cat-scroll-fill');
+    carousel.addEventListener('scroll', () => {
+      const pct = carousel.scrollLeft / (carousel.scrollWidth - carousel.clientWidth);
+      if(fillEl) fillEl.style.width = Math.round(20 + pct*80) + '%';
+    });
+
+    container.appendChild(sec);
+    secIdx++;
+  });
+}
+
+function catScroll(id, dir){
+  const el = document.getElementById(id);
+  if(el) el.scrollBy({left: dir * 480, behavior:'smooth'});
+}
+
+function filterByCat(cat){
+  
+  activeCat = cat;
+  searchQ = '';
+  document.getElementById('search-input') && (document.getElementById('search-input').value = '');
+  
+  document.querySelectorAll('.pill').forEach(p => p.classList.toggle('active', p.dataset.cat===cat));
+  applyFilters();
+  
+  const fs = document.querySelector('.filters-section');
+  if(fs) fs.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 </script>
