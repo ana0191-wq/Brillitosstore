@@ -96,7 +96,7 @@ input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;heigh
 
  
 .grid-section{max-width:1400px;margin:0 auto;padding:16px 24px 40px}
-#product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(560px,1fr));gap:16px}
+#product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px}
 
  
 .sk-card{background:white;border-radius:var(--rc);overflow:hidden;border:1.5px solid var(--br)}
@@ -397,7 +397,7 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
   overflow:hidden;
   cursor:pointer;
   display:flex;
-  flex-direction:row;
+  flex-direction:column;
   box-shadow:0 4px 20px rgba(255,110,180,.10);
   transition:transform .2s,box-shadow .2s;
   animation:fcrd .35s ease both;
@@ -406,8 +406,9 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
 
  
 .cimg{
-  width:220px;
-  min-width:220px;
+  width:100%;
+  min-width:unset;
+  height:200px;
   flex-shrink:0;
   background:var(--pgbg);
   position:relative;
@@ -420,7 +421,7 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
  
 .cimg-main{
   width:100%;
-  height:210px;
+  height:200px;
   object-fit:cover;
   display:block;
   flex-shrink:0;
@@ -474,16 +475,16 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
  
 .cbody{
   flex:1;
-  padding:16px 18px 14px;
+  padding:12px 14px 12px;
   display:flex;
   flex-direction:column;
-  gap:3px;
+  gap:2px;
   min-width:0;
   overflow:hidden;
 }
 .cname{
   font-weight:800;
-  font-size:1rem;
+  font-size:.92rem;
   color:var(--tx);
   line-height:1.3;
   display:-webkit-box;
@@ -492,23 +493,16 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
   overflow:hidden;
   margin-bottom:2px;
 }
-.csubcat{font-size:.78rem;color:var(--ts);font-weight:600}
+.csubcat{font-size:.75rem;color:var(--ts);font-weight:600;margin-bottom:1px;}
 .cdesc{
-  font-size:.8rem;
-  color:var(--ts);
-  line-height:1.4;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
+  display:none;
 }
 .cfoot{
   margin-top:auto;
-  padding-top:10px;
+  padding-top:8px;
   display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:8px;
+  flex-direction:column;
+  gap:7px;
 }
 .cprice{font-family:var(--fh);font-size:1.25rem;color:var(--pk);font-weight:900;line-height:1}
 .cprice.nop{font-family:var(--fb);font-size:.82rem;color:var(--ts);font-weight:700}
@@ -520,6 +514,7 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
   font-family:var(--fb);font-size:.85rem;font-weight:800;
   cursor:pointer;
   white-space:nowrap;
+  width:100%;
   transition:transform .15s,box-shadow .15s;
 }
 .cadd:hover{transform:scale(1.05);box-shadow:0 4px 14px rgba(255,110,180,.4)}
@@ -694,6 +689,15 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
  
 .pp-related-grid .product-card .cthumbs{
   display:none !important;
+}
+
+@media(max-width:600px){
+  #product-grid{grid-template-columns:repeat(2,1fr);gap:10px;}
+  .cimg{height:160px;}
+  .cimg-main{height:160px;}
+}
+@media(min-width:601px) and (max-width:900px){
+  #product-grid{grid-template-columns:repeat(3,1fr);}
 }
 </style>
 </head>
