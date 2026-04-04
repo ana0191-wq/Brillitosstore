@@ -613,51 +613,85 @@ footer{background:white;border-top:2px solid var(--br);text-align:center;padding
  
 .pp-related-grid .product-card{
   background:white;
-  border:2px solid white;
-  box-shadow:0 4px 18px rgba(255,105,180,.15);
+  border:2.5px solid white;
+  box-shadow:0 4px 18px rgba(255,110,180,.13);
   border-radius:18px;
   flex-direction:column !important;
   overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
 }
+.pp-related-grid .product-card:hover{
+  transform:translateY(-3px);
+  box-shadow:0 10px 28px rgba(255,110,180,.22);
+}
+ 
 .pp-related-grid .product-card .cimg{
   width:100% !important;
   min-width:unset !important;
-  height:180px;
+  height:165px !important;
   border-radius:0 !important;
+  flex-shrink:0;
 }
 .pp-related-grid .product-card .cimg-main{
-  width:100%;
-  height:180px;
+  width:100% !important;
+  height:165px !important;
   object-fit:cover;
 }
+ 
 .pp-related-grid .product-card .cbody{
   padding:10px 12px 12px !important;
+  gap:1px !important;
+  display:flex !important;
+  flex-direction:column !important;
 }
+ 
+.pp-related-grid .product-card [style*="color:var(--pk)"]{
+  font-size:.72rem !important;
+}
+ 
 .pp-related-grid .product-card .cname{
   font-size:.88rem !important;
-  -webkit-line-clamp:2;
+  font-weight:800 !important;
+  color:#4A0030 !important;
+  -webkit-line-clamp:2 !important;
+  margin-bottom:0 !important;
 }
+ 
+.pp-related-grid .product-card .cdesc{
+  display:none !important;
+}
+.pp-related-grid .product-card .csubcat{
+  display:none !important;
+}
+ 
 .pp-related-grid .product-card .cprice{
-  font-size:1rem !important;
+  font-family:var(--fh) !important;
+  font-size:1.1rem !important;
   font-weight:900 !important;
   color:var(--pk) !important;
-  display:block !important;
-  margin-top:4px;
+  margin-top:6px !important;
+  line-height:1 !important;
 }
 .pp-related-grid .product-card .cprice.nop{
-  font-size:.8rem !important;
-  color:#999 !important;
+  font-size:.82rem !important;
+  color:var(--ts) !important;
+  font-family:var(--fb) !important;
 }
+ 
 .pp-related-grid .product-card .cfoot{
-  display:flex;
-  flex-direction:column;
-  gap:6px;
+  display:flex !important;
+  flex-direction:column !important;
+  gap:7px !important;
+  margin-top:auto !important;
+  padding-top:8px !important;
 }
 .pp-related-grid .product-card .cadd{
-  width:100%;
-  font-size:.8rem !important;
-  padding:7px 10px !important;
+  width:100% !important;
+  font-size:.82rem !important;
+  padding:8px 10px !important;
+  border-radius:30px !important;
 }
+ 
 .pp-related-grid .product-card .cthumbs{
   display:none !important;
 }
