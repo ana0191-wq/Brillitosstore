@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pedidos Online · Brillitos 🛍️</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Nunito',sans-serif;background:#FDF6FF;color:#3D1A4A;min-height:100vh}
+
+/* Header */
+.p-header{
+  background:linear-gradient(135deg,#F387C3,#DCABFC);
+  padding:24px 20px 32px;
+  text-align:center;
+  position:relative;
+}
+.p-header-back{
+  position:absolute;left:16px;top:20px;
+  color:#fff;text-decoration:none;font-weight:700;font-size:.9rem;
+  background:rgba(255,255,255,.2);border-radius:50px;
+  padding:6px 14px;transition:background .2s;
+}
+.p-header-back:hover{background:rgba(255,255,255,.35)}
+.p-logo{
+  font-family:'Pacifico',cursive;font-size:1.8rem;color:#fff;
+  margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.1);
+}
+.p-subtitle{color:rgba(255,255,255,.9);font-size:1rem;font-weight:600}
+
+/* Stores row */
+.stores-row{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
+  padding:20px 20px 4px;max-width:700px;margin:0 auto;
+}
+.store-chip{
+  display:flex;align-items:center;gap:7px;
+  background:#fff;border:2px solid #FCACC7;border-radius:50px;
+  padding:8px 16px;font-weight:700;font-size:.88rem;color:#3D1A4A;
+  text-decoration:none;transition:all .2s;cursor:default;
+}
+.store-chip:hover{background:#FDF0F8;border-color:#F387C3}
+.store-ico{font-size:1.1rem}
+
+/* Cards container */
+.p-content{max-width:700px;margin:0 auto;padding:20px 16px 40px}
+
+/* Info cards */
+.info-card{
+  background:#fff;border-radius:20px;
+  box-shadow:0 2px 14px rgba(243,135,195,.13);
+  padding:22px 20px;margin-bottom:16px;
+  border-left:4px solid #F387C3;
+}
+.info-card.lila{border-left-color:#DCABFC}
+.info-card.blue{border-left-color:#CDEAFC}
+.info-card.cream{border-left-color:#FAE6CD}
+.info-card-title{
+  font-family:'Pacifico',cursive;font-size:1.05rem;
+  color:#3D1A4A;margin-bottom:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.info-card p{font-size:.9rem;color:#3D1A4A;line-height:1.6;margin-bottom:8px}
+.info-card p:last-child{margin-bottom:0}
+.info-card strong{color:#F387C3}
+.info-card.lila strong{color:#9B8FE0}
+.info-card.blue strong{color:#5DA8CC}
+
+/* Steps */
+.steps{list-style:none;padding:0}
+.steps li{
+  display:flex;align-items:flex-start;gap:12px;
+  margin-bottom:12px;font-size:.9rem;line-height:1.5;
+}
+.step-num{
+  min-width:28px;height:28px;border-radius:50%;
+  background:linear-gradient(135deg,#F387C3,#DCABFC);
+  color:#fff;font-weight:800;font-size:.82rem;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;margin-top:1px;
+}
+
+/* Shipping table */
+.ship-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.88rem}
+.ship-table th{
+  background:linear-gradient(135deg,#F387C3,#DCABFC);
+  color:#fff;padding:9px 12px;text-align:left;font-weight:800;
+}
+.ship-table th:first-child{border-radius:10px 0 0 0}
+.ship-table th:last-child{border-radius:0 10px 0 0}
+.ship-table td{padding:9px 12px;border-bottom:1px solid #FDF0F8}
+.ship-table tr:last-child td{border-bottom:none}
+.ship-table tr:nth-child(even) td{background:#FDF6FF}
+.tag-aereo{background:#FCACC7;color:#D45FA0;border-radius:50px;padding:2px 10px;font-weight:700;font-size:.78rem}
+.tag-maritimo{background:#CDEAFC;color:#5DA8CC;border-radius:50px;padding:2px 10px;font-weight:700;font-size:.78rem}
+
+/* CTA */
+.cta-box{
+  text-align:center;margin-top:24px;
+  background:linear-gradient(135deg,#F387C3,#DCABFC);
+  border-radius:20px;padding:24px 20px;
+}
+.cta-box p{color:#fff;font-weight:700;font-size:.95rem;margin-bottom:14px}
+.cta-btn{
+  display:inline-flex;align-items:center;gap:8px;
+  background:#fff;color:#F387C3;border-radius:50px;
+  padding:12px 28px;font-weight:800;font-size:1rem;
+  text-decoration:none;transition:all .2s;
+  box-shadow:0 3px 12px rgba(0,0,0,.12);
+}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+
+<div class="p-header">
+  <a class="p-header-back" href="index.html">← Volver a la tienda</a>
+  <div class="p-logo">🛍️ Pedidos Online</div>
+  <div class="p-subtitle">Gestionamos tu compra desde tiendas internacionales</div>
+</div>
+
+<div class="stores-row">
+  <div class="store-chip"><span class="store-ico">👗</span> Shein</div>
+  <div class="store-chip"><span class="store-ico">🛒</span> AliExpress</div>
+  <div class="store-chip"><span class="store-ico">🎁</span> Temu</div>
+  <div class="store-chip"><span class="store-ico">📦</span> Amazon</div>
+  <div class="store-chip"><span class="store-ico">🌐</span> Otra tienda</div>
+</div>
+
+<div class="p-content">
+
+  <!-- Opción 1: Artículo único -->
+  <div class="info-card">
+    <div class="info-card-title">📦 Artículo único</div>
+    <p>Si quieres un solo producto, nosotros te damos el <strong>precio final todo incluido</strong> — el costo del artículo más el envío hasta Venezuela. Sin sorpresas. 🌸</p>
+    <p>Solo envíanos el enlace del producto por WhatsApp y te cotizamos al instante.</p>
+  </div>
+
+  <!-- Opción 2: Carrito -->
+  <div class="info-card lila">
+    <div class="info-card-title">🛒 Carrito completo</div>
+    <p>Si tienes varios productos, el proceso es en <strong>dos pagos:</strong></p>
+    <ul class="steps" style="margin-top:8px">
+      <li><div class="step-num">1</div><span><strong>Pagas el total de la aplicación</strong> — exactamente lo que muestra la tienda online.</span></li>
+      <li><div class="step-num">2</div><span>Una vez recibida la mercancía, <strong>pagas el envío</strong> según el peso de tu pedido.</span></li>
+    </ul>
+  </div>
+
+  <!-- Envíos -->
+  <div class="info-card blue">
+    <div class="info-card-title">✈️ Tipos de envío</div>
+    <p>El costo de envío se calcula <strong>por libra</strong>. Hay dos modalidades:</p>
+    <table class="ship-table" style="margin-top:12px">
+      <tr>
+        <th>Modalidad</th>
+        <th>Precio/libra</th>
+        <th>Tiempo estimado</th>
+      </tr>
+      <tr>
+        <td><span class="tag-aereo">✈️ Aéreo</span></td>
+        <td><strong>~$10 USD</strong></td>
+        <td>~3 semanas</td>
+      </tr>
+      <tr>
+        <td><span class="tag-maritimo">🚢 Marítimo</span></td>
+        <td><strong>~$9 USD</strong></td>
+        <td>~2 meses</td>
+      </tr>
+    </table>
+    <p style="margin-top:12px;font-size:.82rem;color:#8B5A8B">⚠️ El peso final se confirma al recibir los productos. Generalmente usamos envío aéreo.</p>
+  </div>
+
+  <!-- Cómo pedir -->
+  <div class="info-card cream">
+    <div class="info-card-title">💬 ¿Cómo hago mi pedido?</div>
+    <ol class="steps">
+      <li><div class="step-num">1</div><span>Envíanos el <strong>link del producto o carrito</strong> por WhatsApp.</span></li>
+      <li><div class="step-num">2</div><span>Te enviamos la <strong>cotización</strong> con el precio total o el desglose.</span></li>
+      <li><div class="step-num">3</div><span>Realizas el <strong>pago del artículo</strong> y nosotros hacemos la compra.</span></li>
+      <li><div class="step-num">4</div><span>Al llegar a Venezuela, pagas el <strong>envío según el peso</strong>.</span></li>
+      <li><div class="step-num">5</div><span>¡Recibe tu pedido en <strong>Puerto Ordaz</strong>! 🎉</span></li>
+    </ol>
+  </div>
+
+  <!-- CTA WhatsApp -->
+  <div class="cta-box">
+    <p>¿Lista para hacer tu pedido? ¡Escríbenos ahora! 🌸</p>
+    <a class="cta-btn" href="https://wa.me/584249006350?text=Hola%20Brillitos!%20Quiero%20hacer%20un%20pedido%20online%20%F0%9F%9B%8D%EF%B8%8F" target="_blank">
+      📲 Escribir por WhatsApp
+    </a>
+  </div>
+
+</div>
+</body>
+</html>
