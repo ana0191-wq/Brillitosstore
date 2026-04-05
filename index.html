@@ -234,7 +234,7 @@
         <div class="subtotal-row"><span class="label">Subtotal</span><span class="val highlight" id="wa-sub">$0.00</span></div>
         <div class="subtotal-row" style="margin-bottom:10px"><span class="label" style="font-size:.75rem;color:#A0527A">💡 Los productos sin precio se consultan</span></div>
         <div class="wa-num-row">
-          <label>WhatsApp:</label>
+          <label for="wa-num">WhatsApp:</label>
           <input type="tel" id="wa-num" placeholder="&#43;58 4XX XXX XXXX" value="&#43;584249006350" />
         </div>
         <button class="pay-action green" onclick="sendWA()">💬 Enviar pedido por WhatsApp</button>
@@ -259,7 +259,7 @@
         <div class="subtotal-row"><span class="label">Subtotal en USD</span><span class="val" id="bnc-sub">$0.00</span></div>
         <div class="divider"></div>
         <div class="bnc-row">
-          <label>1 USDT vale (USD):</label>
+          <label for="bnc-rate">1 USDT vale (USD):</label>
           <input type="number" id="bnc-rate" value="1" step="0.001" min="0.001" oninput="calcBNC()" />
         </div>
         <div class="pp-note">💡 USDT es estable: 1 USDT ≈ $1 USD. Solo cambia si tu P2P tiene spread. Comisión Binance Pay = 0%.</div>
@@ -274,7 +274,7 @@
         <div class="subtotal-row"><span class="label">Subtotal USD</span><span class="val" id="bs-sub">$0.00</span></div>
         <div class="divider"></div>
         <div class="bs-row">
-          <label>Tasa BCV (Bs/$):</label>
+          <label for="bs-rate">Tasa BCV (Bs/$):</label>
           <input type="number" id="bs-rate" value="40" step="0.01" min="0.01" oninput="calcBS()" />
           <button id="bs-refresh-btn" onclick="fetchBCVRates()" title="Actualizar tasa BCV" style="background:#FF6EB4;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;color:#fff;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0">🔄</button>
         </div>
@@ -633,9 +633,9 @@ function buildCatSections(){
           '<button class="cat-banner-btn" onclick="filterByCat('+JSON.stringify(catName)+')">Ver todo →</button>'+
         '</div>'+
         '<div class="cat-carousel-wrap">'+
-          '<button class="cat-arrow cat-arrow-l" onclick="catScroll(''+carouselId+'',-1)">‹</button>'+
+          '<button class="cat-arrow cat-arrow-l" onclick="catScroll('+carouselId+',-1)">‹</button>'+
           '<div class="cat-carousel" id="'+carouselId+'"></div>'+
-          '<button class="cat-arrow cat-arrow-r" onclick="catScroll(''+carouselId+'',1)">›</button>'+
+          '<button class="cat-arrow cat-arrow-r" onclick="catScroll('+carouselId+',1)">›</button>'+
           '<div class="cat-scroll-bar"><div class="cat-scroll-fill" id="fill-'+carouselId+'"></div></div>'+
         '</div>'+
       '</div>';
@@ -673,8 +673,9 @@ function filterByCat(cat){
   if(fs) fs.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
-</script>
-<script>
+
+
+
 function switchCardImg(thumbEl,src){
   const card=thumbEl.closest('.product-card');
   if(!card) return;
@@ -1436,6 +1437,7 @@ function ppAddToCart(){
   }
   addToCart(_ppProduct.id, _ppVariant);
 }
+
 </script>
 </body>
 </html>
