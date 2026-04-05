@@ -1223,7 +1223,7 @@ function renderHomeSections(){
       var firstImg=prods.map(function(p){return p.imagen;}).find(function(u){return u&&u.startsWith('http');});
       var card=document.createElement('div');
       card.className='snippet-card';
-      card.innerHTML='<div class="snippet-img-wrap">'+(firstImg?'<img src="'+firstImg+'" alt="" loading="lazy" onerror="this.style.display='none'">':'<div class="snippet-img-placeholder">??</div>')+'</div><div class="snippet-body"><div class="snippet-name">'+cat+'</div><div class="snippet-count">'+prods.length+' productos</div></div>';
+      card.innerHTML='<div class="snippet-img-wrap">'+(firstImg?'<img src="'+firstImg+'" alt="" loading="lazy" onerror="imgFallback(this)">':'<div class="snippet-img-placeholder">??</div>')+'</div><div class="snippet-body"><div class="snippet-name">'+cat+'</div><div class="snippet-count">'+prods.length+' productos</div></div>';
       card.addEventListener('click',function(){jumpToCats([cat]);});
       sgrid.appendChild(card);
     });
