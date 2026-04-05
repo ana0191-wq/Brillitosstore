@@ -362,7 +362,7 @@
 
 
 
-const CAT_ICONS = {
+var CAT_ICONS = {
   'bisutería':'💎','bisuteria':'💎',
   'papelería':'📝','papeleria':'📝',
   'stickers':'✨','sticker':'✨',
@@ -394,17 +394,17 @@ const CAT_ICONS = {
 
 
 
-const CATALOG = __BRILLITOS_CATALOG__;
+var CATALOG = __BRILLITOS_CATALOG__;
 
 
 
 
-const WA_NUMBER = '584249006350';
+var WA_NUMBER = '584249006350';
 
 
 
 
-const PAGE = 20;
+var PAGE = 20;
 let filtered=[], currentPage=0, activeCat='all', searchQ='', sortMode='default', maxPrice=99, onlyStock=false;
 let cart = JSON.parse(localStorage.getItem('brl_cart3')||'[]');
 
@@ -1076,8 +1076,8 @@ init();
 
 
 
-let _modalCurrentProduct = null; 
-let _selectedVariant = null;     
+var _modalCurrentProduct = null; 
+var _selectedVariant = null;     
 
 
 
@@ -1140,8 +1140,8 @@ function clearVariants() {
 
 
 
-const BCV_CACHE_KEY = 'brillitos_bcv_cache';
-const BCV_CACHE_TTL = 60 * 60 * 1000; 
+var BCV_CACHE_KEY = 'brillitos_bcv_cache';
+var BCV_CACHE_TTL = 60 * 60 * 1000; 
 
 
 
@@ -1259,12 +1259,12 @@ function modalNextImg(){
 
 
 
-let _ppProduct = null;
-let _ppImgIdx  = 0;
-let _ppVariant = null;
+var _ppProduct = null;
+var _ppImgIdx  = 0;
+var _ppVariant = null;
 
-let _catalogPage = 0;
-let _catalogScroll = 0;
+var _catalogPage = 0;
+var _catalogScroll = 0;
 
 function openProductPage(p) {
   _ppProduct = p;
