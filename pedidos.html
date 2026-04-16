@@ -7,191 +7,203 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+:root {
+  --pk:#F387C3; --pk-l:#FCACC7; --pk-p:#FDF0F8; --pk-d:#D45FA0;
+  --pa:#DCABFC; --pu:#BFBDFE; --pu-l:#EDE9FF; --bl:#CDEAFC; --cr:#FAE6CD;
+  --ye:#F0EBF8;
+  --tx:#5C3A1E; --ts:#9B6B9B; --pgbg:#FDE8F0; --bg:#FFFAF5;
+  --br:#E8C4A0; --rc:16px; --rb:50px;
+  --fh:'Pacifico',cursive; --fb:'Nunito',sans-serif;
+}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Nunito',sans-serif;background:#FDF6FF;color:#3D1A4A;min-height:100vh}
+html{scroll-behavior:smooth}
+body{font-family:var(--fb);background:var(--pgbg);color:var(--tx);min-height:100vh}
 
-/* Header */
-.p-header{
-  background:linear-gradient(135deg,#F387C3,#DCABFC);
-  padding:24px 20px 32px;
-  text-align:center;
-  position:relative;
-}
-.p-header-back{
-  position:absolute;left:16px;top:20px;
-  color:#fff;text-decoration:none;font-weight:700;font-size:.9rem;
-  background:rgba(255,255,255,.2);border-radius:50px;
-  padding:6px 14px;transition:background .2s;
-}
-.p-header-back:hover{background:rgba(255,255,255,.35)}
-.p-logo{
-  font-family:'Pacifico',cursive;font-size:1.8rem;color:#fff;
-  margin-bottom:6px;text-shadow:0 2px 8px rgba(0,0,0,.1);
-}
-.p-subtitle{color:rgba(255,255,255,.9);font-size:1rem;font-weight:600}
+/* ── OUTER ── */
+.kw-outer{width:100%;background:var(--pgbg);padding:0 0 20px;overflow:hidden}
 
-/* Stores row */
-.stores-row{
-  display:flex;flex-wrap:wrap;justify-content:center;gap:10px;
-  padding:20px 20px 4px;max-width:700px;margin:0 auto;
-}
-.store-chip{
-  display:flex;align-items:center;gap:7px;
-  background:#fff;border:2px solid #FCACC7;border-radius:50px;
-  padding:8px 16px;font-weight:700;font-size:.88rem;color:#3D1A4A;
-  text-decoration:none;transition:all .2s;cursor:default;
-}
-.store-chip:hover{background:#FDF0F8;border-color:#F387C3}
-.store-ico{font-size:1.1rem}
+/* ── SCALLOP TOP ── */
+.kw-scallop-top{height:72px;background:linear-gradient(180deg,#F387C3 0%,#FCACC7 60%,#F0EBF8 100%);position:relative;overflow:hidden}
+.kw-scallop-top::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0px,transparent 20px,rgba(255,255,255,.3) 20px,rgba(255,255,255,.3) 40px)}
+.kw-scallop-top::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:24px;background:#F0EBF8;clip-path:polygon(0% 100%,4.16% 0%,8.33% 100%,12.5% 0%,16.66% 100%,20.83% 0%,25% 100%,29.16% 0%,33.33% 100%,37.5% 0%,41.66% 100%,45.83% 0%,50% 100%,54.16% 0%,58.33% 100%,62.5% 0%,66.66% 100%,70.83% 0%,75% 100%,79.16% 0%,83.33% 100%,87.5% 0%,91.66% 100%,95.83% 0%,100% 100%)}
 
-/* Cards container */
-.p-content{max-width:700px;margin:0 auto;padding:20px 16px 40px}
+/* ── HEADER ── */
+header{position:sticky;top:0;z-index:100;background:var(--ye);border-bottom:2px dashed var(--br);padding:0 40px;height:68px;display:flex;align-items:center;gap:16px}
+.p-back{background:#fff;border:2px solid var(--pk-l);border-radius:var(--rb);padding:7px 18px;font-family:var(--fb);font-weight:800;font-size:.85rem;color:var(--pk);cursor:pointer;text-decoration:none;transition:all .2s;flex-shrink:0}
+.p-back:hover{background:var(--pk);color:#fff}
+.p-logo{font-family:var(--fh);font-size:1.3rem;color:var(--pk)}
+.p-subtitle{font-size:.82rem;color:var(--ts);font-weight:700;margin-left:auto}
 
-/* Info cards */
-.info-card{
-  background:#fff;border-radius:20px;
-  box-shadow:0 2px 14px rgba(243,135,195,.13);
-  padding:22px 20px;margin-bottom:16px;
-  border-left:4px solid #F387C3;
-}
-.info-card.lila{border-left-color:#DCABFC}
-.info-card.blue{border-left-color:#CDEAFC}
-.info-card.cream{border-left-color:#FAE6CD}
-.info-card-title{
-  font-family:'Pacifico',cursive;font-size:1.05rem;
-  color:#3D1A4A;margin-bottom:12px;
-  display:flex;align-items:center;gap:8px;
-}
-.info-card p{font-size:.9rem;color:#3D1A4A;line-height:1.6;margin-bottom:8px}
+/* ── HERO ── */
+.p-hero{background:linear-gradient(135deg,#FFF0F8 0%,#F0F8FF 50%,#FFF9E6 100%);padding:48px 40px 36px;text-align:center;border-bottom:2px dashed var(--br);position:relative;overflow:hidden}
+.p-hero-deco{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:center;gap:16px;font-size:1rem;opacity:.4}
+.p-hero-title{font-family:var(--fh);font-size:2.2rem;color:var(--pk);margin-bottom:8px}
+.p-hero-sub{font-size:1rem;color:var(--ts);font-weight:700;margin-bottom:20px}
+
+/* ── STORES ROW ── */
+.stores-banner{background:var(--cr);padding:14px 40px;border-bottom:2px dashed var(--br);display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center}
+.store-chip{background:#fff;border:2px solid var(--pk-l);border-radius:var(--rb);padding:7px 18px;font-family:var(--fb);font-size:.85rem;font-weight:800;color:var(--tx);display:flex;align-items:center;gap:6px}
+.store-ico{font-size:1rem}
+
+/* ── CONTENT ── */
+.p-content{max-width:800px;margin:0 auto;padding:32px 40px}
+.info-card{background:#fff;border:2px solid var(--pk-l);border-radius:20px;padding:24px;margin-bottom:20px;box-shadow:0 4px 16px rgba(243,135,195,.08)}
+.info-card.lila{border-color:var(--pu);background:var(--pu-l)}
+.info-card.blue{border-color:#CDEAFC;background:linear-gradient(135deg,#F0F8FF,#fff)}
+.info-card.cream{border-color:var(--br);background:linear-gradient(135deg,#FFF9F0,#fff)}
+.info-card-title{font-family:var(--fh);font-size:1.1rem;color:var(--pk);margin-bottom:12px}
+.info-card.lila .info-card-title{color:#8B5ABB}
+.info-card.blue .info-card-title{color:#5DA8CC}
+.info-card.cream .info-card-title{color:#C07840}
+.info-card p{font-size:.9rem;color:var(--tx);line-height:1.6;margin-bottom:8px}
 .info-card p:last-child{margin-bottom:0}
-.info-card strong{color:#F387C3}
-.info-card.lila strong{color:#9B8FE0}
-.info-card.blue strong{color:#5DA8CC}
 
-/* Steps */
-.steps{list-style:none;padding:0}
-.steps li{
-  display:flex;align-items:flex-start;gap:12px;
-  margin-bottom:12px;font-size:.9rem;line-height:1.5;
-}
-.step-num{
-  min-width:28px;height:28px;border-radius:50%;
-  background:linear-gradient(135deg,#F387C3,#DCABFC);
-  color:#fff;font-weight:800;font-size:.82rem;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;margin-top:1px;
-}
+/* ── STEPS ── */
+.steps{list-style:none;display:flex;flex-direction:column;gap:10px;margin-top:4px}
+.steps li{display:flex;align-items:flex-start;gap:12px;font-size:.88rem;color:var(--tx);line-height:1.5}
+.step-num{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;font-family:var(--fh);font-size:.8rem;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.info-card.lila .step-num{background:linear-gradient(135deg,var(--pu),var(--pa))}
+.info-card.cream .step-num{background:linear-gradient(135deg,#E8A060,#F0C080)}
 
-/* Shipping table */
-.ship-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:.88rem}
-.ship-table th{
-  background:linear-gradient(135deg,#F387C3,#DCABFC);
-  color:#fff;padding:9px 12px;text-align:left;font-weight:800;
-}
-.ship-table th:first-child{border-radius:10px 0 0 0}
-.ship-table th:last-child{border-radius:0 10px 0 0}
-.ship-table td{padding:9px 12px;border-bottom:1px solid #FDF0F8}
+/* ── TABLE ── */
+.ship-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.ship-table th{background:linear-gradient(135deg,var(--bl),#E8F4FF);padding:10px 14px;text-align:left;font-weight:800;color:var(--tx);border-bottom:2px solid #CDEAFC}
+.ship-table td{padding:10px 14px;border-bottom:1px dashed #CDEAFC;color:var(--tx)}
 .ship-table tr:last-child td{border-bottom:none}
-.ship-table tr:nth-child(even) td{background:#FDF6FF}
-.tag-aereo{background:#FCACC7;color:#D45FA0;border-radius:50px;padding:2px 10px;font-weight:700;font-size:.78rem}
-.tag-maritimo{background:#CDEAFC;color:#5DA8CC;border-radius:50px;padding:2px 10px;font-weight:700;font-size:.78rem}
+.tag-aereo{background:var(--bl);color:#5DA8CC;padding:3px 10px;border-radius:var(--rb);font-weight:800;font-size:.78rem}
+.tag-maritimo{background:#DFF5F0;color:#38A169;padding:3px 10px;border-radius:var(--rb);font-weight:800;font-size:.78rem}
 
-/* CTA */
-.cta-box{
-  text-align:center;margin-top:24px;
-  background:linear-gradient(135deg,#F387C3,#DCABFC);
-  border-radius:20px;padding:24px 20px;
+/* ── CTA ── */
+.cta-box{background:linear-gradient(135deg,var(--pk-p),var(--pu-l));border:2px dashed var(--pk-l);border-radius:20px;padding:32px;text-align:center;margin-top:8px}
+.cta-box p{font-family:var(--fh);font-size:1.2rem;color:var(--pk);margin-bottom:20px}
+.cta-btn{display:inline-flex;align-items:center;gap:10px;background:linear-gradient(135deg,#38a169,#48bb78);color:#fff;border:none;border-radius:var(--rb);padding:14px 32px;font-family:var(--fb);font-weight:800;font-size:1rem;text-decoration:none;box-shadow:0 4px 18px rgba(56,161,105,.3);transition:all .2s}
+.cta-btn:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(56,161,105,.4)}
+
+/* ── FOOTER ── */
+.brl-footer{background:var(--ye);border-top:2px dashed var(--br);padding:24px 40px;margin-top:8px}
+.brl-footer-inner{max-width:800px;margin:0 auto}
+.brl-footer-logo{font-family:var(--fh);font-size:1.1rem;color:var(--pk);margin-bottom:10px;text-align:center}
+.brl-footer-cols{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px}
+.brl-footer-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ts);font-weight:700}
+.brl-footer-link{text-decoration:none;background:#fff;border:2px solid var(--pk-l);border-radius:var(--rb);padding:4px 12px;transition:all .2s}
+.brl-footer-link:hover{background:var(--pk);color:#fff;border-color:var(--pk)}
+.brl-footer-copy{font-size:.72rem;color:var(--ts);text-align:center;font-weight:600}
+
+/* ── SCALLOP BOTTOM ── */
+.kw-scallop-bottom{height:16px;background:var(--bl);clip-path:polygon(0% 0%,4.16% 100%,8.33% 0%,12.5% 100%,16.66% 0%,20.83% 100%,25% 0%,29.16% 100%,33.33% 0%,37.5% 100%,41.66% 0%,45.83% 100%,50% 0%,54.16% 100%,58.33% 0%,62.5% 100%,66.66% 0%,70.83% 100%,75% 0%,79.16% 100%,83.33% 0%,87.5% 100%,91.66% 0%,95.83% 100%,100% 0%);margin-top:6px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  header{padding:0 16px;height:60px}
+  .p-subtitle{display:none}
+  .p-hero{padding:28px 20px 22px}
+  .p-hero-title{font-size:1.6rem}
+  .stores-banner{padding:12px 16px}
+  .p-content{padding:20px 16px}
+  .info-card{padding:16px}
+  .cta-box{padding:20px}
+  .brl-footer{padding:16px}
 }
-.cta-box p{color:#fff;font-weight:700;font-size:.95rem;margin-bottom:14px}
-.cta-btn{
-  display:inline-flex;align-items:center;gap:8px;
-  background:#fff;color:#F387C3;border-radius:50px;
-  padding:12px 28px;font-weight:800;font-size:1rem;
-  text-decoration:none;transition:all .2s;
-  box-shadow:0 3px 12px rgba(0,0,0,.12);
-}
-.cta-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(0,0,0,.15)}
 </style>
 </head>
 <body>
+<div class="kw-outer">
+  <div class="kw-scallop-top"></div>
 
-<div class="p-header">
-  <a class="p-header-back" href="index.html">← Volver a la tienda</a>
-  <div class="p-logo">🛍️ Pedidos Online</div>
-  <div class="p-subtitle">Gestionamos tu compra desde tiendas internacionales</div>
-</div>
+  <header>
+    <a class="p-back" href="index.html">← Volver a la tienda</a>
+    <div class="p-logo">🛍️ Pedidos Online</div>
+    <div class="p-subtitle">Gestionamos tu compra desde tiendas internacionales</div>
+  </header>
 
-<div class="stores-row">
-  <div class="store-chip"><span class="store-ico">👗</span> Shein</div>
-  <div class="store-chip"><span class="store-ico">🛒</span> AliExpress</div>
-  <div class="store-chip"><span class="store-ico">🎁</span> Temu</div>
-  <div class="store-chip"><span class="store-ico">📦</span> Amazon</div>
-  <div class="store-chip"><span class="store-ico">🌐</span> Otra tienda</div>
-</div>
-
-<div class="p-content">
-
-  <!-- Opción 1: Artículo único -->
-  <div class="info-card">
-    <div class="info-card-title">📦 Artículo único</div>
-    <p>Si quieres un solo producto, nosotros te damos el <strong>precio final todo incluido</strong> — el costo del artículo más el envío hasta Venezuela. Sin sorpresas. 🌸</p>
-    <p>Solo envíanos el enlace del producto por WhatsApp y te cotizamos al instante.</p>
+  <div class="p-hero">
+    <div class="p-hero-deco"><span>🌸</span><span>✨</span><span>🎀</span><span>💖</span><span>⭐</span></div>
+    <h1 class="p-hero-title">Pedidos de tiendas online 🛍️</h1>
+    <p class="p-hero-sub">¿Lo viste en Shein, Temu o AliExpress? ¡Nosotros lo traemos por ti! 💕</p>
   </div>
 
-  <!-- Opción 2: Carrito -->
-  <div class="info-card lila">
-    <div class="info-card-title">🛒 Carrito completo</div>
-    <p>Si tienes varios productos, el proceso es en <strong>dos pagos:</strong></p>
-    <ul class="steps" style="margin-top:8px">
-      <li><div class="step-num">1</div><span><strong>Pagas el total de la aplicación</strong> — exactamente lo que muestra la tienda online.</span></li>
-      <li><div class="step-num">2</div><span>Una vez recibida la mercancía, <strong>pagas el envío</strong> según el peso de tu pedido.</span></li>
-    </ul>
+  <div class="stores-banner">
+    <div class="store-chip"><span class="store-ico">👗</span> Shein</div>
+    <div class="store-chip"><span class="store-ico">🛒</span> AliExpress</div>
+    <div class="store-chip"><span class="store-ico">🎁</span> Temu</div>
+    <div class="store-chip"><span class="store-ico">📦</span> Amazon</div>
+    <div class="store-chip"><span class="store-ico">🌐</span> Otra tienda</div>
   </div>
 
-  <!-- Envíos -->
-  <div class="info-card blue">
-    <div class="info-card-title">✈️ Tipos de envío</div>
-    <p>El costo de envío se calcula <strong>por libra</strong>. Hay dos modalidades:</p>
-    <table class="ship-table" style="margin-top:12px">
-      <tr>
-        <th>Modalidad</th>
-        <th>Precio/libra</th>
-        <th>Tiempo estimado</th>
-      </tr>
-      <tr>
-        <td><span class="tag-aereo">✈️ Aéreo</span></td>
-        <td><strong>~$10 USD</strong></td>
-        <td>~3 semanas</td>
-      </tr>
-      <tr>
-        <td><span class="tag-maritimo">🚢 Marítimo</span></td>
-        <td><strong>~$9 USD</strong></td>
-        <td>~2 meses</td>
-      </tr>
-    </table>
-    <p style="margin-top:12px;font-size:.82rem;color:#8B5A8B">⚠️ El peso final se confirma al recibir los productos. Generalmente usamos envío aéreo.</p>
+  <div class="p-content">
+
+    <div class="info-card">
+      <div class="info-card-title">📦 Artículo único</div>
+      <p>Si quieres un solo producto, nosotros te damos el <strong>precio final todo incluido</strong> — el costo del artículo + el envío hasta Puerto Ordaz.</p>
+      <p>Solo envíanos el enlace del producto por WhatsApp y te cotizamos al instante.</p>
+    </div>
+
+    <div class="info-card lila">
+      <div class="info-card-title">🛒 Carrito completo</div>
+      <p>Si tienes varios productos, el proceso es en <strong>dos pagos:</strong></p>
+      <ul class="steps" style="margin-top:8px">
+        <li><div class="step-num">1</div><span><strong>Pagas el total de la aplicación</strong> — exactamente lo que muestra la tienda — y nosotros hacemos la compra.</span></li>
+        <li><div class="step-num">2</div><span>Una vez recibida la mercancía, <strong>pagas el envío</strong> según el peso de tu paquete.</span></li>
+      </ul>
+    </div>
+
+    <div class="info-card blue">
+      <div class="info-card-title">✈️ Tipos de envío</div>
+      <p>El costo de envío se calcula <strong>por libra</strong>. Hay dos modalidades:</p>
+      <table class="ship-table" style="margin-top:12px">
+        <tr>
+          <th>Modalidad</th>
+          <th>Precio/libra</th>
+          <th>Tiempo estimado</th>
+        </tr>
+        <tr>
+          <td><span class="tag-aereo">✈️ Aéreo</span></td>
+          <td><strong>~$10 USD</strong></td>
+          <td>~3 semanas</td>
+        </tr>
+        <tr>
+          <td><span class="tag-maritimo">🚢 Marítimo</span></td>
+          <td><strong>~$9 USD</strong></td>
+          <td>~2 meses</td>
+        </tr>
+      </table>
+      <p style="margin-top:12px;font-size:.82rem;color:var(--ts)">⚠️ El peso final se confirma al recibir los productos. Generalmente 1 lb = artículos pequeños como ropa o accesorios.</p>
+    </div>
+
+    <div class="info-card cream">
+      <div class="info-card-title">💬 ¿Cómo hago mi pedido?</div>
+      <ol class="steps">
+        <li><div class="step-num">1</div><span>Envíanos el <strong>link del producto o carrito</strong> por WhatsApp.</span></li>
+        <li><div class="step-num">2</div><span>Te enviamos la <strong>cotización</strong> con el precio total o el desglose.</span></li>
+        <li><div class="step-num">3</div><span>Realizas el <strong>pago del artículo</strong> y nosotros hacemos la compra.</span></li>
+        <li><div class="step-num">4</div><span>Al llegar a Venezuela, pagas el <strong>envío según el peso</strong>.</span></li>
+        <li><div class="step-num">5</div><span>¡Recibe tu pedido en <strong>Puerto Ordaz</strong>! 🎉</span></li>
+      </ol>
+    </div>
+
+    <div class="cta-box">
+      <p>¿Lista para hacer tu pedido? ¡Escríbenos ahora! 🌸</p>
+      <a class="cta-btn" href="https://wa.me/584249006350?text=Hola%20Brillitos!%20Quiero%20hacer%20un%20pedido%20online%20%F0%9F%9B%8D%EF%B8%8F" target="_blank">
+        💬 Escribir por WhatsApp
+      </a>
+    </div>
+
   </div>
 
-  <!-- Cómo pedir -->
-  <div class="info-card cream">
-    <div class="info-card-title">💬 ¿Cómo hago mi pedido?</div>
-    <ol class="steps">
-      <li><div class="step-num">1</div><span>Envíanos el <strong>link del producto o carrito</strong> por WhatsApp.</span></li>
-      <li><div class="step-num">2</div><span>Te enviamos la <strong>cotización</strong> con el precio total o el desglose.</span></li>
-      <li><div class="step-num">3</div><span>Realizas el <strong>pago del artículo</strong> y nosotros hacemos la compra.</span></li>
-      <li><div class="step-num">4</div><span>Al llegar a Venezuela, pagas el <strong>envío según el peso</strong>.</span></li>
-      <li><div class="step-num">5</div><span>¡Recibe tu pedido en <strong>Puerto Ordaz</strong>! 🎉</span></li>
-    </ol>
-  </div>
+  <footer class="brl-footer">
+    <div class="brl-footer-inner">
+      <div class="brl-footer-logo">✨ Brillitos</div>
+      <div class="brl-footer-cols">
+        <div class="brl-footer-item"><span>📍</span><span>Puerto Ordaz, Estado Bolívar</span></div>
+        <a class="brl-footer-item brl-footer-link" href="https://wa.me/584249006350" target="_blank"><span>💬</span><span>WhatsApp</span></a>
+        <a class="brl-footer-item brl-footer-link" href="https://instagram.com/brillitosve" target="_blank"><span>📸</span><span>@brillitosve</span></a>
+        <a class="brl-footer-item brl-footer-link" href="index.html"><span>🛍️</span><span>Ver tienda</span></a>
+      </div>
+      <div class="brl-footer-copy">© 2026 Brillitos · Hecho con 💖</div>
+    </div>
+  </footer>
 
-  <!-- CTA WhatsApp -->
-  <div class="cta-box">
-    <p>¿Lista para hacer tu pedido? ¡Escríbenos ahora! 🌸</p>
-    <a class="cta-btn" href="https://wa.me/584249006350?text=Hola%20Brillitos!%20Quiero%20hacer%20un%20pedido%20online%20%F0%9F%9B%8D%EF%B8%8F" target="_blank">
-      📲 Escribir por WhatsApp
-    </a>
-  </div>
-
+  <div class="kw-scallop-bottom"></div>
 </div>
 </body>
 </html>
