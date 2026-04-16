@@ -5,734 +5,110 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Brillitos 2026 ✨ Tienda Kawaii</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Pacifico&amp;family=Nunito:wght@400;600;700;800&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root {
   --pk:#F387C3; --pk-l:#FCACC7; --pk-p:#FDF0F8; --pk-d:#D45FA0;
   --pa:#DCABFC; --pu:#BFBDFE; --pu-l:#EDE9FF; --bl:#CDEAFC; --cr:#FAE6CD;
-  --tx:#3D1A4A; --ts:#8B5A8B; --pgbg:#FDF6FF; --bg:#ffffff;
-  --br:#FCACC7; --rc:16px; --rb:50px;
+  --ye:#F0EBF8; --tx:#5C3A1E; --ts:#9B6B9B; --pgbg:#FDE8F0; --bg:#FFFAF5;
+  --br:#E8C4A0; --rc:16px; --rb:50px;
   --fh:'Pacifico',cursive; --fb:'Nunito',sans-serif;
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{font-family:var(--fb);background:var(--pgbg);color:var(--tx);min-height:100vh}
 
- 
-header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.93);backdrop-filter:blur(16px);border-bottom:2px solid var(--br);padding:0 28px;height:68px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 16px rgba(255,110,180,.10)}
+/* ── OUTER FRAME ── */
+.kw-outer{width:100%;background:var(--pgbg);padding:0 0 20px;overflow:hidden}
+.kw-ears{display:none}
+
+/* ── SCALLOP TOP ── */
+.kw-scallop-top{height:72px;background:linear-gradient(180deg,#F387C3 0%,#FCACC7 60%,#F0EBF8 100%);position:relative;overflow:hidden}
+.kw-scallop-top::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0px,transparent 20px,rgba(255,255,255,.3) 20px,rgba(255,255,255,.3) 40px)}
+.kw-scallop-top::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:24px;background:var(--bl);clip-path:polygon(0% 100%,4.16% 0%,8.33% 100%,12.5% 0%,16.66% 100%,20.83% 0%,25% 100%,29.16% 0%,33.33% 100%,37.5% 0%,41.66% 100%,45.83% 0%,50% 100%,54.16% 0%,58.33% 100%,62.5% 0%,66.66% 100%,70.83% 0%,75% 100%,79.16% 0%,83.33% 100%,87.5% 0%,91.66% 100%,95.83% 0%,100% 100%)}
+
+/* ── INNER BOX ── */
+.kw-inner{background:var(--bg);margin:0;border-radius:0;border:none;overflow:hidden}
+
+/* ── HEADER ── */
+header{position:sticky;top:0;z-index:100;background:var(--ye);border-bottom:2px dashed var(--br);padding:0 40px;height:68px;display:flex;align-items:center;gap:14px}
 .logo{display:flex;align-items:center;text-decoration:none;flex-shrink:0}
-.search-wrap{flex:1;max-width:440px;margin:0 auto;position:relative}
-.search-wrap input{width:100%;padding:10px 20px 10px 42px;border:2px solid var(--br);border-radius:var(--rb);font-family:var(--fb);font-size:.92rem;background:var(--pgbg);color:var(--tx);outline:none;transition:border-color .2s,box-shadow .2s}
-.search-wrap input:focus{border-color:var(--pk);box-shadow:0 0 0 3px rgba(255,110,180,.13)}
-.search-wrap input::placeholder{color:var(--ts)}
-.si{position:absolute;left:14px;top:50%;transform:translateY(-50%);font-size:1rem;pointer-events:none}
+.search-wrap{flex:1;max-width:400px;margin:0 auto;position:relative}
+.search-wrap input{width:100%;padding:8px 18px 8px 38px;border:2px solid var(--br);border-radius:var(--rb);font-family:var(--fb);font-size:.88rem;background:#fff;color:var(--tx);outline:none;transition:border-color .2s}
+.search-wrap input:focus{border-color:var(--pk)}
+.si{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:.9rem;pointer-events:none}
 .header-btns{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.hbtn{border:none;border-radius:var(--rb);padding:9px 16px;font-family:var(--fb);font-weight:700;font-size:.82rem;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap;transition:transform .15s,box-shadow .15s}
-.hbtn-cart{background:linear-gradient(135deg,var(--pk),var(--pa));color:white;box-shadow:0 4px 14px rgba(255,110,180,.33)}
-.hbtn-cart:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,110,180,.44)}
-.hbtn-order{background:white;color:var(--pk);border:2px solid var(--br)}
-.hbtn-order:hover{border-color:var(--pk);background:var(--pgbg)}
-.cart-badge{background:white;color:var(--pk);border-radius:50%;min-width:20px;height:20px;font-size:.72rem;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 3px}
+.hbtn{border:none;border-radius:var(--rb);padding:7px 14px;font-family:var(--fb);font-weight:800;font-size:.8rem;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px}
+.hbtn-order{background:#fff;color:var(--pk);border:2px solid var(--pk-l)}
+.hbtn-order:hover{background:var(--pk);color:#fff}
+.hbtn-cart{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;position:relative}
+.hbtn-cart:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(243,135,195,.4)}
+.cart-badge{background:#fff;color:var(--pk);font-size:.62rem;font-weight:900;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:absolute;top:-6px;right:-6px}
+.btn-text{display:inline}
+@media(max-width:480px){.btn-text{display:none}}
 
- 
-.hero{text-align:center;padding:50px 24px 36px;background:linear-gradient(160deg,#fff5fb 0%,var(--pgbg) 100%);position:relative;overflow:hidden}
-.hero::before{content:'';position:absolute;width:440px;height:440px;background:radial-gradient(circle,rgba(255,179,217,.38) 0%,transparent 70%);top:-120px;left:-80px;pointer-events:none}
-.hero::after{content:'';position:absolute;width:340px;height:340px;background:radial-gradient(circle,rgba(255,133,194,.28) 0%,transparent 70%);bottom:-90px;right:-50px;pointer-events:none}
-.deco{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.deco span{position:absolute;font-size:1.4rem;animation:fd 6s infinite ease-in-out;opacity:.55}
-.deco span:nth-child(1){top:14%;left:7%;animation-delay:0s}
-.deco span:nth-child(2){top:28%;right:9%;animation-delay:1s}
-.deco span:nth-child(3){top:62%;left:4%;animation-delay:2s}
-.deco span:nth-child(4){top:9%;right:21%;animation-delay:.5s}
-.deco span:nth-child(5){top:72%;right:7%;animation-delay:1.5s}
-@keyframes fd{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-13px) rotate(7deg)}}
-.hero-title{font-family:var(--fh);font-size:clamp(1.9rem,5vw,3.2rem);color:var(--pk);text-shadow:0 3px 14px rgba(255,110,180,.2);animation:slideD .7s ease both;line-height:1.2;position:relative;z-index:1}
-.hero-sub{font-size:1rem;color:var(--ts);margin:12px 0 22px;animation:slideD .7s .15s ease both;position:relative;z-index:1}
-.hero-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;position:relative;z-index:1;animation:slideD .7s .3s ease both}
-.hero-cta{display:inline-block;background:linear-gradient(135deg,var(--pk),var(--pa));color:white;font-family:var(--fb);font-weight:800;font-size:.97rem;padding:13px 32px;border-radius:var(--rb);border:none;cursor:pointer;text-decoration:none;box-shadow:0 6px 24px rgba(255,110,180,.37);transition:transform .2s,box-shadow .2s}
-.hero-cta:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(255,110,180,.47)}
-.hero-cta-sec{display:inline-flex;align-items:center;gap:8px;background:white;color:var(--pk);font-family:var(--fb);font-weight:800;font-size:.95rem;padding:12px 24px;border-radius:var(--rb);border:2px solid var(--br);cursor:pointer;text-decoration:none;transition:all .2s;box-shadow:0 3px 12px rgba(255,110,180,.12)}
-.hero-cta-sec:hover{border-color:var(--pk);box-shadow:0 6px 20px rgba(255,110,180,.22);transform:translateY(-2px)}
-@keyframes slideD{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+/* ── HERO ── */
+.hero{background:linear-gradient(135deg,#FFF0F8 0%,#F0F8FF 50%,#FFF9E6 100%);padding:48px 40px 36px;text-align:center;border-bottom:2px dashed var(--br);position:relative;overflow:hidden}
+.deco{position:absolute;top:8px;left:0;right:0;display:flex;justify-content:center;gap:16px;font-size:1rem;opacity:.4}
+.hero-title{font-family:var(--fh);font-size:2.4rem;color:var(--pk);margin-bottom:8px;position:relative}
+.hero-sub{font-size:1.05rem;color:var(--ts);font-weight:700;margin-bottom:20px}
+.hero-btns{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.hero-cta{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border:none;border-radius:var(--rb);padding:10px 24px;font-family:var(--fb);font-weight:800;font-size:.88rem;cursor:pointer;text-decoration:none;box-shadow:0 3px 12px rgba(243,135,195,.4);transition:transform .2s}
+.hero-cta:hover{transform:translateY(-2px)}
+.hero-cta-sec{background:#fff;color:var(--pk);border:2px solid var(--pk-l);border-radius:var(--rb);padding:9px 20px;font-family:var(--fb);font-weight:800;font-size:.88rem;cursor:pointer;text-decoration:none;transition:all .2s}
+.hero-cta-sec:hover{background:var(--pk-p)}
 
- 
-.stores-banner{background:white;border-top:1px solid var(--br);border-bottom:2px solid var(--br);padding:14px 24px;overflow:hidden}
-.stores-inner{max-width:1400px;margin:0 auto}
-.stores-title{font-size:.75rem;font-weight:800;color:var(--ts);text-transform:uppercase;letter-spacing:.6px;margin-bottom:10px;text-align:center}
-.stores-row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
-.store-chip{display:flex;align-items:center;gap:6px;padding:7px 16px;border-radius:var(--rb);border:2px solid var(--br);background:var(--pgbg);font-family:var(--fb);font-size:.82rem;font-weight:700;color:var(--tx);cursor:pointer;transition:all .18s;text-decoration:none}
-.store-chip:hover{border-color:var(--pk);background:white;color:var(--pk);box-shadow:0 3px 12px rgba(255,110,180,.2);transform:translateY(-2px)}
-.store-chip .store-ico{font-size:1.1rem}
+/* ── STORES BANNER ── */
+.stores-banner{background:var(--cr);padding:14px 40px;border-bottom:2px dashed var(--br)}
+.stores-banner .hero-cta-sec{width:100%;display:flex;align-items:center;justify-content:center;font-size:.85rem}
 
- 
-.stats-bar{display:flex;justify-content:center;gap:48px;padding:16px 24px;background:white;border-bottom:1px solid var(--br);flex-wrap:wrap}
-.stat{text-align:center}
-.stat-num{font-family:var(--fh);font-size:1.4rem;color:var(--pk)}
-.stat-label{font-size:.75rem;color:var(--ts);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+/* ── STATS BAR ── */
+.stats-bar{display:flex;gap:0;border-bottom:2px dashed var(--br);max-width:600px;margin:0 auto}
+.stat{flex:1;padding:10px;text-align:center;border-right:2px dashed var(--br)}
+.stat:last-child{border-right:none}
+.stat-num{font-family:var(--fh);font-size:1.1rem;color:var(--pk)}
+.stat-label{font-size:.7rem;color:var(--ts);font-weight:700}
 
- 
-.filters-section{padding:18px 24px 8px;max-width:1400px;margin:0 auto}
-.filter-row{display:flex;align-items:center;gap:9px;margin-bottom:9px;flex-wrap:wrap}
-.filter-label{font-weight:700;font-size:.78rem;color:var(--ts);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap}
+/* ── FILTERS ── */
+.filters-section{background:var(--pu-l);padding:14px 40px;border-bottom:2px dashed var(--br)}
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.filter-row:last-child{margin-bottom:0}
+.filter-label{font-size:.75rem;font-weight:800;color:var(--ts);white-space:nowrap}
 .pills{display:flex;gap:6px;flex-wrap:wrap}
-.pill{padding:5px 14px;border-radius:var(--rb);border:2px solid var(--br);background:white;font-family:var(--fb);font-size:.8rem;font-weight:700;color:var(--ts);cursor:pointer;transition:all .17s;white-space:nowrap}
-.pill:hover,.pill.active{background:linear-gradient(135deg,var(--pk),var(--pa));color:white;border-color:transparent;box-shadow:0 3px 12px rgba(255,110,180,.3)}
-.price-filter{display:flex;align-items:center;gap:9px}
-input[type=range]{-webkit-appearance:none;appearance:none;width:110px;height:4px;background:linear-gradient(90deg,var(--pk) 0%,var(--pk-l) 100%);border-radius:4px;outline:none;cursor:pointer}
-input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--pk);border:2px solid white;box-shadow:0 2px 6px rgba(255,110,180,.4)}
-.price-val{font-size:.8rem;font-weight:700;color:var(--pk);min-width:52px}
-.toggle-wrap{display:flex;align-items:center;gap:6px;cursor:pointer}
-.toggle{width:34px;height:19px;background:var(--br);border-radius:19px;position:relative;transition:background .2s;flex-shrink:0}
-.toggle::after{content:'';position:absolute;width:13px;height:13px;background:white;border-radius:50%;top:3px;left:3px;transition:left .2s;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+.pill{background:#fff;border:2px solid var(--pu);border-radius:var(--rb);padding:5px 14px;font-family:var(--fb);font-size:.78rem;font-weight:800;color:#8B5ABB;cursor:pointer;transition:all .2s}
+.pill.active,.pill:hover{background:linear-gradient(135deg,var(--pa),var(--pu));color:#fff;border-color:var(--pa)}
+.price-filter{display:flex;align-items:center;gap:8px}
+input[type=range]{accent-color:var(--pk);width:120px}
+.price-val{font-size:.78rem;font-weight:800;color:var(--pk)}
+.toggle-wrap{display:flex;align-items:center;gap:6px;cursor:pointer;margin-left:auto}
+.toggle{width:36px;height:20px;background:#ddd;border-radius:10px;position:relative;transition:background .2s}
 .toggle.on{background:var(--pk)}
+.toggle::after{content:'';position:absolute;width:16px;height:16px;background:#fff;border-radius:50%;top:2px;left:2px;transition:left .2s}
 .toggle.on::after{left:18px}
-.toggle-label{font-size:.8rem;font-weight:700;color:var(--ts)}
+.toggle-label{font-size:.78rem;font-weight:700;color:var(--ts)}
 
- 
-.results-bar{max-width:1400px;margin:0 auto;padding:10px 24px 0;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.results-count{font-size:.85rem;color:var(--ts);font-weight:700}
-.sort-select{padding:7px 13px;border:2px solid var(--br);border-radius:var(--rb);background:white;font-family:var(--fb);font-size:.82rem;color:var(--tx);cursor:pointer;outline:none}
-.sort-select:focus{border-color:var(--pk)}
+/* ── RESULTS BAR ── */
+.results-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 40px;border-bottom:2px dashed var(--br);background:var(--bg)}
+.results-count{font-size:.78rem;font-weight:700;color:var(--ts)}
+.sort-select{border:2px solid var(--br);border-radius:var(--rb);padding:4px 10px;font-family:var(--fb);font-size:.78rem;color:var(--tx);background:#fff;outline:none;cursor:pointer}
 
- 
-.grid-section{max-width:1400px;margin:0 auto;padding:16px 24px 40px}
-#product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
-
- 
-.sk-card{background:white;border-radius:var(--rc);overflow:hidden;border:1.5px solid var(--br)}
-.sk-img{width:100%;aspect-ratio:1;background:linear-gradient(90deg,#FFE6F3 25%,#FDF6FF 50%,#FFE6F3 75%);background-size:200% 100%;animation:shim 1.4s infinite}
-.sk-body{padding:12px}
-.sk-line{height:11px;border-radius:6px;background:linear-gradient(90deg,#FFE6F3 25%,#FDF6FF 50%,#FFE6F3 75%);background-size:200% 100%;animation:shim 1.4s infinite;margin-bottom:7px}
-.sk-line.s{width:55%}
-@keyframes shim{0%{background-position:200% 0}100%{background-position:-200% 0}}
-
- 
-
-to{opacity:1;transform:translateY(0)}}
-
- 
-
-.product-card:hover 
-
-.product-card:hover 
-.product-card:hover 
-.img-fb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.8rem;background:linear-gradient(135deg,#FCACC7,#FDF6FF)}
-
- 
-.lm-wrap{text-align:center;padding:8px 0 30px}
-.lm-btn{background:white;border:2px solid var(--pk);color:var(--pk);font-family:var(--fb);font-weight:800;font-size:.92rem;padding:11px 32px;border-radius:var(--rb);cursor:pointer;transition:all .2s}
-.lm-btn:hover{background:linear-gradient(135deg,var(--pk),var(--pa));color:white;border-color:transparent;box-shadow:0 6px 20px rgba(255,110,180,.3)}
-
- 
-.modal-ov{display:none;position:fixed;inset:0;background:rgba(74,0,48,.55);backdrop-filter:blur(8px);z-index:200;align-items:center;justify-content:center;padding:16px}
-.modal-ov.open{display:flex}
-@keyframes mpop{from{opacity:0;transform:scale(.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
-
- 
-.modal-box{
-  background:white;border-radius:24px;
-  width:min(920px,96vw);max-height:92vh;
-  display:flex;flex-direction:row;overflow:hidden;
-  box-shadow:0 24px 72px rgba(255,110,180,.28);
-  animation:mpop .3s ease;
-}
-
- 
-.modal-left{
-  width:420px;min-width:320px;flex-shrink:0;
-  background:var(--pgbg);
-  display:flex;flex-direction:column;
-  position:relative;
-}
-.modal-main-img{
-  width:100%;aspect-ratio:4/5;object-fit:cover;display:block;
-  background:var(--pgbg);
-  transition:opacity .25s;
-}
-.modal-thumbs{
-  display:flex;gap:8px;padding:10px 12px;
-  background:white;border-top:1px solid var(--br);
-  flex-wrap:wrap;
-}
-.modal-thumb{
-  width:56px;height:56px;border-radius:10px;object-fit:cover;
-  border:2px solid var(--br);cursor:pointer;
-  transition:border-color .18s,transform .18s;
-  flex-shrink:0;background:var(--pgbg);
-}
-.modal-thumb.active{border-color:var(--pk);transform:scale(1.08);}
-.modal-thumb:hover{border-color:var(--pk-l);}
-
- 
-.modal-close-x{
-  position:absolute;top:12px;right:12px;
-  width:32px;height:32px;border-radius:50%;
-  background:rgba(255,255,255,.9);
-  border:none;cursor:pointer;font-size:1rem;
-  display:flex;align-items:center;justify-content:center;
-  color:var(--ts);transition:all .18s;
-  box-shadow:0 2px 8px rgba(0,0,0,.12);z-index:2;
-}
-.modal-close-x:hover{background:var(--pk);color:white;}
-
- 
-.modal-right{
-  flex:1;overflow-y:auto;padding:28px 28px 24px;
-  display:flex;flex-direction:column;gap:0;
-  scrollbar-width:thin;scrollbar-color:var(--pk-l) transparent;
-}
-
- 
-.modal-badges{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px;}
-.modal-cat{background:var(--pk-l);color:var(--pk-d);font-size:.72rem;font-weight:800;padding:4px 12px;border-radius:var(--rb);text-transform:uppercase;letter-spacing:.4px;}
-.modal-subcat{background:var(--pgbg);color:var(--ts);font-size:.7rem;font-weight:700;padding:4px 10px;border-radius:var(--rb);}
-
-.modal-name{font-size:1.35rem;font-weight:800;color:var(--tx);line-height:1.28;margin-bottom:10px;}
-
- 
-.modal-price-block{
-  display:flex;align-items:center;gap:12px;
-  padding:12px 16px;background:var(--pgbg);
-  border-radius:14px;margin-bottom:16px;
-  border:1.5px solid var(--br);
-}
-.modal-price{font-family:var(--fh);font-size:1.8rem;color:var(--pk);line-height:1;}
-.modal-stk{font-size:.8rem;font-weight:700;color:var(--ts);background:white;padding:5px 12px;border-radius:var(--rb);border:1.5px solid var(--br);}
-.modal-stk.out{color:#c0392b;background:#fff0ee;border-color:#ffcdd2;}
-
- 
-.modal-desc-title{font-size:.75rem;font-weight:800;color:var(--ts);text-transform:uppercase;letter-spacing:.6px;margin-bottom:5px;}
-.modal-desc{font-size:.88rem;color:var(--tx);line-height:1.65;margin-bottom:14px;background:var(--pgbg);padding:12px 14px;border-radius:12px;border-left:3px solid var(--pk-l);}
-
- 
-.variant-section{margin:10px 0 4px}
-.variant-label{font-size:.75rem;font-weight:800;color:var(--ts);text-transform:uppercase;letter-spacing:.04em;margin-bottom:7px}
-.variant-pills{display:flex;flex-wrap:wrap;gap:7px}
-.variant-pill{display:inline-flex;align-items:center;gap:5px;padding:6px 14px;border-radius:var(--rb);border:2px solid var(--br);background:var(--pgbg);font-family:var(--fb);font-size:.82rem;font-weight:700;color:var(--tx);cursor:pointer;transition:all .18s;user-select:none}
-.variant-pill:hover{border-color:var(--pk);background:white;color:var(--pk)}
-.variant-pill.selected{border-color:var(--pk);background:linear-gradient(135deg,var(--pk),var(--pa));color:white;box-shadow:0 3px 10px rgba(255,110,180,.35)}
-.variant-required-msg{font-size:.76rem;color:#e05a90;font-weight:700;margin-top:5px;display:none}
- 
-.ci-variant{font-size:.72rem;color:var(--pk);font-weight:700;margin-top:1px}
-
- 
-.modal-details{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px;}
-.detail-chip{display:flex;align-items:center;gap:5px;background:white;border:1.5px solid var(--br);border-radius:var(--rb);padding:5px 12px;font-size:.78rem;font-weight:700;color:var(--tx);}
-.detail-chip .chip-label{color:var(--ts);font-size:.7rem;font-weight:600;}
-
- 
-.modal-obs{font-size:.78rem;color:var(--ts);font-style:italic;padding:8px 12px;background:#fffbfe;border-radius:10px;border:1px dashed var(--br);margin-bottom:16px;}
-
- 
-.modal-acts{display:flex;gap:10px;flex-wrap:wrap;margin-top:auto;padding-top:4px;}
-.madd{flex:1;min-width:140px;background:linear-gradient(135deg,var(--pk),var(--pa));color:white;border:none;border-radius:var(--rb);padding:14px 20px;font-family:var(--fb);font-size:.95rem;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 4px 18px rgba(255,110,180,.33);}
-.madd:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(255,110,180,.44);}
-.madd:disabled{opacity:.4;cursor:not-allowed;transform:none;}
-.mclose{background:var(--pgbg);border:2px solid var(--br);color:var(--ts);border-radius:var(--rb);padding:14px 18px;font-family:var(--fb);font-size:.95rem;font-weight:700;cursor:pointer;transition:all .2s;}
-.mclose:hover{border-color:var(--pk);color:var(--pk);}
-
- 
-@media(max-width:640px){
-  .modal-box{flex-direction:row;max-height:92vh;height:92vh;overflow:hidden;width:96vw;}
-  .modal-left{width:42%;min-width:0;flex-shrink:0;display:flex;flex-direction:column;}
-  .modal-main-img{flex:1;aspect-ratio:unset;height:0;min-height:0;object-fit:cover;}
-  .modal-thumbs{padding:6px 8px;gap:5px;}
-  .modal-thumb{width:36px;height:36px;}
-  .modal-right{width:58%;padding:12px 12px 14px;overflow-y:auto;font-size:.85rem;}
-  .modal-name{font-size:1.05rem;}
-  .modal-price{font-size:1.35rem;}
-  .modal-close-x{top:6px;right:6px;width:28px;height:28px;font-size:.8rem;}
-}
-
- 
-.cart-ov{display:none;position:fixed;inset:0;background:rgba(74,0,48,.28);z-index:300}
-.cart-ov.open{display:block}
-.cart-drw{position:fixed;top:0;right:-500px;width:min(500px,100vw);height:100vh;background:white;z-index:301;box-shadow:-8px 0 40px rgba(255,110,180,.18);transition:right .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;border-left:2px solid var(--br)}
-.cart-drw.open{right:0}
-.cart-hdr{padding:16px 20px;border-bottom:2px solid var(--br);display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
-.cart-ttl{font-family:var(--fh);font-size:1.2rem;color:var(--pk)}
-.cart-x{background:var(--pgbg);border:2px solid var(--br);border-radius:50%;width:32px;height:32px;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ts);transition:all .2s}
-.cart-x:hover{border-color:var(--pk);color:var(--pk)}
-.cart-items{flex:1;overflow-y:auto;padding:12px 18px}
-.cart-empty{text-align:center;padding:36px 0;color:var(--ts);font-size:.92rem}
-.cart-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--br);align-items:center}
-.ci-img{width:58px;height:58px;border-radius:10px;object-fit:cover;border:1.5px solid var(--br);flex-shrink:0;background:var(--pgbg)}
-.ci-info{flex:1;min-width:0}
-.ci-name{font-weight:700;font-size:.81rem;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.ci-cat{font-size:.71rem;color:var(--ts)}
-.ci-price{font-size:.8rem;font-weight:800;color:var(--pk)}
-.ci-qty{display:flex;align-items:center;gap:5px;margin-top:3px}
-.ci-qty button{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--br);background:white;color:var(--pk);font-weight:800;font-size:.85rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;line-height:1}
-.ci-qty button:hover{background:var(--pk);color:white;border-color:var(--pk)}
-.ci-qty span{font-size:.82rem;font-weight:800;color:var(--tx);min-width:18px;text-align:center}
-.ci-rm{background:none;border:none;color:var(--pk);cursor:pointer;font-size:1rem;padding:4px;border-radius:50%;transition:background .15s;flex-shrink:0}
-.ci-rm:hover{background:var(--pgbg)}
-
- 
-.pay-panel{flex-shrink:0;border-top:2px solid var(--br);background:white}
-.pay-tabs{display:flex;border-bottom:1px solid var(--br)}
-.pay-tab{flex:1;padding:10px 4px;font-family:var(--fb);font-size:.75rem;font-weight:800;border:none;background:transparent;cursor:pointer;color:var(--ts);transition:all .18s;border-bottom:2px solid transparent;text-align:center;line-height:1.3}
-.pay-tab.active{color:var(--pk);border-bottom-color:var(--pk);background:var(--pgbg)}
-.pay-content{padding:14px 18px}
-.pay-section{display:none}
-.pay-section.active{display:block}
-
- 
-.subtotal-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.83rem}
-.subtotal-row .label{color:var(--ts);font-weight:600}
-.subtotal-row .val{font-weight:800;color:var(--tx)}
-.subtotal-row .val.highlight{color:var(--pk);font-family:var(--fh);font-size:1.1rem}
-.divider{height:1px;background:var(--br);margin:8px 0}
-
- 
-.pp-rate{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.pp-rate label{font-size:.78rem;color:var(--ts);font-weight:700;white-space:nowrap}
-.pp-rate input{width:70px;padding:5px 9px;border:2px solid var(--br);border-radius:var(--rb);font-family:var(--fb);font-size:.8rem;color:var(--tx);outline:none;text-align:center}
-.pp-rate input:focus{border-color:var(--pk)}
-.pp-note{font-size:.72rem;color:var(--ts);margin-bottom:10px;line-height:1.4}
-
- 
-.bnc-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
-.bnc-row label{font-size:.78rem;color:var(--ts);font-weight:700;white-space:nowrap}
-.bnc-row input{width:80px;padding:5px 9px;border:2px solid var(--br);border-radius:var(--rb);font-family:var(--fb);font-size:.8rem;color:var(--tx);outline:none;text-align:center}
-.bnc-row input:focus{border-color:var(--pk)}
-
- 
-.bs-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
-.bs-row label{font-size:.78rem;color:var(--ts);font-weight:700;white-space:nowrap}
-.bs-row input{width:90px;padding:5px 9px;border:2px solid var(--br);border-radius:var(--rb);font-family:var(--fb);font-size:.8rem;color:var(--tx);outline:none;text-align:center}
-.bs-row input:focus{border-color:var(--pk)}
-.bs-note{font-size:.71rem;color:var(--ts);margin-bottom:8px}
-
- 
-.wa-info{font-size:.8rem;color:var(--ts);line-height:1.5;margin-bottom:10px}
-.wa-num-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
-.wa-num-row label{font-size:.78rem;color:var(--ts);font-weight:700;white-space:nowrap}
-.wa-num-row input{flex:1;padding:6px 12px;border:2px solid var(--br);border-radius:var(--rb);font-family:var(--fb);font-size:.82rem;color:var(--tx);outline:none}
-.wa-num-row input:focus{border-color:var(--pk)}
-
- 
-.pay-action{width:100%;padding:12px;border-radius:var(--rb);font-family:var(--fb);font-weight:800;font-size:.93rem;cursor:pointer;border:none;transition:all .2s;margin-top:4px}
-.pay-action.green{background:linear-gradient(135deg,#25D366,#128C7E);color:white;box-shadow:0 4px 16px rgba(37,211,102,.3)}
-.pay-action.green:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(37,211,102,.4)}
-.pay-action.blue{background:linear-gradient(135deg,#003087,#009cde);color:white;box-shadow:0 4px 16px rgba(0,48,135,.25)}
-.pay-action.blue:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(0,48,135,.35)}
-.pay-action.yellow{background:linear-gradient(135deg,#F3BA2F,#F0A500);color:#1a1a1a;box-shadow:0 4px 16px rgba(243,186,47,.3)}
-.pay-action.yellow:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(243,186,47,.4)}
-.pay-action.pk{background:linear-gradient(135deg,var(--pk),var(--pa));color:white;box-shadow:0 4px 16px rgba(255,110,180,.33)}
-.pay-action.pk:hover{transform:translateY(-2px);box-shadow:0 7px 22px rgba(255,110,180,.44)}
-
- 
-.orders-ov{display:none;position:fixed;inset:0;background:rgba(74,0,48,.44);backdrop-filter:blur(6px);z-index:400;align-items:center;justify-content:center;padding:20px}
-.orders-ov.open{display:flex}
-.orders-box{background:white;border-radius:26px;max-width:520px;width:100%;max-height:88vh;overflow-y:auto;box-shadow:0 20px 60px rgba(255,110,180,.24);animation:mpop .28s ease;scrollbar-width:thin;scrollbar-color:var(--pk-l) transparent}
-.orders-hdr{padding:20px 24px 16px;border-bottom:2px solid var(--br);position:sticky;top:0;background:white;z-index:1;display:flex;align-items:center;justify-content:space-between}
-.orders-title{font-family:var(--fh);font-size:1.25rem;color:var(--pk)}
-.orders-close{background:var(--pgbg);border:2px solid var(--br);border-radius:50%;width:32px;height:32px;font-size:.95rem;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--ts);transition:all .2s}
-.orders-close:hover{border-color:var(--pk);color:var(--pk)}
-.orders-bd{padding:20px 24px 24px}
-.orders-intro{font-size:.88rem;color:var(--ts);line-height:1.6;margin-bottom:18px}
-.store-card{border:2px solid var(--br);border-radius:16px;padding:16px;margin-bottom:12px;transition:all .2s;cursor:pointer}
-.store-card:hover{border-color:var(--pk);box-shadow:0 4px 18px rgba(255,110,180,.15);transform:translateY(-2px)}
-.store-card-head{display:flex;align-items:center;gap:11px;margin-bottom:7px}
-.store-ico-big{font-size:1.8rem}
-.store-name{font-weight:800;font-size:1rem;color:var(--tx)}
-.store-url{font-size:.73rem;color:var(--ts)}
-.store-desc{font-size:.82rem;color:var(--ts);line-height:1.5}
-.store-wa-btn{display:inline-flex;align-items:center;gap:6px;margin-top:9px;background:linear-gradient(135deg,#25D366,#128C7E);color:white;border:none;border-radius:var(--rb);padding:8px 16px;font-family:var(--fb);font-size:.8rem;font-weight:700;cursor:pointer;transition:all .18s}
-.store-wa-btn:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(37,211,102,.35)}
-.store-wa-note{font-size:.72rem;color:var(--ts);margin-top:6px;font-style:italic}
-
- 
-
- 
-.state-msg{text-align:center;padding:56px 20px;color:var(--ts);font-size:.95rem;grid-column:1/-1}
-.state-msg .em{font-size:2.3rem;display:block;margin-bottom:11px}
-
- 
-footer{background:white;border-top:2px solid var(--br);text-align:center;padding:24px;color:var(--ts);font-size:.82rem}
-.foot-logo{font-family:var(--fh);font-size:1.2rem;color:var(--pk);margin-bottom:6px}
-
- 
-.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--pk);color:white;font-family:var(--fb);font-weight:700;font-size:.87rem;padding:10px 20px;border-radius:var(--rb);z-index:999;box-shadow:0 6px 24px rgba(255,110,180,.4);transition:transform .3s;white-space:nowrap}
-.toast.show{transform:translateX(-50%) translateY(0)}
-
- 
-@media(max-width:768px){
-  .search-wrap{max-width:none}
-  #product-grid{grid-template-columns:repeat(2,1fr);gap:10px}
-  .grid-section{padding:12px 12px 28px}
-  .filters-section{padding:14px 12px 8px}
-  .results-bar{padding:9px 12px 0}
-  .stats-bar{gap:18px}
-  header{padding:0 12px;gap:8px}
-}
-@media(max-width:480px){
-  .hbtn-order .btn-text{display:none}
-  .logo img{height:36px}
-  #product-grid{grid-template-columns:repeat(2,1fr)}
-}
-
-@media(max-width:640px){
-  #product-grid{grid-template-columns:repeat(2,1fr);gap:8px}
-}
-@media(max-width:400px){
-  
-}
-
- 
-@keyframes fcrd{from{opacity:0;transform:translateY(11px)}to{opacity:1;transform:translateY(0)}}
-
- 
-.product-card{
-  background:#fff;
-  border-radius:18px;
-  border:1.5px solid var(--br);
-  overflow:hidden;
-  cursor:pointer;
-  display:flex;
-  flex-direction:column;
-  box-shadow:0 4px 20px rgba(255,110,180,.10);
-  transition:transform .2s,box-shadow .2s;
-  animation:fcrd .35s ease both;
-}
-.product-card:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(255,110,180,.2)}
-
- 
-.cimg{
-  width:100%;
-  min-width:unset;
-  height:160px;
-  flex-shrink:0;
-  background:var(--pgbg);
-  position:relative;
-  display:flex;
-  flex-direction:column;
-  overflow:hidden;
-  border-radius:0;
-}
-
- 
-.cimg-main{
-  width:100%;
-  height:160px;
-  object-fit:cover;
-  display:block;
-  flex-shrink:0;
-  transition:transform .32s;
-}
-.product-card:hover .cimg-main{transform:scale(1.05)}
-
- 
-.cthumbs{
-  display:flex;
-  gap:4px;
-  padding:5px 6px;
-  background:rgba(255,255,255,.95);
-  flex-shrink:0;
-  border-top:1px solid var(--br);
-  overflow:hidden;
-  height:50px;
-  align-items:center;
-}
-.cthumb{
-  width:36px;
-  height:36px;
-  object-fit:cover;
-  border-radius:6px;
-  flex-shrink:0;
-  cursor:pointer;
-  border:2px solid transparent;
-  opacity:.7;
-  transition:border-color .15s,opacity .15s;
-  display:block;
-}
-.cthumb:hover,.cthumb.act{border-color:var(--pk);opacity:1}
-
- 
-.cbadge{
-  position:absolute;
-  top:9px;left:9px;
-  background:rgba(255,110,180,.88);
-  color:white;
-  font-size:.62rem;font-weight:800;
-  padding:3px 9px;
-  border-radius:var(--rb);
-  text-transform:uppercase;
-  letter-spacing:.3px;
-  max-width:86px;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
-  z-index:2;
-  display:none;  
-}
-
- 
-.cbody{
-  flex:1;
-  padding:8px 10px 10px;
-  display:flex;
-  flex-direction:column;
-  gap:2px;
-  min-width:0;
-  overflow:hidden;
-}
-.cname{
-  font-weight:700;
-  font-size:.82rem;
-  color:var(--tx);
-  line-height:1.25;
-  display:-webkit-box;
-  -webkit-line-clamp:2;
-  -webkit-box-orient:vertical;
-  overflow:hidden;
-  margin-bottom:2px;
-}
-.csubcat{font-size:.75rem;color:var(--ts);font-weight:600;margin-bottom:1px;}
-.cdesc{
-  display:none;
-}
-.cfoot{
-  margin-top:auto;
-  padding-top:6px;
-  display:flex;
-  flex-direction:column;
-  gap:5px;
-}
-.cprice{font-family:var(--fh);font-size:1rem;color:var(--pk);font-weight:900;line-height:1}
-.cprice.nop{font-family:var(--fb);font-size:.82rem;color:var(--ts);font-weight:700}
-.cadd{
-  background:linear-gradient(135deg,var(--pk),var(--pa));
-  color:white;border:none;
-  border-radius:var(--rb);
-  padding:7px 12px;
-  font-family:var(--fb);font-size:.78rem;font-weight:800;
-  cursor:pointer;
-  white-space:nowrap;
-  width:100%;
-  transition:transform .15s,box-shadow .15s;
-}
-.cadd:hover{transform:scale(1.05);box-shadow:0 4px 14px rgba(255,110,180,.4)}
-.cadd:disabled{opacity:.4;cursor:not-allowed;transform:none}
-.cstock{display:none}
-
- 
-@media(max-width:768px){
-  #product-grid{grid-template-columns:1fr;gap:10px}
-  .cimg{width:160px;min-width:160px}
-  .cimg-main{height:160px}
-  .cname{font-size:.9rem}
-}
-@media(max-width:480px){
-  .cimg{width:130px;min-width:130px}
-  .cimg-main{height:130px}
-  .cadd{padding:7px 12px;font-size:.78rem}
-  .cbody{padding:12px 12px 10px}
-}
- 
-
-
-@keyframes pulsenuevo{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
-.modal-nav-btn-hide{display:none!important;}
-
-.pg-wrap{display:flex;gap:6px;justify-content:center;align-items:center;padding:16px 0 32px;flex-wrap:wrap;}
-.pg-btn{background:white;border:2px solid var(--pk);color:var(--pk);font-family:var(--fb);font-weight:800;font-size:.9rem;width:38px;height:38px;border-radius:50%;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;}
-.pg-btn:hover{background:var(--pk);color:white;}
-.pg-btn.pg-active{background:var(--pk);color:white;transform:scale(1.1);}
-.pg-btn.pg-disabled{opacity:.35;cursor:default;pointer-events:none;}
-.pg-dots{color:var(--pk);font-weight:800;padding:0 4px;}
-
- 
-#product-page{background:var(--pgbg);min-height:100vh;padding:0 0 60px;}
-.pp-wrap{max-width:1100px;margin:0 auto;padding:20px 16px;}
-.pp-back{background:none;border:2px solid var(--pk);color:var(--pk);font-family:var(--fb);font-weight:700;font-size:.9rem;padding:8px 20px;border-radius:30px;cursor:pointer;margin-bottom:24px;display:inline-flex;align-items:center;gap:6px;transition:all .2s;}
-.pp-back:hover{background:var(--pk);color:white;}
-.pp-main{display:flex;gap:40px;align-items:flex-start;flex-wrap:wrap;}
- 
-.pp-gallery{flex:0 0 420px;max-width:100%;}
-.pp-img-wrap{position:relative;border-radius:20px;overflow:hidden;background:white;box-shadow:0 4px 24px rgba(255,105,180,.12);}
-.pp-main-img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block;transition:opacity .2s;}
-.pp-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.9);border:none;border-radius:50%;width:40px;height:40px;font-size:22px;cursor:pointer;z-index:5;box-shadow:0 2px 8px rgba(0,0,0,.15);line-height:1;display:flex;align-items:center;justify-content:center;}
-.pp-arrow-l{left:10px;}
-.pp-arrow-r{right:10px;}
-.pp-arrow:hover{background:var(--pk);color:white;}
-.pp-thumbs{display:flex;gap:8px;padding:10px 0;flex-wrap:wrap;}
-.pp-thumb{width:64px;height:64px;object-fit:cover;border-radius:10px;cursor:pointer;border:2px solid transparent;transition:all .2s;opacity:.7;}
-.pp-thumb.active{border-color:var(--pk);opacity:1;transform:scale(1.05);}
-.pp-thumb:hover{opacity:1;}
- 
-.pp-info{flex:1;min-width:280px;}
-.pp-badges{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
-.pp-name{font-family:var(--fh);font-size:1.6rem;color:var(--txt);margin:0 0 16px;line-height:1.3;}
-.pp-price{font-size:2rem;font-weight:900;color:var(--pk);margin-bottom:8px;}
-.pp-stock{font-size:.85rem;font-weight:700;margin-bottom:16px;padding:6px 14px;border-radius:20px;display:inline-block;}
-.pp-stock.in{background:#d4edda;color:#155724;}
-.pp-stock.low{background:#fff3cd;color:#856404;}
-.pp-stock.out{background:#f8d7da;color:#721c24;}
-.pp-desc-box{background:white;border-radius:14px;padding:14px 18px;margin-bottom:20px;font-size:.95rem;color:var(--stxt);line-height:1.6;border:1.5px solid #ffd6ec;}
-.pp-variants{margin-bottom:20px;}
-.pp-variant-label{font-weight:700;font-size:.9rem;color:var(--txt);margin-bottom:8px;}
-.pp-variant-opts{display:flex;gap:8px;flex-wrap:wrap;}
-.pp-variant-btn{background:white;border:2px solid var(--pk);color:var(--pk);font-family:var(--fb);font-weight:700;font-size:.85rem;padding:6px 16px;border-radius:20px;cursor:pointer;transition:all .2s;}
-.pp-variant-btn.selected{background:var(--pk);color:white;}
-.pp-add-btn{width:100%;background:linear-gradient(135deg,#F387C3,#D45FA0);color:white;border:none;border-radius:30px;font-family:var(--fb);font-weight:800;font-size:1.05rem;padding:16px;cursor:pointer;box-shadow:0 4px 16px rgba(255,61,154,.35);transition:all .2s;}
-.pp-add-btn:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(255,61,154,.45);}
-.pp-add-btn:disabled{background:#ccc;box-shadow:none;cursor:default;transform:none;}
- 
-.pp-related{margin-top:50px;}
-.pp-related-title{font-family:var(--fh);font-size:1.3rem;color:var(--txt);margin-bottom:20px;}
-.pp-related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:16px;}
-@media(max-width:700px){
-  .pp-main{flex-direction:column;}
-  .pp-gallery{flex:none;width:100%;}
-  .pp-name{font-size:1.3rem;}
-  .pp-price{font-size:1.6rem;}
-}
-
- 
-.pp-related-grid .product-card{
-  background:white;
-  border:2px solid white;
-  box-shadow:0 4px 18px rgba(255,105,180,.13);
-  border-radius:18px;
-}
-
- 
-.pp-related-grid .product-card{
-  background:white;
-  border:2.5px solid white;
-  box-shadow:0 4px 18px rgba(255,110,180,.13);
-  border-radius:18px;
-  flex-direction:column !important;
-  overflow:hidden;
-  transition:transform .2s,box-shadow .2s;
-}
-.pp-related-grid .product-card:hover{
-  transform:translateY(-3px);
-  box-shadow:0 10px 28px rgba(255,110,180,.22);
-}
- 
-.pp-related-grid .product-card .cimg{
-  width:100% !important;
-  min-width:unset !important;
-  height:165px !important;
-  border-radius:0 !important;
-  flex-shrink:0;
-}
-.pp-related-grid .product-card .cimg-main{
-  width:100% !important;
-  height:165px !important;
-  object-fit:cover;
-}
- 
-.pp-related-grid .product-card .cbody{
-  padding:10px 12px 12px !important;
-  gap:1px !important;
-  display:flex !important;
-  flex-direction:column !important;
-}
- 
-.pp-related-grid .product-card [style*="color:var(--pk)"]{
-  font-size:.72rem !important;
-}
- 
-.pp-related-grid .product-card .cname{
-  font-size:.88rem !important;
-  font-weight:800 !important;
-  color:#3D1A4A !important;
-  -webkit-line-clamp:2 !important;
-  margin-bottom:0 !important;
-}
- 
-.pp-related-grid .product-card .cdesc{
-  display:none !important;
-}
-.pp-related-grid .product-card .csubcat{
-  display:none !important;
-}
- 
-.pp-related-grid .product-card .cprice{
-  font-family:var(--fh) !important;
-  font-size:1.1rem !important;
-  font-weight:900 !important;
-  color:var(--pk) !important;
-  margin-top:6px !important;
-  line-height:1 !important;
-}
-.pp-related-grid .product-card .cprice.nop{
-  font-size:.82rem !important;
-  color:var(--ts) !important;
-  font-family:var(--fb) !important;
-}
- 
-.pp-related-grid .product-card .cfoot{
-  display:flex !important;
-  flex-direction:column !important;
-  gap:7px !important;
-  margin-top:auto !important;
-  padding-top:8px !important;
-}
-.pp-related-grid .product-card .cadd{
-  width:100% !important;
-  font-size:.82rem !important;
-  padding:8px 10px !important;
-  border-radius:30px !important;
-}
- 
-.pp-related-grid .product-card .cthumbs{
-  display:none !important;
-}
-
-@media(max-width:500px){
-  #product-grid{grid-template-columns:repeat(2,1fr);gap:8px;}
-  .cimg{height:130px;}
-  .cimg-main{height:130px;}
-}
-@media(min-width:601px) and (max-width:900px){
-  #product-grid{grid-template-columns:repeat(3,1fr);}
-}
-
- 
-.cbody > div:first-child span { font-size:.68rem !important; }
-.csubcat { display:none; }
-
-/* === HIDE STATS & COUNTERS === */
-.stats-bar, .results-bar, #results-count, .results-row,
-[class*="results-count"] { display:none !important; }
-
-/* === ROUNDED BUTTONS === */
-button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
-.store-chip,.pay-tab,.pp-add-btn,.brl-footer-link,.lm-btn,
-.modal-add-btn,.cart-checkout { border-radius:50px !important; }
-
-/* === HOME SECTIONS === */
-#home-sections{padding-bottom:8px}
-.feat-row{margin-bottom:6px}
-.feat-row-hdr{display:flex;align-items:center;justify-content:space-between;padding:22px 16px 10px}
-.feat-row-title{font-family:var(--fh);font-size:1.2rem;color:var(--tx)}
-.feat-row-see{background:none;border:2px solid var(--pk);color:var(--pk);border-radius:50px;
-  padding:5px 18px;font-size:.82rem;font-weight:700;cursor:pointer;
-  transition:background .2s,color .2s;white-space:nowrap}
+/* ── HOME SECTIONS ── */
+.grid-section{padding:0}
+.feat-row{margin-bottom:4px}
+.feat-row-hdr{display:flex;align-items:center;justify-content:space-between;padding:20px 40px 10px}
+.feat-row-title{font-family:var(--fh);font-size:1.3rem;color:var(--tx)}
+.feat-row-see{background:none;border:2px solid var(--pk-l);color:var(--pk);border-radius:50px;padding:4px 14px;font-family:var(--fb);font-size:.75rem;font-weight:800;cursor:pointer;transition:all .2s}
 .feat-row-see:hover{background:var(--pk);color:#fff}
-
-/* Scroll strip with arrows */
 .feat-strip-wrap{position:relative}
-.feat-strip{display:flex;gap:12px;overflow-x:auto;padding:4px 16px 18px;
-  scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;
-  scroll-behavior:smooth}
+.feat-strip{display:flex;gap:14px;overflow-x:auto;padding:4px 40px 20px;scroll-behavior:smooth}
 .feat-strip::-webkit-scrollbar{display:none}
-.feat-strip>.product-card{min-width:155px!important;max-width:155px!important;
-  width:155px!important;flex-shrink:0;scroll-snap-align:start}
-.feat-arrow{position:absolute;top:50%;transform:translateY(-60%);
-  background:white;border:2px solid var(--pk-l);border-radius:50%;
-  width:34px;height:34px;display:flex;align-items:center;justify-content:center;
-  font-size:1.1rem;color:var(--pk);cursor:pointer;z-index:5;
-  box-shadow:0 2px 10px rgba(243,135,195,.25);transition:all .2s;
-  line-height:1;padding:0}
-.feat-arrow:hover{background:var(--pk);color:#fff;border-color:var(--pk)}
+.feat-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:5;background:#fff;border:2px solid var(--pk-l);color:var(--pk);border-radius:50%;width:30px;height:30px;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.feat-arrow:hover{background:var(--pk);color:#fff}
 .feat-arrow-l{left:4px}
 .feat-arrow-r{right:4px}
-.feat-divider{height:2px;margin:0 16px 6px;
-  background:linear-gradient(90deg,var(--pk-l),transparent 80%);border-radius:2px}
+.feat-divider{height:2px;background:linear-gradient(90deg,var(--pk-l),transparent 80%);margin:0 16px 4px}
+.feat-mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px;padding:4px 40px 20px}
+.feat-grid-wrap{}
 
 /* Section accent colors */
 .feat-row:nth-child(1) .feat-row-title{color:#F387C3}
@@ -749,58 +125,243 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
 .feat-row:nth-child(3) .feat-row-see:hover{background:#CDEAFC;color:#3D1A4A}
 .feat-row:nth-child(3) .feat-arrow{border-color:#CDEAFC;color:#5DA8CC}
 .feat-row:nth-child(3) .feat-arrow:hover{background:#CDEAFC;color:#3D1A4A}
+.feat-row-nuevos .feat-row-title{color:#F387C3!important}
+.feat-row-nuevos .feat-divider{background:linear-gradient(90deg,#FCACC7,transparent 80%)!important}
+.feat-row-nuevos .feat-row-see{border-color:#F387C3!important;color:#F387C3!important}
+.feat-row-nuevos .feat-row-see:hover{background:#F387C3!important;color:#fff!important}
+.feat-row-nuevos .feat-arrow{border-color:#F387C3!important;color:#F387C3!important}
+.feat-row-nuevos .feat-arrow:hover{background:#F387C3!important;color:#fff!important}
 
-/* Snippets */
-.snippets-section{padding:20px 16px 8px}
-.snippets-title{font-family:var(--fh);font-size:1rem;color:var(--tx);margin-bottom:14px}
-.snippets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
-.snippet-card{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(243,135,195,.13);
-  overflow:hidden;cursor:pointer;transition:transform .18s,box-shadow .18s;display:flex;flex-direction:column}
-.snippet-card:hover{transform:translateY(-3px);box-shadow:0 6px 18px rgba(243,135,195,.22)}
-.snippet-img-wrap{position:relative;width:100%;padding-top:80%;background:var(--pgbg);overflow:hidden}
-.snippet-img-wrap img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-.snippet-img-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:2rem}
-.snippet-body{padding:8px 10px 10px}
-.snippet-name{font-weight:800;font-size:.82rem;color:var(--tx);margin-bottom:2px;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.snippet-count{font-size:.74rem;color:var(--ts)}
+/* ── SNIPPETS ── */
+.snippets-section{padding:0 0 8px}
+.snippets-title{font-family:var(--fh);font-size:1.2rem;color:var(--ts);padding:20px 40px 10px}
+.snippets-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;padding:0 40px 24px}
+.snippet-card{background:#fff;border:2px solid var(--pk-l);border-radius:14px;overflow:hidden;cursor:pointer;transition:transform .2s,box-shadow .2s}
+.snippet-card:hover{transform:translateY(-3px);box-shadow:0 8px 20px rgba(255,110,180,.18)}
+.snippet-img-wrap{height:80px;overflow:hidden;background:linear-gradient(135deg,var(--pk-p),var(--pu-l))}
+.snippet-img-wrap img{width:100%;height:100%;object-fit:cover}
+.snippet-body{padding:7px 10px}
+.snippet-name{font-size:.78rem;font-weight:800;color:var(--tx)}
+.snippet-count{font-size:.67rem;color:var(--ts);font-weight:600}
 
-/* Footer */
-.brl-footer{background:linear-gradient(135deg,#F387C3,#DCABFC);color:#fff;margin-top:28px;padding:28px 16px 20px}
-.brl-footer-inner{max-width:700px;margin:0 auto;text-align:center}
-.brl-footer-logo{font-family:var(--fh);font-size:1.6rem;margin-bottom:16px}
-.brl-footer-cols{display:flex;flex-wrap:wrap;justify-content:center;gap:14px;margin-bottom:16px}
-.brl-footer-item{display:flex;align-items:center;gap:7px;font-size:.9rem;font-weight:600}
-.brl-footer-link{color:#fff;text-decoration:none;background:rgba(255,255,255,.18);
-  border-radius:50px;padding:6px 16px;transition:background .2s}
-.brl-footer-link:hover{background:rgba(255,255,255,.35)}
-.brl-footer-icon{font-size:1.1rem}
-.brl-footer-copy{font-size:.78rem;opacity:.8;margin-top:8px}
-@media(max-width:480px){
-  .feat-strip>.product-card{min-width:138px!important;max-width:138px!important}
-  .snippets-grid{grid-template-columns:repeat(auto-fill,minmax(130px,1fr))}
+/* ── PRODUCT CARDS ── */
+.feat-strip>.product-card{min-width:200px!important;max-width:200px!important}
+.feat-mini-grid>.product-card{min-width:unset!important;max-width:unset!important;width:100%}
+@keyframes fcrd{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.product-card{background:#fff;border-radius:16px;border:2px solid var(--pk-l);overflow:hidden;cursor:pointer;display:flex;flex-direction:column;box-shadow:0 3px 14px rgba(255,110,180,.10);transition:transform .2s,box-shadow .2s;animation:fcrd .35s ease both}
+.product-card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(255,110,180,.2)}
+.cimg{position:relative;width:100%;aspect-ratio:1;overflow:hidden;background:linear-gradient(135deg,var(--pk-p),var(--pu-l))}
+.cimg-main{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s}
+.product-card:hover .cimg-main{transform:scale(1.04)}
+.img-fb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:2.8rem;background:linear-gradient(135deg,#FCACC7,#FDF6FF)}
+.cthumbs{display:flex;gap:4px;padding:4px;background:var(--bg)}
+.cthumb{width:28px;height:28px;border-radius:6px;object-fit:cover;border:2px solid transparent;cursor:pointer;transition:border-color .15s}
+.cthumb.act{border-color:var(--pk)}
+.cbody{padding:8px;flex:1;display:flex;flex-direction:column}
+.cfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:6px}
+.cprice{font-weight:900;font-size:.88rem;color:var(--tx)}
+.cprice.nop{font-size:.75rem;color:var(--ts)}
+.cname{font-size:.78rem;font-weight:800;color:var(--tx);line-height:1.2;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.cdesc{font-size:.68rem;color:var(--ts);margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
+.csubcat{font-size:.66rem;color:var(--ts);font-weight:600;margin-bottom:2px}
+.cadd{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border:none;border-radius:var(--rb);padding:5px 10px;font-family:var(--fb);font-size:.68rem;font-weight:800;cursor:pointer;white-space:nowrap;transition:all .2s}
+.cadd:hover{transform:scale(1.05)}
+.cadd:disabled{background:#eee;color:#aaa;cursor:not-allowed;transform:none}
+.cadd.variant-btn{background:linear-gradient(135deg,var(--pu),var(--pa))}
+@keyframes pulsenuevo{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+
+/* ── PRODUCT GRID ── */
+#product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;padding:24px 40px}
+.lm-wrap{text-align:center;padding:16px}
+.lm-btn{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border:none;border-radius:var(--rb);padding:11px 32px;font-family:var(--fb);font-weight:800;font-size:.9rem;cursor:pointer}
+
+/* ── PRODUCT PAGE ── */
+#product-page{background:var(--bg);padding:0 14px 20px}
+.pp-wrap{max-width:860px;margin:0 auto}
+.pp-back{background:none;border:2px solid var(--pk-l);border-radius:var(--rb);padding:8px 18px;font-family:var(--fb);font-size:.85rem;font-weight:800;color:var(--pk);cursor:pointer;margin:14px 0;transition:all .2s}
+.pp-back:hover{background:var(--pk);color:#fff}
+.pp-main{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
+@media(max-width:560px){.pp-main{grid-template-columns:1fr}}
+.pp-gallery{}
+.pp-img-wrap{position:relative;border-radius:16px;overflow:hidden;border:2px solid var(--pk-l);aspect-ratio:1;background:var(--pk-p);margin-bottom:8px}
+.pp-main-img{width:100%;height:100%;object-fit:cover}
+.pp-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.85);border:2px solid var(--pk-l);color:var(--pk);border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center}
+.pp-arrow-l{left:8px}
+.pp-arrow-r{right:8px}
+.pp-thumbs{display:flex;gap:6px;flex-wrap:wrap}
+.pp-thumb{width:56px;height:56px;border-radius:10px;object-fit:cover;border:2px solid transparent;cursor:pointer;transition:border-color .15s}
+.pp-thumb.act{border-color:var(--pk)}
+.pp-info{}
+.pp-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.pp-name{font-family:var(--fh);font-size:1.2rem;color:var(--tx);margin-bottom:6px;line-height:1.3}
+.pp-price{font-size:1.4rem;font-weight:900;color:var(--pk);margin-bottom:6px}
+.pp-stock{font-size:.78rem;font-weight:700;color:var(--ts);margin-bottom:10px}
+.pp-desc-box{background:var(--pk-p);border-radius:12px;padding:10px 14px;margin-bottom:12px;font-size:.85rem;color:var(--tx);line-height:1.5}
+.pp-variants{margin-bottom:12px}
+.pp-add-btn{width:100%;background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border:none;border-radius:var(--rb);padding:13px;font-family:var(--fb);font-weight:800;font-size:.95rem;cursor:pointer;transition:all .2s}
+.pp-add-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(243,135,195,.4)}
+.pp-add-btn:disabled{background:#eee;color:#aaa;cursor:not-allowed;transform:none}
+.pp-related{border-top:2px dashed var(--pk-l);padding-top:16px}
+.pp-related-title{font-family:var(--fh);font-size:1rem;color:var(--ts);margin-bottom:12px}
+.pp-related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+
+/* ── FOOTER ── */
+.brl-footer{background:var(--ye);border-top:2px dashed var(--br);padding:24px 40px;margin:0}
+.brl-footer-inner{max-width:860px;margin:0 auto}
+.brl-footer-logo{font-family:var(--fh);font-size:1.1rem;color:var(--pk);margin-bottom:10px;text-align:center}
+.brl-footer-cols{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px}
+.brl-footer-item{display:flex;align-items:center;gap:6px;font-size:.78rem;color:var(--ts);font-weight:700}
+.brl-footer-link{text-decoration:none;background:#fff;border:2px solid var(--pk-l);border-radius:var(--rb);padding:4px 12px;transition:all .2s}
+.brl-footer-link:hover{background:var(--pk);color:#fff;border-color:var(--pk)}
+.brl-footer-icon{font-size:.9rem}
+.brl-footer-copy{font-size:.72rem;color:var(--ts);text-align:center;font-weight:600}
+
+/* ── SCALLOP BOTTOM ── */
+.kw-scallop-bottom{height:16px;background:var(--bl);clip-path:polygon(0% 0%,4.16% 100%,8.33% 0%,12.5% 100%,16.66% 0%,20.83% 100%,25% 0%,29.16% 100%,33.33% 0%,37.5% 100%,41.66% 0%,45.83% 100%,50% 0%,54.16% 100%,58.33% 0%,62.5% 100%,66.66% 0%,70.83% 100%,75% 0%,79.16% 100%,83.33% 0%,87.5% 100%,91.66% 0%,95.83% 100%,100% 0%);margin-top:6px}
+
+/* ── MODAL ── */
+.modal-ov{position:fixed;inset:0;background:rgba(61,26,74,.4);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.modal-ov.open{display:flex}
+.modal-box{background:#fff;border-radius:20px;border:2px solid var(--pk-l);max-width:700px;width:100%;max-height:90vh;overflow-y:auto;display:grid;grid-template-columns:1fr 1fr;box-shadow:0 20px 60px rgba(61,26,74,.2)}
+@media(max-width:560px){.modal-box{grid-template-columns:1fr}}
+.modal-left{padding:16px;border-right:2px dashed var(--pk-l)}
+@media(max-width:560px){.modal-left{border-right:none;border-bottom:2px dashed var(--pk-l)}}
+.modal-close-x{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ts);float:right;margin-bottom:8px}
+.modal-main-img{width:100%;border-radius:12px;border:2px solid var(--pk-l);object-fit:cover;aspect-ratio:1}
+.modal-thumbs{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
+.modal-thumb{width:48px;height:48px;border-radius:8px;object-fit:cover;border:2px solid transparent;cursor:pointer}
+.modal-thumb.act{border-color:var(--pk)}
+.modal-right{padding:16px}
+.modal-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.modal-cat{background:var(--pk-p);color:var(--pk);font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:var(--rb)}
+.modal-subcat{background:var(--pu-l);color:#8B5ABB;font-size:.72rem;font-weight:800;padding:3px 10px;border-radius:var(--rb)}
+.modal-name{font-family:var(--fh);font-size:1.05rem;color:var(--tx);margin-bottom:8px;line-height:1.3}
+.modal-price-block{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.modal-price{font-size:1.3rem;font-weight:900;color:var(--pk)}
+.modal-stk{font-size:.75rem;font-weight:700;color:var(--ts)}
+.modal-desc-title{font-size:.75rem;font-weight:800;color:var(--ts);margin-bottom:4px}
+.modal-desc{font-size:.82rem;color:var(--tx);line-height:1.5;margin-bottom:10px}
+.modal-details{font-size:.78rem;color:var(--ts);margin-bottom:10px;line-height:1.5}
+.modal-obs{background:var(--pk-p);border-radius:10px;padding:8px 12px;font-size:.78rem;color:var(--tx);margin-bottom:10px}
+.variant-section{margin-bottom:10px}
+.variant-label{font-size:.78rem;font-weight:800;color:var(--ts);margin-bottom:6px}
+.variant-pills{display:flex;gap:6px;flex-wrap:wrap}
+.variant-pill{background:#fff;border:2px solid var(--pk-l);border-radius:var(--rb);padding:5px 14px;font-family:var(--fb);font-size:.78rem;font-weight:700;color:var(--tx);cursor:pointer;transition:all .2s}
+.variant-pill.sel{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border-color:var(--pk)}
+.variant-required-msg{font-size:.72rem;color:#e53e3e;margin-top:6px;display:none}
+.variant-required-msg.show{display:block}
+.modal-acts{display:flex;gap:8px;margin-top:12px}
+.madd{flex:1;background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border:none;border-radius:var(--rb);padding:11px;font-family:var(--fb);font-weight:800;font-size:.88rem;cursor:pointer;transition:all .2s}
+.madd:hover{transform:translateY(-1px);box-shadow:0 4px 14px rgba(243,135,195,.4)}
+.mclose{background:#fff;color:var(--ts);border:2px solid var(--br);border-radius:var(--rb);padding:10px 16px;font-family:var(--fb);font-weight:800;font-size:.85rem;cursor:pointer}
+
+/* ── CART DRAWER ── */
+.cart-ov{position:fixed;inset:0;background:rgba(61,26,74,.3);z-index:300;display:none;backdrop-filter:blur(3px)}
+.cart-ov.open{display:block}
+.cart-drw{position:fixed;right:0;top:0;bottom:0;width:min(380px,100vw);background:#fff;border-left:2px solid var(--pk-l);z-index:301;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .3s ease;box-shadow:-8px 0 30px rgba(243,135,195,.15)}
+.cart-drw.open{transform:translateX(0)}
+.cart-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:2px dashed var(--pk-l);background:var(--ye)}
+.cart-ttl{font-family:var(--fh);font-size:1rem;color:var(--pk)}
+.cart-x{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ts)}
+.cart-items{flex:1;overflow-y:auto;padding:12px}
+.cart-empty{text-align:center;color:var(--ts);font-size:.85rem;font-weight:700;padding:40px 20px}
+.cart-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px dashed var(--pk-l)}
+.cart-item:last-child{border-bottom:none}
+.ci-img{width:52px;height:52px;border-radius:10px;object-fit:cover;border:2px solid var(--pk-l);flex-shrink:0}
+.ci-info{flex:1}
+.ci-name{font-size:.8rem;font-weight:800;color:var(--tx);margin-bottom:2px}
+.ci-var{font-size:.7rem;color:var(--ts);margin-bottom:4px}
+.ci-row{display:flex;align-items:center;gap:8px}
+.ci-price{font-size:.82rem;font-weight:900;color:var(--pk)}
+.ci-qty{display:flex;align-items:center;gap:6px;margin-left:auto}
+.ci-qty button{background:var(--pk-p);border:none;border-radius:50%;width:22px;height:22px;font-weight:900;cursor:pointer;color:var(--pk)}
+.ci-qty span{font-size:.82rem;font-weight:800;min-width:18px;text-align:center}
+.ci-del{background:none;border:none;cursor:pointer;color:#e53e3e;font-size:.85rem;margin-left:4px}
+.pay-panel{border-top:2px dashed var(--pk-l);padding:12px}
+.pay-tabs{display:flex;gap:4px;margin-bottom:10px;overflow-x:auto}
+.pay-tab{background:#fff;border:2px solid var(--br);border-radius:var(--rb);padding:5px 12px;font-family:var(--fb);font-size:.72rem;font-weight:800;color:var(--ts);cursor:pointer;white-space:nowrap;transition:all .2s}
+.pay-tab.active{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border-color:var(--pk)}
+.pay-section{display:none}
+.pay-section.active{display:block}
+.subtotal-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-size:.8rem}
+.subtotal-row .label{color:var(--ts);font-weight:700}
+.subtotal-row .val{font-weight:900;color:var(--tx)}
+.subtotal-row .val.highlight{color:var(--pk);font-size:.95rem}
+.divider{height:1px;background:var(--pk-l);margin:8px 0}
+.pp-note,.bs-note,.bnc-note{font-size:.72rem;color:var(--ts);margin-bottom:8px;line-height:1.4}
+.wa-num-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.78rem;font-weight:700;color:var(--ts)}
+.wa-num-row input{flex:1;border:2px solid var(--pk-l);border-radius:var(--rb);padding:6px 12px;font-family:var(--fb);font-size:.82rem;outline:none}
+.bnc-row,.bs-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:.78rem;font-weight:700;color:var(--ts)}
+.bnc-row input,.bs-row input{width:90px;border:2px solid var(--pk-l);border-radius:var(--rb);padding:5px 10px;font-family:var(--fb);font-size:.82rem;outline:none}
+.pay-action{width:100%;border:none;border-radius:var(--rb);padding:11px;font-family:var(--fb);font-weight:800;font-size:.88rem;cursor:pointer;transition:all .2s;margin-top:4px}
+.pay-action:hover{transform:translateY(-1px)}
+.pay-action.green{background:linear-gradient(135deg,#38a169,#48bb78);color:#fff}
+.pay-action.blue{background:linear-gradient(135deg,#3182ce,#4299e1);color:#fff}
+.pay-action.yellow{background:linear-gradient(135deg,#d69e2e,#ecc94b);color:#fff}
+.pay-action.pk{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff}
+
+/* ── ORDERS MODAL ── */
+.orders-ov{position:fixed;inset:0;background:rgba(61,26,74,.4);z-index:400;display:none;align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(4px)}
+.orders-ov.open{display:flex}
+.orders-box{background:#fff;border-radius:20px;border:2px solid var(--pk-l);max-width:480px;width:100%;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(61,26,74,.2)}
+.orders-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:2px dashed var(--pk-l);background:var(--ye);border-radius:20px 20px 0 0}
+.orders-title{font-family:var(--fh);font-size:1rem;color:var(--pk)}
+.orders-close{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ts)}
+.orders-bd{padding:16px}
+.orders-intro{font-size:.82rem;color:var(--ts);margin-bottom:14px;line-height:1.5}
+.store-card{background:var(--pk-p);border-radius:14px;border:2px solid var(--pk-l);padding:12px;margin-bottom:10px}
+.store-card-head{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.store-ico-big{font-size:1.4rem}
+.store-name{font-weight:800;color:var(--tx);font-size:.9rem}
+.store-url{font-size:.72rem;color:var(--ts)}
+.store-desc{font-size:.78rem;color:var(--tx);margin-bottom:8px;line-height:1.4}
+.store-wa-btn{background:linear-gradient(135deg,#38a169,#48bb78);color:#fff;border:none;border-radius:var(--rb);padding:8px 18px;font-family:var(--fb);font-weight:800;font-size:.8rem;cursor:pointer;width:100%;margin-bottom:4px}
+.store-wa-note{font-size:.68rem;color:var(--ts);text-align:center}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;padding:10px 24px;border-radius:var(--rb);font-family:var(--fb);font-weight:800;font-size:.88rem;opacity:0;transition:all .3s;z-index:999;pointer-events:none;box-shadow:0 4px 20px rgba(243,135,195,.4)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  header{padding:0 16px;height:60px}
+  .hero{padding:28px 20px 22px}
+  .hero-title{font-size:1.6rem}
+  .hero-sub{font-size:.9rem}
+  .stores-banner,.filters-section,.results-bar{padding-left:16px;padding-right:16px}
+  .feat-row-hdr{padding:14px 16px 8px}
+  .feat-strip{padding:4px 16px 14px}
+  .feat-strip>.product-card{min-width:155px!important;max-width:155px!important}
+  #product-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:14px 16px}
+  .snippets-grid{padding:0 16px 16px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  .snippets-title{padding:14px 16px 8px}
+  .feat-row-title{font-size:1.05rem}
+  .brl-footer{padding:16px}
+  .feat-mini-grid{padding:4px 16px 14px}
 }
-
-.feat-mini-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:12px;padding:4px 16px 18px}.feat-row-nuevos .feat-row-title{color:#F387C3}.feat-row-nuevos .feat-divider{background:linear-gradient(90deg,#FCACC7,transparent 80%)}.feat-row-nuevos .feat-row-see{border-color:#F387C3;color:#F387C3}.feat-row-nuevos .feat-row-see:hover{background:#F387C3;color:#fff}.feat-row-nuevos .feat-arrow{border-color:#F387C3;color:#F387C3}.feat-row-nuevos .feat-arrow:hover{background:#F387C3;color:#fff}</style>
+</style>
 </head>
 <body>
 
+<div class="kw-outer">
+  <div class="kw-ears"><div class="ear-in"></div></div>
+  <div class="kw-scallop-top"></div>
+  <div class="kw-inner">
 
 <header>
-  <a class="logo" href="#"><img src="https://Brillitos.b-cdn.net/logo444Recurso%203logo.png" alt="Brillitos" style="height:44px;width:auto;display:block;"></a>
+  <a class="logo" href="#"><img src="https://Brillitos.b-cdn.net/logo444Recurso%203logo.png" alt="Brillitos" style="height:40px;width:auto;display:block;"></a>
   <div class="search-wrap">
     <span class="si">🔍</span>
     <input type="text" id="search-input" placeholder="Buscar productos kawaii... ✨" autocomplete="off">
   </div>
   <div class="header-btns">
-    <button class="hbtn hbtn-order" onclick="window.open('pedidos.html','_blank')">🛍️ <span class="btn-text">Pedidos Online</span></button>
+    <button class="hbtn hbtn-order" onclick="openOrders()">🛍️ <span class="btn-text">Pedidos Online</span></button>
     <button class="hbtn hbtn-cart" onclick="openCart()">
-      🛒 <span class="cart-text">Carrito</span>
+      🛒 <span class="btn-text cart-text">Carrito</span>
       <span class="cart-badge" id="cart-badge">0</span>
     </button>
   </div>
 </header>
-
 
 <section class="hero">
   <div class="deco"><span>🌸</span><span>✨</span><span>🎀</span><span>💖</span><span>⭐</span></div>
@@ -808,31 +369,18 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
   <p class="hero-sub">Tu tienda de cositas kawaii más bonitas ✨💕</p>
   <div class="hero-btns">
     <a class="hero-cta" href="#productos">Ver colección ✨</a>
-    <a class="hero-cta-sec" onclick="window.open('pedidos.html','_blank')">🛍️ Pedir de tiendas online</a>
   </div>
 </section>
 
-
 <div class="stores-banner">
-  <div class="stores-inner">
-    <div class="stores-title">📦 También gestionamos pedidos de</div>
-    <div class="stores-row">
-      <a class="store-chip" onclick="window.open('pedidos.html','_blank')"><span class="store-ico">👗</span> Shein</a>
-      <a class="store-chip" onclick="window.open('pedidos.html','_blank')"><span class="store-ico">🛒</span> AliExpress</a>
-      <a class="store-chip" onclick="window.open('pedidos.html','_blank')"><span class="store-ico">🎁</span> Temu</a>
-      <a class="store-chip" onclick="window.open('pedidos.html','_blank')"><span class="store-ico">📦</span> Amazon</a>
-      <a class="store-chip" onclick="window.open('pedidos.html','_blank')"><span class="store-ico">🌐</span> Otra tienda</a>
-    </div>
-  </div>
+  <button class="hero-cta-sec" onclick="openOrders()" style="width:100%;display:flex;align-items:center;justify-content:center">🛍️ Pedidos de tiendas online (Shein, Temu, AliExpress...)</button>
 </div>
 
-
 <div class="stats-bar">
-  <div class="stat"><div class="stat-num" id="stat-total">221</div><div class="stat-label">Productos</div></div>
+  <div class="stat"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Productos</div></div>
   <div class="stat"><div class="stat-num" id="stat-cats">—</div><div class="stat-label">Categorías</div></div>
   <div class="stat"><div class="stat-num">💖</div><div class="stat-label">Con amor</div></div>
 </div>
-
 
 <section class="filters-section" id="productos">
   <div class="filter-row">
@@ -865,22 +413,16 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
   </select>
 </div>
 
-
 <section class="grid-section">
   <div id="home-sections" style="display:none"></div>
   <div id="product-grid" style="display:none"></div>
   <div class="lm-wrap" id="lm-wrap" style="display:none"></div>
 </section>
 
-
-
 <div id="product-page" style="display:none;">
   <div class="pp-wrap">
-    
     <button class="pp-back" onclick="closeProductPage()">← Volver al catálogo</button>
-
     <div class="pp-main">
-      
       <div class="pp-gallery">
         <div class="pp-img-wrap">
           <button class="pp-arrow pp-arrow-l" onclick="ppPrev()">‹</button>
@@ -889,8 +431,6 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
         </div>
         <div class="pp-thumbs" id="pp-thumbs"></div>
       </div>
-
-      
       <div class="pp-info">
         <div class="pp-badges" id="pp-badges"></div>
         <h1 class="pp-name" id="pp-name"></h1>
@@ -901,8 +441,6 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
         <button class="pp-add-btn" id="pp-add-btn" onclick="ppAddToCart()">🛒 Agregar al carrito</button>
       </div>
     </div>
-
-    
     <div class="pp-related">
       <h2 class="pp-related-title">✨ También te puede gustar</h2>
       <div class="pp-related-grid" id="pp-related-grid"></div>
@@ -910,60 +448,48 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
   </div>
 </div>
 
-<footer class="brl-footer">
-  <div class="brl-footer-inner">
-    <div class="brl-footer-logo">✨ Brillitos</div>
-    <div class="brl-footer-cols">
-      <div class="brl-footer-item"><span class="brl-footer-icon">📍</span><span>Puerto Ordaz, Estado Bolívar, Venezuela</span></div>
-      <a class="brl-footer-item brl-footer-link" href="https://wa.me/584249006350" target="_blank"><span class="brl-footer-icon">📲</span><span>0424 900 6350</span></a>
-      <a class="brl-footer-item brl-footer-link" href="https://instagram.com/brillitosve" target="_blank"><span class="brl-footer-icon">📸</span><span>@brillitosve</span></a>
-      <a class="brl-footer-item brl-footer-link" href="pedidos.html" target="_blank"><span class="brl-footer-icon">🛍️</span><span>Pedidos Online</span></a>
-    </div>
-    <div class="brl-footer-copy">© 2026 Brillitos · Hecho con 💖</div>
-  </div>
-</footer>
+  </div><!-- /kw-inner -->
 
+  <footer class="brl-footer">
+    <div class="brl-footer-inner">
+      <div class="brl-footer-logo">✨ Brillitos</div>
+      <div class="brl-footer-cols">
+        <div class="brl-footer-item"><span class="brl-footer-icon">📍</span><span>Puerto Ordaz, Estado Bolívar</span></div>
+        <a class="brl-footer-item brl-footer-link" href="https://wa.me/584249006350" target="_blank"><span class="brl-footer-icon">💬</span><span>WhatsApp</span></a>
+        <a class="brl-footer-item brl-footer-link" href="https://instagram.com/brillitosve" target="_blank"><span class="brl-footer-icon">📸</span><span>@brillitosve</span></a>
+        <a class="brl-footer-item brl-footer-link" href="pedidos.html" target="_blank"><span class="brl-footer-icon">🛍️</span><span>Pedidos Online</span></a>
+      </div>
+      <div class="brl-footer-copy">© 2026 Brillitos · Hecho con 💖</div>
+    </div>
+  </footer>
+
+  <div class="kw-scallop-bottom"></div>
+</div><!-- /kw-outer -->
 
 <div class="modal-ov" id="modal-ov" onclick="handleMOv(event)">
   <div class="modal-box">
-
-    
     <div class="modal-left">
       <button class="modal-close-x" onclick="closeModal()">✕</button>
       <div style="position:relative;">
-      <button onclick="modalPrevImg()" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.15);line-height:1">‹</button>
-      <img id="modal-main-img" class="modal-main-img" src="" alt="">
-      <button onclick="modalNextImg()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.85);border:none;border-radius:50%;width:38px;height:38px;font-size:22px;cursor:pointer;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,.15);line-height:1">›</button>
-    </div>
+        <button onclick="modalPrevImg()" style="position:absolute;left:8px;top:50%;transform:translateY(-50%);z-index:3;background:rgba(255,255,255,.85);border:2px solid var(--pk-l);color:var(--pk);border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">‹</button>
+        <img id="modal-main-img" class="modal-main-img" src="" alt="">
+        <button onclick="modalNextImg()" style="position:absolute;right:8px;top:50%;transform:translateY(-50%);z-index:3;background:rgba(255,255,255,.85);border:2px solid var(--pk-l);color:var(--pk);border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center">›</button>
+      </div>
       <div class="modal-thumbs" id="modal-thumbs"></div>
     </div>
-
-    
     <div class="modal-right">
-
-      
       <div class="modal-badges">
         <span class="modal-cat" id="m-cat"></span>
         <span class="modal-subcat" id="m-sub"></span>
       </div>
-
-      
       <div class="modal-name" id="m-name"></div>
-
-      
       <div class="modal-price-block">
         <div class="modal-price" id="m-price"></div>
         <div class="modal-stk" id="m-stk"></div>
       </div>
-
-      
       <div class="modal-desc-title">📝 Descripción</div>
       <div class="modal-desc" id="m-desc"></div>
-
-      
       <div class="modal-details" id="m-details"></div>
-
-      
       <div id="m-variant-wrap" style="display:none">
         <div class="variant-section">
           <div class="variant-label">Elige tu opción</div>
@@ -971,35 +497,27 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
           <div class="variant-required-msg" id="m-variant-msg">⚠️ Selecciona una opción antes de agregar</div>
         </div>
       </div>
-
-      
       <div class="modal-obs" id="m-obs" style="display:none"></div>
-
-      
       <div class="modal-acts">
         <button class="madd" id="m-add">🛒 Agregar al carrito</button>
         <button class="mclose" onclick="closeModal()">Cerrar</button>
       </div>
-
     </div>
   </div>
 </div>
-
 
 <div class="cart-ov" id="cart-ov" onclick="closeCart()"></div>
 <div class="cart-drw" id="cart-drw">
   <div class="cart-hdr">
     <span class="cart-ttl">Mi carrito 🛒</span>
     <div style="display:flex;align-items:center;gap:8px">
-      <button id="clear-cart-btn" onclick="clearCart()" title="Vaciar carrito" style="background:none;border:1.5px solid var(--br);border-radius:var(--rb);padding:5px 10px;font-size:.72rem;font-weight:700;color:var(--ts);cursor:pointer;transition:all .18s;display:none">🗑️ Vaciar</button>
+      <button id="clear-cart-btn" onclick="clearCart()" title="Vaciar carrito" style="background:none;border:none;cursor:pointer;color:#e53e3e;font-size:.82rem;font-weight:800;font-family:var(--fb)">🗑️ Vaciar</button>
       <button class="cart-x" onclick="closeCart()">✕</button>
     </div>
   </div>
   <div class="cart-items" id="cart-items">
     <div class="cart-empty">Tu carrito está vacío 🌸<br>¡Agrega algo lindo!</div>
   </div>
-
-  
   <div class="pay-panel">
     <div class="pay-tabs">
       <button class="pay-tab active" onclick="switchTab('wa')" id="tab-wa">💬 WhatsApp</button>
@@ -1007,21 +525,16 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
       <button class="pay-tab" onclick="switchTab('bnc')" id="tab-bnc">₿ Binance</button>
       <button class="pay-tab" onclick="switchTab('bs')" id="tab-bs">🇻🇪 Bs</button>
     </div>
-
     <div class="pay-content">
-
-      
       <div class="pay-section active" id="sec-wa">
         <div class="subtotal-row"><span class="label">Subtotal</span><span class="val highlight" id="wa-sub">$0.00</span></div>
-        <div class="subtotal-row" style="margin-bottom:10px"><span class="label" style="font-size:.75rem;color:var(--ts)">💡 Los productos sin precio se consultan</span></div>
+        <div class="subtotal-row" style="margin-bottom:10px"><span class="label" style="font-size:.75rem;color:#aaa">+ costos de envío según tu zona</span></div>
         <div class="wa-num-row">
           <label>WhatsApp:</label>
-          <input type="tel" id="wa-num" placeholder="&#43;58 4XX XXX XXXX" value="&#43;584249006350">
+          <input type="tel" id="wa-num" placeholder="+58 4XX XXX XXXX" value="+584249006350">
         </div>
         <button class="pay-action green" onclick="sendWA()">💬 Enviar pedido por WhatsApp</button>
       </div>
-
-      
       <div class="pay-section" id="sec-pp">
         <div class="subtotal-row"><span class="label">Subtotal productos</span><span class="val" id="pp-sub">$0.00</span></div>
         <div class="divider"></div>
@@ -1030,12 +543,10 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
         <input type="hidden" id="pp-fix" value="0.30">
         <div class="subtotal-row"><span class="label">Comisión PayPal</span><span class="val" id="pp-fee">$0.00</span></div>
         <div class="subtotal-row"><span class="label">Total a cobrar al cliente</span><span class="val highlight" id="pp-total">$0.00</span></div>
-        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Tú recibes (después de comisión)</span><span class="val" style="font-size:.82rem;color:var(--ts)" id="pp-recv">$0.00</span></div>
+        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Tú recibirás aprox.</span><span class="val" id="pp-recv" style="font-size:.72rem">$0.00</span></div>
         <div class="pp-note" style="margin-bottom:8px">📧 Tu PayPal: <strong>ana0191@gmail.com</strong></div>
         <button class="pay-action blue" onclick="sendWA('paypal')">💬 Enviar con total PayPal</button>
       </div>
-
-      
       <div class="pay-section" id="sec-bnc">
         <div class="subtotal-row"><span class="label">Subtotal en USD</span><span class="val" id="bnc-sub">$0.00</span></div>
         <div class="divider"></div>
@@ -1043,33 +554,29 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
           <label>1 USDT vale (USD):</label>
           <input type="number" id="bnc-rate" value="1" step="0.001" min="0.001" oninput="calcBNC()">
         </div>
-        <div class="pp-note">💡 USDT es estable: 1 USDT ≈ $1 USD. Solo cambia si tu P2P tiene spread. Comisión Binance Pay = 0%.</div>
+        <div class="pp-note">💡 USDT es estable: 1 USDT ≈ $1 USD.</div>
         <div class="subtotal-row"><span class="label">Total a cobrar en USDT</span><span class="val highlight" id="bnc-total">0.00 USDT</span></div>
-        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Equivale exactamente al total en USD ✅</span><span class="val" style="font-size:.82rem;color:var(--ts)" id="bnc-fee"></span></div>
+        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Equivale a</span><span class="val" id="bnc-usd" style="font-size:.72rem">$0.00</span></div>
         <div class="pp-note" style="margin-bottom:8px">📧 Tu Binance Pay: <strong>ana0191@gmail.com</strong></div>
         <button class="pay-action yellow" onclick="sendWA('binance')">💬 Enviar con total Binance</button>
       </div>
-
-      
       <div class="pay-section" id="sec-bs">
         <div class="subtotal-row"><span class="label">Subtotal USD</span><span class="val" id="bs-sub">$0.00</span></div>
         <div class="divider"></div>
         <div class="bs-row">
           <label>Tasa BCV (Bs/$):</label>
           <input type="number" id="bs-rate" value="40" step="0.01" min="0.01" oninput="calcBS()">
-          <button id="bs-refresh-btn" onclick="fetchBCVRates()" title="Actualizar tasa BCV" style="background:var(--pk);border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;color:#fff;display:flex;align-items:center;justify-content:center;padding:0;flex-shrink:0">🔄</button>
+          <button id="bs-refresh-btn" onclick="fetchBCVRates()" title="Actualizar tasa BCV" style="background:var(--pk);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.8rem">↻</button>
         </div>
         <div class="bs-note" id="bs-note-usd">⏳ Cargando tasa BCV…</div>
         <div class="subtotal-row"><span class="label">Total en Bolívares (Bs.)</span><span class="val highlight" id="bs-total">Bs. 0.00</span></div>
-        <div class="subtotal-row" style="margin-bottom:4px"><span class="label" style="font-size:.72rem">Tasa EUR (Bs/€):</span><span class="val" style="font-size:.82rem;color:var(--ts)" id="bs-eur-display">—</span></div>
-        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Pago móvil / transferencia bancaria</span></div>
+        <div class="subtotal-row" style="margin-bottom:4px"><span class="label" style="font-size:.72rem">Tasa usada</span><span class="val" id="bs-used-rate" style="font-size:.72rem">—</span></div>
+        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Pago móvil</span><span class="val" id="bs-pm" style="font-size:.72rem">—</span></div>
         <button class="pay-action pk" onclick="sendWA('bolivares')">💬 Enviar con total en Bs.</button>
       </div>
-
     </div>
   </div>
 </div>
-
 
 <div class="orders-ov" id="orders-ov" onclick="handleOOv(event)">
   <div class="orders-box">
@@ -1078,61 +585,37 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
       <button class="orders-close" onclick="closeOrders()">✕</button>
     </div>
     <div class="orders-bd">
-      <div class="orders-intro">
-        ¿Viste algo lindo en Shein, AliExpress, Temu o Amazon? 🌸<br>
-        Nosotros lo gestionamos por ti — envíanos el link del producto y lo cotizamos sin compromiso.
-      </div>
-
+      <div class="orders-intro">¿Viste algo en Shein, Temu o AliExpress? ¡Nosotros lo gestionamos por ti! 💕</div>
       <div class="store-card" id="sc-shein">
-        <div class="store-card-head">
-          <span class="store-ico-big">👗</span>
-          <div><div class="store-name">Shein</div><div class="store-url">shein.com</div></div>
-        </div>
-        <div class="store-desc">Moda kawaii, accesorios, papelería y más. ¡Muchas cosas bonitas a precios super accesibles!</div>
+        <div class="store-card-head"><span class="store-ico-big">👗</span><div><div class="store-name">Shein</div><div class="store-url">shein.com</div></div></div>
+        <div class="store-desc">Moda kawaii, accesorios, papelería y más.</div>
         <button class="store-wa-btn" onclick="sendStoreWA('Shein','https://shein.com')">💬 Cotizar de Shein</button>
         <div class="store-wa-note">Te pediremos el link del producto por WhatsApp</div>
       </div>
-
       <div class="store-card" id="sc-aliexpress">
-        <div class="store-card-head">
-          <span class="store-ico-big">🛒</span>
-          <div><div class="store-name">AliExpress</div><div class="store-url">aliexpress.com</div></div>
-        </div>
-        <div class="store-desc">Importaciones directas de Asia. Stickers, papelería kawaii, accesorios y coleccionables.</div>
+        <div class="store-card-head"><span class="store-ico-big">🛒</span><div><div class="store-name">AliExpress</div><div class="store-url">aliexpress.com</div></div></div>
+        <div class="store-desc">Importaciones directas de Asia. Stickers, papelería kawaii y más.</div>
         <button class="store-wa-btn" onclick="sendStoreWA('AliExpress','https://aliexpress.com')">💬 Cotizar de AliExpress</button>
         <div class="store-wa-note">Te pediremos el link del producto por WhatsApp</div>
       </div>
-
       <div class="store-card" id="sc-temu">
-        <div class="store-card-head">
-          <span class="store-ico-big">🎁</span>
-          <div><div class="store-name">Temu</div><div class="store-url">temu.com</div></div>
-        </div>
-        <div class="store-desc">Cositas kawaii, papelería y accesorios a precios increíbles. ¡Perfectas para coleccionar!</div>
+        <div class="store-card-head"><span class="store-ico-big">🎁</span><div><div class="store-name">Temu</div><div class="store-url">temu.com</div></div></div>
+        <div class="store-desc">Cositas kawaii a precios increíbles.</div>
         <button class="store-wa-btn" onclick="sendStoreWA('Temu','https://temu.com')">💬 Cotizar de Temu</button>
         <div class="store-wa-note">Te pediremos el link del producto por WhatsApp</div>
       </div>
-
       <div class="store-card" id="sc-amazon">
-        <div class="store-card-head">
-          <span class="store-ico-big">📦</span>
-          <div><div class="store-name">Amazon</div><div class="store-url">amazon.com</div></div>
-        </div>
-        <div class="store-desc">Libros de stickers, sets de papelería, figuras kawaii y mucho más con envío desde EE.UU.</div>
+        <div class="store-card-head"><span class="store-ico-big">📦</span><div><div class="store-name">Amazon</div><div class="store-url">amazon.com</div></div></div>
+        <div class="store-desc">Libros de stickers, sets de papelería, figuras kawaii y más.</div>
         <button class="store-wa-btn" onclick="sendStoreWA('Amazon','https://amazon.com')">💬 Cotizar de Amazon</button>
         <div class="store-wa-note">Te pediremos el link del producto por WhatsApp</div>
       </div>
-
       <div class="store-card" id="sc-otra">
-        <div class="store-card-head">
-          <span class="store-ico-big">🌐</span>
-          <div><div class="store-name">Otra tienda</div><div class="store-url">Cualquier tienda online</div></div>
-        </div>
-        <div class="store-desc">¿Lo viste en otra tienda? No importa — envíanos el link y lo cotizamos.</div>
+        <div class="store-card-head"><span class="store-ico-big">🌐</span><div><div class="store-name">Otra tienda</div><div class="store-url">Cualquier tienda online</div></div></div>
+        <div class="store-desc">¿Lo viste en otra tienda? Envíanos el link y lo cotizamos.</div>
         <button class="store-wa-btn" onclick="sendStoreWA('otra tienda','')">💬 Enviar link por WhatsApp</button>
         <div class="store-wa-note">Cuéntanos qué tienda y el link del producto</div>
       </div>
-
     </div>
   </div>
 </div>
@@ -1140,6 +623,8 @@ button,.pill,.cadd,.hbtn,.feat-row-see,.hero-cta,.hero-cta-sec,
 <div class="toast" id="toast"></div>
 
 <script>
+var CATALOG = [{"id": "1", "nombre": "Aretes Celestial Negro y Dorado", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes asimétricos: flor estrella grande + cadena con estrellas pequeñas + luna creciente colgante", "precio": 7, "stock": 1, "observaciones": "Korean Style Accessories", "imagen": "https://brillitos.b-cdn.net/IMG_1658.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1658.JPEG"], "esNuevo": false}, {"id": "2", "nombre": "Moño Grande Vino con Cadenita de Perlas", "categoria": "Bisutería", "subcategoria": "Accesorios cabello", "descripcion": "Moño tipo lazo grande en tela roja/vino, centro con perla, cadenas de perlas colgantes en los bordes", "precio": 5, "stock": 1, "observaciones": "Accesorio de cabello o corbata", "imagen": "https://Brillitos.b-cdn.net/IMG_1681.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_1681.JPEG"], "esNuevo": false}, {"id": "3", "nombre": "Libro Stickers – Pet Paradise (Gatos Reales)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Fotos reales de gatos con disfraces kawaii. Holográfico azul", "precio": 6, "stock": 0, "observaciones": "Marca YUXIAN; ペット楽園", "imagen": "https://brillitos.b-cdn.net/IMG_0727.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_0727.JPEG", "https://brillitos.b-cdn.net/IMG_0728.JPEG"], "esNuevo": false}, {"id": "4", "nombre": "Llaveros Acrílicos Kpop Demon Hunters", "categoria": "Kpop", "subcategoria": "Llaveros", "descripcion": "6 llaveros marca @brillitos/@04249006350: gato azul expresivo, personaje oscuro/villano, lazada morada, gato azul tatuado, ROMANCE (chica pelo rosa). Empaque individual con backing card", "precio": 1, "stock": 10, "observaciones": "@brillitosve / 04249006350 – vendedor venezolano", "imagen": "https://brillitos.b-cdn.net/IMG_1625.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1625.JPEG"], "esNuevo": false}, {"id": "5", "nombre": "Sticker Pack – Smart Charlie (ZABC)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Pack de stickers de perrito café tipo Cavalier King Charles Spaniel: con sandía, postre, disfraz graduación, bolso, biberón, pelota, accesorios kawaii", "precio": 2, "stock": 1, "observaciones": "Marca ZABC; SKU JYMQ-6-02; 100x150mm", "imagen": "https://brillitos.b-cdn.net/IMG_2533.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2533.JPEG", "https://brillitos.b-cdn.net/IMG_2534.JPEG"], "esNuevo": false}, {"id": "6", "nombre": "Aretes Mariposa Dorada con Flor y Cristal Pendiente (SanZ)", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes en forma de mariposa; flor petalada bicolor (blanca/rosa); espiral con pendiente colgante", "precio": 7, "stock": 1, "observaciones": "marca SanZ; son asiétricos en el largo", "imagen": "https://brillitos.b-cdn.net/IMG_2589.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2589.JPEG", "https://brillitos.b-cdn.net/IMG_2590.JPEG"], "esNuevo": false}, {"id": "7", "nombre": "Aretes Flor Mariposa con Gema Morada y Cadenita", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes con parte superior tipo flor/mariposa; uno lleva gema circular morada. Cadena larga con pendiente gota colgante. Estilo asimétrico", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2584.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2584.JPEG", "https://brillitos.b-cdn.net/IMG_2588.JPEG"], "esNuevo": false}, {"id": "8", "nombre": "Pack de Stickers de Hada", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Illustrated Book Realm – caja azul con fairy/hada bajo luna llena entre flores. Hand Drawn Landscape", "precio": 4, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2595.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2595.JPEG", "https://brillitos.b-cdn.net/IMG_2596.JPEG", "https://brillitos.b-cdn.net/IMG_2597.JPEG"], "esNuevo": false}, {"id": "9", "nombre": "Sticker Book – Bunny & Bear", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Libreta de stickers tapa holográfica degradada rosa-verde-azul. Conejito blanco y osito café kawaii. Ventana con stickers visibles.", "precio": 6, "stock": 1, "observaciones": "-BUNNY&BEAR-", "imagen": "https://brillitos.b-cdn.net/IMG_2605.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2605.JPEG", "https://brillitos.b-cdn.net/IMG_2606.JPEG"], "esNuevo": false}, {"id": "10", "nombre": "Sticker Book – Cream Bear", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Libreta de stickers tapa holográfica dorada/amarilla. Osito crema kawaii con globo PU~, lazo celeste, postres. Ventana con stickers. -CREAM BEAR-. Espiral plateado", "precio": 6, "stock": 1, "observaciones": "-CREAM BEAR-", "imagen": "https://brillitos.b-cdn.net/IMG_2609.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2609.JPEG", "https://brillitos.b-cdn.net/IMG_2610.JPEG", "https://brillitos.b-cdn.net/IMG_2611.JPEG"], "esNuevo": false}, {"id": "11", "nombre": "Portaminas Capybara con mina incluida", "categoria": "Portaminas", "subcategoria": "Capybara", "descripcion": "4 lápices mecánicos Capybara en blíster: (1) marrón/salmón – 水运连筋 Capybara. (2) beige/verde – Capybara con pato y tortuga. (3) amarillo – 好运连连 Capybara peach. (4) celeste/azul – 大桔大利 Capybara. NO.9009, incluye mina de repuesto. T", "precio": 2, "stock": 4, "observaciones": "Disponible en 4 colores (consultar)", "imagen": "https://brillitos.b-cdn.net/IMG_4276.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4276.JPEG", "https://brillitos.b-cdn.net/IMG_4277.JPEG"], "esNuevo": false}, {"id": "12", "nombre": "Agendita Vivi JK Idol Lila (Main Vocal)", "categoria": "Agendas", "subcategoria": "Kawaii", "descripcion": "Agendita pequeña tipo cartera en material tipo PU. Portada lila/pastel con diseño de chica idol 'Vivi JK Uniform'. Personaje 'Main Vocal' con uniforme escolar. Cierre magnético.", "precio": 4, "stock": 1, "observaciones": "Vivi JK - Main Vocal edition", "imagen": "https://brillitos.b-cdn.net/IMG_9484.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9484.JPEG"], "esNuevo": false}, {"id": "13", "nombre": "Estuchito Peluche Capybara Rosado con Pez", "categoria": "Cartucheras", "subcategoria": "Capybara", "descripcion": "Estuche tipo pouch en tela tipo franela rosa fucsia. Diseño de capybara con pez azul, naranjas y estrellitas. Cierre superior rosa. Estilo suave y kawaii.", "precio": 3, "stock": 1, "observaciones": "Estuche franela rosa capybara + pez", "imagen": "https://brillitos.b-cdn.net/IMG_9464.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9464.JPEG", "https://brillitos.b-cdn.net/IMG_9465.JPEG"], "esNuevo": false}, {"id": "15", "nombre": "Lapicerito Stitch Disney", "categoria": "Lapiceros", "subcategoria": "Stitch", "descripcion": "4 lapiceros Stitch en superficie plana rosa: blanco (Stitch+manzana), azul claro (Stitch pompones), rosa (Lilo+Angel+Stitch), morado (Stitch+Angel). Charms acrílicos sobre fondo rosa brillante", "precio": 1, "stock": 4, "observaciones": "Disponible en: blanco, azul claro, rosa, morado", "imagen": "https://brillitos.b-cdn.net/IMG_4862.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4862.JPEG", "https://brillitos.b-cdn.net/IMG_4863.JPEG"], "esNuevo": false}, {"id": "16", "nombre": "Lapicerito Kawaii Animal con cabeza de gatito/osito", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "4 lapiceros kawaii con cabeza de animal en colores pastel: azul (gatico azul bigotes), morado (gatico morado boca abierta), verde lima (osito verde nariz), rosa (osito rosa con corazón). Cuerpo acolchado suave.", "precio": 1, "stock": 4, "observaciones": "Disponible en 4 colores pastel, diferentes opciones: azul, morado, rosa, verde.", "imagen": "https://brillitos.b-cdn.net/IMG_4284.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4284.JPEG", "https://brillitos.b-cdn.net/IMG_4285.JPEG"], "esNuevo": false}, {"id": "17", "nombre": "Lapicerito con charm tarjeta", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "2 lapiceros retráctiles con charm de tarjeta acrílica: (1) rosa – charm POTATO CHIPS con dibujo kawaii rosado, cuerpo rosa ciruela. (2) morado – charm FROZEN FACTORY fondo amarillo-azul, cuerpo morado con limones/cítricos. Diseño snack kawaii", "precio": 1, "stock": 1, "observaciones": "Opciones: 💜 Morado", "imagen": "https://brillitos.b-cdn.net/IMG_2797.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2797.JPEG", "https://brillitos.b-cdn.net/IMG_2798.JPEG"], "esNuevo": false}, {"id": "18", "nombre": "Sacapuntas librito + borrador", "categoria": "Sacapuntas", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2692.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2692.JPEG", "https://brillitos.b-cdn.net/IMG_2693.JPEG", "https://brillitos.b-cdn.net/IMG_2694.JPEG"], "esNuevo": false}, {"id": "19", "nombre": "Lapicero en Gel con Adorno de Stitch", "categoria": "Lapiceros", "subcategoria": "Stitch", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2697.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2697.JPEG", "https://brillitos.b-cdn.net/IMG_2698.JPEG"], "esNuevo": false}, {"id": "20", "nombre": "Jabones portátiles", "categoria": "Accesorios", "subcategoria": "Kawaii", "descripcion": "Cada pétalo es un Jabon - solo queda color blanco", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2699.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2699.JPEG", "https://brillitos.b-cdn.net/IMG_2700.JPEG"], "esNuevo": false}, {"id": "21", "nombre": "Lapiceros Gel sencillos", "categoria": "Lapiceros", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 4, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2707.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2707.JPEG", "https://brillitos.b-cdn.net/IMG_2708.JPEG"], "esNuevo": false}, {"id": "22", "nombre": "Lapicero borrable sencillo Aguacate", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2711.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2711.JPEG", "https://brillitos.b-cdn.net/IMG_2712.JPEG"], "esNuevo": false}, {"id": "23", "nombre": "Lapicero borrable sencillo Dino", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2713.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2713.JPEG", "https://brillitos.b-cdn.net/IMG_2714.JPEG"], "esNuevo": false}, {"id": "24", "nombre": "Toallita Kuromi", "categoria": "Accesorios", "subcategoria": "Kuromi", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2719.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2719.JPEG", "https://brillitos.b-cdn.net/IMG_2720.JPEG"], "esNuevo": false}, {"id": "25", "nombre": "Toallita Kuromi", "categoria": "Accesorios", "subcategoria": "Kuromi", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "Modelo 2 toallita Kuromi", "imagen": "https://brillitos.b-cdn.net/IMG_2721.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2721.JPEG", "https://brillitos.b-cdn.net/IMG_2722.JPEG"], "esNuevo": false}, {"id": "26", "nombre": "Marcapáginas Stitch", "categoria": "Marcapáginas", "subcategoria": "Stitch", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2772.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2772.JPEG", "https://brillitos.b-cdn.net/IMG_2773.JPEG"], "esNuevo": false}, {"id": "27", "nombre": "Sacapuntas Stitch Figurita", "categoria": "Sacapuntas", "subcategoria": "Stitch", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2776.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2776.JPEG", "https://brillitos.b-cdn.net/IMG_2777.JPEG"], "esNuevo": false}, {"id": "28", "nombre": "Boligrafo multitintas BT21", "categoria": "Bolígrafo multitintas", "subcategoria": "BT21", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "Opciones: 🩷 Rosa", "imagen": "https://brillitos.b-cdn.net/IMG_2780.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2780.JPEG", "https://brillitos.b-cdn.net/IMG_2781.JPEG", "https://brillitos.b-cdn.net/IMG_2782.JPEG", "https://brillitos.b-cdn.net/IMG_2783.JPEG"], "esNuevo": false}, {"id": "29", "nombre": "Bolígrafo Borrable Colección Cielo", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2786.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2786.JPEG", "https://brillitos.b-cdn.net/IMG_2787.JPEG"], "esNuevo": false}, {"id": "31", "nombre": "Colitas Kuromi", "categoria": "Accesorios cabello", "subcategoria": "Kuromi", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2826.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2826.JPEG", "https://brillitos.b-cdn.net/IMG_2827.JPEG"], "esNuevo": false}, {"id": "32", "nombre": "Sacapuntas 3D Conejito", "categoria": "Sacapuntas", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2842.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2842.JPEG", "https://brillitos.b-cdn.net/IMG_2843.JPEG"], "esNuevo": false}, {"id": "33", "nombre": "Correctorcito Roll-on Kawaii – Diseño 3", "categoria": "Correctores", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2844.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2844.JPEG", "https://brillitos.b-cdn.net/IMG_2845.JPEG"], "esNuevo": false}, {"id": "34", "nombre": "Sticker Pack Flake – Nuevo Diseño 1", "categoria": "Post its", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2869.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2869.JPEG", "https://brillitos.b-cdn.net/IMG_2870.JPEG"], "esNuevo": false}, {"id": "35", "nombre": "Sticker Pack Flake – Nuevo Diseño 2", "categoria": "Post its", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2871.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2871.JPEG", "https://brillitos.b-cdn.net/IMG_2872.JPEG"], "esNuevo": false}, {"id": "36", "nombre": "Sticker Pack Flake – Nuevo Diseño 3", "categoria": "Post its", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2880.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2880.JPEG", "https://brillitos.b-cdn.net/IMG_2881.JPEG"], "esNuevo": false}, {"id": "37", "nombre": "Set Portaminas Pochacco", "categoria": "Portaminas", "subcategoria": "Sanrio", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2884.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2884.JPEG", "https://brillitos.b-cdn.net/IMG_2885.JPEG"], "esNuevo": false}, {"id": "39", "nombre": "Lapicerito Kawaii – Diseño 29", "categoria": "Lapiceros", "subcategoria": "Kawaii", "descripcion": "4 modelos distintos: Pc, Patito, Patito Blanco, Chips", "precio": 1, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4864.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4864.JPEG", "https://brillitos.b-cdn.net/IMG_4865.JPEG", "https://brillitos.b-cdn.net/IMG_4855.JPEG"], "esNuevo": false}, {"id": "40", "nombre": "Libretita Gel Capibara Stickers + Hoja ilustradas", "categoria": "Libretas", "subcategoria": "Capybara", "descripcion": "", "precio": 3, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4880.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4880.JPEG", "https://brillitos.b-cdn.net/IMG_4881.JPEG", "https://brillitos.b-cdn.net/IMG_4882.JPEG", "https://brillitos.b-cdn.net/IMG_4883.JPEG"], "esNuevo": false}, {"id": "41", "nombre": "Washitapes 2 x1,5", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "consultar modelos", "precio": 1, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4902.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4902.JPEG", "https://brillitos.b-cdn.net/IMG_4903.JPEG", "https://brillitos.b-cdn.net/IMG_4904.JPEG", "https://brillitos.b-cdn.net/IMG_4905.JPEG"], "esNuevo": false}, {"id": "42", "nombre": "Toallitas Húmedas", "categoria": "Accesorios", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4906.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4906.JPEG", "https://brillitos.b-cdn.net/IMG_4907.JPEG"], "esNuevo": false}, {"id": "43", "nombre": "Photoholder", "categoria": "Accesorios", "subcategoria": "Kawaii", "descripcion": "solo conejito disponible", "precio": 6, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4910.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4910.JPEG", "https://brillitos.b-cdn.net/IMG_4911.JPEG"], "esNuevo": false}, {"id": "44", "nombre": "Marcapáginas Capibara", "categoria": "Marcapáginas", "subcategoria": "Capybara", "descripcion": "", "precio": 2, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4912.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4912.JPEG", "https://brillitos.b-cdn.net/IMG_4913.JPEG", "https://brillitos.b-cdn.net/IMG_4914.JPEG"], "esNuevo": false}, {"id": "45", "nombre": "Marca páginas animalitos, solo disponible el de animalitos del mar", "categoria": "Marcapáginas", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4916.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4916.JPEG", "https://brillitos.b-cdn.net/IMG_4917.JPEG"], "esNuevo": false}, {"id": "46", "nombre": "Pack de Stickers Niña vista 1", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4918.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4918.JPEG", "https://brillitos.b-cdn.net/IMG_4919.JPEG", "https://brillitos.b-cdn.net/IMG_4920.JPEG"], "esNuevo": false}, {"id": "47", "nombre": "Libretita Stitch", "categoria": "Libretas", "subcategoria": "Stitch", "descripcion": "", "precio": 2, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4934.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4934.JPEG", "https://brillitos.b-cdn.net/IMG_4935.JPEG", "https://brillitos.b-cdn.net/IMG_4936.JPEG", "https://brillitos.b-cdn.net/IMG_4937.JPEG", "https://brillitos.b-cdn.net/IMG_4938.JPEG"], "esNuevo": false}, {"id": "48", "nombre": "Plancha de Stickers relieve Kuromi", "categoria": "🌟 Stickers", "subcategoria": "Kuromi", "descripcion": "", "precio": 4, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4942.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4942.JPEG", "https://brillitos.b-cdn.net/IMG_4943.JPEG", "https://brillitos.b-cdn.net/IMG_4940.JPEG", "https://brillitos.b-cdn.net/IMG_4941.JPEG"], "esNuevo": false}, {"id": "49", "nombre": "Stickers Sanrio Carterita, vienen 4 planchitas de stickeers 2$", "categoria": "🌟 Stickers", "subcategoria": "Sanrio", "descripcion": "", "precio": 2, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_5875.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_5875.JPEG", "https://brillitos.b-cdn.net/IMG_5876.JPEG"], "esNuevo": false}, {"id": "50", "nombre": "Stickers Capibara (plancha)", "categoria": "🌟 Stickers", "subcategoria": "Capybara", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "Disponible en: naranja, celeste, rosa", "imagen": "https://brillitos.b-cdn.net/IMG_5877.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_5877.JPEG", "https://brillitos.b-cdn.net/IMG_5878.JPEG"], "esNuevo": false}, {"id": "51", "nombre": "Notitas marcapáginas", "categoria": "Marcapáginas", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 2, "observaciones": "Opciones: 🩵 Azul, 💛 Amarillo", "imagen": "https://brillitos.b-cdn.net/IMG_5898.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_5898.JPEG"], "esNuevo": false}, {"id": "52", "nombre": "Carpeta de Cierre Capibara rosa", "categoria": "🎒 Bolsos / Carteras", "subcategoria": "Capybara", "descripcion": "", "precio": 4, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_5908.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_5908.JPEG", "https://brillitos.b-cdn.net/IMG_5909.JPEG"], "esNuevo": false}, {"id": "53", "nombre": "Lapicero Capibara Aplique metálico", "categoria": "Lapiceros", "subcategoria": "Capybara", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6480.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6480.JPEG", "https://brillitos.b-cdn.net/IMG_6481.JPEG"], "esNuevo": false}, {"id": "54", "nombre": "Sacapuntas Conejito 3D", "categoria": "Sacapuntas", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "Disponible en: rosa, azul, blanco", "imagen": "https://brillitos.b-cdn.net/IMG_6482.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6482.JPEG", "https://brillitos.b-cdn.net/IMG_6483.JPEG"], "esNuevo": false}, {"id": "55", "nombre": "Libreta de Stickers Sanrio vista 1", "categoria": "🌟 Stickers", "subcategoria": "Sanrio", "descripcion": "", "precio": 3, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6484.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6484.JPEG", "https://brillitos.b-cdn.net/IMG_6485.JPEG", "https://brillitos.b-cdn.net/IMG_6488.JPEG", "https://brillitos.b-cdn.net/IMG_6489.JPEG"], "esNuevo": false}, {"id": "56", "nombre": "Mini cuadernitos cosidos", "categoria": "Libretas", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6490.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6490.JPEG", "https://brillitos.b-cdn.net/IMG_6491.JPEG"], "esNuevo": false}, {"id": "57", "nombre": "Marcapáginas Imantados animalitos", "categoria": "Marcapáginas", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6492.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6492.JPEG", "https://brillitos.b-cdn.net/IMG_6493.JPEG", "https://brillitos.b-cdn.net/IMG_6494.JPEG", "https://brillitos.b-cdn.net/IMG_6495.JPEG"], "esNuevo": false}, {"id": "58", "nombre": "Notitas armables Gatito en Caja", "categoria": "Sticky Notes", "subcategoria": "Gatitos", "descripcion": "", "precio": 2, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6508.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6508.JPEG", "https://brillitos.b-cdn.net/IMG_6509.JPEG"], "esNuevo": false}, {"id": "61", "nombre": "Monederito con cierre Capibara", "categoria": "🎒 Bolsos / Carteras", "subcategoria": "Capybara", "descripcion": "", "precio": 3, "stock": 4, "observaciones": "Disponible en: rosa, celeste, marrón, morado", "imagen": "https://brillitos.b-cdn.net/IMG_6516.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6516.JPEG", "https://brillitos.b-cdn.net/IMG_6517.JPEG"], "esNuevo": false}, {"id": "62", "nombre": "Herramientas de Journaling", "categoria": "📓 Papelería", "subcategoria": "Kawaii", "descripcion": "", "precio": 5, "stock": 11, "observaciones": "Disponible en: blanco, rosa, morado, verde, celeste, naranja", "imagen": "https://brillitos.b-cdn.net/IMG_6518.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6518.JPEG", "https://brillitos.b-cdn.net/IMG_6519.JPEG", "https://brillitos.b-cdn.net/IMG_6520.JPEG", "https://brillitos.b-cdn.net/IMG_6521.JPEG"], "esNuevo": false}, {"id": "63", "nombre": "Sacapuntas Lego Girafa, Nave, Tucán", "categoria": "Sacapuntas", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6523.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6523.JPEG", "https://brillitos.b-cdn.net/IMG_6524.JPEG", "https://brillitos.b-cdn.net/IMG_6525.JPEG", "https://brillitos.b-cdn.net/IMG_6526.JPEG"], "esNuevo": false}, {"id": "65", "nombre": "Marcapáginas Sanrio", "categoria": "Marcapáginas", "subcategoria": "Sanrio", "descripcion": "", "precio": 1, "stock": 4, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6559.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6559.JPEG", "https://brillitos.b-cdn.net/IMG_6560.JPEG"], "esNuevo": false}, {"id": "66", "nombre": "Abanico Pochacco", "categoria": "Accesorios", "subcategoria": "Sanrio", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6565.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6565.JPEG", "https://brillitos.b-cdn.net/IMG_6566.JPEG"], "esNuevo": false}, {"id": "67", "nombre": "Washitapes Niña Asia 2$ cada uno", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6573.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6573.JPEG", "https://brillitos.b-cdn.net/IMG_6574.JPEG"], "esNuevo": false}, {"id": "68", "nombre": "Notitas Capibara", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "Disponible en: celeste, roja, amarilla", "imagen": "https://brillitos.b-cdn.net/IMG_6575.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6575.JPEG", "https://brillitos.b-cdn.net/IMG_6576.JPEG"], "esNuevo": false}, {"id": "69", "nombre": "Washitape Precortado Cielo Rosa", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6595.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6595.JPEG", "https://brillitos.b-cdn.net/IMG_6596.JPEG"], "esNuevo": false}, {"id": "70", "nombre": "Agenda Conejito Espacial + Bolígrafo vista 1", "categoria": "📓 Papelería", "subcategoria": "Kawaii", "descripcion": "", "precio": 10, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6597.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6597.JPEG", "https://brillitos.b-cdn.net/IMG_6598.JPEG", "https://brillitos.b-cdn.net/IMG_6599.JPEG"], "esNuevo": false}, {"id": "71", "nombre": "Agenda Acolchadita niña", "categoria": "📓 Papelería", "subcategoria": "Kawaii", "descripcion": "", "precio": 5, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6601.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6601.JPEG", "https://brillitos.b-cdn.net/IMG_6602.JPEG", "https://brillitos.b-cdn.net/IMG_6603.JPEG", "https://brillitos.b-cdn.net/IMG_6604.JPEG"], "esNuevo": false}, {"id": "72", "nombre": "Washitape", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_6625.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6625.JPEG", "https://brillitos.b-cdn.net/IMG_6626.JPEG"], "esNuevo": false}, {"id": "73", "nombre": "Sticker Book – Capybara (diseño 1)", "categoria": "🌟 Stickers", "subcategoria": "Capybara", "descripcion": "Sticker book de Capibara con múltiples páginas holográficas. Diseños: Ramen/Comida Asiática, Summer Beach y más.", "precio": 6, "stock": 1, "observaciones": "-CAPYBARA-", "imagen": "https://brillitos.b-cdn.net/IMG_2613.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2613.JPEG", "https://brillitos.b-cdn.net/IMG_2614.JPEG"], "esNuevo": false}, {"id": "74", "nombre": "Sticker Book – Pág. interna Cute Bear / Bread Time (holo dorado)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Página interna libreta holográfica dorada. Osito crema kawaii: Cute Bear, Bread Time, Delicious, YUM, Happy!, accesorios panadería. Fondo dorado holo", "precio": 6, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2610.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2610.JPEG", "https://brillitos.b-cdn.net/IMG_2611.JPEG", "https://brillitos.b-cdn.net/IMG_2606.JPEG", "https://brillitos.b-cdn.net/IMG_2607.JPEG"], "esNuevo": false}, {"id": "75", "nombre": "Kuromi – Libretita espiral pequeña", "categoria": "Cuadernos", "subcategoria": "Kuromi", "descripcion": "Set con libreta espiral mini Kuromi (tapa 3D morada con goteo, Kuromi y My Melody) + regla plana Kuromi morada. Vista general del set embalado", "precio": 2, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2665.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2665.JPEG", "https://brillitos.b-cdn.net/IMG_2666.JPEG", "https://brillitos.b-cdn.net/IMG_2668.JPEG", "https://brillitos.b-cdn.net/IMG_2669.JPEG"], "esNuevo": false}, {"id": "76", "nombre": "Libretitas troqueladas Sanrio – My Melody y Kuromi (con accesorio)", "categoria": "Cuadernos", "subcategoria": "Sanrio", "descripcion": "Mismas tres libretas troqueladas que IMG_2671 con sticker mariposa azul en fondo y ángulo diferente", "precio": 2, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2670.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2670.JPEG", "https://brillitos.b-cdn.net/IMG_2671.JPEG", "https://brillitos.b-cdn.net/IMG_2672.JPEG"], "esNuevo": false}, {"id": "77", "nombre": "Sticker Books Sanrio – Páginas internas Kuromi + My Melody", "categoria": "🌟 Stickers", "subcategoria": "Sanrio", "descripcion": "Sticker book de Sanrio con personajes: Kuromi, My Melody y más.", "precio": 3, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2678.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2678.JPEG", "https://brillitos.b-cdn.net/IMG_2679.JPEG"], "esNuevo": false}, {"id": "78", "nombre": "Set Papelería Cinnamoroll – Reglita + Lápiz + Sacapuntitas", "categoria": "🛒 Otros", "subcategoria": "Sanrio", "descripcion": "Set papelería Cinnamoroll azul celeste: regla 20cm, lápiz y sacapuntas con ilustración de Cinnamoroll marinera con estrella, piruletas, lazos. Texto CINNAMOROLL. Embalado en bolsa transparente", "precio": 3, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2680.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2680.JPEG", "https://brillitos.b-cdn.net/IMG_2681.JPEG"], "esNuevo": false}, {"id": "79", "nombre": "Sticker Hoja KAPIBALA", "categoria": "🌟 Stickers", "subcategoria": "Capybara", "descripcion": "Dos hojas de stickers KAPIBALA Stickers: (izq) fondo dorado hologr. con capybara en moto y hamburguesa, poses variadas con brillo. (der) fondo celeste con lunares, capybara en varios temas: fresa, auto rojo, cocodrilo, pato. Mismo diseño que IMG_4282", "precio": 1, "stock": 2, "observaciones": "Opciones: 💛 Dorado holo, 🩵 Celeste", "imagen": "https://brillitos.b-cdn.net/IMG_4281.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4281.JPEG", "https://brillitos.b-cdn.net/IMG_4282.JPEG"], "esNuevo": false}, {"id": "80", "nombre": "Lapicerito Jujutsu Kaisen", "categoria": "Lapiceros", "subcategoria": "Anime", "descripcion": "Lapicero de gel Megumi, Nanami", "precio": 1, "stock": 10, "observaciones": "Opciones: Megumi, Nanami", "imagen": "https://brillitos.b-cdn.net/IMG_4867.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4867.JPEG", "https://brillitos.b-cdn.net/IMG_4868.JPEG"], "esNuevo": false}, {"id": "81", "nombre": "Lapicerito Capybara con charm acrílico", "categoria": "Lapiceros", "subcategoria": "Capybara", "descripcion": "5 lapiceros kawaii de Capybara en mano: cuerpo beige/blanco con capybara naranjas y patos amarillos, texto capybara. Charms acrílicos de capybara en poses: con bolsa Good, en flotador pato, leyendo libro, con bebida boba, solo. Fondo negro", "precio": 1, "stock": 6, "observaciones": "Disponible en varios diseños (consultar)", "imagen": "https://brillitos.b-cdn.net/IMG_4280.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4280.JPEG", "https://brillitos.b-cdn.net/IMG_4281.JPEG", "https://brillitos.b-cdn.net/IMG_4852.JPEG"], "esNuevo": false}, {"id": "82", "nombre": "Sacapuntitas Gatito 3D", "categoria": "Sacapuntas", "subcategoria": "Gatitos", "descripcion": "4 sacapuntas en forma de gatito 3D en colores pastel: morado (guiñando), rosa (ojos grandes rosados), verde menta (nariz triangular), azul (boca abierta). Acabado plástico brillante kawaii. Agujero de sacapuntas en el cuerpo", "precio": 1, "stock": 4, "observaciones": "Disponible en 4 colores pastel (consultar)", "imagen": "https://brillitos.b-cdn.net/IMG_2839.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2839.JPEG", "https://brillitos.b-cdn.net/IMG_2840.JPEG"], "esNuevo": false}, {"id": "83", "nombre": "Cartucherita / Estuchito Kuromi – (azul celeste, tema océano)", "categoria": "Cartucheras", "subcategoria": "Kuromi", "descripcion": "Estuche/cartuchera en forma de caja de leche de cuero sintético azul celeste. Ilustración de Kuromi tema marino/oceánico: Kuromi con estrella de mar, conchas, algas, lazo morado, perlas. Cierre con cremallera multicolor holo. Kawaii Sanrio", "precio": 5, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2754.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2754.JPEG", "https://brillitos.b-cdn.net/IMG_2755.JPEG"], "esNuevo": false}, {"id": "85", "nombre": "Rompecabezas Pixel Art de Stickers", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Juego de rompecabezas de stickers para armar. 23 hojas de stickers kawaii de animales.", "precio": 6, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2524.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2524.JPEG", "https://brillitos.b-cdn.net/IMG_2525.JPEG"], "esNuevo": false}, {"id": "86", "nombre": "Libretita Espiral The Monsters Holográfica Rosa (Farmer)", "categoria": "Libretas", "subcategoria": "Kawaii", "descripcion": "Libreta espiral tamaño mediano con portada holográfica rosa/verde. Diseño 'The Monsters' de Pop Mart: personaje con sombrero de granjero en fondo verde. Anillo espiral rosado. Incluye marcapáginas con forma de conejo monstruo.", "precio": 3, "stock": 10, "observaciones": "The Monsters - Farmer edition", "imagen": "https://brillitos.b-cdn.net/IMG_9722.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9722.JPEG", "https://brillitos.b-cdn.net/IMG_9723.JPEG"], "esNuevo": false}, {"id": "87", "nombre": "Libretita Espiral Labubu Lazy Yoga Holográfica Morada", "categoria": "Libretas", "subcategoria": "Labubu", "descripcion": "Libreta espiral tamaño mediano con portada holográfica morada/lila. Diseño 'The Monsters' Lazy Yoga: personaje monstruo en fondo negro con tonos morados y amarillos. Anillo espiral lila. Incluye marcapáginas con personaje en moto.", "precio": 3, "stock": 10, "observaciones": "The Monsters - Lazy Yoga edition", "imagen": "https://brillitos.b-cdn.net/IMG_9718.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9718.JPEG", "https://brillitos.b-cdn.net/IMG_9719.JPEG", "https://brillitos.b-cdn.net/IMG_9717.JPEG"], "esNuevo": false}, {"id": "88", "nombre": "Libretita Espiral Labubu Holográfica Celeste (Money Come)", "categoria": "Libretas", "subcategoria": "Labubu", "descripcion": "Libreta espiral con portada holográfica celeste/azul. Diseño Labubu multiescena: 'Money Come', 'Share You Love', 'I'm winner!', 'Relax'. Anillo espiral plateado. Incluye marcapáginas Labubu corona.", "precio": 3, "stock": 1, "observaciones": "Labubu - Money Come edition", "imagen": "https://brillitos.b-cdn.net/IMG_9498.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9498.JPEG", "https://brillitos.b-cdn.net/IMG_9499.JPEG"], "esNuevo": false}, {"id": "89", "nombre": "Libretita Espiral Labubu Holográfica Celeste (Friends)", "categoria": "Libretas", "subcategoria": "Labubu", "descripcion": "Libreta espiral con portada holográfica celeste. Diseño Labubu 'Friends': dos personajes Labubu con gafas de corazón y cerveza sobre fondo cuadriculado amarillo. Anillo espiral dorado. Incluye marcapáginas.", "precio": 3, "stock": 1, "observaciones": "Labubu - Summer / Friends", "imagen": "https://brillitos.b-cdn.net/IMG_9724.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9724.JPEG", "https://brillitos.b-cdn.net/IMG_9725.JPEG"], "esNuevo": false}, {"id": "90", "nombre": "Libretita Espiral Labubu Holográfica Rosa (Beach)", "categoria": "Libretas", "subcategoria": "Labubu", "descripcion": "Libreta espiral con portada holográfica rosa. Diseño Labubu verano/playa: personajes en escena de playa con palmeras y patito. Anillo espiral rosado. Incluye marcapáginas Labubu.", "precio": 3, "stock": 1, "observaciones": "Labubu - Beach edition", "imagen": "https://brillitos.b-cdn.net/IMG_9726.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9726.JPEG", "https://brillitos.b-cdn.net/IMG_9727.JPEG"], "esNuevo": false}, {"id": "91", "nombre": "Libretita Espiral Labubu Holográfica Dorada (Candy)", "categoria": "Libretas", "subcategoria": "Labubu", "descripcion": "Libreta espiral tamaño A5 con portada holográfica dorada/naranja cuadriculada. Diseño Labubu 'Candy': dos Labubu con gafas de corazón en escena festiva. Anillo espiral dorado.", "precio": 3, "stock": 1, "observaciones": "Labubu - Candy edition, anillo dorado", "imagen": "https://brillitos.b-cdn.net/IMG_9710.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9710.JPEG", "https://brillitos.b-cdn.net/IMG_9711.JPEG", "https://brillitos.b-cdn.net/IMG_9712.JPEG"], "esNuevo": false}, {"id": "92", "nombre": "Libretita Espiral Labubu Holográfica Verde Menta (Labubu Ride)", "categoria": "Libretas", "subcategoria": "Labubu", "descripcion": "Libreta espiral con portada holográfica verde menta/agua. Diseño Labubu con bandana, pose dinámica, fondo de puntos. Personajes pequeños en esquinas. Anillo espiral verde.", "precio": 3, "stock": 1, "observaciones": "Labubu - Labubu Ride edition", "imagen": "https://brillitos.b-cdn.net/IMG_9716.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9716.JPEG", "https://brillitos.b-cdn.net/IMG_9717.JPEG"], "esNuevo": false}, {"id": "93", "nombre": "Libretita Espiral Labubu Holográfica Rosa Salmón (Will Be OK)", "categoria": "Libretas", "subcategoria": "Labubu", "descripcion": "Libreta espiral con portada holográfica rosa salmón/cuadriculada. Diseño Labubu 'Will be ok': personaje con traje de oso en pose adorable. Anillo espiral rosado. Al lado se ve estuche Kuromi morado.", "precio": 3, "stock": 1, "observaciones": "Labubu - Will be OK edition", "imagen": "https://brillitos.b-cdn.net/IMG_9492.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9492.JPEG", "https://brillitos.b-cdn.net/IMG_9493.JPEG", "https://brillitos.b-cdn.net/IMG_9494.JPEG"], "esNuevo": false}, {"id": "94", "nombre": "Sticky Notes Capybara Rosa (Sleeping ZZZ)", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "Bloc de notas adhesivas con diseño Capybara durmiendo. Portada con forma de cabeza de capybara, fondo rosa cuadriculado. Diseño con zanahorias, estrellas y capybaras kawaii. Marca MOKA.", "precio": 1, "stock": 1, "observaciones": "Capybara - ZZZ sleeping edition", "imagen": "https://brillitos.b-cdn.net/IMG_9567.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9567.JPEG", "https://brillitos.b-cdn.net/IMG_9568.JPEG"], "esNuevo": false}, {"id": "95", "nombre": "Sticky Notes Capybara Lila (Coffee & Duck)", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "Bloc de notas adhesivas con diseño Capybara. Portada forma cabeza capybara, fondo lila/violeta cuadriculado. Diseño con pato, café, laptop y tortuga. Letras 'CAPYBARA'.", "precio": 1, "stock": 1, "observaciones": "Capybara - Coffee & Duck edition", "imagen": "https://brillitos.b-cdn.net/IMG_9573.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9573.JPEG", "https://brillitos.b-cdn.net/IMG_9574.JPEG"], "esNuevo": false}, {"id": "96", "nombre": "Sticky Notes Capybara Amarillo (Fast Food)", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "Bloc de notas adhesivas Capybara con fondo amarillo. Diseño capybara con hamburguesa, boba tea, papas fritas y cocodrilo. Portada con forma especial. Letras 'CAPYBARA'.", "precio": 1, "stock": 1, "observaciones": "Capybara - Fast food edition", "imagen": "https://brillitos.b-cdn.net/IMG_9571.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9571.JPEG", "https://brillitos.b-cdn.net/IMG_9572.JPEG"], "esNuevo": false}, {"id": "97", "nombre": "Sticky Notes Kuromi Corazón (75x75mm)", "categoria": "Sticky Notes", "subcategoria": "Kuromi", "descripcion": "Sticky Notes 75x75mm con diseño Kuromi. Notas en forma de corazón blanco. Portada con Kuromi sosteniendo espejo, fondo rayas violetas con encaje. 60 páginas.", "precio": 1, "stock": 1, "observaciones": "75x75mm, 60 páginas", "imagen": "https://brillitos.b-cdn.net/IMG_9570.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9570.JPEG", "https://brillitos.b-cdn.net/IMG_9571.JPEG"], "esNuevo": false}, {"id": "98", "nombre": "Sticky Notes My Melody Rosa (Good Day)", "categoria": "Sticky Notes", "subcategoria": "My Melody", "descripcion": "Bloc de notas adhesivas My Melody. Portada con forma de My Melody, fondo cuadriculado rosa. Diseño con My Melody y su amigo en escena 'Good Day'. Bloc de notas con líneas.", "precio": 1, "stock": 1, "observaciones": "My Melody - Good Day", "imagen": "https://brillitos.b-cdn.net/IMG_9569.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9569.JPEG", "https://brillitos.b-cdn.net/IMG_9570.JPEG"], "esNuevo": false}, {"id": "99", "nombre": "Sticky Notes Hello Kitty Rosa (Good Day)", "categoria": "Sticky Notes", "subcategoria": "Hello Kitty", "descripcion": "Bloc de notas adhesivas Hello Kitty. Portada con forma de Hello Kitty, fondo cuadriculado rosa gingham. 'Good Day' en letras. Diseño con Hello Kitty abrazando osito, puntos blancos. Incluye hoja guía.", "precio": 1, "stock": 1, "observaciones": "Hello Kitty - Good Day edition", "imagen": "https://brillitos.b-cdn.net/IMG_9568.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9568.JPEG", "https://brillitos.b-cdn.net/IMG_9569.JPEG"], "esNuevo": false}, {"id": "100", "nombre": "Sticky Notes Kuromi Morada (Cute Go Go)", "categoria": "Sticky Notes", "subcategoria": "Kuromi", "descripcion": "Bloc de notas adhesivas Kuromi. Portada forma Kuromi, fondo violeta cuadriculado rombos. Diseño Kuromi con pastel y murciélago, texto 'Cute' y 'Go!! Go!!'. Notas a rayas.", "precio": 1, "stock": 1, "observaciones": "Kuromi - Cute Go Go", "imagen": "https://brillitos.b-cdn.net/IMG_9572.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9572.JPEG", "https://brillitos.b-cdn.net/IMG_9573.JPEG"], "esNuevo": false}, {"id": "101", "nombre": "Index Sticky Notes Kawaii", "categoria": "Sticky Notes", "subcategoria": "Kawaii", "descripcion": "Set de 4 paquetes Index Sticky Notes marca JOYTHINK. Diseños kawaii: conejito rosa 'CAMMY', perrito con lazo amarillo, oso café y oso beige con cuadros. Incluye hojas sticky tipo índice en varios colores.", "precio": 3, "stock": 3, "observaciones": "Opciones: 🩷 Rosado, 💜 Lila, 🩵 Celeste, 🤎 Marrón", "imagen": "https://brillitos.b-cdn.net/IMG_9362.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9362.JPEG", "https://brillitos.b-cdn.net/IMG_9363.JPEG"], "esNuevo": false}, {"id": "102", "nombre": "Stickers Corazones Letras A-Z", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Set de stickers letras del alfabeto en forma de corazón. 4 bolsitas: morado oscuro, morado claro, rojo y verde/azul. Cada bolsita con letras A-Z completas en corazones traslúcidos con glitter.", "precio": 1, "stock": 4, "observaciones": "Opciones: 🩷 Rosado, 💜 Lila, ❤️ Rojo, 🩵 Turquesa, 💚 Verde", "imagen": "https://brillitos.b-cdn.net/IMG_9326.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9326.JPEG", "https://brillitos.b-cdn.net/IMG_9327.JPEG"], "esNuevo": false}, {"id": "103", "nombre": "Stickers Tira Star Travel", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Set de 3 tiras stickers: 'Star Travel' azul claro (oso con bathtub), 'Star Travel' violeta (conejo con ovni), 'Cute Pet' oso café. Diseños cósmicos/espaciales y mascotas adorables.", "precio": 1, "stock": 1, "observaciones": "Opciones: 🩵 Azul claro, 💙 Azul oscuro, 🤎 Marrón", "imagen": "https://brillitos.b-cdn.net/IMG_9350.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9350.JPEG", "https://brillitos.b-cdn.net/IMG_9351.JPEG"], "esNuevo": false}, {"id": "104", "nombre": "Stickers Tira Holográfica Osito", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Tira de stickers holográficos/glitter con diseño de ositos y hongos. Fondo gradiente rosa-amarillo con glitter. Figuras de ositos y hongos tipo jelly/translúcidos con brillos.", "precio": 1, "stock": 10, "observaciones": "Opciones: 🍄 Osito Hongos Multicolor, 🫙 Osito Tarros Azul, 🍩 Oso Donut Pastel", "imagen": "https://brillitos.b-cdn.net/IMG_9376.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9376.JPEG", "https://brillitos.b-cdn.net/IMG_9377.JPEG"], "esNuevo": false}, {"id": "105", "nombre": "Stickers Pack Conejito Nube Lila (Bolsita)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Bolsita con stickers sueltos de conejito nube blanco/lila. Diseño kawaii coreano: conejito con forma de nube en poses variadas, con frutas y flores. Pack abundante de stickers varios tamaños.", "precio": 4, "stock": 1, "observaciones": "Stickers sueltos conejito nube", "imagen": "https://brillitos.b-cdn.net/IMG_9337.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9337.JPEG", "https://brillitos.b-cdn.net/IMG_9338.JPEG"], "esNuevo": false}, {"id": "106", "nombre": "Stickers Pack Cajita Transparente Kawaii (Capybara + Otros)", "categoria": "🌟 Stickers", "subcategoria": "Capybara", "descripcion": "Sticker pack en cajita transparente con stickers de Capibara y más personajes kawaii.", "precio": 3, "stock": 2, "observaciones": "Stickers en cajita plástica", "imagen": "https://brillitos.b-cdn.net/IMG_9344.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9344.JPEG", "https://brillitos.b-cdn.net/IMG_9345.JPEG"], "esNuevo": false}, {"id": "107", "nombre": "Washi Tape Niña Fantasía Molinillo (Rollo)", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "Rollo de washi tape con diseño de niña anime kawaii con molinillo rosado, casa de cuento y dulces. Colores pastel: rosa, lila, amarillo. Rollo mediano.", "precio": 2, "stock": 1, "observaciones": "Washi tape niña anime con molinillo", "imagen": "https://brillitos.b-cdn.net/IMG_9473.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9473.JPEG", "https://brillitos.b-cdn.net/IMG_9474.JPEG"], "esNuevo": false}, {"id": "108", "nombre": "Washi Tape Niña Deportes (Rollo)", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "Rollo de washi tape con diseño de niña anime kawaii jugando deportes y oso con raqueta. Fondo azul claro con iconos deportivos: pelota, guante, raqueta. Colores pastel.", "precio": 2, "stock": 1, "observaciones": "Washi tape niña deportes + oso", "imagen": "https://brillitos.b-cdn.net/IMG_9477.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9477.JPEG", "https://brillitos.b-cdn.net/IMG_9478.JPEG"], "esNuevo": false}, {"id": "109", "nombre": "Washi Tape Ositos Deportes (Rollo)", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "Rollo de washi tape con ositos jugando deportes. Texto chino '运动会' (festival deportivo). Osito blanco y oso café con raquetas, balones, canasta. Fondo blanco con marcos.", "precio": 2, "stock": 1, "observaciones": "运动会 - osos deportes", "imagen": "https://brillitos.b-cdn.net/IMG_9475.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9475.JPEG", "https://brillitos.b-cdn.net/IMG_9476.JPEG"], "esNuevo": false}, {"id": "110", "nombre": "Washi Tape Niña Kawaii Animo (Rollo)", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "Rollo de washi tape con niña anime kawaii con texto '加油' (ánimo/fuerza). Diseño con mariposas, caramelos y niña kawaii en colores azul y pastel.", "precio": 2, "stock": 1, "observaciones": "加油 - ánimo, niña kawaii", "imagen": "https://brillitos.b-cdn.net/IMG_9476.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9476.JPEG", "https://brillitos.b-cdn.net/IMG_9477.JPEG"], "esNuevo": false}, {"id": "111", "nombre": "Washi Tape Ositos Flores y Fresas (Rollo Ancho)", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "Rollo ancho de washi tape con ositos kawaii, fresas, tulipanes rosas, reloj y árbol encantado. Fondo blanco con colores pastel: rosa, verde, amarillo.", "precio": 2, "stock": 1, "observaciones": "Washi tape ancho, ositos flores", "imagen": "https://brillitos.b-cdn.net/IMG_9472.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9472.JPEG", "https://brillitos.b-cdn.net/IMG_9473.JPEG"], "esNuevo": false}, {"id": "112", "nombre": "Washi Tape Ositos Cerezas y Flores (Rollo Ancho)", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "Rollo ancho de washi tape con dos ositos kawaii, cerezas, flores rosas, lazo y elementos vintage. Colores rosa y pastel sobre fondo blanco.", "precio": 2, "stock": 1, "observaciones": "Washi tape ancho, osos cerezas flores", "imagen": "https://brillitos.b-cdn.net/IMG_9474.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9474.JPEG", "https://brillitos.b-cdn.net/IMG_9475.JPEG"], "esNuevo": false}, {"id": "113", "nombre": "Set Washi Tape Sanrio Characters x5", "categoria": "Washitape", "subcategoria": "Sanrio", "descripcion": "Set de 5 washi tapes con personajes Sanrio.", "precio": 4, "stock": 1, "observaciones": "Caja tipo bolso, 3 washi tapes Sanrio", "imagen": "https://brillitos.b-cdn.net/IMG_9152.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9152.JPEG", "https://brillitos.b-cdn.net/IMG_9153.JPEG"], "esNuevo": false}, {"id": "114", "nombre": "Llaverito Peluche Monstruo Lila + Marrón (Dúo con Cordón)", "categoria": "Peluches", "subcategoria": "Kawaii", "descripcion": "Dúo de llaveros peluche con diseño de monstruo kawaii con lazo. Color lila (con cordón lila trenzado) y color marrón/camel (con cordón marrón). Cara bordada, lazo de tela. Estilo Labubu-like.", "precio": 6, "stock": 2, "observaciones": "Opciones: 💜 Lila, 🤎 Marrón", "imagen": "https://brillitos.b-cdn.net/IMG_9727.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9727.JPEG", "https://brillitos.b-cdn.net/IMG_9728.JPEG"], "esNuevo": false}, {"id": "115", "nombre": "Colitas Capybara", "categoria": "🧸 Accesorios", "subcategoria": "Capybara", "descripcion": "Llavero peluche de oso kawaii. Cuerpo en pelaje furry lila/lavanda con cabeza camel bordada. Detalles bordados de colores en cara (amarillo, azul, fucsia). Broche metálico.", "precio": 3, "stock": 4, "observaciones": "Disponible en: 🩷 Rosado, 💜 Lila, 🩵 Celeste, 🤍 Beige", "imagen": "https://brillitos.b-cdn.net/IMG_9562.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9562.JPEG", "https://brillitos.b-cdn.net/IMG_9563.JPEG"], "esNuevo": false}, {"id": "116", "nombre": "Agendita Fotos Vivi JK Idol Menta (Rapper)", "categoria": "Agendas", "subcategoria": "Kawaii", "descripcion": "Agendita Portada verde menta con diseño de chica idol 'Vivi JK Uniform'. Personaje 'Rapper' con uniforme escolar. Cierre magnético flor.", "precio": 4, "stock": 1, "observaciones": "Vivi JK - Rapper edition", "imagen": "https://brillitos.b-cdn.net/IMG_9485.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9485.JPEG", "https://brillitos.b-cdn.net/IMG_9486.JPEG"], "esNuevo": false}, {"id": "117", "nombre": "Agendita Cinnamoroll Azul (Joytop)", "categoria": "Agendas", "subcategoria": "Cinnamoroll", "descripcion": "Agenda oficial Sanrio de Cinnamoroll. Incluye kit para hacer tu propio llaverito Sanrio.", "precio": 7, "stock": 1, "observaciones": "Joytop - Cinnamoroll cupcake", "imagen": "https://brillitos.b-cdn.net/IMG_9487.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9487.JPEG", "https://brillitos.b-cdn.net/IMG_9488.JPEG"], "esNuevo": false}, {"id": "118", "nombre": "Agendita  Kuromi Rosado (Joytop)", "categoria": "Agendas", "subcategoria": "Kuromi", "descripcion": "Agenda oficial Sanrio de Kuromi. Incluye kit para hacer tu propio llaverito Sanrio.", "precio": 7, "stock": 1, "observaciones": "Joytop - Kuromi cumpleaños", "imagen": "https://brillitos.b-cdn.net/IMG_9486.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9486.JPEG", "https://brillitos.b-cdn.net/IMG_9487.JPEG"], "esNuevo": false}, {"id": "119", "nombre": "Cartera Trifold Kuromi Lila", "categoria": "🎒 Bolsos / Carteras", "subcategoria": "Kuromi", "descripcion": "Cartera pequeña tri-fold en material tipo PU lila con diseño de Kuromi en la portada. Cara Kuromi grande con detalle rosa y morado. Compartimentos internos para tarjetas.", "precio": 8, "stock": 1, "observaciones": "Cartera Kuromi lila tri-fold", "imagen": "https://brillitos.b-cdn.net/IMG_9505.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9505.JPEG", "https://brillitos.b-cdn.net/IMG_9506.JPEG"], "esNuevo": false}, {"id": "120", "nombre": "Estuchito Peluche Capybara Beige con Cerezas", "categoria": "Cartucheras", "subcategoria": "Capybara", "descripcion": "Estuche tipo pouch en tela suave beige/crema. Diseño de capybara con cerezas rojas y corazones rosas. Texto 'CAPY BARA'. Cierre superior blanco.", "precio": 3, "stock": 1, "observaciones": "Estuche capybara beige con cerezas", "imagen": "https://brillitos.b-cdn.net/IMG_9466.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9466.JPEG", "https://brillitos.b-cdn.net/IMG_9467.JPEG"], "esNuevo": false}, {"id": "121", "nombre": "Estuchito Peluche Capybara Fucsia con Naranja", "categoria": "Cartucheras", "subcategoria": "Capybara", "descripcion": "Estuche tipo pouch en tela franela fucsia/rosa intenso. Diseño capybara gordo con naranjita en la cabeza y estrellas doradas. Cierre con argolla metálica.", "precio": 3, "stock": 1, "observaciones": "Estuche capybara fucsia naranja", "imagen": "https://brillitos.b-cdn.net/IMG_9467.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9467.JPEG", "https://brillitos.b-cdn.net/IMG_9468.JPEG"], "esNuevo": false}, {"id": "122", "nombre": "Aretes Dorados Arito con Flor de Cristal y Bola Cat's Eye", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes: aro circular con flor de pétalos transparentes y bola colgante. Gancho con pequeño cristal", "precio": 7, "stock": 10, "observaciones": "Aro + flor marquise + bola cat's eye", "imagen": "https://brillitos.b-cdn.net/IMG_9575.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9575.JPEG", "https://brillitos.b-cdn.net/IMG_9576.JPEG"], "esNuevo": false}, {"id": "123", "nombre": "Llaverito Tela Anime", "categoria": "🎌 Anime", "subcategoria": "Llaveros", "descripcion": "Set de 4 llaveros de tela con estampado anime sobre fondo negro. Diseños: Demon Slayer (ojo azul), personajes anime morado, Monkey D. Luffy (One Piece) y personaje oscuro. Argolla y gancho metálico.", "precio": 3, "stock": 3, "observaciones": "Opciones: ⚔️ Demon Slayer, 🎤 K-Pop Demon Hunters, 💫 Saja Boys, ⚓ One Piece", "imagen": "https://brillitos.b-cdn.net/IMG_9107.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9107.JPEG", "https://brillitos.b-cdn.net/IMG_9108.JPEG"], "esNuevo": false}, {"id": "124", "nombre": "Sticker Hoja Puffy Sanrio", "categoria": "🌟 Stickers", "subcategoria": "Sanrio", "descripcion": "Vista de las tres hojas puffy/3D Sanrio juntas: My Melody rosa (SL-A606), Cinnamoroll celeste (SL-A608) y Kuromi morado (SL-A822). Mismos productos que IMG_2749, IMG_2748 y IMG_2747", "precio": 2, "stock": 10, "observaciones": "Opciones: 🎀 My Melody, ☁️ Cinnamoroll, 🖤 Kuromi", "imagen": "https://brillitos.b-cdn.net/IMG_2744.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2744.JPEG", "https://brillitos.b-cdn.net/IMG_2745.JPEG"], "esNuevo": false}, {"id": "126", "nombre": "Sticker Hoja Grande Kuromi – Doble capa laminada oro", "categoria": "🌟 Stickers", "subcategoria": "Kuromi", "descripcion": "Hoja grande cuadrada de stickers Kuromi doble capa con laminado dorado (双层烫金立体贴). Fondo morado con lazo azul. Kuromi en muchas poses: lolita, victoria, Wow!, KURO, YURO, Happy Birthday, accesorios, pastel. Código HB5-030. Pantalla xiaomi al fondo", "precio": 4, "stock": 10, "observaciones": "双层烫金立体贴; HB5-030", "imagen": "https://brillitos.b-cdn.net/IMG_2853.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2853.JPEG", "https://brillitos.b-cdn.net/IMG_2854.JPEG"], "esNuevo": false}, {"id": "129", "nombre": "Borradorcito 3D Kuromi", "categoria": "Borradores", "subcategoria": "Kuromi", "descripcion": "Dos borradores 3D en forma de cabeza de Kuromi: (1) morado con gorra morada y calavera rosa. (2) negro con gorra negra y calavera rosa. Acabado mate suave tipo goma. Kawaii Sanrio", "precio": 1, "stock": 10, "observaciones": "Opciones: 💜 Morado, 🖤 Negro", "imagen": "https://brillitos.b-cdn.net/IMG_2866.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2866.JPEG", "https://brillitos.b-cdn.net/IMG_2867.JPEG"], "esNuevo": false}, {"id": "130", "nombre": "Post it Postrecito Oso", "categoria": "Sticky Notes", "subcategoria": "Gatitos", "descripcion": "Bloc de notas adhesivo en forma de donut con cara de gatito. Diseño chocolate fresa sobre donut beige. Texto 小猫甜甜圈, New, cute, Good, 新品上市! Fondo kraft con puntos dorados. Forma recortada de donut", "precio": 1, "stock": 10, "observaciones": "小猫甜甜圈", "imagen": "https://brillitos.b-cdn.net/IMG_2876.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2876.JPEG", "https://brillitos.b-cdn.net/IMG_2877.JPEG"], "esNuevo": false}, {"id": "131", "nombre": "Post it Postrecito Oso hamburguesa", "categoria": "Sticky Notes", "subcategoria": "Kawaii", "descripcion": "Bloc de notas adhesivo en forma de hamburguesa con cara de perrito shiba. Texto 小狗汉堡, New, cute, tasty, 季节限定 (edición limitada de temporada). Fondo amarillo mostaza con notas musicales", "precio": 1, "stock": 10, "observaciones": "小狗汉堡; 季节限定", "imagen": "https://brillitos.b-cdn.net/IMG_2868.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2868.JPEG", "https://brillitos.b-cdn.net/IMG_2869.JPEG"], "esNuevo": false}, {"id": "132", "nombre": "Correctorcito Roll-on Kawaii", "categoria": "Correctores", "subcategoria": "Kawaii", "descripcion": "3 correctores tipo roll-on con forma de animal kawaii redondo: (1) azul – osito azul con nariz café. (2) café – osito café/beige con mejillas rosadas. (3) rosa – cerdito rosa con ojos kawaii. Cabezal de corrector blanco transparente extraíble", "precio": 1, "stock": 3, "observaciones": "Disponible en: osito azul, osito café, cerdito rosa", "imagen": "https://brillitos.b-cdn.net/IMG_2845.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2845.JPEG", "https://brillitos.b-cdn.net/IMG_2846.JPEG"], "esNuevo": false}, {"id": "133", "nombre": "Lapicero Multitinta Harry Potter", "categoria": "Lapiceros Multitinta", "subcategoria": "Harry Potter", "descripcion": "Stickers tipo tabs/resaltadores para marcar páginas de libros. Diseño Harry Potter.", "precio": 2, "stock": 1, "observaciones": "10 tintas; figura chibi Harry Potter", "imagen": "https://brillitos.b-cdn.net/IMG_2890.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2890.JPEG", "https://brillitos.b-cdn.net/IMG_2891.JPEG"], "esNuevo": false}, {"id": "134", "nombre": "Sticker Book Set YOYO – Libretita + Tarjetas (DESSERT PARTY)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Set YOYO Sticker Book: libreta espiral mini + paquete de tarjetas/stickers temática DESSERT PARTY. Personaje niña kawaii con sombrero de ratón, vestido rosa, postres. Fondo rosa cuadros. Set embalado en blíster transparente", "precio": 3, "stock": 1, "observaciones": "YOYO STICKER BOOK SET; DESSERT PARTY", "imagen": "https://brillitos.b-cdn.net/IMG_2857.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2857.JPEG", "https://brillitos.b-cdn.net/IMG_2858.JPEG"], "esNuevo": false}, {"id": "135", "nombre": "Sticky Notes Capybara", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "Pack de sticky notes (notas adhesivas) Capybara: 3 diseños x 30pcs. Diseños: capybara con auriculares (campo Lovely), capybara con persimmon naranja, capybara con gorra. Cabeceras con ilustración kawaii de capybara CAPBARA.", "precio": 2, "stock": 2, "observaciones": "Disponible en 3 diseños (consultar)", "imagen": "https://brillitos.b-cdn.net/IMG_4875.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4875.JPEG", "https://brillitos.b-cdn.net/IMG_4876.JPEG"], "esNuevo": false}, {"id": "136", "nombre": "Papelería Capybara Kapibarasan", "categoria": "Marcapáginas", "subcategoria": "Capybara", "descripcion": "4 sets de papelería Kapibarasan: portadas de bolsa plana con capybara kawaii y texto KAPIBARA/Kapibarasan. Colores: morado (cuadrícula), rosa (McDonald's temático), celeste azul, rosa lila. Cada set incluye lápiz o bolígrafo. Iconos Work/Study/Life", "precio": 2, "stock": 3, "observaciones": "Opciones: 💜 Lila, 🩷 Rosado claro, 🌸 Rosado oscuro, 🩵 Celeste", "imagen": "https://brillitos.b-cdn.net/IMG_3864.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_3864.JPEG", "https://brillitos.b-cdn.net/IMG_3865.JPEG"], "esNuevo": false}, {"id": "137", "nombre": "Sticky Notes Labubu", "categoria": "Sticky Notes", "subcategoria": "Labubu", "descripcion": "Set de 4 blocs de notas adhesivas Labubu. Diseños variados: rosado 'Almost Hidden', rosa polka dots, lila y violeta con diferentes personajes Labubu. Cada uno con portada troquelada.", "precio": 1, "stock": 4, "observaciones": "Opciones: 🩷 Fucsia, 💜 Morado, 🌸 Rosa", "imagen": "https://brillitos.b-cdn.net/IMG_9729.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9729.JPEG", "https://brillitos.b-cdn.net/IMG_9730.JPEG"], "esNuevo": false}, {"id": "138", "nombre": "Memito Shiba Inu Pan (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Kawaii", "descripcion": "Bloc de notas die-cut con forma de Shiba Inu con cara de pan tostado. Fondo café/marrón oscuro con texto en chino '柴柴吐司片' (Shiba Toast). Nuevo lanzamiento.", "precio": 1, "stock": 10, "observaciones": "Die-cut Shiba Inu, marca tipo MOKA", "imagen": "https://brillitos.b-cdn.net/IMG_9597.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9597.JPEG", "https://brillitos.b-cdn.net/IMG_9598.JPEG"], "esNuevo": false}, {"id": "139", "nombre": "Memito Gato Macaron Naranja (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Gatitos", "descripcion": "Bloc de notas die-cut con forma de gato dentro de un macaron. Gato naranja/café con orejas, tipo 小猫舒芙蕾 (Soufflé de Gatito). Fondo naranja con texto chino.", "precio": 1, "stock": 10, "observaciones": "小猫舒芙蕾 gato macaron", "imagen": "https://brillitos.b-cdn.net/IMG_9598.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9598.JPEG", "https://brillitos.b-cdn.net/IMG_9599.JPEG"], "esNuevo": false}, {"id": "140", "nombre": "Memito Gato Donut Café (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Gatitos", "descripcion": "Bloc de notas die-cut con forma de gato tipo donut/rosquilla naranja con chispas. Diseño 小猫甜甜圈 (gato donut). Fondo café oscuro con estrellas.", "precio": 1, "stock": 10, "observaciones": "小猫甜甜圈 - gato donut", "imagen": "https://brillitos.b-cdn.net/IMG_9599.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9599.JPEG", "https://brillitos.b-cdn.net/IMG_9600.JPEG"], "esNuevo": false}, {"id": "141", "nombre": "Memito Conejo Donut Rosa (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Kawaii", "descripcion": "Bloc de notas die-cut con forma de conejo tipo donut con moño rosa. Diseño 兔兔甜甜 (donut de conejito). Fondo café con detalles dorados.", "precio": 1, "stock": 10, "observaciones": "兔兔甜甜 - conejo donut", "imagen": "https://brillitos.b-cdn.net/IMG_9601.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9601.JPEG", "https://brillitos.b-cdn.net/IMG_9602.JPEG"], "esNuevo": false}, {"id": "142", "nombre": "Memito Conejo Pancake (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Kawaii", "descripcion": "Bloc de notas die-cut con forma de conejo blanco encima de pancakes. Diseño 兔兔舒芙蕾 (soufflé de conejito). Fondo rojo/naranja con estrellas.", "precio": 1, "stock": 10, "observaciones": "兔兔舒芙蕾 - conejo pancake", "imagen": "https://brillitos.b-cdn.net/IMG_9600.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9600.JPEG", "https://brillitos.b-cdn.net/IMG_9601.JPEG"], "esNuevo": false}, {"id": "143", "nombre": "Memito Capybara con Tomate (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "Bloc de notas die-cut con forma de capybara gordo con tomatito en la cabeza. Fondo cuadriculado marrón/naranja. Marca MOKA. 30 hojas.", "precio": 1, "stock": 10, "observaciones": "MOKA - Capybara tomate", "imagen": "https://brillitos.b-cdn.net/IMG_9603.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9603.JPEG", "https://brillitos.b-cdn.net/IMG_9604.JPEG"], "esNuevo": false}, {"id": "144", "nombre": "Memito Capybara con Flor (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "Bloc de notas die-cut con forma de capybara con flor blanca en la cabeza, expresión musical. Fondo dorado amarillo con notas musicales y frutas. Marca MOKA. 30 hojas.", "precio": 1, "stock": 10, "observaciones": "MOKA - Capybara flor musical", "imagen": "https://brillitos.b-cdn.net/IMG_9606.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9606.JPEG", "https://brillitos.b-cdn.net/IMG_9607.JPEG"], "esNuevo": false}, {"id": "145", "nombre": "Memito Capybara con Chips (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "Bloc de notas die-cut con forma de capybara abrazando bolsa de chips. Fondo cuadriculado beige/crema. Marca MOKA. 30 hojas.", "precio": 1, "stock": 10, "observaciones": "MOKA - Capybara chips", "imagen": "https://brillitos.b-cdn.net/IMG_9602.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9602.JPEG", "https://brillitos.b-cdn.net/IMG_9603.JPEG"], "esNuevo": false}, {"id": "146", "nombre": "Memito Capybara Meditando (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "Bloc de notas die-cut con forma de capybara meditando/zen con aureola dorada. Texto '功德+1' (mérito +1). Fondo cuadriculado marrón. Marca MOKA. 30 hojas.", "precio": 1, "stock": 10, "observaciones": "MOKA - Capybara zen '功德+1'", "imagen": "https://brillitos.b-cdn.net/IMG_9605.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9605.JPEG", "https://brillitos.b-cdn.net/IMG_9606.JPEG"], "esNuevo": false}, {"id": "147", "nombre": "Memito Oso Waffle (30 hojas)", "categoria": "Sticky Notes", "subcategoria": "Kawaii", "descripcion": "Bloc de notas die-cut con forma de oso tipo waffle. Diseño 小熊波波包 (oso waffle). Fondo dorado cuadriculado con detalles 'delicious'. Nuevo lanzamiento.", "precio": 1, "stock": 10, "observaciones": "小熊波波包 - oso waffle", "imagen": "https://brillitos.b-cdn.net/IMG_9596.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9596.JPEG", "https://brillitos.b-cdn.net/IMG_9597.JPEG"], "esNuevo": false}, {"id": "148", "nombre": "Stickers Letras Abecedario Foam", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Hoja grande de stickers letras del abecedario tipo foam/puffy. 4 filas de letras: 2 en rosa claro, 2 en rojo fucsia. Letras grandes estilo burbuja con sombra dorada. Empaque con cierre zip rosa.", "precio": 1, "stock": 10, "observaciones": "Opciones: 🩷 Rosado, ❤️ Rojo, 💜 Lila, 🩵 Turquesa, 💚 Verde", "imagen": "https://brillitos.b-cdn.net/IMG_9611.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9611.JPEG", "https://brillitos.b-cdn.net/IMG_9612.JPEG"], "esNuevo": false}, {"id": "149", "nombre": "Aretes Plateados Espiral Larga con Estrella Dorada", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes tipo espiral alargada con dije de estrella en la parte superior. Diseño minimalista y moderno", "precio": 5, "stock": 10, "observaciones": "Espiral plateada + estrella dorada", "imagen": "https://brillitos.b-cdn.net/IMG_9579.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9579.JPEG", "https://brillitos.b-cdn.net/IMG_9580.JPEG"], "esNuevo": false}, {"id": "150", "nombre": "Stickers gel", "categoria": "🌟 Stickers", "subcategoria": "Sanrio", "descripcion": "", "precio": 2, "stock": 2, "observaciones": "Opciones: 🎀 My Melody, ☁️ Cinnamoroll, 🖤 Kuromi", "imagen": "https://brillitos.b-cdn.net/IMG_2746.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2746.JPEG", "https://brillitos.b-cdn.net/IMG_2747.JPEG"], "esNuevo": false}, {"id": "151", "nombre": "Stickers Gel en agua", "categoria": "Lapiceros", "subcategoria": "Sanrio", "descripcion": "", "precio": 2, "stock": 2, "observaciones": "Opciones: 🎀 My Melody, 🐱 Hello Kitty, 🖤 Kuromi, ☁️ Cinnamoroll", "imagen": "https://brillitos.b-cdn.net/IMG_2814.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2814.JPEG", "https://brillitos.b-cdn.net/IMG_2815.JPEG"], "esNuevo": false}, {"id": "152", "nombre": "Reglas plegable Sanrio", "categoria": "🌟 Stickers", "subcategoria": "Sanrio", "descripcion": "", "precio": 3, "stock": 2, "observaciones": "Opciones: 🖤 Kuromi, ☁️ Cinnamoroll", "imagen": "https://brillitos.b-cdn.net/IMG_2855.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2855.JPEG", "https://brillitos.b-cdn.net/IMG_2856.JPEG"], "esNuevo": false}, {"id": "154", "nombre": "Washitapes Conejito Spacial - Set que brillan en la oscuridad", "categoria": "Washitape", "subcategoria": "Kawaii", "descripcion": "Washi tape de conejito espacial, brilla en la oscuridad.", "precio": 4, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_8413.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_8413.JPEG", "https://brillitos.b-cdn.net/IMG_8414.JPEG"], "esNuevo": false}, {"id": "155", "nombre": "Sticker Sheet – Comida Kawaii Salada", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Comida salada kawaii: tostada huevo, pizza, hamburguesa conejo, gyoza, sushi, hot dog, taco, etc.", "precio": 1, "stock": 1, "observaciones": "me+u♥', 'food'", "imagen": "https://Brillitos.b-cdn.net/IMG_0026.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_0026.JPEG"], "esNuevo": false}, {"id": "156", "nombre": "Sticker Sheet – Postres y Bebidas", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Postres kawaii: matcha cake, dona, pudín, waffle, tostada miel, helado, croissant, café, galleta", "precio": 1, "stock": 1, "observaciones": "Your life is your art.'", "imagen": "https://Brillitos.b-cdn.net/IMG_0021.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_0021.JPEG"], "esNuevo": false}, {"id": "157", "nombre": "Sticker Sheet – Postres 2 (Sweets)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Pancakes, pastel cumpleaños, strawberry cake, dona rosa, pudín, cerezas, helado, café frappé, toast chocolate", "precio": 1, "stock": 10, "observaciones": "[505]", "imagen": "", "imagenes": [], "esNuevo": false}, {"id": "158", "nombre": "Sticker Sheet – Comida Asiática Morning", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Stickers 'morning': sushi, waffle, boba, huevos fritos, ramen, pan, jugo naranja, onigiri, lichi, dim sum", "precio": 1, "stock": 10, "observaciones": "", "imagen": "", "imagenes": [], "esNuevo": false}, {"id": "159", "nombre": "Sticker Sheet – Plantas Kawaii", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Plantas en macetas con caritas: cactus, suculentas, monstera, tulipanes, rosas, pothos, ZZ plant", "precio": 1, "stock": 10, "observaciones": "One day I will fly'", "imagen": "", "imagenes": [], "esNuevo": false}, {"id": "160", "nombre": "Sticker Sheet – Gadgets Retro Kawaii", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Electrodomésticos con caritas: lavadora, laptop, tostadora, radio vintage, cámara, PC retro, calculadora", "precio": 1, "stock": 10, "observaciones": "From another point of view.'", "imagen": "", "imagenes": [], "esNuevo": false}, {"id": "161", "nombre": "Sticker Sheet – Tecnología y Gaming", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Gadgets: teléfono rotativo, reloj, batidora, iPod, Tamagotchi, AirPods, Nintendo Switch, TV retro, claqueta", "precio": 1, "stock": 10, "observaciones": "GAME OVER'", "imagen": "", "imagenes": [], "esNuevo": false}, {"id": "162", "nombre": "Post it Reloj", "categoria": "Post its", "subcategoria": "Kawaii", "descripcion": "Notitas en forma de reloj con diseños kawaii de animales. 30 hojas.", "precio": 1, "stock": 10, "observaciones": "Opciones: Gris, marrón, verde, rosa, caramelo, amarillo.", "imagen": "https://brillitos.b-cdn.net/IMG_2559.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2559.JPEG", "https://brillitos.b-cdn.net/IMG_2560.JPEG"], "esNuevo": false}, {"id": "163", "nombre": "Libro Stickers – Oishii Ryouri (Comida Japonesa)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Libro holográfico: comida japonesa kawaii con ositos, onigiri corazón, galletas oso, okonomiyaki", "precio": 6, "stock": 0, "observaciones": "Marca YUXIAN", "imagen": "https://brillitos.b-cdn.net/IMG_0724.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_0724.JPEG", "https://brillitos.b-cdn.net/IMG_725.JPEG"], "esNuevo": false}, {"id": "164", "nombre": "Libro Stickers – Oyatsu Tokusen (Snacks Japoneses)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Snacks japoneses reales: Calbee, Glico Pocky, Calpico, máquina expendedora, Cup Noodle", "precio": 6, "stock": 0, "observaciones": "Marca YUXIAN", "imagen": "https://brillitos.b-cdn.net/IMG_0721.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_0721.JPEG", "https://brillitos.b-cdn.net/IMG_722.JPEG"], "esNuevo": false}, {"id": "167", "nombre": "Lapicero borrable sencillo One Piece", "categoria": "Lapiceros Borrables", "subcategoria": "One Piece", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2715.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2715.JPEG", "https://brillitos.b-cdn.net/IMG_2716.JPEG"], "esNuevo": false}, {"id": "168", "nombre": "Bolígrafo Borrable Pompompurin", "categoria": "Lapiceros Borrables", "subcategoria": "Pompompurin", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_2778.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2778.JPEG", "https://brillitos.b-cdn.net/IMG_2779.JPEG"], "esNuevo": false}, {"id": "169", "nombre": "Carpeta Capibara de zip", "categoria": "Carpetas", "subcategoria": "Capybara", "descripcion": "", "precio": 2, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4922.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4922.JPEG", "https://brillitos.b-cdn.net/IMG_4923.JPEG"], "esNuevo": false}, {"id": "170", "nombre": "Marcapáginas Sanrio", "categoria": "Marcapáginas", "subcategoria": "Sanrio", "descripcion": "", "precio": 1, "stock": 5, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4924.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4924.JPEG", "https://brillitos.b-cdn.net/IMG_4925.JPEG"], "esNuevo": false}, {"id": "171", "nombre": "Libretita Gel Capibara Stickers + Hoja ilustradas color rosa", "categoria": "Libretas", "subcategoria": "Capybara", "descripcion": "", "precio": 3, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4926.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4926.JPEG", "https://brillitos.b-cdn.net/IMG_4927.JPEG"], "esNuevo": false}, {"id": "172", "nombre": "Post it Capibara", "categoria": "Sticky Notes", "subcategoria": "Capybara", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4928.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4928.JPEG", "https://brillitos.b-cdn.net/IMG_4929.JPEG"], "esNuevo": false}, {"id": "173", "nombre": "Notitas post it", "categoria": "Sticky Notes", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4930.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4930.JPEG", "https://brillitos.b-cdn.net/IMG_4931.JPEG", "https://brillitos.b-cdn.net/IMG_4932.JPEG", "https://brillitos.b-cdn.net/IMG_4933.JPEG"], "esNuevo": false}, {"id": "174", "nombre": "Plancha de Stickers relieve Kuromi y my melody", "categoria": "🌟 Stickers", "subcategoria": "Sanrio", "descripcion": "", "precio": 4, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4944.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4944.JPEG", "https://brillitos.b-cdn.net/IMG_4945.JPEG"], "esNuevo": false}, {"id": "175", "nombre": "Abanico Kuromi", "categoria": "Accesorios", "subcategoria": "Kuromi", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4946.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4946.JPEG", "https://brillitos.b-cdn.net/IMG_4947.JPEG"], "esNuevo": false}, {"id": "176", "nombre": "Set Washitape Capibara", "categoria": "Washitape", "subcategoria": "Capybara", "descripcion": "", "precio": 1, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4948.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4948.JPEG", "https://brillitos.b-cdn.net/IMG_4949.JPEG"], "esNuevo": false}, {"id": "177", "nombre": "Sets de Stickers Estilo corano, 2 por 1$ al azar", "categoria": "Lapiceros", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 10, "observaciones": "Sets de Stickers Estilo corano, 2 por 1$ al azar", "imagen": "https://brillitos.b-cdn.net/IMG_6623.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_6623.JPEG", "https://brillitos.b-cdn.net/IMG_6624.JPEG"], "esNuevo": false}, {"id": "181", "nombre": "Agenda Kuromi", "categoria": "Agendas", "subcategoria": "Kuromi", "descripcion": "", "precio": 5, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_8379.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_8379.JPEG", "https://brillitos.b-cdn.net/IMG_8380.JPEG"], "esNuevo": false}, {"id": "182", "nombre": "Conjunto Amarillo", "categoria": "Ropa", "subcategoria": "Ropa", "descripcion": "Talla M - Nuevo", "precio": 10, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_8713.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_8713.JPEG"], "esNuevo": false}, {"id": "183", "nombre": "Stickers de silicón Capibara", "categoria": "Stickers", "subcategoria": "Capybara", "descripcion": "", "precio": 7, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_8951.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_8951.JPEG", "https://brillitos.b-cdn.net/IMG_8952.JPEG"], "esNuevo": false}, {"id": "184", "nombre": "Stickers Carterita Capybara", "categoria": "Stickers", "subcategoria": "Capybara", "descripcion": "Traen 4 planchitas de stickers", "precio": 2, "stock": 2, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_8954.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_8954.JPEG", "https://brillitos.b-cdn.net/IMG_8955.JPEG", "https://brillitos.b-cdn.net/IMG_8956.JPEG", "https://brillitos.b-cdn.net/IMG_8957.JPEG"], "esNuevo": false}, {"id": "188", "nombre": "Stickers Carterita Sanrio", "categoria": "Stickers", "subcategoria": "Zarcillos", "descripcion": "", "precio": 7, "stock": 10, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_8971.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_8971.JPEG", "https://brillitos.b-cdn.net/IMG_8972.JPEG"], "esNuevo": false}, {"id": "189", "nombre": "Aretes Florales Dorados con Perlas y Mariposa", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Zarcillos: mariposa, flor blanca, cadenas delgadas y perlas colgantes", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1644.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1644.JPEG", "https://brillitos.b-cdn.net/IMG_1645.JPEG"], "esNuevo": false}, {"id": "190", "nombre": "Aretes Florales Dorados Negro con Perlas y Mariposa", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Zarcillos: mariposa blanca, flor blanca, piedra negra tipo ópalo colgante", "precio": 7, "stock": 0, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1660.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1660.JPEG", "https://brillitos.b-cdn.net/IMG_1661.JPEG"], "esNuevo": false}, {"id": "191", "nombre": "Aretes Mariposa Azul con Cadenita y Espiral Plateada", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Zarcillos: mariposa azul celeste, cadena delgada con cristalitos rosas, varilla espiral con perlas", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1669.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1669.JPEG", "https://brillitos.b-cdn.net/IMG_1670.JPEG"], "esNuevo": false}, {"id": "192", "nombre": "Aretes Mariposa Lila con Espiral Plateada", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Zarcillos: mariposa lila/morada, varilla espiral larga con pequeños cristalitos rosas colgantes", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1674.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1674.JPEG", "https://brillitos.b-cdn.net/IMG_1675.JPEG"], "esNuevo": false}, {"id": "193", "nombre": "Aretes Dorados Largos Estrella + Perlas (Fashion)", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes tipo drop: base bola, cuerpo con estrella, cadena con perlas medianas distribuidas, terminan en perla colgante", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1688.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1688.JPEG", "https://brillitos.b-cdn.net/IMG_1689.JPEG"], "esNuevo": false}, {"id": "194", "nombre": "Aretes Plateados Corazón Glitter + Estrella (Fashion Jewelry)", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes: topper corazón blanco con araña, dos cadenas con colgantes pequeños de estrella y estrella grande colgante", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1663.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1663.JPEG", "https://brillitos.b-cdn.net/IMG_1664.JPEG"], "esNuevo": false}, {"id": "195", "nombre": "Aretes Mariposa Azul Esmalte con Cadenita (stud)", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Zarcillos tipo stud: mariposa azul celeste, cadena fina con cristalitos rosas colgantes", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1693.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1693.JPEG", "https://brillitos.b-cdn.net/IMG_1694.JPEG"], "esNuevo": false}, {"id": "196", "nombre": "Aretes Dorados Mariposa Calada + Luna + Lagrima", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes asimétricos estilo boho: mariposa grande calada con detalle de sol/rayos + luna creciente + dije lágrima", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1708.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1708.JPEG", "https://brillitos.b-cdn.net/IMG_1709.JPEG"], "esNuevo": false}, {"id": "197", "nombre": "Aretes Dorados Luna Creciente + Arito + Rayo Spike", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes: luna creciente con estrella interior, aro redondo + pequeña estrella, rayo/spike alargado con cristal central colgante", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1710.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1710.JPEG", "https://brillitos.b-cdn.net/IMG_1711.JPEG"], "esNuevo": false}, {"id": "198", "nombre": "Aretes Dorados Cadenita de Flores Multicolor", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes tipo cadena: 4 flores de colores distintos (fucsia, champagne, lila y rosa ópalo) unidas en cadena larga, stud pequeño de flor arriba", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1718.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1718.JPEG", "https://brillitos.b-cdn.net/IMG_1719.JPEG"], "esNuevo": false}, {"id": "199", "nombre": "Aretes Mariposa con Bola Rosa Cat's Eye", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Mariposa con bola rosa colgante", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_0735.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_0735.JPEG", "https://brillitos.b-cdn.net/IMG_736.JPEG"], "esNuevo": false}, {"id": "200", "nombre": "Aretes Dorados Racimo Iridiscente + Cadenas Largas", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "Aretes: topper tipo racimo iridiscente, 3 cadenas serpiente largas con bolitas en las puntas", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1714.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1714.JPEG", "https://brillitos.b-cdn.net/IMG_1715.JPEG"], "esNuevo": false}, {"id": "201", "nombre": "Collar Layered 3 Capas Celestial", "categoria": "Bisutería", "subcategoria": "Collares", "descripcion": "Set 3 cadenas superpuestas: luna + estrellas, cadena figaro con estrellas, cadena gruesa con corazón violeta iridiscente", "precio": 10, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1272.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1272.JPEG", "https://brillitos.b-cdn.net/IMG_1273.JPEG"], "esNuevo": false}, {"id": "202", "nombre": "Collar Dorado Lariat Mariposa + Candado con Llave", "categoria": "Bisutería", "subcategoria": "Collares", "descripcion": "Collar tipo lariat: 2 mariposas distribuidas en la cadena + candado cuadrado con pequeña llave colgante", "precio": 10, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1647.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1647.JPEG", "https://brillitos.b-cdn.net/IMG_1648.JPEG"], "esNuevo": false}, {"id": "203", "nombre": "Pulsera Plateada Floral con Cristales Marquise", "categoria": "Bisutería", "subcategoria": "Pulseras", "descripcion": "Pulsera cadena fina con pieza central de flores", "precio": 6, "stock": 0, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1649.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1649.JPEG", "https://brillitos.b-cdn.net/IMG_1650.JPEG"], "esNuevo": false}, {"id": "204", "nombre": "Pulsera Plateada Doble Cadenita con Dije Flor/Estrella", "categoria": "Bisutería", "subcategoria": "Pulseras", "descripcion": "Pulsera doble cadena plateada: una cadena tipo bola y otra con plaquita plateada, dije central de flor/estrella de 4 puntas con cristal blanco", "precio": 6, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1667.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1667.JPEG", "https://brillitos.b-cdn.net/IMG_1668.JPEG"], "esNuevo": false}, {"id": "205", "nombre": "Moño Flor Grosgrain Multicolor Pastel con Perlas", "categoria": "Bisutería", "subcategoria": "Accesorios cabello", "descripcion": "Par de moños/flores de tela grosgrain en colores pastel arcoíris (verde limón, rosa, azul, naranja, lila) con centro de perlas medianas", "precio": 5, "stock": 1, "observaciones": "Accesorio de cabello tipo scrunchie/clips florales", "imagen": "https://brillitos.b-cdn.net/IMG_1628.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1628.JPEG", "https://brillitos.b-cdn.net/IMG_1629.JPEG"], "esNuevo": false}, {"id": "206", "nombre": "Bolígrafo Snoopy", "categoria": "Lapiceros", "subcategoria": "Snoopy", "descripcion": "Bolígrafo blanco con ilustraciones de Snoopy y Woodstock en distintas poses", "precio": 2, "stock": 3, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_1327.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_1327.JPEG", "https://brillitos.b-cdn.net/IMG_1328.JPEG"], "esNuevo": false}, {"id": "207", "nombre": "Sticker Pack – Buttocks Corgi (ZABC)", "categoria": "🌟 Stickers", "subcategoria": "Perritos", "descripcion": "Pack de stickers de corgi naranja rechoncho en distintas poses: disfraz de fantasma, bruja, mago, con calabaza, comiendo, durmiendo, accesorios halloween y colegio", "precio": 2, "stock": 1, "observaciones": "Marca ZABC; 100x150mm; material PET", "imagen": "https://brillitos.b-cdn.net/IMG_2530.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2530.JPEG", "https://brillitos.b-cdn.net/IMG_2531.JPEG", "https://brillitos.b-cdn.net/IMG_2538.JPEG"], "esNuevo": false}, {"id": "208", "nombre": "Sticker Pack – Border Collie (ZABC)", "categoria": "🌟 Stickers", "subcategoria": "Perritos", "descripcion": "Pack de stickers de border collie blanco y negro en múltiples escenas: con scooter, baloncesto, hamburguesa, ramos de flores, moño azul, sombrero, disfraz. Estilo acuarela kawaii", "precio": 2, "stock": 1, "observaciones": "Marca ZABC; 100x150mm; material PET", "imagen": "https://brillitos.b-cdn.net/IMG_2531.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2531.JPEG", "https://brillitos.b-cdn.net/IMG_2532.JPEG", "https://brillitos.b-cdn.net/IMG_2536.JPEG", "https://brillitos.b-cdn.net/IMG_2537.JPEG"], "esNuevo": false}, {"id": "209", "nombre": "Sticker Pack – Soft Cute Bichon (ZABC)", "categoria": "🌟 Stickers", "subcategoria": "Perritos", "descripcion": "Pack de stickers de bichón frisé blanco esponjoso: de mesero, con sandía, disfraces de rey y ángel, durmiendo en cojín, con donut y comida kawaii", "precio": 2, "stock": 1, "observaciones": "Marca ZABC; SKU JYMQ-6-01 (软萌比熊); 100x150mm", "imagen": "https://brillitos.b-cdn.net/IMG_2532.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2532.JPEG", "https://brillitos.b-cdn.net/IMG_2533.JPEG"], "esNuevo": false}, {"id": "210", "nombre": "Sticker Pack – Cure Shiba Inu (ZABC)", "categoria": "🌟 Stickers", "subcategoria": "Perritos", "descripcion": "Pack de stickers de Shiba Inu naranja y negro en múltiples escenas: disfraz Papá Noel, disfraz de león, pijamas, jugando, con comida. Estilo acuarela kawaii", "precio": 2, "stock": 10, "observaciones": "Marca ZABC; 100x150mm; material PET", "imagen": "https://brillitos.b-cdn.net/IMG_2529.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2529.JPEG", "https://brillitos.b-cdn.net/IMG_2530.JPEG"], "esNuevo": false}, {"id": "211", "nombre": "Sticker Pack – Shiba Inu Zhayü Chai (ZABC)", "categoria": "🌟 Stickers", "subcategoria": "Perritos", "descripcion": "Pack de stickers de Shiba Inu naranja y negro en 4 hojas: parejas de shiba, disfraz de rey, con palomitas, paraguas, paracaídas, baloncesto, vestidos kawaii", "precio": 2, "stock": 10, "observaciones": "Marca ZABC; 100x150mm; material PET", "imagen": "https://brillitos.b-cdn.net/IMG_2539.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2539.JPEG"], "esNuevo": false}, {"id": "212", "nombre": "Sticker Pack – Short Legs Sausage (ZABC)", "categoria": "🌟 Stickers", "subcategoria": "Perritos", "descripcion": "Pack de stickers de perrito Dachshund/salchicha marrón oscuro con patas cortas: con kiwi, gafas de corazón, colchoneta, huesos, distintas poses tiernas", "precio": 2, "stock": 1, "observaciones": "Marca ZABC; 100x150mm; material PET", "imagen": "https://brillitos.b-cdn.net/IMG_2528.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2528.JPEG", "https://brillitos.b-cdn.net/IMG_2529.JPEG", "https://brillitos.b-cdn.net/IMG_2539.JPEG", "https://brillitos.b-cdn.net/IMG_2540.JPEG"], "esNuevo": false}, {"id": "214", "nombre": "Set Herramientas Journaling Macaron (SHANDS)", "categoria": "🛒 Otros", "subcategoria": "Kawaii", "descripcion": "Set de herramientas para journaling y scrapbooking: cutter, regla, punzón, espátula, depresores. Presentación en 3 colores pastel: azul, rosa y dorado/naranja", "precio": 5, "stock": 1, "observaciones": "Marca SHANDS; Ref S268-A5; マカロン手帳套装", "imagen": "https://brillitos.b-cdn.net/IMG_2522.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2522.JPEG", "https://brillitos.b-cdn.net/IMG_2523.JPEG"], "esNuevo": false}, {"id": "216", "nombre": "Sticker Pack – Tipping Bucket Puppy (6 PCS)", "categoria": "🌟 Stickers", "subcategoria": "Perritos", "descripcion": "Pack de 6 hojas de stickers de perrito blanco tipo Pochacco con manchas negras: con paraguas, camión, arcoíris, cumpleaños HBD, fresa Strawberry, lazo rosa, sticker LOVE grande. Estilo linea kawaii coreano", "precio": 2, "stock": 1, "observaciones": "Hayoo Studio; 6 PCS", "imagen": "https://brillitos.b-cdn.net/IMG_2542.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2542.JPEG", "https://brillitos.b-cdn.net/IMG_2543.JPEG"], "esNuevo": false}, {"id": "217", "nombre": "Sticker Pack – Kafka Dog (6 PCS)", "categoria": "🌟 Stickers", "subcategoria": "Perritos", "descripcion": "Pack de 6 hojas de stickers de perrito blanco rechoncho estilo ‘Kafka Dog’: con gafas de sol, disfraz, letrero YES/MADNESS, donas, lavanda, distintas escenas. Sticker grande con café y pan", "precio": 2, "stock": 1, "observaciones": "SKU: 卡夫卡犬; MMKA-6-03; 100x150mm", "imagen": "https://brillitos.b-cdn.net/IMG_2544.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2544.JPEG", "https://brillitos.b-cdn.net/IMG_2545.JPEG", "https://brillitos.b-cdn.net/IMG_2546.JPEG"], "esNuevo": false}, {"id": "218", "nombre": "Sticker Pack – Moonlight Rabbit Ears (6 PCS)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Pack de 6 hojas de stickers de conejito blanco gordo con orejitas (Moonlight Rabbit Ears): con durazno, actividades cotidianas, tiendita, amigos. Sticker grande del conejito con durazno", "precio": 2, "stock": 1, "observaciones": "Hayoo Studio; 6 PCS", "imagen": "https://brillitos.b-cdn.net/IMG_2542.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2542.JPEG", "https://brillitos.b-cdn.net/IMG_2540.JPEG", "https://brillitos.b-cdn.net/IMG_2541.JPEG"], "esNuevo": false}, {"id": "219", "nombre": "Sticker Pack – Cute Bear Coconut Panda (6 PCS)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Pack de 6 hojas de stickers de panda kawaii gordo: panda con lazo rosa, pandas YANDA, rueda de la fortuna, estrellas, luna. Sticker grande: panda mamá con bebé panda en bol", "precio": 2, "stock": 1, "observaciones": "SKU: 萌熊椰椰; MMKA-6-04; 100x150mm", "imagen": "https://brillitos.b-cdn.net/IMG_2546.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2546.JPEG", "https://brillitos.b-cdn.net/IMG_2547.JPEG", "https://brillitos.b-cdn.net/IMG_2548.JPEG"], "esNuevo": false}, {"id": "220", "nombre": "Sticker Pack – Paw Paw Paradise (6 PCS)", "categoria": "🌟 Stickers", "subcategoria": "Perritos", "descripcion": "Frente del pack Paw Paw Paradise: stickers sueltos de perritos kawaii variados (Shiba dorado, corgi con lentes, husky, perrito con boía verde, dog-box) con comida y accesorios. Sticker grande: corgi con lentes y bufanda azul", "precio": 2, "stock": 1, "observaciones": "SKU MMKA-6-06", "imagen": "https://brillitos.b-cdn.net/IMG_2548.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2548.JPEG", "https://brillitos.b-cdn.net/IMG_2549.JPEG", "https://brillitos.b-cdn.net/IMG_2550.JPEG"], "esNuevo": false}, {"id": "221", "nombre": "Sticker Pack – Pom Poms Party (6 PCS)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Frente del pack Pom Poms Party: personaje blanco esponjoso con banda de música, letrero YEAH!, MUSIC, con sombreros y amigos kawaii. Sticker grande del personaje sobre manta rosa a cuadros", "precio": 2, "stock": 1, "observaciones": "SKU MMKA-6-05", "imagen": "https://brillitos.b-cdn.net/IMG_2550.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2550.JPEG", "https://brillitos.b-cdn.net/IMG_2551.JPEG", "https://brillitos.b-cdn.net/IMG_2552.JPEG"], "esNuevo": false}, {"id": "224", "nombre": "Lapicerito Coffee Bear", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "4 lapiceros Coffee Bear con cuerpo de anillos de foam/esponja en colores tostados: café, blanco, beige y morado-ciruela. Osito Coffee Bear impreso en cuerpo plástico. Cabezal liso con clip. Tono neutro/vintage", "precio": 1, "stock": 4, "observaciones": "Opciones: ☕ Café, ⚪ Blanco, 🤍 Beige, 🤎 Marrón oscuro", "imagen": "https://brillitos.b-cdn.net/IMG_2788.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_2788.JPEG", "https://brillitos.b-cdn.net/IMG_2789.JPEG"], "esNuevo": false}, {"id": "225", "nombre": "Deco Stickers Nubes y Arcoíris (Holográfico)", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Hoja de stickers decorativos holográficos. Serie 'Colores Fantasía - Nubes y Arcoíris'. Incluye: nubes holográficas, estrellas de flores, medias lunas de colores y arcoíris. Etiqueta 'DECO STICKERS'.", "precio": 1, "stock": 1, "observaciones": "Deco Stickers", "imagen": "https://brillitos.b-cdn.net/IMG_9328.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_9328.JPEG", "https://brillitos.b-cdn.net/IMG_9329.JPEG"], "esNuevo": false}, {"id": "227", "nombre": "Cartuchera Transparente de My Melody", "categoria": "Cartucheras", "subcategoria": "My Melody", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://brillitos.b-cdn.net/IMG_4953.JPEG", "imagenes": ["https://brillitos.b-cdn.net/IMG_4953.JPEG", "https://brillitos.b-cdn.net/IMG_4954.JPEG"], "esNuevo": false}, {"id": "228", "nombre": "Adorno para el cabello Gatito", "categoria": "Bisutería", "subcategoria": "Accesorios cabello", "descripcion": "", "precio": 5, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_9817.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_9817.JPEG"], "esNuevo": false}, {"id": "229", "nombre": "Llavero Bulbasaur", "categoria": "🛒 Otros", "subcategoria": "Pokémon", "descripcion": "", "precio": 3, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/115A17C0-FE5D-46A0-88FA-BC1FA473D0BD.jpg", "imagenes": ["https://Brillitos.b-cdn.net/115A17C0-FE5D-46A0-88FA-BC1FA473D0BD.jpg"], "esNuevo": false}, {"id": "230", "nombre": "Lapicero Borrable Ratoncito Rosa", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2908.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2908.JPEG"], "esNuevo": false}, {"id": "231", "nombre": "Lapicero Borrable Sencillo Capybara", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2917.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2917.JPEG"], "esNuevo": false}, {"id": "232", "nombre": "Lapicero Borrable Sencillo Capybara", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2918.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2918.JPEG"], "esNuevo": false}, {"id": "233", "nombre": "Lapicero Borrable Sencillo Capybara", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2919.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2919.JPEG"], "esNuevo": false}, {"id": "234", "nombre": "Lapicero Borrable Sencillo BT21", "categoria": "Lapiceros Borrables", "subcategoria": "Kpop", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2921.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2921.JPEG"], "esNuevo": false}, {"id": "235", "nombre": "Lapicero Borrable Sencillo BT21 Lila", "categoria": "Lapiceros Borrables", "subcategoria": "Kpop", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2922.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2922.JPEG"], "esNuevo": false}, {"id": "236", "nombre": "Lapicero Borrable Sencillo BT21 Celeste", "categoria": "Lapiceros Borrables", "subcategoria": "Kpop", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2923.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2923.JPEG"], "esNuevo": false}, {"id": "237", "nombre": "Lapicero Borrable Sencillo BT21 Rosa", "categoria": "Lapiceros Borrables", "subcategoria": "Kpop", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2924.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2924.JPEG"], "esNuevo": false}, {"id": "238", "nombre": "Lapicero Borrable Sencillo Stitch", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 1, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2932.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2932.JPEG"], "esNuevo": false}, {"id": "239", "nombre": "Lapicero Borrable Kuromi Aplique", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2934.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2934.JPEG"], "esNuevo": false}, {"id": "240", "nombre": "Lapicero Borrable Dino Rosa", "categoria": "Lapiceros Borrables", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_2937.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2937.JPEG"], "esNuevo": false}, {"id": "241", "nombre": "Tiritas de Stickers", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "", "precio": 5, "stock": 1, "observaciones": "Tiritas de Stickers 60 bs c/u", "imagen": "https://Brillitos.b-cdn.net/IMG_2995.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_2995.JPEG"], "esNuevo": false}, {"id": "242", "nombre": "Llaveros Chiikawa", "categoria": "🛒 Otros", "subcategoria": "Kawaii", "descripcion": "", "precio": 3, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_3228.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_3228.JPEG"], "esNuevo": false}, {"id": "243", "nombre": "Cajita de Washitapes Delgados Sakura", "categoria": "🛒 Otros", "subcategoria": "Kawaii", "descripcion": "", "precio": 4, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_3441.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_3441.JPEG"], "esNuevo": false}, {"id": "244", "nombre": "Stickers Precortados Estilo Washitape de Gatitos", "categoria": "🌟 Stickers", "subcategoria": "Kawaii", "descripcion": "Stickers precortados estilo Washitape de Gatitos. Opciones: Gatitos mágicos, Gatitos Traviesos, Gatitos Cotidianos", "precio": 3, "stock": 1, "observaciones": "Opciones: Gatitos mágicos, Gatitos Traviesos, Gatitos Cotidianos", "imagen": "https://Brillitos.b-cdn.net/IMG_3449.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_3449.JPEG"], "esNuevo": false}, {"id": "245", "nombre": "Llavero Gatito Alien", "categoria": "🛒 Otros", "subcategoria": "Kawaii", "descripcion": "", "precio": 5, "stock": 1, "observaciones": "Queda solo 1", "imagen": "https://Brillitos.b-cdn.net/IMG_3476.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_3476.JPEG"], "esNuevo": false}, {"id": "246", "nombre": "Zarcillos Alas de Mariposa Dorados", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_3507.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_3507.JPEG"], "esNuevo": false}, {"id": "247", "nombre": "Zarcillos Jade", "categoria": "Bisutería", "subcategoria": "Zarcillos", "descripcion": "", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_3512.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_3512.JPEG"], "esNuevo": false}, {"id": "248", "nombre": "Llavero Peluche Pompompurin", "categoria": "🛒 Otros", "subcategoria": "Kawaii", "descripcion": "", "precio": 8, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_3546.JPEG", "imagenes": ["https://Brillitos.b-cdn.net/IMG_3546.JPEG"], "esNuevo": false}, {"id": "249", "nombre": "Bolsa de Regalo Patito", "categoria": "🛒 Otros", "subcategoria": "Kawaii", "descripcion": "", "precio": 2, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_4097.jpeg", "imagenes": ["https://Brillitos.b-cdn.net/IMG_4097.jpeg"], "esNuevo": false}, {"id": "250", "nombre": "Bolsa de Regalo Conejito", "categoria": "🛒 Otros", "subcategoria": "", "descripcion": "", "precio": 2, "stock": 2, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_4099.jpeg", "imagenes": ["https://Brillitos.b-cdn.net/IMG_4099.jpeg"], "esNuevo": false}, {"id": "251", "nombre": "Bolsa de Regalo Dragoncito", "categoria": "🛒 Otros", "subcategoria": "", "descripcion": "", "precio": 2, "stock": 2, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_4101.jpeg", "imagenes": ["https://Brillitos.b-cdn.net/IMG_4101.jpeg"], "esNuevo": false}, {"id": "252", "nombre": "Bolsa de Regalo Gatito", "categoria": "🛒 Otros", "subcategoria": "", "descripcion": "", "precio": 2, "stock": 2, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_4096.jpeg", "imagenes": ["https://Brillitos.b-cdn.net/IMG_4096.jpeg"], "esNuevo": false}, {"id": "253", "nombre": "Cajita De Stickers Perrito Shiba Inu", "categoria": "🌟 Stickers", "subcategoria": "", "descripcion": "Traen 40 stickers aprox.", "precio": 3, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_4102.jpeg", "imagenes": ["https://Brillitos.b-cdn.net/IMG_4102.jpeg"], "esNuevo": false}, {"id": "254", "nombre": "Cajita De Stickers Animalitos Azul", "categoria": "🌟 Stickers", "subcategoria": "", "descripcion": "Traen 40 stickers aprox.", "precio": 3, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_4106.jpeg", "imagenes": ["https://Brillitos.b-cdn.net/IMG_4106.jpeg"], "esNuevo": false}, {"id": "255", "nombre": "LLavero Peluche Tony Tony Chopper", "categoria": "🛒 Otros", "subcategoria": "", "descripcion": "", "precio": 7, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_4109.jpeg", "imagenes": ["https://Brillitos.b-cdn.net/IMG_4109.jpeg"], "esNuevo": false}, {"id": "256", "nombre": "Librito de Stickers RETRO", "categoria": "🌟 Stickers", "subcategoria": "", "descripcion": "Librito de Stickers, con más de 800 stickers estilo retro", "precio": 8, "stock": 1, "observaciones": "", "imagen": "https://Brillitos.b-cdn.net/IMG_4148.jpeg", "imagenes": ["https://Brillitos.b-cdn.net/IMG_4148.jpeg", "https://Brillitos.b-cdn.net/IMG_4150.jpeg", "https://Brillitos.b-cdn.net/IMG_4151.jpeg"], "esNuevo": false}];
+
 var FEATURED_SECTIONS=[{"key": "stickers", "cats": ["🌟 Stickers", "Stickers"], "label": "✨ Stickers", "emoji": "✨"}, {"key": "washitape", "cats": ["Washitape"], "label": "🎁 Washi Tapes", "emoji": "🎁"}, {"key": "agendas", "cats": ["Agendas"], "label": "📅 Agendas", "emoji": "📅"}];
 var FEATURED_CATS=["🌟 Stickers", "Stickers", "Washitape", "Agendas"];
 
@@ -1182,7 +667,7 @@ function renderHomeSections(){
     nw.slice(0,16).forEach(function(p,i){strip.appendChild(buildCard(p,i));});
     wrap.appendChild(arrowL); wrap.appendChild(strip); wrap.appendChild(arrowR);
     row.appendChild(wrap);
-    var div=document.createElement('div'); div.className='feat-divider'; row.appendChild(div);
+    var divider=document.createElement('div'); divider.className='feat-divider'; row.appendChild(divider);
     container.appendChild(row);
   })();
   FEATURED_SECTIONS.forEach(function(sec){
@@ -1254,7 +739,7 @@ function renderHomeSections(){
       var firstImg=prods.map(function(p){return p.imagen;}).find(function(u){return u&&u.startsWith('http');});
       var card=document.createElement('div');
       card.className='snippet-card';
-      card.innerHTML='<div class="snippet-img-wrap">'+(firstImg?'<img src="'+firstImg+'" alt="" loading="lazy" onerror="imgFallback(this)">':'<div class="snippet-img-placeholder">??</div>')+'</div><div class="snippet-body"><div class="snippet-name">'+cat+'</div><div class="snippet-count">'+prods.length+' productos</div></div>';
+      card.innerHTML='<div class="snippet-img-wrap">'+(firstImg?'<img src="'+firstImg+'" alt="" loading="lazy" onerror="imgFallback(this)">':'<div class="snippet-img-placeholder">??</div>')+'</div><div class="snippet-body"><div class="snippet-name">'+cat+'</div><div class="snippet-count">'+prods.length+(prods.length===1?' producto':' productos')+'</div></div>';
       card.addEventListener('click',function(){jumpToCats([cat]);});
       sgrid.appendChild(card);
     });
@@ -2230,6 +1715,7 @@ function ppAddToCart(){
   }
   addToCart(_ppProduct.id, _ppVariant);
 }
+
 
 </script>
 </body>
