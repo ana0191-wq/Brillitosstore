@@ -978,13 +978,25 @@ function onMetodoCambio(){
   const esBs = ['Pago Móvil','BCV','Efectivo Bs'].includes(m);
   document.getElementById('bcv-venta-wrap').style.display = esBs?'block':'none';
   if(esBs){
-    // Solo resetear a auto-cálculo si no hay monto guardado
     const bsActual = parseFloat(document.getElementById('v-total-bs').value)||0;
     if(bsActual===0) v_bs_manual = false;
     cargarBCVVenta();
   } else {
     document.getElementById('v-total-bs').value='';
     v_bs_manual = false;
+  }
+  // Poblar cuentas según el método
+  const cuentas = cuentasPorMetodo(m);
+  const sel = document.getElementById('v-cuenta');
+  const wrap = document.getElementById('v-cuenta-wrap');
+  if(cuentas.length){
+    sel.innerHTML='<option value="">— seleccionar cuenta —</option>'+
+      cuentas.map(c=>'<option value="'+c.id+'">'+c.emoji+' '+c.nombre+'</option>').join('');
+    wrap.style.display='block';
+    if(cuentas.length===1) sel.value=cuentas[0].id;
+  } else {
+    sel.innerHTML='<option value="">— no aplica —</option>';
+    wrap.style.display='none';
   }
 }
 
