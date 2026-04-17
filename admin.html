@@ -557,8 +557,19 @@ tr:hover td{background:#fff8fc}
           <input type="number" id="v-tasa-bcv" step="0.01" min="0" style="width:120px" oninput="calcularMontoBs()">
         </div>
       </div>
-      <div style="margin-top:7px;font-size:13px">
-        💰 Total en Bs: <strong id="v-total-bs" style="color:#2e7d32;font-size:15px">Bs. 0.00</strong>
+      <div style="margin-top:10px">
+        <label style="font-size:12px;font-weight:700;color:#2e7d32;display:block;margin-bottom:4px">💰 Monto en Bs (editable)</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:14px;font-weight:700;color:#555">Bs.</span>
+          <input type="number" id="v-total-bs" step="0.01" min="0"
+            style="flex:1;padding:8px 12px;border:2px solid #4caf50;border-radius:10px;font-size:16px;font-weight:800;color:#2e7d32;background:#f1f8f1;outline:none;max-width:200px"
+            placeholder="0.00" oninput="v_bs_manual=true">
+          <button onclick="recalcularBsDesdeTotal()" title="Recalcular desde tasa BCV"
+            style="background:#e8f5e9;border:1px solid #4caf50;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:13px;white-space:nowrap">
+            🔄 Auto
+          </button>
+        </div>
+        <div style="font-size:11px;color:#888;margin-top:3px" id="v-bs-hint">← Puedes editar este valor si el cliente pagó diferente</div>
       </div>
     </div>
   </div>
@@ -939,23 +950,42 @@ async function cargarBCVVenta(){
   const tasa = await getBCV(fecha);
   const hoy = new Date().toISOString().slice(0,10);
   document.getElementById('bcv-rate-venta').textContent = 'Bs. '+parseFloat(tasa).toFixed(2);
-  document.getElementById('bcv-info-venta').textContent = fecha===hoy ? 'Tasa de hoy — BCV oficial' : 'Aprox. para '+fecha+' — ajusta si conoces el valor exacto';
+  document.getElementById('bcv-info-venta').textContent = fecha===hoy ? '✅ Tasa de hoy — BCV oficial' : '⚠️ Aprox. para '+fecha+' — ajusta si conoces el valor exacto';
   document.getElementById('v-tasa-bcv').value = parseFloat(tasa).toFixed(2);
-  calcularMontoBs();
+  // Solo auto-calcular Bs si no fue editado manualmente y no hay valor guardado
+  const bsActual = parseFloat(document.getElementById('v-total-bs').value)||0;
+  if(!v_bs_manual && bsActual===0) calcularMontoBs();
+  else if(!v_bs_manual) calcularMontoBs();
 }
 
+let v_bs_manual = false;
 function calcularMontoBs(){
-  const totalStr = (document.getElementById('t-total').textContent||'0').replace('$','');
+  if(v_bs_manual) return; // usuario editó el Bs manualmente — no sobreescribir
+  const totalStr = (document.getElementById('t-total')?document.getElementById('t-total').textContent:'0').replace('$','');
   const total = parseFloat(totalStr)||0;
   const tasa = parseFloat(document.getElementById('v-tasa-bcv').value)||0;
-  document.getElementById('v-total-bs').textContent = 'Bs. '+(total*tasa).toFixed(2);
+  if(tasa>0){
+    document.getElementById('v-total-bs').value = (total*tasa).toFixed(2);
+  }
+}
+function recalcularBsDesdeTotal(){
+  v_bs_manual = false;
+  calcularMontoBs();
 }
 
 function onMetodoCambio(){
   const m = document.getElementById('v-metodo').value;
   const esBs = ['Pago Móvil','BCV','Efectivo Bs'].includes(m);
   document.getElementById('bcv-venta-wrap').style.display = esBs?'block':'none';
-  if(esBs) cargarBCVVenta();
+  if(esBs){
+    // Solo resetear a auto-cálculo si no hay monto guardado
+    const bsActual = parseFloat(document.getElementById('v-total-bs').value)||0;
+    if(bsActual===0) v_bs_manual = false;
+    cargarBCVVenta();
+  } else {
+    document.getElementById('v-total-bs').value='';
+    v_bs_manual = false;
+  }
 }
 
 function onFechaCambio(){
@@ -1487,7 +1517,11 @@ function abrirModalVenta(v=null){
   document.getElementById('v-estado').value=v?v.estado||'Pendiente':'Pendiente';
   document.getElementById('v-tasa-bcv').value=v?v.tasa_bcv_usada||'':'';
   document.getElementById('v-evento').value=v?v.evento_id||'':'';
-  toggleEventoWrap(); onMetodoCambio(); renderItems();
+  // Cargar monto_bs guardado
+  v_bs_manual = false;
+  const bsGuardado = v&&parseFloat(v.monto_bs||0)>0 ? parseFloat(v.monto_bs).toFixed(2) : '';
+  document.getElementById('v-total-bs').value = bsGuardado;
+  toggleEventoWrap(); renderItems(); onMetodoCambio();
   document.getElementById('modal-venta').classList.add('open');
 }
 function editarVenta(id){ const v=ventas.find(x=>x.id===id); if(v) abrirModalVenta(v); }
@@ -1540,7 +1574,8 @@ function calcularTotal(){
   document.getElementById('t-envio').textContent='$'+env.toFixed(2);
   document.getElementById('t-descuento').textContent='-$'+desc.toFixed(2);
   document.getElementById('t-total').textContent='$'+tot.toFixed(2);
-  calcularMontoBs();
+  // Solo recalcula Bs si NO fue editado manualmente
+  if(!v_bs_manual) calcularMontoBs();
 }
 function buscarCliente(q){
   const res=document.getElementById('cliente-results'); if(!q){res.style.display='none';return;}
@@ -1563,7 +1598,7 @@ async function guardarVenta(){
   const metodo=document.getElementById('v-metodo').value;
   const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(metodo);
   const tasa=parseFloat(document.getElementById('v-tasa-bcv').value)||0;
-  const monto_bs=esBs&&tasa>0?total*tasa:0;
+  const monto_bs=esBs ? (parseFloat(document.getElementById('v-total-bs').value)||0) : 0;
   const eventoId=document.getElementById('v-evento').value||null;
   const data={
     cliente_id:document.getElementById('v-cliente-id').value||null,
