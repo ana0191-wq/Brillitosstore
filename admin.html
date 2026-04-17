@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌸 Brillitos Admin</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Inter, sans-serif; background: #f8f0f5; color: #2d1b35; min-height: 100vh; }
+
+/* Header */
+.header { background: linear-gradient(135deg, #e91e8c, #c2185b); color: white; padding: 16px 24px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 8px rgba(233,30,140,0.3); }
+.header h1 { font-size: 20px; font-weight: 700; }
+.header-btns { display: flex; gap: 10px; }
+
+/* Stats */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 20px 24px; }
+.stat-card { background: white; border-radius: 12px; padding: 16px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.06); }
+.stat-num { font-size: 28px; font-weight: 800; color: #e91e8c; }
+.stat-label { font-size: 12px; color: #888; margin-top: 4px; }
+
+/* Toolbar */
+.toolbar { padding: 0 24px 16px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.search-box { flex: 1; min-width: 200px; padding: 10px 16px; border: 2px solid #f0d6e8; border-radius: 20px; font-size: 14px; outline: none; }
+.search-box:focus { border-color: #e91e8c; }
+select.filter { padding: 10px 16px; border: 2px solid #f0d6e8; border-radius: 20px; font-size: 14px; background: white; outline: none; cursor: pointer; }
+
+/* Buttons */
+.btn { padding: 10px 20px; border: none; border-radius: 20px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+.btn-primary { background: #e91e8c; color: white; }
+.btn-primary:hover { background: #c2185b; }
+.btn-success { background: #4caf50; color: white; }
+.btn-success:hover { background: #388e3c; }
+.btn-warning { background: #ff9800; color: white; }
+.btn-warning:hover { background: #f57c00; }
+.btn-danger { background: #f44336; color: white; }
+.btn-danger:hover { background: #d32f2f; }
+.btn-secondary { background: #f0d6e8; color: #c2185b; }
+.btn-secondary:hover { background: #e0b0d0; }
+.btn-sm { padding: 6px 12px; font-size: 12px; border-radius: 12px; }
+
+/* Table */
+.table-wrap { padding: 0 24px 24px; overflow-x: auto; }
+table { width: 100%; background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06); border-collapse: collapse; }
+th { background: #fce4f0; color: #c2185b; padding: 12px 16px; text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; }
+td { padding: 10px 16px; border-bottom: 1px solid #fce4f0; font-size: 13px; vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fff8fc; }
+
+.prod-img { width: 48px; height: 48px; object-fit: cover; border-radius: 8px; background: #f0d6e8; }
+.badge { display: inline-block; padding: 3px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+.badge-new { background: #fce4f0; color: #e91e8c; }
+.badge-sin-stock { background: #fdecea; color: #f44336; }
+.badge-ok { background: #e8f5e9; color: #4caf50; }
+.stock-input { width: 60px; padding: 4px 8px; border: 1px solid #ddd; border-radius: 6px; text-align: center; font-size: 13px; }
+
+/* Modal */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; padding: 20px; }
+.modal-bg.open { display: flex; }
+.modal { background: white; border-radius: 16px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; padding: 24px; }
+.modal h2 { font-size: 18px; font-weight: 700; color: #c2185b; margin-bottom: 20px; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.form-full { grid-column: 1 / -1; }
+.form-group label { display: block; font-size: 12px; font-weight: 600; color: #888; margin-bottom: 6px; text-transform: uppercase; }
+.form-group input, .form-group textarea, .form-group select {
+  width: 100%; padding: 10px 14px; border: 2px solid #f0d6e8; border-radius: 10px;
+  font-size: 14px; outline: none; font-family: inherit;
+}
+.form-group input:focus, .form-group textarea:focus, .form-group select:focus { border-color: #e91e8c; }
+.form-group textarea { resize: vertical; min-height: 80px; }
+.checkbox-group { display: flex; align-items: center; gap: 10px; padding: 10px 0; }
+.checkbox-group input[type=checkbox] { width: 18px; height: 18px; accent-color: #e91e8c; }
+.modal-footer { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; padding-top: 16px; border-top: 1px solid #f0d6e8; }
+
+/* Toast */
+.toast { position: fixed; bottom: 24px; right: 24px; background: #2d1b35; color: white; padding: 12px 20px; border-radius: 12px; font-size: 14px; font-weight: 600; z-index: 9999; display: none; box-shadow: 0 4px 16px rgba(0,0,0,0.2); }
+.toast.show { display: block; animation: slideUp 0.3s ease; }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Loading */
+.loading { text-align: center; padding: 40px; color: #888; font-size: 16px; }
+
+/* Pagination */
+.pagination { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 16px; }
+.page-btn { width: 36px; height: 36px; border: 2px solid #f0d6e8; background: white; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+.page-btn.active { background: #e91e8c; color: white; border-color: #e91e8c; }
+.page-info { font-size: 13px; color: #888; }
+
+@media (max-width: 600px) {
+  .stats { grid-template-columns: repeat(2, 1fr); }
+  .form-grid { grid-template-columns: 1fr; }
+  .header h1 { font-size: 16px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>🌸 Brillitos — Panel Admin</h1>
+  <div class="header-btns">
+    <button class="btn btn-secondary" onclick="exportarExcel()">📊 Excel</button>
+    <button class="btn btn-primary" onclick="abrirModal()">+ Producto</button>
+  </div>
+</div>
+
+<div class="stats">
+  <div class="stat-card">
+    <div class="stat-num" id="s-total">—</div>
+    <div class="stat-label">Total productos</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="s-stock">—</div>
+    <div class="stat-label">Con stock</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="s-nuevos">—</div>
+    <div class="stat-label">Marcados nuevos</div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-num" id="s-cats">—</div>
+    <div class="stat-label">Categorías</div>
+  </div>
+</div>
+
+<div class="toolbar">
+  <input class="search-box" type="text" id="search" placeholder="🔍 Buscar producto..." oninput="filtrar()">
+  <select class="filter" id="filtro-cat" onchange="filtrar()">
+    <option value="">Todas las categorías</option>
+  </select>
+  <select class="filter" id="filtro-stock" onchange="filtrar()">
+    <option value="">Todos</option>
+    <option value="con">Con stock</option>
+    <option value="sin">Sin stock</option>
+    <option value="nuevo">Nuevos</option>
+  </select>
+</div>
+
+<div class="table-wrap">
+  <div class="loading" id="loading">Cargando productos... 🌸</div>
+  <table id="tabla" style="display:none">
+    <thead>
+      <tr>
+        <th>Foto</th>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Precio</th>
+        <th>Stock</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<!-- Modal agregar/editar -->
+<div class="modal-bg" id="modal-bg">
+  <div class="modal">
+    <h2 id="modal-title">Nuevo Producto</h2>
+    <div class="form-grid">
+      <div class="form-group form-full">
+        <label>Nombre *</label>
+        <input type="text" id="f-nombre" placeholder="Nombre del producto">
+      </div>
+      <div class="form-group">
+        <label>Precio ($) *</label>
+        <input type="number" id="f-precio" step="0.5" min="0" placeholder="0.00">
+      </div>
+      <div class="form-group">
+        <label>Stock *</label>
+        <input type="number" id="f-stock" min="0" placeholder="0">
+      </div>
+      <div class="form-group">
+        <label>Categoría</label>
+        <input type="text" id="f-categoria" placeholder="Ej: Stickers">
+      </div>
+      <div class="form-group">
+        <label>Subcategoría</label>
+        <input type="text" id="f-subcategoria" placeholder="Ej: Kawaii">
+      </div>
+      <div class="form-group form-full">
+        <label>Descripción</label>
+        <textarea id="f-descripcion" placeholder="Descripción del producto..."></textarea>
+      </div>
+      <div class="form-group form-full">
+        <label>URL Foto Principal</label>
+        <input type="text" id="f-imagen" placeholder="https://brillitos.b-cdn.net/...">
+      </div>
+      <div class="form-group form-full">
+        <label>URLs Fotos adicionales (una por línea)</label>
+        <textarea id="f-imagenes" placeholder="https://brillitos.b-cdn.net/foto2.jpg&#10;https://brillitos.b-cdn.net/foto3.jpg" style="min-height:60px"></textarea>
+      </div>
+      <div class="form-group form-full">
+        <label>Observaciones</label>
+        <input type="text" id="f-observaciones" placeholder="Opciones disponibles, notas...">
+      </div>
+      <div class="form-group form-full">
+        <div class="checkbox-group">
+          <input type="checkbox" id="f-nuevo">
+          <label for="f-nuevo" style="text-transform:none;font-size:14px;color:#2d1b35">🆕 Marcar como Nuevo</label>
+        </div>
+        <div class="checkbox-group">
+          <input type="checkbox" id="f-activo" checked>
+          <label for="f-activo" style="text-transform:none;font-size:14px;color:#2d1b35">✅ Producto activo (visible en tienda)</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarProducto()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SB_URL = "https://xavqokyzdmqzguicjsrq.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
+
+let todos = [];
+let filtrados = [];
+let editandoId = null;
+let paginaActual = 1;
+const POR_PAGINA = 30;
+
+const H = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+
+async function cargar() {
+  try {
+    const r = await fetch(SB_URL + '/rest/v1/productos?select=*&order=id.asc&limit=1000', { headers: H });
+    todos = await r.json();
+    actualizarStats();
+    poblarCategorias();
+    filtrar();
+    document.getElementById('loading').style.display = 'none';
+    document.getElementById('tabla').style.display = 'table';
+  } catch(e) {
+    document.getElementById('loading').textContent = '❌ Error cargando. Verifica la conexión.';
+  }
+}
+
+function actualizarStats() {
+  document.getElementById('s-total').textContent = todos.length;
+  document.getElementById('s-stock').textContent = todos.filter(p => p.stock > 0).length;
+  document.getElementById('s-nuevos').textContent = todos.filter(p => p.es_nuevo).length;
+  const cats = new Set(todos.map(p => p.categoria).filter(Boolean));
+  document.getElementById('s-cats').textContent = cats.size;
+}
+
+function poblarCategorias() {
+  const cats = [...new Set(todos.map(p => p.categoria).filter(Boolean))].sort();
+  const sel = document.getElementById('filtro-cat');
+  const val = sel.value;
+  sel.innerHTML = '<option value="">Todas las categorías</option>';
+  cats.forEach(c => sel.innerHTML += `<option value="${c}" ${c===val?'selected':''}>${c}</option>`);
+}
+
+function filtrar() {
+  const q = document.getElementById('search').value.toLowerCase();
+  const cat = document.getElementById('filtro-cat').value;
+  const stk = document.getElementById('filtro-stock').value;
+  filtrados = todos.filter(p => {
+    if (q && !p.nombre?.toLowerCase().includes(q) && !p.categoria?.toLowerCase().includes(q)) return false;
+    if (cat && p.categoria !== cat) return false;
+    if (stk === 'con' && p.stock <= 0) return false;
+    if (stk === 'sin' && p.stock > 0) return false;
+    if (stk === 'nuevo' && !p.es_nuevo) return false;
+    return true;
+  });
+  paginaActual = 1;
+  renderTabla();
+}
+
+function renderTabla() {
+  const start = (paginaActual - 1) * POR_PAGINA;
+  const pagina = filtrados.slice(start, start + POR_PAGINA);
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = pagina.map(p => `
+    <tr>
+      <td><img class="prod-img" src="${p.imagen || ''}" onerror="this.src=''" alt=""></td>
+      <td><strong>${p.nombre || ''}</strong>${p.observaciones ? `<br><small style="color:#999">${p.observaciones}</small>` : ''}</td>
+      <td>${p.categoria || ''}<br><small style="color:#bbb">${p.subcategoria || ''}</small></td>
+      <td><strong>$${parseFloat(p.precio||0).toFixed(2)}</strong></td>
+      <td>
+        <input class="stock-input" type="number" value="${p.stock||0}" min="0"
+          onchange="actualizarStock(${p.id}, this.value)" title="Editar stock">
+      </td>
+      <td>
+        ${p.es_nuevo ? '<span class="badge badge-new">🆕 Nuevo</span>' : ''}
+        ${p.stock <= 0 ? '<span class="badge badge-sin-stock">Sin stock</span>' : '<span class="badge badge-ok">✅</span>'}
+        ${!p.activo ? '<span class="badge" style="background:#eee;color:#999">Oculto</span>' : ''}
+      </td>
+      <td style="white-space:nowrap">
+        <button class="btn btn-warning btn-sm" onclick="editarProducto(${p.id})">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="eliminarProducto(${p.id}, '${(p.nombre||'').replace(/'/g,"\\'")}')">🗑️</button>
+      </td>
+    </tr>
+  `).join('');
+  renderPaginacion();
+}
+
+function renderPaginacion() {
+  const total = Math.ceil(filtrados.length / POR_PAGINA);
+  const div = document.getElementById('pagination');
+  if (total <= 1) { div.innerHTML = `<span class="page-info">${filtrados.length} productos</span>`; return; }
+  let html = `<span class="page-info">${filtrados.length} productos — Pág ${paginaActual}/${total}</span> `;
+  if (paginaActual > 1) html += `<button class="page-btn" onclick="irPagina(${paginaActual-1})">‹</button>`;
+  for (let i = Math.max(1, paginaActual-2); i <= Math.min(total, paginaActual+2); i++) {
+    html += `<button class="page-btn ${i===paginaActual?'active':''}" onclick="irPagina(${i})">${i}</button>`;
+  }
+  if (paginaActual < total) html += `<button class="page-btn" onclick="irPagina(${paginaActual+1})">›</button>`;
+  div.innerHTML = html;
+}
+
+function irPagina(n) { paginaActual = n; renderTabla(); window.scrollTo(0, 300); }
+
+async function actualizarStock(id, valor) {
+  const stock = parseInt(valor) || 0;
+  await fetch(SB_URL + `/rest/v1/productos?id=eq.${id}`, {
+    method: 'PATCH', headers: H, body: JSON.stringify({ stock })
+  });
+  const p = todos.find(x => x.id === id);
+  if (p) p.stock = stock;
+  actualizarStats();
+  toast('✅ Stock actualizado');
+}
+
+function abrirModal(p = null) {
+  editandoId = p ? p.id : null;
+  document.getElementById('modal-title').textContent = p ? '✏️ Editar Producto' : '🆕 Nuevo Producto';
+  document.getElementById('f-nombre').value = p?.nombre || '';
+  document.getElementById('f-precio').value = p?.precio || '';
+  document.getElementById('f-stock').value = p?.stock ?? '';
+  document.getElementById('f-categoria').value = p?.categoria || '';
+  document.getElementById('f-subcategoria').value = p?.subcategoria || '';
+  document.getElementById('f-descripcion').value = p?.descripcion || '';
+  document.getElementById('f-imagen').value = p?.imagen || '';
+  document.getElementById('f-imagenes').value = (p?.imagenes || []).join('\n');
+  document.getElementById('f-observaciones').value = p?.observaciones || '';
+  document.getElementById('f-nuevo').checked = p?.es_nuevo || false;
+  document.getElementById('f-activo').checked = p?.activo !== false;
+  document.getElementById('modal-bg').classList.add('open');
+}
+
+function cerrarModal() { document.getElementById('modal-bg').classList.remove('open'); }
+
+function editarProducto(id) {
+  const p = todos.find(x => x.id === id);
+  if (p) abrirModal(p);
+}
+
+async function guardarProducto() {
+  const nombre = document.getElementById('f-nombre').value.trim();
+  const precio = parseFloat(document.getElementById('f-precio').value);
+  if (!nombre || isNaN(precio)) { toast('⚠️ Nombre y precio son obligatorios'); return; }
+
+  const imgs = document.getElementById('f-imagenes').value
+    .split('\n').map(s => s.trim()).filter(s => s.startsWith('http'));
+  const imagen = document.getElementById('f-imagen').value.trim() || imgs[0] || '';
+  const todasImgs = imagen ? [imagen, ...imgs.filter(i => i !== imagen)] : imgs;
+
+  const data = {
+    nombre,
+    precio,
+    stock: parseInt(document.getElementById('f-stock').value) || 0,
+    categoria: document.getElementById('f-categoria').value.trim(),
+    subcategoria: document.getElementById('f-subcategoria').value.trim(),
+    descripcion: document.getElementById('f-descripcion').value.trim(),
+    imagen,
+    imagenes: todasImgs,
+    observaciones: document.getElementById('f-observaciones').value.trim(),
+    es_nuevo: document.getElementById('f-nuevo').checked,
+    activo: document.getElementById('f-activo').checked
+  };
+
+  if (editandoId) {
+    await fetch(SB_URL + `/rest/v1/productos?id=eq.${editandoId}`, {
+      method: 'PATCH', headers: H, body: JSON.stringify(data)
+    });
+    const idx = todos.findIndex(p => p.id === editandoId);
+    if (idx >= 0) todos[idx] = { ...todos[idx], ...data };
+    toast('✅ Producto actualizado');
+  } else {
+    const r = await fetch(SB_URL + '/rest/v1/productos', {
+      method: 'POST', headers: { ...H, 'Prefer': 'return=representation' }, body: JSON.stringify(data)
+    });
+    const nuevo = await r.json();
+    todos.push(nuevo[0] || { ...data, id: Date.now() });
+    toast('✅ Producto agregado');
+  }
+
+  cerrarModal();
+  actualizarStats();
+  poblarCategorias();
+  filtrar();
+}
+
+async function eliminarProducto(id, nombre) {
+  if (!confirm(`¿Eliminar "${nombre}"?`)) return;
+  await fetch(SB_URL + `/rest/v1/productos?id=eq.${id}`, { method: 'DELETE', headers: H });
+  todos = todos.filter(p => p.id !== id);
+  actualizarStats();
+  filtrar();
+  toast('🗑️ Producto eliminado');
+}
+
+function exportarExcel() {
+  const cols = ['ID','Nombre','Categoría','Subcategoría','Descripción','Precio','Stock','Observaciones','Imagen','Nuevo','Activo'];
+  const rows = todos.map(p => [
+    p.id, p.nombre, p.categoria, p.subcategoria, p.descripcion,
+    p.precio, p.stock, p.observaciones, p.imagen,
+    p.es_nuevo ? 'Si' : 'No', p.activo ? 'Si' : 'No'
+  ]);
+  let csv = cols.join(',') + '\n';
+  rows.forEach(r => {
+    csv += r.map(v => `"${(v||'').toString().replace(/"/g,'""')}"`).join(',') + '\n';
+  });
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'brillitos_productos.csv';
+  a.click();
+  toast('📊 Excel descargado');
+}
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+document.getElementById('modal-bg').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModal();
+});
+
+cargar();
+</script>
+</body>
+</html>
