@@ -158,6 +158,38 @@ tr:hover td{background:#fff8fc}
 .toast.show{display:block;animation:slideUp 0.3s ease}
 @keyframes slideUp{from{transform:translateX(-50%) translateY(10px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
 .page{display:none}.page.active{display:block}
+/* SCANNER */
+.scanner-overlay{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.scanner-frame{position:relative;width:280px;height:280px;border-radius:20px;overflow:hidden;background:#000;box-shadow:0 0 0 4px var(--pink),0 0 40px rgba(233,30,140,.4)}
+.scanner-frame video{width:100%;height:100%;object-fit:cover}
+.scanner-corners{position:absolute;inset:0;pointer-events:none}
+.scanner-corners::before,.scanner-corners::after{content:'';position:absolute;width:36px;height:36px;border-color:var(--pink);border-style:solid}
+.scanner-corners::before{top:12px;left:12px;border-width:3px 0 0 3px;border-radius:4px 0 0 4px}
+.scanner-corners::after{bottom:12px;right:12px;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
+.scanner-line{position:absolute;left:16px;right:16px;height:2px;background:linear-gradient(90deg,transparent,var(--pink),transparent);animation:scan-move 1.8s ease-in-out infinite}
+@keyframes scan-move{0%,100%{top:20px;opacity:.6}50%{top:calc(100% - 22px);opacity:1}}
+.scanner-status{color:white;font-size:15px;font-weight:600;text-align:center;min-height:24px;max-width:280px}
+.scanner-status.ok{color:#4caf50}
+.scanner-status.err{color:#ff5252}
+.scanner-manual{display:flex;gap:8px;width:280px}
+.scanner-manual input{flex:1;padding:10px 14px;border:2px solid #444;border-radius:10px;background:#111;color:white;font-size:14px;outline:none}
+.scanner-manual input:focus{border-color:var(--pink)}
+.btn-scan{background:var(--pink);color:white;border:none;padding:11px 18px;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;letter-spacing:.5px;transition:background .15s}
+.btn-scan:active{background:var(--pink-dark)}
+.pos-scan-btn{background:var(--pink);color:white;border:none;padding:9px 14px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.pos-scan-btn:active{background:var(--pink-dark)}
+/* PRINT QR */
+.qr-print-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:12px}
+.qr-print-item{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px;border:1px dashed var(--border);border-radius:10px;cursor:pointer;transition:background .1s}
+.qr-print-item:hover{background:var(--pink-light)}
+.qr-print-item img{width:90px;height:90px}
+.qr-print-item span{font-size:10px;font-weight:600;text-align:center;color:var(--text);max-width:90px;line-height:1.3}
+.qr-print-item small{font-size:9px;color:var(--gray)}
+@media print{
+  body > *:not(.qr-print-window){display:none!important}
+  .qr-print-window{display:block!important;padding:10px}
+  .qr-print-grid{grid-template-columns:repeat(4,1fr)}
+}
 @media(max-width:700px){
   .sidebar{display:none}
   .grid-4{grid-template-columns:repeat(2,1fr)}
@@ -166,6 +198,7 @@ tr:hover td{background:#fff8fc}
   .pos-layout{grid-template-columns:1fr}
 }
 </style>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 </head>
 <body>
 <div class="app">
@@ -231,7 +264,10 @@ tr:hover td{background:#fff8fc}
   </div>
   <div class="pos-layout">
     <div class="pos-productos">
-      <input class="pos-search" placeholder="🔍 Buscar producto..." id="pos-search" oninput="filtrarPOS()">
+      <div style="display:flex;gap:8px;align-items:center;padding:0 6px 0 6px">
+        <input class="pos-search" style="flex:1" placeholder="🔍 Buscar producto..." id="pos-search" oninput="filtrarPOS()">
+        <button class="pos-scan-btn" onclick="abrirScanner()" title="Escanear código QR">📷 Scan</button>
+      </div>
       <div class="pos-cats" id="pos-cats"></div>
       <div class="pos-grid" id="pos-grid"></div>
     </div>
@@ -306,6 +342,7 @@ tr:hover td{background:#fff8fc}
   <div class="page-header"><div class="page-title">📦 Productos</div>
     <div class="header-actions">
       <button class="btn btn-secondary" onclick="exportarProductosCSV()">📊 Excel</button>
+      <button class="btn btn-secondary" onclick="abrirImprimirQR()" title="Ver e imprimir QR de todos los productos">🔲 QR</button>
       <button class="btn btn-primary" onclick="abrirModalProducto()">+ Producto</button>
     </div>
   </div>
@@ -317,7 +354,7 @@ tr:hover td{background:#fff8fc}
       </select>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap">
-      <table><thead><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Stock</th><th>Aptd</th><th></th></tr></thead>
+      <table><thead><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Stock</th><th>QR</th><th>Aptd</th><th></th></tr></thead>
       <tbody id="tbody-prods"></tbody></table>
     </div></div>
   </div>
@@ -638,13 +675,62 @@ tr:hover td{background:#fff8fc}
   <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="subirFotos(this.files)">
   <div class="upload-progress"><div class="upload-progress-bar" id="upload-bar"></div></div>
   <div class="upload-previews" id="upload-previews"></div>
-  <div style="display:flex;gap:16px;margin-top:10px">
+  <div style="display:flex;gap:16px;margin-top:10px;align-items:center;flex-wrap:wrap">
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-nuevo" style="accent-color:var(--pink)"> 🆕 Nuevo</label>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-activo" checked style="accent-color:var(--pink)"> ✅ Activo</label>
+    <div id="prod-qr-preview" style="display:none;flex-direction:column;align-items:center;gap:4px;margin-left:auto">
+      <img id="prod-qr-img" src="" style="width:72px;height:72px;border-radius:8px;border:1px solid var(--border)">
+      <span style="font-size:9px;color:var(--gray)" id="prod-qr-code"></span>
+    </div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-producto')">Cancelar</button>
     <button class="btn btn-primary" onclick="guardarProducto()">💾 Guardar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: SCANNER QR/BARRAS -->
+<div id="scanner-overlay" class="scanner-overlay" style="display:none" onclick="cerrarScannerIfBg(event)">
+  <div style="color:white;font-size:20px;font-weight:800;letter-spacing:1px">🌸 Escanear Producto</div>
+  <div class="scanner-frame" id="qr-reader">
+    <div class="scanner-corners"></div>
+    <div class="scanner-line"></div>
+  </div>
+  <div class="scanner-status" id="scan-status">📷 Apunta al código QR del producto</div>
+  <div class="scanner-manual">
+    <input type="text" id="scan-manual-input" placeholder="Código manual..." onkeydown="if(event.key==='Enter')scanManual()">
+    <button class="btn-scan" onclick="scanManual()">OK</button>
+  </div>
+  <button onclick="cerrarScanner()" style="background:rgba(255,255,255,.15);color:white;border:none;padding:10px 28px;border-radius:20px;font-size:14px;cursor:pointer;margin-top:4px">✕ Cerrar</button>
+</div>
+
+<!-- MODAL: IMPRIMIR QR -->
+<div class="modal-bg" id="modal-imprimir-qr">
+<div class="modal" style="max-width:520px">
+  <h2>🔲 Códigos QR — Brillitos Store</h2>
+  <p style="font-size:12px;color:var(--gray);margin-bottom:4px">Toca un QR para verlo grande. Usa el botón 🖨️ para imprimir todos en hoja.</p>
+  <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+    <input id="qr-search-filter" style="flex:1;min-width:120px;padding:7px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Filtrar..." oninput="renderQRGrid()">
+    <button class="btn btn-secondary" onclick="imprimirQRGrid()">🖨️ Imprimir</button>
+  </div>
+  <div id="qr-grid-container" class="qr-print-grid"></div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="cerrarModal('modal-imprimir-qr')">Cerrar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: VER QR INDIVIDUAL -->
+<div class="modal-bg" id="modal-qr-single">
+<div class="modal" style="max-width:320px;text-align:center">
+  <h2 id="qr-single-nombre">Producto</h2>
+  <img id="qr-single-img" src="" style="width:220px;height:220px;border-radius:12px;border:2px solid var(--pink-light);margin:10px auto;display:block">
+  <div id="qr-single-code" style="font-family:monospace;font-size:13px;color:var(--gray);margin-bottom:8px"></div>
+  <p style="font-size:12px;color:var(--gray)">Imprime y pega en el producto o etiqueta de precio</p>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="cerrarModal('modal-qr-single')">Cerrar</button>
+    <button class="btn btn-primary" onclick="imprimirQRSingle()">🖨️ Imprimir</button>
   </div>
 </div>
 </div>
@@ -936,6 +1022,172 @@ async function init(){
   renderPOS();
 }
 
+// ===== SCANNER QR / CÓDIGO DE BARRAS =====
+let scannerInstance = null;
+let scannerActive = false;
+
+function codigoProd(id){ return 'BRILL-'+id; }
+function qrUrl(id,size=150){ return 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&color=c2185b&data='+encodeURIComponent(codigoProd(id)); }
+
+function abrirScanner(){
+  if(typeof Html5Qrcode === 'undefined'){ toast('⚠️ Librería de scanner no cargó — revisa conexión'); return; }
+  const overlay = document.getElementById('scanner-overlay');
+  overlay.style.display = 'flex';
+  document.getElementById('scan-status').textContent = '📷 Apunta al código QR del producto';
+  document.getElementById('scan-status').className = 'scanner-status';
+  document.getElementById('scan-manual-input').value = '';
+  scannerActive = true;
+  const readerEl = document.getElementById('qr-reader');
+  // limpiar el div manteniendo corners y line
+  const corners = readerEl.querySelector('.scanner-corners');
+  const line = readerEl.querySelector('.scanner-line');
+  readerEl.innerHTML = '';
+  if(corners) readerEl.appendChild(corners);
+  if(line) readerEl.appendChild(line);
+  const innerDiv = document.createElement('div');
+  innerDiv.id = 'qr-reader-inner';
+  readerEl.insertBefore(innerDiv, readerEl.firstChild);
+  scannerInstance = new Html5Qrcode('qr-reader-inner');
+  scannerInstance.start(
+    { facingMode: 'environment' },
+    { fps: 15, qrbox: 220, aspectRatio: 1.0,
+      formatsToSupport: [
+        Html5QrcodeSupportedFormats.QR_CODE,
+        Html5QrcodeSupportedFormats.EAN_13,
+        Html5QrcodeSupportedFormats.EAN_8,
+        Html5QrcodeSupportedFormats.CODE_128,
+        Html5QrcodeSupportedFormats.CODE_39,
+        Html5QrcodeSupportedFormats.UPC_A,
+        Html5QrcodeSupportedFormats.UPC_E
+      ]
+    },
+    onScanExito,
+    ()=>{}
+  ).catch(err => {
+    document.getElementById('scan-status').textContent = '⚠️ No se pudo acceder a la cámara. Usa el código manual.';
+    document.getElementById('scan-status').className = 'scanner-status err';
+  });
+}
+
+function onScanExito(decoded){
+  if(!scannerActive) return;
+  const prod = productos.find(p =>
+    codigoProd(p.id) === decoded ||
+    String(p.id) === decoded ||
+    (p.codigo && p.codigo === decoded)
+  );
+  if(prod && prod.activo !== false){
+    beep();
+    document.getElementById('scan-status').textContent = '✅ ' + prod.nombre + ' — agregado al carrito';
+    document.getElementById('scan-status').className = 'scanner-status ok';
+    agregarAlCarrito(prod.id);
+    if(!irA_queEstoyEn || irA_queEstoyEn !== 'pos') irA('pos');
+    setTimeout(cerrarScanner, 900);
+  } else if(prod && prod.activo === false){
+    document.getElementById('scan-status').textContent = '⚠️ Producto inactivo: ' + prod.nombre;
+    document.getElementById('scan-status').className = 'scanner-status err';
+  } else {
+    document.getElementById('scan-status').textContent = '❓ Código no encontrado: ' + decoded;
+    document.getElementById('scan-status').className = 'scanner-status err';
+  }
+}
+
+function scanManual(){
+  const val = document.getElementById('scan-manual-input').value.trim();
+  if(!val) return;
+  onScanExito(val);
+}
+
+function cerrarScanner(){
+  scannerActive = false;
+  document.getElementById('scanner-overlay').style.display = 'none';
+  if(scannerInstance){
+    scannerInstance.stop().then(()=>{ try{ scannerInstance.clear(); }catch(e){} scannerInstance=null; }).catch(()=>{ scannerInstance=null; });
+  }
+}
+
+function cerrarScannerIfBg(e){
+  if(e.target.id === 'scanner-overlay') cerrarScanner();
+}
+
+function beep(){
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const osc = ctx.createOscillator(); const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.type = 'sine'; osc.frequency.value = 1046;
+    gain.gain.setValueAtTime(0.35, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.25);
+  }catch(e){}
+}
+
+// QR: ver individual desde tabla
+function verQRProducto(id){
+  const p = productos.find(x=>x.id===id); if(!p) return;
+  document.getElementById('qr-single-nombre').textContent = p.nombre;
+  document.getElementById('qr-single-img').src = qrUrl(id, 220);
+  document.getElementById('qr-single-code').textContent = codigoProd(id);
+  document.getElementById('modal-qr-single').classList.add('open');
+}
+
+function imprimirQRSingle(){
+  const nombre = document.getElementById('qr-single-nombre').textContent;
+  const codigo = document.getElementById('qr-single-code').textContent;
+  const imgSrc = document.getElementById('qr-single-img').src;
+  const win = window.open('','_blank','width=400,height=500');
+  win.document.write('<html><body style="font-family:sans-serif;text-align:center;padding:30px">');
+  win.document.write('<h2 style="color:#c2185b;font-size:18px">🌸 Brillitos Store</h2>');
+  win.document.write('<img src="'+imgSrc+'" style="width:200px;height:200px;display:block;margin:10px auto">');
+  win.document.write('<p style="font-weight:800;font-size:16px;margin:8px 0">'+nombre+'</p>');
+  win.document.write('<p style="font-family:monospace;font-size:11px;color:#666">'+codigo+'</p>');
+  win.document.write('</body></html>');
+  win.document.close();
+  setTimeout(()=>win.print(), 500);
+}
+
+// QR: modal imprimir todos
+function abrirImprimirQR(){
+  renderQRGrid();
+  document.getElementById('modal-imprimir-qr').classList.add('open');
+}
+
+function renderQRGrid(){
+  const q = (document.getElementById('qr-search-filter')?.value||'').toLowerCase();
+  const lista = productos.filter(p=>p.activo!==false && (!q || (p.nombre||'').toLowerCase().includes(q)));
+  document.getElementById('qr-grid-container').innerHTML = lista.length
+    ? lista.map(p=>
+        '<div class="qr-print-item" onclick="verQRProducto('+p.id+');cerrarModal('modal-imprimir-qr')" title="Ver QR grande">'+
+        '<img src="'+qrUrl(p.id,90)+'" alt="QR '+p.nombre+'" loading="lazy">'+
+        '<span>'+p.nombre+'</span>'+
+        '<small>'+codigoProd(p.id)+' · $'+parseFloat(p.precio||0).toFixed(2)+'</small></div>'
+      ).join('')
+    : '<div style="color:var(--gray);font-size:13px;text-align:center;grid-column:1/-1">Sin productos</div>';
+}
+
+function imprimirQRGrid(){
+  const q = (document.getElementById('qr-search-filter')?.value||'').toLowerCase();
+  const lista = productos.filter(p=>p.activo!==false && (!q || (p.nombre||'').toLowerCase().includes(q)));
+  const win = window.open('','_blank');
+  win.document.write('<html><head><title>QR Brillitos</title><style>');
+  win.document.write('body{font-family:sans-serif;padding:20px}');
+  win.document.write('h1{color:#c2185b;font-size:18px;text-align:center}');
+  win.document.write('.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}');
+  win.document.write('.item{display:flex;flex-direction:column;align-items:center;border:1px dashed #ccc;padding:8px;border-radius:8px}');
+  win.document.write('img{width:80px;height:80px}.name{font-size:10px;font-weight:700;text-align:center;margin-top:4px}.code{font-family:monospace;font-size:8px;color:#888}');
+  win.document.write('</style></head><body>');
+  win.document.write('<h1>🌸 Brillitos Store — Etiquetas QR</h1><div class="grid">');
+  lista.forEach(p=>{
+    win.document.write('<div class="item"><img src="'+qrUrl(p.id,80)+'"><span class="name">'+p.nombre+'</span><span class="code">'+codigoProd(p.id)+'</span></div>');
+  });
+  win.document.write('</div></body></html>');
+  win.document.close();
+  setTimeout(()=>win.print(),800);
+}
+
+// Trackear página activa para scanner
+let irA_queEstoyEn = 'dashboard';
+
 // Helpers para navegar y editar desde el dashboard
 function editVentaById(id){irA('ventas');setTimeout(()=>{const v=ventas.find(x=>x.id==id);if(v)abrirModalVenta(v);},150);}
 function editApartadoById(id){irA('apartados');setTimeout(()=>{abrirModalApartado(id);},150);}
@@ -951,6 +1203,7 @@ function verificarApartadosVencidos(){
 
 // ===== NAVEGACIÓN =====
 function irA(p){
+  irA_queEstoyEn = p;
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   const pg = document.getElementById('page-'+p);
@@ -1484,6 +1737,7 @@ function renderProductos(lista){
       +'<td><strong>$'+parseFloat(p.precio||0).toFixed(2)+'</strong></td>'
       +'<td style="color:var(--green);font-weight:700">'+margen+'</td>'
       +'<td><input type="number" value="'+(p.stock||0)+'" min="0" style="width:52px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px" onchange="actualizarStockProd('+p.id+',this.value)"></td>'
+      +'<td><button onclick="verQRProducto('+p.id+')" style="background:none;border:none;cursor:pointer;font-size:18px;padding:2px" title="Ver QR">🔲</button></td>'
       +'<td>'+(aptStock>0?'<span class="badge badge-pendiente">📌'+aptStock+'</span>':'—')+'</td>'
       +'<td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="abrirModalProducto('+p.id+')">✏️</button> <button class="btn btn-danger btn-sm" onclick="eliminarProd('+p.id+')">🗑️</button></td>'
       +'</tr>';
@@ -1515,7 +1769,15 @@ function abrirModalProducto(id=null){
   document.getElementById('p-activo').checked=p?p.activo!==false:true;
   document.getElementById('margen-wrap').style.display='none';
   fotosSubidas=p&&p.imagenes&&p.imagenes.length?[...p.imagenes]:p&&p.imagen?[p.imagen]:[];
-  renderPreviews(); document.getElementById('modal-producto').classList.add('open');
+  renderPreviews();
+  // Mostrar QR del producto si existe
+  const qrWrap = document.getElementById('prod-qr-preview');
+  if(p && p.id){
+    document.getElementById('prod-qr-img').src = qrUrl(p.id, 72);
+    document.getElementById('prod-qr-code').textContent = codigoProd(p.id);
+    qrWrap.style.display = 'flex';
+  } else { qrWrap.style.display = 'none'; }
+  document.getElementById('modal-producto').classList.add('open');
 }
 async function guardarProducto(){
   const nombre=document.getElementById('p-nombre').value.trim(); const precio=parseFloat(document.getElementById('p-precio').value);
