@@ -650,7 +650,7 @@ async function cargarCatalogo() {
         imagenes:     p.imagenes || [],
         esNuevo:      p.es_nuevo || false
       };
-    }).filter(function(p) { return p.nombre && p.precio > 0; });
+    }).filter(function(p) { return p.nombre && p.precio > 0 && p.stock > 0; });
     
     // Actualizar contador
     var statEl = document.getElementById('stat-prods');
