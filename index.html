@@ -1388,7 +1388,7 @@ document.getElementById('sort-sel').addEventListener('change',e=>{sortMode=e.tar
 document.getElementById('cat-pills').addEventListener('click',e=>{const p=e.target.closest('.pill[data-cat="all"]');if(p)setCat('all');});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCart();closeOrders();}});
 
-init();
+cargarCatalogo();
 
 
 
