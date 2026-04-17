@@ -42,7 +42,10 @@ body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-hei
 .grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
 .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:12px}
 .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.stat-card{background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.05)}
+.stat-card{background:white;border-radius:12px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,0.05);transition:transform .15s,box-shadow .15s}
+.stat-card.clickable{cursor:pointer}
+.stat-card.clickable:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(233,30,140,0.15)}
+.stat-card.clickable:active{transform:scale(.97)}
 .stat-num{font-size:22px;font-weight:800;color:var(--pink)}
 .stat-label{font-size:11px;color:var(--gray);margin-top:2px}
 .card{background:white;border-radius:12px;padding:16px;box-shadow:0 2px 8px rgba(0,0,0,0.05);margin-bottom:12px}
@@ -199,10 +202,10 @@ tr:hover td{background:#fff8fc}
     <div class="grid-4" id="dash-financiero" style="margin-bottom:12px"></div>
     <!-- STATS DEL DIA -->
     <div class="grid-4">
-      <div class="stat-card"><div class="stat-num" id="d-hoy">$0</div><div class="stat-label">💰 Ventas hoy</div></div>
-      <div class="stat-card"><div class="stat-num" id="d-mes">$0</div><div class="stat-label">📅 Ventas este mes</div></div>
-      <div class="stat-card"><div class="stat-num" id="d-ganancia">$0</div><div class="stat-label">📈 Ganancia bruta</div></div>
-      <div class="stat-card"><div class="stat-num" id="d-apartados">0</div><div class="stat-label">📌 Apartados activos</div></div>
+      <div class="stat-card clickable" onclick="irA('ventas')" title="Ver ventas de hoy"><div class="stat-num" id="d-hoy">$0</div><div class="stat-label">💰 Ventas hoy →</div></div>
+      <div class="stat-card clickable" onclick="irA('ventas')" title="Ver ventas del mes"><div class="stat-num" id="d-mes">$0</div><div class="stat-label">📅 Ventas este mes →</div></div>
+      <div class="stat-card clickable" onclick="irA('reportes')" title="Ver reporte de ganancias"><div class="stat-num" id="d-ganancia">$0</div><div class="stat-label">📈 Ganancia bruta →</div></div>
+      <div class="stat-card clickable" onclick="irA('apartados')" title="Ver apartados activos"><div class="stat-num" id="d-apartados">0</div><div class="stat-label">📌 Apartados activos →</div></div>
     </div>
     <div class="bcv-box" id="bcv-dash" style="margin-top:12px">
       <span style="font-size:11px;text-transform:uppercase;font-weight:700;color:#555">Tasa BCV oficial hoy</span>
@@ -933,6 +936,11 @@ async function init(){
   renderPOS();
 }
 
+// Helpers para navegar y editar desde el dashboard
+function editVentaById(id){irA('ventas');setTimeout(()=>{const v=ventas.find(x=>x.id==id);if(v)abrirModalVenta(v);},150);}
+function editApartadoById(id){irA('apartados');setTimeout(()=>{abrirModalApartado(id);},150);}
+function irAApartados(){irA('apartados');}
+
 function verificarApartadosVencidos(){
   const hoy = new Date().toISOString().slice(0,10);
   apartados.filter(a=>a.estado==='Activo'&&a.fecha_limite&&a.fecha_limite<hoy).forEach(async a=>{
@@ -993,22 +1001,22 @@ function cargarDashboard(){
 
   // Resumen financiero
   document.getElementById('dash-financiero').innerHTML =
-    '<div class="stat-card" style="border-left:4px solid var(--blue)"><div class="stat-num" style="color:var(--blue)">$'+totalMes.toFixed(2)+'</div><div class="stat-label">📊 Ingresos del mes</div></div>'+
-    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalGastMes.toFixed(2)+'</div><div class="stat-label">💸 Gastos del mes</div></div>'+
-    '<div class="stat-card" style="border-left:4px solid '+(gananciaNeta>=0?'var(--green)':'var(--red)')+'"><div class="stat-num" style="color:'+(gananciaNeta>=0?'var(--green)':'var(--red)')+'">$'+gananciaNeta.toFixed(2)+'</div><div class="stat-label">📈 Ganancia neta</div></div>'+
-    '<div class="stat-card" style="border-left:4px solid var(--orange)"><div class="stat-num" style="color:var(--orange)">'+gastMes.length+'</div><div class="stat-label">🧾 Gastos registrados</div></div>';
+    '<div class="stat-card clickable" onclick="irA('ventas')" style="border-left:4px solid var(--blue)"><div class="stat-num" style="color:var(--blue)">$'+totalMes.toFixed(2)+'</div><div class="stat-label">📊 Ingresos del mes →</div></div>'+
+    '<div class="stat-card clickable" onclick="irA('gastos')" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalGastMes.toFixed(2)+'</div><div class="stat-label">💸 Gastos del mes →</div></div>'+
+    '<div class="stat-card clickable" onclick="irA('reportes')" style="border-left:4px solid '+(gananciaNeta>=0?'var(--green)':'var(--red)')+'"><div class="stat-num" style="color:'+(gananciaNeta>=0?'var(--green)':'var(--red)')+'">$'+gananciaNeta.toFixed(2)+'</div><div class="stat-label">📈 Ganancia neta →</div></div>'+
+    '<div class="stat-card clickable" onclick="irA('gastos')" style="border-left:4px solid var(--orange)"><div class="stat-num" style="color:var(--orange)">'+gastMes.length+'</div><div class="stat-label">🧾 Gastos registrados →</div></div>';
 
   // Alertas apartados
   const en3 = new Date(); en3.setDate(en3.getDate()+3);
   const proxVencen = apartados.filter(a=>a.estado==='Activo'&&a.fecha_limite&&new Date(a.fecha_limite)<=en3);
   document.getElementById('alertas-dash').innerHTML = proxVencen.length
-    ? '<div class="alerta-strip">⚠️ <strong>'+proxVencen.length+' apartado(s)</strong> vencen pronto: '+proxVencen.map(a=>a.cliente_nombre+' ('+a.fecha_limite+')').join(', ')+'</div>' : '';
+    ? '<div class="alerta-strip" onclick="irA(\"apartados\")" style="cursor:pointer" title="Click para ver apartados">⚠️ <strong>'+proxVencen.length+' apartado(s)</strong> vencen pronto — '+proxVencen.map(a=>'<strong>'+a.cliente_nombre+'</strong> ('+a.fecha_limite+')').join(', ')+' <span style="text-decoration:underline;font-size:11px">Ver todos →</span></div>' : '';
 
   // Top productos
   const conteo={};
   vM.forEach(v=>(v.venta_items||[]).forEach(it=>{const n=it.producto_nombre||'?';conteo[n]=(conteo[n]||0)+parseInt(it.cantidad||1);}));
   document.getElementById('top-productos').innerHTML = Object.entries(conteo).sort((a,b)=>b[1]-a[1]).slice(0,5)
-    .map(([n,c])=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px"><span>'+n+'</span><strong style="color:var(--pink)">'+c+'</strong></div>').join('')
+    .map(([n,c])=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px;cursor:pointer" onclick="irA('productos')" title="Ver productos"><span>'+n+'</span><strong style="color:var(--pink)">'+c+' vendidos</strong></div>').join('')
     || '<div style="color:var(--gray);font-size:13px">Sin ventas este mes</div>';
 
   // Canales
@@ -1019,7 +1027,7 @@ function cargarDashboard(){
 
   // Últimas ventas — incluye hoy
   document.getElementById('ultimas-ventas').innerHTML = ventas.slice(0,10)
-    .map(v=>'<tr><td><strong>'+(v.numero||'#'+v.id)+'</strong></td><td>'+(v.cliente_nombre||'—')+'</td><td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td><td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong>'+(v.monto_bs>0?'<br><small style="color:#2e7d32">Bs.'+parseFloat(v.monto_bs).toFixed(2)+'</small>':'')+'</td><td><span class="badge badge-'+(v.estado||'').toLowerCase()+'">'+(v.estado||'')+'</span></td><td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td></tr>').join('');
+    .map(v=>'<tr style="cursor:pointer" onclick="editVentaById('+v.id+')" title="Click para editar esta venta"><td><strong>'+(v.numero||'#'+v.id)+'</strong></td><td>'+(v.cliente_nombre||'—')+'</td><td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td><td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong>'+(v.monto_bs>0?'<br><small style="color:#2e7d32">Bs.'+parseFloat(v.monto_bs).toFixed(2)+'</small>':'')+'</td><td><span class="badge badge-'+(v.estado||'').toLowerCase()+'">'+(v.estado||'')+'</span></td><td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td><td style="font-size:11px;color:var(--gray)">✏️</td></tr>').join('');
 }
 
 // ===== POS =====
@@ -1452,13 +1460,14 @@ async function completarApartado(id){
   if(vid) for(const it of a.apartado_items||[]) await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,body:JSON.stringify({venta_id:vid,producto_id:it.producto_id,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
   await sbPatch('apartados',id,{estado:'Completado'}); a.estado='Completado';
   ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+  apartados=await sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200');
   renderApartados(); cargarDashboard(); toast('✅ Completado → Venta registrada');
 }
 async function cancelarApartado(id){
   const a=apartados.find(x=>x.id===id); if(!a||!confirm('¿Cancelar apartado?')) return;
   await sbPatch('apartados',id,{estado:'Cancelado'});
   for(const it of a.apartado_items||[]) if(it.producto_id){ const p=productos.find(x=>x.id==it.producto_id); if(p){ await sbPatch('productos',p.id,{stock:(p.stock||0)+it.cantidad}); p.stock=(p.stock||0)+it.cantidad; } }
-  a.estado='Cancelado'; renderApartados(); toast('✅ Cancelado — stock devuelto');
+  a.estado='Cancelado'; renderApartados(); cargarDashboard(); toast('✅ Cancelado — stock devuelto');
 }
 
 // ===== PRODUCTOS =====
