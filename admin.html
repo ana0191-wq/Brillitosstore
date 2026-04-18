@@ -1693,6 +1693,7 @@ function selCliente(id,n,t){
 }
 async function guardarVenta(){
   if(!ventaItems.length){ toast('⚠️ Agrega al menos un producto'); return; }
+  try {
   const nombre=document.getElementById('v-cliente-search').value.trim();
   const sub=ventaItems.reduce((s,i)=>s+parseFloat(i.subtotal||0),0);
   const env=parseFloat(document.getElementById('v-envio').value)||0;
@@ -1701,13 +1702,9 @@ async function guardarVenta(){
   const metodo=document.getElementById('v-metodo').value;
   const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(metodo);
   const tasa=parseFloat(document.getElementById('v-tasa-bcv').value)||0;
-  // Calcular monto_bs — usar el input si existe, sino calcular con tasa
   const _bsInput = parseFloat(document.getElementById('v-total-bs').value)||0;
-  const _tasaGuardar = parseFloat(document.getElementById('v-tasa-bcv').value)||0;
-  // Si esBs pero no hay valor todavía, intentar con bcvHoy como fallback
-  const _tasaFinal = _tasaGuardar>0 ? _tasaGuardar : (bcvHoy||0);
+  const _tasaFinal = tasa>0 ? tasa : (bcvHoy||0);
   const monto_bs = esBs ? (_bsInput>0 ? _bsInput : (_tasaFinal>0 ? parseFloat((total*_tasaFinal).toFixed(2)) : 0)) : 0;
-  // Actualizar el input visualmente también
   if(esBs && monto_bs>0 && _bsInput===0){
     const bsEl=document.getElementById('v-total-bs');
     if(bsEl) bsEl.value=monto_bs.toFixed(2);
@@ -1715,16 +1712,20 @@ async function guardarVenta(){
   const eventoId=document.getElementById('v-evento').value||null;
   const data={
     cliente_id:document.getElementById('v-cliente-id').value||null,
-    cliente_nombre:nombre||'Cliente', canal:document.getElementById('v-canal').value,
-    evento_id:eventoId?parseInt(eventoId):null, metodo_pago:metodo,
+    cliente_nombre:nombre||'Cliente',
+    canal:document.getElementById('v-canal').value,
+    evento_id:eventoId?parseInt(eventoId):null,
+    metodo_pago:metodo,
     tipo_entrega:document.getElementById('v-entrega').value,
     fecha_venta:document.getElementById('v-fecha-venta').value,
     fecha_entrega:document.getElementById('v-fecha-entrega').value||null,
     estado:document.getElementById('v-estado').value,
     subtotal:sub, costo_envio:env, descuento:desc, total,
-    tasa_bcv_usada:tasa||0, monto_bs:parseFloat(monto_bs)||0, moneda_pago:esBs?'Bs':'USD',
+    tasa_bcv_usada:tasa||0, monto_bs:parseFloat(monto_bs)||0,
+    moneda_pago:esBs?'Bs':'USD',
     cuenta_cobro:document.getElementById('v-cuenta')?document.getElementById('v-cuenta').value||null:null
   };
+  console.log('💾 guardarVenta data:', JSON.stringify(data));
   if(editVentaId){
     // Restaurar stock de items anteriores
     const vAnterior=ventas.find(x=>x.id===editVentaId);
@@ -1759,6 +1760,7 @@ async function guardarVenta(){
   if(!Array.isArray(ventas)) ventas=[];
   if(!Array.isArray(productos)) productos=[];
   renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
+  } catch(err){ console.error('❌ Error guardarVenta:', err); toast('❌ Error: '+err.message); }
 }
 async function eliminarVenta(id){
   if(!confirm('¿Eliminar venta? Se restaurará el stock.')) return;
