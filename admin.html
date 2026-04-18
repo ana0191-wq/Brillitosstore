@@ -1408,44 +1408,49 @@ function cargarDashboard(){
   // Desglose por método de pago hoy
   const dsgEl = document.getElementById('dash-desglose-moneda');
   if(dsgEl){
-    // Métodos Bs
-    const metodosBs = ['Pago Móvil','BCV','Efectivo Bs'];
-    const metodosUsd = ['Efectivo $','Binance/USDT','PayPal'];
-    // Calcular por método
-    const porMetodo = {};
-    vH.forEach(v=>{
-      const m = v.metodo_pago || 'Otro';
-      if(!porMetodo[m]) porMetodo[m]={total:0,bs:0,count:0};
-      porMetodo[m].total += parseFloat(v.total||0);
-      porMetodo[m].bs    += parseFloat(v.monto_bs||0);
-      porMetodo[m].count++;
-    });
-    // Config visual por método
-    const cfg = {
-      'Pago Móvil':   {emoji:'📱', color:'#1b5e20', bg:'#e8f5e9', label:'Pago Móvil', esBs:true},
-      'BCV':          {emoji:'🏦', color:'#1b5e20', bg:'#e8f5e9', label:'BCV',         esBs:true},
-      'Efectivo Bs':  {emoji:'💴', color:'#1b5e20', bg:'#e8f5e9', label:'Efectivo Bs', esBs:true},
-      'Efectivo $':   {emoji:'💵', color:'#0d47a1', bg:'#e3f2fd', label:'Efectivo $',  esBs:false},
-      'Binance/USDT': {emoji:'🔷', color:'#e65100', bg:'#fff3e0', label:'Binance',     esBs:false},
-      'PayPal':       {emoji:'🅿️', color:'#1a237e', bg:'#ede7f6', label:'PayPal',      esBs:false},
+    // Agrupar por cuenta_cobro (Binance, PayPal, BancaAmiga Ana, etc.)
+    const porCuenta = {};
+    // Config por cuenta_cobro id
+    const cuentaCfg = {
+      'bancaamiga_luisma': {emoji:'🏦', label:'BancaAmiga Luisma', color:'#1b5e20', bg:'#e8f5e9', esBs:true},
+      'bancaamiga_ana':    {emoji:'🏦', label:'BancaAmiga Ana',    color:'#2e7d32', bg:'#e8f5e9', esBs:true},
+      'binance':           {emoji:'🔷', label:'Binance/USDT',      color:'#e65100', bg:'#fff3e0', esBs:false},
+      'paypal':            {emoji:'🅿️', label:'PayPal',            color:'#1a237e', bg:'#ede7f6', esBs:false},
+      'efectivo_usd':      {emoji:'💵', label:'Efectivo $',        color:'#0d47a1', bg:'#e3f2fd', esBs:false},
     };
-    const tarjetas = Object.entries(porMetodo).map(([m, d])=>{
-      const c = cfg[m] || {emoji:'💰', color:'#37474f', bg:'#eceff1', label:m, esBs:false};
+    // Métodos sin cuenta específica — agrupar directamente
+    const metodoCfg = {
+      'Efectivo Bs':  {emoji:'💴', label:'Efectivo Bs',  color:'#1b5e20', bg:'#e8f5e9', esBs:true},
+      'Efectivo $':   {emoji:'💵', label:'Efectivo $',   color:'#0d47a1', bg:'#e3f2fd', esBs:false},
+      'Binance/USDT': {emoji:'🔷', label:'Binance/USDT', color:'#e65100', bg:'#fff3e0', esBs:false},
+      'PayPal':       {emoji:'🅿️', label:'PayPal',       color:'#1a237e', bg:'#ede7f6', esBs:false},
+    };
+    vH.forEach(v=>{
+      // Clave: cuenta_cobro si existe, sino metodo_pago
+      const key = v.cuenta_cobro || v.metodo_pago || 'Otro';
+      if(!porCuenta[key]) porCuenta[key]={total:0,bs:0,count:0};
+      porCuenta[key].total += parseFloat(v.total||0);
+      porCuenta[key].bs    += parseFloat(v.monto_bs||0);
+      porCuenta[key].count++;
+    });
+    const tarjetas = Object.entries(porCuenta).map(([key, d])=>{
+      const c = cuentaCfg[key] || metodoCfg[key] || {emoji:'💰', label:key, color:'#37474f', bg:'#eceff1', esBs:false};
       const monto = c.esBs && d.bs>0
         ? 'Bs. '+d.bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})
           +'<br><span style="font-size:12px;opacity:.7">~$'+d.total.toFixed(2)+'</span>'
         : '$'+d.total.toFixed(2);
-      return '<div style="flex:1;min-width:130px;background:'+c.bg+';border-radius:12px;padding:11px 14px;border-left:4px solid '+c.color+'">'
+      return '<div style="flex:1;min-width:140px;background:'+c.bg+';border-radius:12px;padding:12px 14px;border-left:4px solid '+c.color+'">'
         +'<div style="font-size:11px;font-weight:700;color:'+c.color+';text-transform:uppercase;letter-spacing:.5px">'+c.emoji+' '+c.label+'</div>'
-        +'<div style="font-size:19px;font-weight:800;color:'+c.color+';margin-top:4px;line-height:1.3">'+monto+'</div>'
+        +'<div style="font-size:20px;font-weight:800;color:'+c.color+';margin-top:4px;line-height:1.3">'+monto+'</div>'
         +'<div style="font-size:11px;color:'+c.color+';opacity:.7;margin-top:2px">'+d.count+' venta'+(d.count!==1?'s':'')+'</div>'
         +'</div>';
     }).join('');
-    dsgEl.innerHTML = Object.keys(porMetodo).length
-      ? '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px">'+tarjetas+'</div>'
+    dsgEl.innerHTML = Object.keys(porCuenta).length
+      ? '<div style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">💰 Ingresos de hoy por cuenta</div>'
+        +'<div style="display:flex;gap:8px;flex-wrap:wrap">'+tarjetas+'</div>'
         +(totalMesBs>0||totalMesUsd>0
           ?'<div style="margin-top:8px;font-size:12px;color:#555;padding:6px 12px;background:#f9fbe7;border-radius:8px">'
-            +'📅 Mes — Bs: <strong style="color:#33691e">Bs. '+totalMesBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong>'
+            +'📅 Este mes — Bs: <strong style="color:#33691e">Bs. '+totalMesBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong>'
             +' &nbsp;|&nbsp; $: <strong style="color:#1565c0">$'+totalMesUsd.toFixed(2)+'</strong>'
             +'</div>'
           :'')
