@@ -253,6 +253,10 @@ tr:hover td{background:#fff8fc}
       <div class="card"><div class="card-title">🏆 Más vendidos del mes</div><div id="top-productos"></div></div>
       <div class="card"><div class="card-title">📱 Por canal</div><div id="canales-chart"></div></div>
     </div>
+    <div class="card" id="dash-clientes-pendientes-card" style="display:none">
+      <div class="card-title">⏳ Clientes con pagos pendientes</div>
+      <div id="dash-clientes-pendientes"></div>
+    </div>
     <div class="card"><div class="card-title">🕐 Últimas ventas</div>
       <div class="table-wrap"><table><thead><tr><th>#</th><th>Cliente</th><th>Canal</th><th>Total</th><th>Bs.</th><th>Estado</th><th>Fecha</th></tr></thead>
       <tbody id="ultimas-ventas"></tbody></table></div>
@@ -1359,7 +1363,13 @@ function irA(p){
 function cargarDashboard(){
   const hoy = hoyVEN();
   const mes = mesVEN();
-  const vH = ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,10)===hoy&&v.estado!=='Cancelado');
+  const vH = ventas.filter(v=>{
+    const fv=(v.fecha_venta||'').slice(0,10);
+    const fc=(v.creado_en||'').slice(0,10);
+    // creado_en viene en UTC, ajustar a Venezuela
+    const fcVen = v.creado_en ? new Date(new Date(v.creado_en).getTime()-4*60*60*1000).toISOString().slice(0,10) : '';
+    return (fv===hoy||fc===hoy||fcVen===hoy)&&v.estado!=='Cancelado';
+  });
   const vM = ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
   const aptActivos = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
   const totalHoy = vH.reduce((s,v)=>s+parseFloat(v.total||0),0);
@@ -1467,6 +1477,43 @@ function cargarDashboard(){
   vM.forEach(v=>{if(v.canal in canales)canales[v.canal]++;});
   document.getElementById('canales-chart').innerHTML = Object.entries(canales)
     .map(([c,n])=>'<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:13px;border-bottom:1px solid var(--border)"><span>'+c+'</span><strong style="color:var(--pink)">'+n+'</strong></div>').join('');
+
+  // ── Clientes con pagos pendientes ──
+  const ventasPend = ventas.filter(v=>v.estado==='Pendiente');
+  const aptPend    = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
+  // Agrupar por cliente
+  const pendMap = {};
+  ventasPend.forEach(v=>{
+    const k = v.cliente_nombre||'Sin nombre';
+    if(!pendMap[k]) pendMap[k]={nombre:k,ventas:[],apartados:[],totalDebe:0};
+    pendMap[k].ventas.push(v);
+    pendMap[k].totalDebe += parseFloat(v.total||0);
+  });
+  aptPend.forEach(a=>{
+    const k = a.cliente_nombre||'Sin nombre';
+    if(!pendMap[k]) pendMap[k]={nombre:k,ventas:[],apartados:[],totalDebe:0};
+    pendMap[k].apartados.push(a);
+    const resta = parseFloat(a.total||0) - parseFloat(a.abono||0);
+    pendMap[k].totalDebe += resta>0?resta:0;
+  });
+  const pendList = Object.values(pendMap).sort((a,b)=>b.totalDebe-a.totalDebe);
+  const pendCard = document.getElementById('dash-clientes-pendientes-card');
+  const pendEl   = document.getElementById('dash-clientes-pendientes');
+  if(pendList.length){
+    pendCard.style.display='';
+    pendEl.innerHTML = pendList.map(c=>{
+      const tags=[];
+      if(c.ventas.length) tags.push('<span style="font-size:11px;background:#fff3e0;color:#e65100;padding:2px 7px;border-radius:8px">'+c.ventas.length+' venta'+(c.ventas.length!==1?'s':'')+' sin pagar</span>');
+      if(c.apartados.length) tags.push('<span style="font-size:11px;background:#e8eaf6;color:#3949ab;padding:2px 7px;border-radius:8px">'+c.apartados.length+' apartado'+(c.apartados.length!==1?'s':'')+'</span>');
+      return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);gap:8px">'
+        +'<div><div style="font-weight:700;font-size:14px">'+c.nombre+'</div>'
+        +'<div style="display:flex;gap:4px;margin-top:3px;flex-wrap:wrap">'+tags.join('')+'</div></div>'
+        +'<div style="font-size:16px;font-weight:800;color:var(--red);flex-shrink:0">$'+c.totalDebe.toFixed(2)+'</div>'
+        +'</div>';
+    }).join('');
+  } else {
+    pendCard.style.display='none';
+  }
 
   // Últimas ventas — incluye hoy
   document.getElementById('ultimas-ventas').innerHTML = ventas.slice(0,10)
