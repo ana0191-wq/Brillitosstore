@@ -89,15 +89,16 @@ tr:hover td{background:#fff8fc}
 .upload-progress{height:3px;background:var(--pink-light);border-radius:2px;margin-top:5px;overflow:hidden}
 .upload-progress-bar{height:100%;background:var(--pink);border-radius:2px;transition:width 0.3s;width:0}
 .items-header{display:grid;grid-template-columns:2fr 1fr 62px 72px 26px;gap:7px;padding:6px 0;font-size:10px;font-weight:700;color:var(--gray);text-transform:uppercase;border-bottom:1px solid var(--border)}
-.item-row{display:grid;grid-template-columns:2fr 1fr 62px 72px 26px;gap:7px;align-items:center;padding:6px 0;border-bottom:1px solid #fdf0f8}
-.item-row input{padding:5px 8px;border:1px solid var(--border);border-radius:8px;font-size:13px;width:100%}
+.item-row{display:grid;grid-template-columns:2fr 1fr 72px 82px 28px;gap:8px;align-items:center;padding:10px 0;border-bottom:1px solid #fdf0f8}
+.item-row input{padding:9px 12px;border:1px solid var(--border);border-radius:10px;font-size:14px;width:100%}
+.item-row input:focus{border-color:var(--pink);outline:none;box-shadow:0 0 0 2px rgba(233,30,99,.1)}
 .item-subtotal{font-weight:700;color:var(--pink);font-size:13px}
 .btn-remove{background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;padding:2px}
 .totales-box{background:var(--pink-light);border-radius:10px;padding:11px;margin-top:9px}
 .total-row{display:flex;justify-content:space-between;font-size:13px;padding:2px 0}
 .total-final{font-size:15px;font-weight:800;color:var(--pink-dark);padding-top:6px;border-top:1px solid var(--pink-mid)}
-.prod-search-results{position:absolute;top:100%;left:0;right:0;background:white;border:2px solid var(--pink);border-radius:10px;max-height:170px;overflow-y:auto;z-index:100;box-shadow:0 4px 12px rgba(0,0,0,0.1)}
-.prod-result{padding:7px 10px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--border)}
+.prod-search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:2px solid var(--pink);border-radius:14px;max-height:300px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(233,30,99,.18)}
+.prod-result{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
 .prod-result:active{background:var(--pink-light)}
 .prod-result-price{float:right;color:var(--pink);font-weight:700}
 .search-wrap{position:relative}
@@ -1656,11 +1657,30 @@ function actualizarItem(i,campo,val,t){
   else{ const s=document.querySelectorAll('#apt-items-lista .item-subtotal'); if(s[i]) s[i].textContent='$'+arr[i].subtotal.toFixed(2); calcularTotalApt(); }
 }
 function buscarProdItem(input,idx,t){
-  const q=input.value.toLowerCase(); const resId=t==='v'?'prod-res-'+idx:'apt-prod-res-'+idx;
-  const res=document.getElementById(resId); if(!q){res.style.display='none';return;}
-  const m=productos.filter(p=>p.nombre&&p.nombre.toLowerCase().includes(q)).slice(0,8);
+  const q=input.value.toLowerCase();
+  const resId=t==='v'?'prod-res-'+idx:'apt-prod-res-'+idx;
+  const res=document.getElementById(resId);
+  if(!q){res.style.display='none';return;}
+  const m=productos.filter(p=>p.nombre&&p.nombre.toLowerCase().includes(q)).slice(0,10);
   if(!m.length){res.style.display='none';return;}
-  res.innerHTML=m.map(p=>'<div class="prod-result" onclick="selProdItem('+idx+',\''+p.nombre.replace(/'/g,"\\'")+'\',' +p.precio+','+p.id+',\''+t+'\')">'+p.nombre+(p.stock<=0?' <span style="color:var(--orange);font-size:10px">(sin stock)</span>':'')+'<span class="prod-result-price">$'+p.precio+'</span></div>').join('');
+  res.innerHTML=m.map(p=>{
+    const foto=p.foto
+      ?'<img src="'+p.foto+'" style="width:46px;height:46px;object-fit:cover;border-radius:8px;flex-shrink:0">'
+      :'<div style="width:46px;height:46px;border-radius:8px;background:#fce4ec;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🌸</div>';
+    const st=p.stock>0
+      ?'<span style="font-size:11px;color:#2e7d32;background:#e8f5e9;padding:2px 7px;border-radius:8px;font-weight:600">'+p.stock+' disp.</span>'
+      :'<span style="font-size:11px;color:#e65100;background:#fff3e0;padding:2px 7px;border-radius:8px">Sin stock</span>';
+    const nom=p.nombre.replace(/'/g,'\\&#39;');
+    const onclick='selProdItem('+idx+',\''+nom+'\','+p.precio+','+p.id+',\''+t+'\')';
+    return '<div class="prod-result" onclick="'+onclick+'">'
+      +foto
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-weight:700;font-size:14px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.nombre+'</div>'
+      +'<div style="margin-top:3px">'+st+'</div>'
+      +'</div>'
+      +'<div style="font-size:17px;font-weight:800;color:var(--pink);flex-shrink:0">$'+parseFloat(p.precio||0).toFixed(2)+'</div>'
+      +'</div>';
+  }).join('');
   res.style.display='block';
 }
 function selProdItem(idx,nombre,precio,pid,t){
