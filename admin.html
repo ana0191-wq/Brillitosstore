@@ -227,6 +227,7 @@ tr:hover td{background:#fff8fc}
     <div class="page-title">📊 Dashboard</div>
     <div class="header-actions">
       <button class="btn btn-purple" onclick="irA('pos')">🏪 POS</button>
+      <button class="btn btn-secondary" onclick="irA('productos');abrirModalProducto()">+ Producto</button>
       <button class="btn btn-primary" onclick="irA('ventas');abrirModalVenta()">+ Venta</button>
     </div>
   </div>
@@ -2068,15 +2069,34 @@ async function subirFotos(files){
   const bar=document.getElementById('upload-bar'); bar.style.width='0'; let done=0;
   for(const file of arr){
     const ext=file.name.split('.').pop().toLowerCase();
+    if(!['jpg','jpeg','png','webp','gif'].includes(ext)){ toast('⚠️ Solo JPG, PNG, WEBP'); continue; }
     const nombre='productos/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
-    toast('⏫ Subiendo...');
+    toast('⏫ Subiendo '+file.name+'...');
     try{
-      const r=await fetch(BUNNY_STORAGE+'/'+nombre,{method:'PUT',headers:{'AccessKey':BUNNY_KEY,'Content-Type':file.type},body:file});
-      if(r.ok||r.status===201){ fotosSubidas.push(BUNNY_CDN+'/'+nombre); done++; bar.style.width=(done/arr.length*100)+'%'; renderPreviews(); toast('✅ '+done+'/'+arr.length); }
-      else toast('❌ Error '+r.status);
-    }catch(e){ toast('❌ Error Bunny'); }
+      const r=await fetch(BUNNY_STORAGE+'/'+nombre,{
+        method:'PUT',
+        headers:{'AccessKey':BUNNY_KEY,'Content-Type':file.type||'image/jpeg'},
+        body:file
+      });
+      console.log('Bunny status:', r.status, nombre);
+      if(r.ok||r.status===201){
+        fotosSubidas.push(BUNNY_CDN+'/'+nombre);
+        done++;
+        bar.style.width=(done/arr.length*100)+'%';
+        renderPreviews();
+        toast('✅ Foto subida ('+done+'/'+arr.length+')');
+      } else {
+        const txt=await r.text().catch(()=>'');
+        console.error('Bunny error:', r.status, txt);
+        toast('❌ Error subiendo foto ('+r.status+') — revisa la API key de Bunny');
+      }
+    }catch(e){
+      console.error('Bunny fetch error:', e);
+      toast('❌ Error de conexión con Bunny: '+e.message);
+    }
   }
-  setTimeout(()=>bar.style.width='0',2000); document.getElementById('file-input').value='';
+  setTimeout(()=>bar.style.width='0',2000);
+  document.getElementById('file-input').value='';
 }
 function renderPreviews(){ document.getElementById('upload-previews').innerHTML=fotosSubidas.map((u,i)=>'<div class="upload-preview"><img src="'+u+'" alt="foto"><button class="rm-img" onclick="quitarFoto('+i+')">×</button></div>').join(''); }
 function quitarFoto(i){ fotosSubidas.splice(i,1); renderPreviews(); }
