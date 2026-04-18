@@ -679,8 +679,8 @@ tr:hover td{background:#fff8fc}
       </div>
     </div>
     <div class="form-group"><label>Stock</label><input type="number" id="p-stock" min="0"></div>
-    <div class="form-group"><label>Categoría</label><input type="text" id="p-categoria"></div>
-    <div class="form-group"><label>Subcategoría</label><input type="text" id="p-subcategoria"></div>
+    <div class="form-group"><label>Categoría</label><select id="p-categoria" onchange="actualizarSubcats()" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;width:100%;background:white;color:#1e293b;cursor:pointer"><option value="">— Seleccionar —</option></select></div>
+    <div class="form-group"><label>Subcategoría</label><select id="p-subcategoria" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;width:100%;background:white;color:#1e293b;cursor:pointer"><option value="">— Opcional —</option></select></div>
     <div class="form-group form-full"><label>Descripción</label><textarea id="p-descripcion"></textarea></div>
     <div class="form-group form-full"><label>Variantes</label><input type="text" id="p-observaciones" placeholder="Rosa, Azul, Negro..."></div>
   </div>
@@ -2001,10 +2001,30 @@ function calcularMargen(){
   if(costo>0&&precio>0){ document.getElementById('margen-calc').textContent=((precio-costo)/precio*100).toFixed(0)+'%'; document.getElementById('precio-sug').textContent='$'+(costo/0.5).toFixed(2); document.getElementById('margen-wrap').style.display='block'; }
   else document.getElementById('margen-wrap').style.display='none';
 }
+function poblarCatsModal(catActual='', subActual=''){
+  const selCat = document.getElementById('p-categoria');
+  const selSub = document.getElementById('p-subcategoria');
+  const base = ['Llaveros','Mochilas','Bolsos','Carteras','Accesorios','Ropa','Juguetes','Papelería','Cosméticos','Otros'];
+  const dinámicas = [...new Set(productos.map(p=>p.categoria).filter(Boolean))];
+  const todas = [...new Set([...base, ...dinámicas])].sort();
+  selCat.innerHTML = '<option value="">— Seleccionar —</option>' + todas.map(c=>'<option value="'+c+'"'+(c===catActual?' selected':'')+'>'+c+'</option>').join('');
+  // Subcats de la categoría actual
+  const subs = [...new Set(productos.filter(p=>p.categoria===catActual).map(p=>p.subcategoria).filter(Boolean))].sort();
+  selSub.innerHTML = '<option value="">— Opcional —</option>' + subs.map(s=>'<option value="'+s+'"'+(s===subActual?' selected':'')+'>'+s+'</option>').join('');
+}
+function actualizarSubcats(){
+  const cat = document.getElementById('p-categoria').value;
+  const selSub = document.getElementById('p-subcategoria');
+  const subs = [...new Set(productos.filter(p=>p.categoria===cat).map(p=>p.subcategoria).filter(Boolean))].sort();
+  selSub.innerHTML = '<option value="">— Opcional —</option>' + subs.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+}
 function abrirModalProducto(id=null){
   editProdId=id; fotosSubidas=[]; const p=id?productos.find(x=>x.id===id):null;
   document.getElementById('modal-prod-title').textContent=p?'✏️ Editar':'📦 Nuevo Producto';
-  ['nombre','precio','stock','categoria','subcategoria','descripcion','observaciones'].forEach(f=>document.getElementById('p-'+f).value=p?p[f]||'':'');
+  // Poblar selects de categoría ANTES de setear valores
+  poblarCatsModal(p?p.categoria||'':'', p?p.subcategoria||'':'');
+  // Setear campos de texto (categoria/subcategoria se manejan via poblarCatsModal)
+  ['nombre','precio','stock','descripcion','observaciones'].forEach(f=>document.getElementById('p-'+f).value=p?p[f]||'':'');
   document.getElementById('p-costo').value=p?p.precio_costo||'':'';
   document.getElementById('p-nuevo').checked=p?p.es_nuevo||false:false;
   document.getElementById('p-activo').checked=p?p.activo!==false:true;
