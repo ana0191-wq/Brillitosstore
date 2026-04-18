@@ -196,7 +196,33 @@ tr:hover td{background:#fff8fc}
   .grid-4{grid-template-columns:repeat(2,1fr)}
   .grid-3{grid-template-columns:1fr 1fr}
   .form-grid{grid-template-columns:1fr}
-  .pos-layout{grid-template-columns:1fr}
+  .pos-layout{
+    grid-template-columns:1fr;
+    grid-template-rows:auto 1fr;
+    height:auto;
+  }
+  .pos-productos{
+    height:55vh;
+    overflow-y:auto;
+  }
+  .pos-carrito{
+    border-left:none;
+    border-top:2px solid var(--pink-mid);
+    height:auto;
+    min-height:280px;
+    max-height:45vh;
+    overflow-y:auto;
+    position:sticky;
+    bottom:0;
+    z-index:10;
+    box-shadow:0 -4px 16px rgba(233,30,140,.12);
+  }
+  .pos-carrito-header{
+    background:var(--pink);
+    color:white;
+    padding:10px 16px;
+  }
+  .pos-carrito-title{color:white}
 }
 </style>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
@@ -1205,8 +1231,16 @@ function abrirScanner(){
   });
 }
 
+let _lastScanCode = null;
+let _scanLocked = false;
 function onScanExito(decoded){
   if(!scannerActive) return;
+  // Lock anti-doble: ignorar mismo código en 2 segundos
+  if(_scanLocked || decoded === _lastScanCode) return;
+  _scanLocked = true;
+  _lastScanCode = decoded;
+  setTimeout(()=>{ _scanLocked=false; _lastScanCode=null; }, 2000);
+
   const prod = productos.find(p =>
     codigoProd(p.id) === decoded ||
     String(p.id) === decoded ||
