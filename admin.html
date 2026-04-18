@@ -1069,21 +1069,42 @@ async function testStock(){
   console.log('🔍 Test stock...');
   const ps = await fetch(SB+'/rest/v1/productos?select=id,nombre,stock&limit=5',{headers:H});
   const data = await ps.json();
-  console.log('Productos:', data);
-  if(!ps.ok) console.error('❌ Error RLS productos:', ps.status);
-  else console.log('✅ RLS ok, productos:', data.length);
+  if(!ps.ok) console.error('❌ Error RLS productos:', ps.status, data);
+  else console.log('✅ RLS ok, productos:', data);
 }
 async function testPatch(){
   const p = productos[0];
   if(!p){ console.log('No hay productos cargados'); return; }
-  console.log('🔍 Test patch producto id='+p.id+' stock actual='+p.stock);
+  console.log('🔍 Test patch producto id='+p.id);
   const r = await fetch(SB+'/rest/v1/productos?id=eq.'+p.id,{
     method:'PATCH',
-    headers:{...H,'Prefer':'return=minimal'},
+    headers:{...H,'Prefer':'return=representation'},
     body:JSON.stringify({stock:p.stock})
   });
-  console.log('Patch status:', r.status, r.ok?'✅ OK':'❌ FAIL');
-  if(!r.ok) console.error(await r.text());
+  const txt = await r.text();
+  console.log('Status:', r.status, r.ok?'✅':'❌');
+  console.log('Respuesta:', txt);
+}
+async function testVenta(){
+  // Simula exactamente guardarVenta con la venta V-2026-001
+  const v = ventas[0];
+  if(!v){ console.log('No hay ventas'); return; }
+  console.log('🔍 Test patch venta id='+v.id, 'campos actuales:', v);
+  const data = {
+    monto_bs: 5760.00,
+    tasa_bcv_usada: 480.00,
+    moneda_pago: 'Bs',
+    cuenta_cobro: 'bancaamiga_luisma'
+  };
+  console.log('Enviando:', data);
+  const r = await fetch(SB+'/rest/v1/ventas?id=eq.'+v.id,{
+    method:'PATCH',
+    headers:{...H,'Prefer':'return=representation'},
+    body:JSON.stringify(data)
+  });
+  const txt = await r.text();
+  console.log('Status:', r.status, r.ok?'✅ OK':'❌ FAIL');
+  console.log('Respuesta Supabase:', txt);
 }
 
 // ===== INIT =====
