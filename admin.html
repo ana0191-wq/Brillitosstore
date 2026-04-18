@@ -2004,18 +2004,22 @@ function calcularMargen(){
 function poblarCatsModal(catActual='', subActual=''){
   const selCat = document.getElementById('p-categoria');
   const selSub = document.getElementById('p-subcategoria');
-  const base = ['Llaveros','Mochilas','Bolsos','Carteras','Accesorios','Ropa','Juguetes','Papelería','Cosméticos','Otros'];
-  const dinámicas = [...new Set(productos.map(p=>p.categoria).filter(Boolean))];
-  const todas = [...new Set([...base, ...dinámicas])].sort();
-  selCat.innerHTML = '<option value="">— Seleccionar —</option>' + todas.map(c=>'<option value="'+c+'"'+(c===catActual?' selected':'')+'>'+c+'</option>').join('');
-  // Subcats de la categoría actual
-  const subs = [...new Set(productos.filter(p=>p.categoria===catActual).map(p=>p.subcategoria).filter(Boolean))].sort();
-  selSub.innerHTML = '<option value="">— Opcional —</option>' + subs.map(s=>'<option value="'+s+'"'+(s===subActual?' selected':'')+'>'+s+'</option>').join('');
+  // Solo categorías reales de la BD — sin hardcodear nada
+  // Stickers/Sticker se unifican bajo "Stickers"
+  const normCat = c => (c||'').trim().toLowerCase().startsWith('sticker') ? 'Stickers' : (c||'').trim();
+  const todas = [...new Set(productos.map(p=>normCat(p.categoria)).filter(Boolean))].sort();
+  const catNorm = normCat(catActual);
+  selCat.innerHTML = '<option value="">— Seleccionar —</option>' + todas.map(c=>'<option value="'+c+'"'+(c===catNorm?' selected':'')+'>'+c+'</option>').join('');
+  // Subcats de la categoría actual (también normalizadas)
+  const subs = [...new Set(productos.filter(p=>normCat(p.categoria)===catNorm).map(p=>(p.subcategoria||'').trim()).filter(Boolean))].sort();
+  const subNorm = (subActual||'').trim();
+  selSub.innerHTML = '<option value="">— Opcional —</option>' + subs.map(s=>'<option value="'+s+'"'+(s===subNorm?' selected':'')+'>'+s+'</option>').join('');
 }
 function actualizarSubcats(){
   const cat = document.getElementById('p-categoria').value;
   const selSub = document.getElementById('p-subcategoria');
-  const subs = [...new Set(productos.filter(p=>p.categoria===cat).map(p=>p.subcategoria).filter(Boolean))].sort();
+  const normCat = c => (c||'').trim().toLowerCase().startsWith('sticker') ? 'Stickers' : (c||'').trim();
+  const subs = [...new Set(productos.filter(p=>normCat(p.categoria)===cat).map(p=>(p.subcategoria||'').trim()).filter(Boolean))].sort();
   selSub.innerHTML = '<option value="">— Opcional —</option>' + subs.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
 }
 function abrirModalProducto(id=null){
