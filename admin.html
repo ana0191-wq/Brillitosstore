@@ -1225,15 +1225,9 @@ function abrirScanner(){
   scannerInstance = new Html5Qrcode('qr-reader-inner');
   scannerInstance.start(
     { facingMode: 'environment' },
-    { fps: 15, qrbox: 220, aspectRatio: 1.0,
+    { fps: 5, qrbox: 220, aspectRatio: 1.0,
       formatsToSupport: [
-        Html5QrcodeSupportedFormats.QR_CODE,
-        Html5QrcodeSupportedFormats.EAN_13,
-        Html5QrcodeSupportedFormats.EAN_8,
-        Html5QrcodeSupportedFormats.CODE_128,
-        Html5QrcodeSupportedFormats.CODE_39,
-        Html5QrcodeSupportedFormats.UPC_A,
-        Html5QrcodeSupportedFormats.UPC_E
+        Html5QrcodeSupportedFormats.QR_CODE
       ]
     },
     onScanExito,
@@ -1248,11 +1242,13 @@ let _lastScanCode = null;
 let _scanLocked = false;
 function onScanExito(decoded){
   if(!scannerActive) return;
-  // Lock anti-doble: ignorar mismo código en 2 segundos
-  if(_scanLocked || decoded === _lastScanCode) return;
+  if(_scanLocked) return;
+  if(decoded === _lastScanCode) return;
+  // Cerrar scanner Y bloquear INMEDIATAMENTE
+  scannerActive = false;
   _scanLocked = true;
   _lastScanCode = decoded;
-  setTimeout(()=>{ _scanLocked=false; _lastScanCode=null; }, 2000);
+  setTimeout(()=>{ _scanLocked=false; _lastScanCode=null; }, 3500);
 
   const prod = productos.find(p =>
     codigoProd(p.id) === decoded ||
@@ -1261,17 +1257,19 @@ function onScanExito(decoded){
   );
   if(prod && prod.activo !== false){
     beep();
-    document.getElementById('scan-status').textContent = '✅ ' + prod.nombre + ' — agregado al carrito';
+    document.getElementById('scan-status').textContent = '✅ ' + prod.nombre + ' — agregado';
     document.getElementById('scan-status').className = 'scanner-status ok';
+    cerrarScanner();
     agregarAlCarrito(prod.id);
     if(!irA_queEstoyEn || irA_queEstoyEn !== 'pos') irA('pos');
-    setTimeout(cerrarScanner, 900);
   } else if(prod && prod.activo === false){
     document.getElementById('scan-status').textContent = '⚠️ Producto inactivo: ' + prod.nombre;
     document.getElementById('scan-status').className = 'scanner-status err';
+    setTimeout(()=>{ scannerActive=true; }, 2000);
   } else {
     document.getElementById('scan-status').textContent = '❓ Código no encontrado: ' + decoded;
     document.getElementById('scan-status').className = 'scanner-status err';
+    setTimeout(()=>{ scannerActive=true; }, 2000);
   }
 }
 
@@ -1465,10 +1463,12 @@ function cargarDashboard(){
       'efectivo_usd':      {emoji:'💵', label:'Efectivo $',        color:'#3a6fa8', bg:'#eaf1fb', esBs:false},
     };
     const metodoCfg = {
-      'Efectivo Bs':  {emoji:'💴', label:'Efectivo Bs',  color:'#3a7d52', bg:'#edf7f1', esBs:true},
-      'Efectivo $':   {emoji:'💵', label:'Efectivo $',   color:'#3a6fa8', bg:'#eaf1fb', esBs:false},
-      'Binance/USDT': {emoji:'🔷', label:'Binance',      color:'#b5651d', bg:'#fef3e8', esBs:false},
-      'PayPal':       {emoji:'🅿️', label:'PayPal',       color:'#4a4aaa', bg:'#f0f0fa', esBs:false},
+      'Pago Móvil':   {emoji:'📱', label:'Pago Móvil',   color:'#3a7d52', bg:'#edf7f1', esBs:true},
+      'BCV':          {emoji:'🏦', label:'BCV',           color:'#3a7d52', bg:'#edf7f1', esBs:true},
+      'Efectivo Bs':  {emoji:'💴', label:'Efectivo Bs',   color:'#3a7d52', bg:'#edf7f1', esBs:true},
+      'Efectivo $':   {emoji:'💵', label:'Efectivo $',    color:'#3a6fa8', bg:'#eaf1fb', esBs:false},
+      'Binance/USDT': {emoji:'🔷', label:'Binance/USDT',  color:'#b5651d', bg:'#fef3e8', esBs:false},
+      'PayPal':       {emoji:'🅿️', label:'PayPal',        color:'#4a4aaa', bg:'#f0f0fa', esBs:false},
     };
     // Acumulado histórico — todas las ventas no canceladas
     const porCuentaTodo = {};
