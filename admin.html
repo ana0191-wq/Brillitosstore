@@ -937,6 +937,10 @@ function cuentaNombre(id){
   return c?c.emoji+' '+c.nombre:'—';
 }
 
+// ===== TIMEZONE VENEZUELA (UTC-4) =====
+function hoyVEN(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240); return d.toISOString().slice(0,10); }
+function mesVEN(){  const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240); return d.toISOString().slice(0,7); }
+
 let posCarrito=[], posMetodoActual='Pago Móvil';
 let mbsCallback=null;
 let reconocimiento=null, vozTranscript='', vozVentaDetectada=null;
@@ -1117,7 +1121,7 @@ async function testVenta(){
 // ===== INIT =====
 async function init(){
   toast('Cargando Brillitos... 🌸');
-  document.getElementById('v-fecha-venta').value = new Date().toISOString().slice(0,10);
+  document.getElementById('v-fecha-venta').value = hoyVEN();
   const results = await Promise.allSettled([
     sbGet('productos','select=*&order=nombre.asc&limit=1000'),
     sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500'),
@@ -1353,8 +1357,8 @@ function irA(p){
 
 // ===== DASHBOARD =====
 function cargarDashboard(){
-  const hoy = new Date().toISOString().slice(0,10);
-  const mes = new Date().toISOString().slice(0,7);
+  const hoy = hoyVEN();
+  const mes = mesVEN();
   const vH = ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,10)===hoy&&v.estado!=='Cancelado');
   const vM = ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
   const aptActivos = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
@@ -1474,7 +1478,12 @@ function filtrarPOS(){
   renderProductosPOS(q?activos.filter(p=>p.nombre&&p.nombre.toLowerCase().includes(q)):activos);
 }
 function renderProductosPOS(lista){
-  document.getElementById('pos-grid').innerHTML = lista.map(p=>
+  const listaOrd=[...lista].sort((a,b)=>{
+    if(a.es_nuevo&&!b.es_nuevo) return -1;
+    if(!a.es_nuevo&&b.es_nuevo) return 1;
+    return (b.id||0)-(a.id||0);
+  });
+  document.getElementById('pos-grid').innerHTML = listaOrd.map(p=>
     '<div class="pos-card'+(p.stock<=0?' sin-stock':'')+'" onclick="agregarAlCarrito('+p.id+')">'
     +(p.imagen?'<img class="pos-card-img" src="'+p.imagen+'" onerror="this.style.display=\'none\'">':'<div class="pos-card-placeholder">🌸</div>')
     +'<div class="pos-card-nombre">'+p.nombre+'</div>'
@@ -2011,7 +2020,13 @@ async function cancelarApartado(id){
 
 // ===== PRODUCTOS =====
 function renderProductos(lista){
-  const l=lista||productos;
+  const base=lista||productos;
+  // Nuevos primero, luego por id descendente (más reciente arriba)
+  const l=[...base].sort((a,b)=>{
+    if(a.es_nuevo&&!b.es_nuevo) return -1;
+    if(!a.es_nuevo&&b.es_nuevo) return 1;
+    return (b.id||0)-(a.id||0);
+  });
   document.getElementById('tbody-prods').innerHTML=l.map(p=>{
     const margen=p.precio_costo>0?(((p.precio-p.precio_costo)/p.precio)*100).toFixed(0)+'%':'—';
     const aptStock=apartados.filter(a=>a.estado==='Activo'&&(a.apartado_items||[]).some(i=>i.producto_id==p.id)).length;
