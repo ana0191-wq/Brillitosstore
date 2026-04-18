@@ -1319,7 +1319,7 @@ function irAApartados(){irA('apartados');}
 
 function verificarApartadosVencidos(){
   const hoy = new Date().toISOString().slice(0,10);
-  apartados.filter(a=>a.estado==='Activo'&&a.fecha_limite&&a.fecha_limite<hoy).forEach(async a=>{
+  apartados.filter(a=>(a.estado==='Pendiente'||a.estado==='Activo')&&a.fecha_entrega&&a.fecha_entrega<hoy).forEach(async a=>{
     await sbPatch('apartados',a.id,{estado:'Vencido'});
     a.estado='Vencido';
   });
@@ -1353,7 +1353,7 @@ function cargarDashboard(){
   const mes = new Date().toISOString().slice(0,7);
   const vH = ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,10)===hoy&&v.estado!=='Cancelado');
   const vM = ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
-  const aptActivos = apartados.filter(a=>a.estado==='Activo');
+  const aptActivos = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
   const totalHoy = vH.reduce((s,v)=>s+parseFloat(v.total||0),0);
   const totalMes = vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
   // Ganancia bruta estimada
@@ -1385,9 +1385,9 @@ function cargarDashboard(){
 
   // Alertas apartados
   const en3 = new Date(); en3.setDate(en3.getDate()+3);
-  const proxVencen = apartados.filter(a=>a.estado==='Activo'&&a.fecha_limite&&new Date(a.fecha_limite)<=en3);
+  const proxVencen = apartados.filter(a=>(a.estado==='Pendiente'||a.estado==='Activo')&&a.fecha_entrega&&new Date(a.fecha_entrega)<=en3);
   document.getElementById('alertas-dash').innerHTML = proxVencen.length
-    ? '<div class="alerta-strip" onclick="irA(\"apartados\")" style="cursor:pointer" title="Click para ver apartados">⚠️ <strong>'+proxVencen.length+' apartado(s)</strong> vencen pronto — '+proxVencen.map(a=>'<strong>'+a.cliente_nombre+'</strong> ('+a.fecha_limite+')').join(', ')+' <span style="text-decoration:underline;font-size:11px">Ver todos →</span></div>' : '';
+    ? '<div class="alerta-strip" onclick="irA(\"apartados\")" style="cursor:pointer" title="Click para ver apartados">⚠️ <strong>'+proxVencen.length+' apartado(s)</strong> vencen pronto — '+proxVencen.map(a=>'<strong>'+a.cliente_nombre+'</strong> ('+a.fecha_entrega+')').join(', ')+' <span style="text-decoration:underline;font-size:11px">Ver todos →</span></div>' : '';
 
   // Top productos
   const conteo={};
@@ -1847,9 +1847,9 @@ function abrirModalApartado(id=null){
   document.getElementById('modal-apt-title').textContent=a?'✏️ Editar':'📌 Nuevo Apartado';
   document.getElementById('apt-cliente-search').value=a?a.cliente_nombre||'':'';
   document.getElementById('apt-cliente-id').value=a?a.cliente_id||'':'';
-  document.getElementById('apt-tipo').value=a?a.tipo_pago||'Sin pago':'Sin pago';
-  document.getElementById('apt-adelanto').value=a?a.monto_adelanto||0:0;
-  document.getElementById('apt-fecha-limite').value=a?a.fecha_limite||'':'';
+  document.getElementById('apt-tipo').value=a?a.metodo_pago||'Sin pago':'Sin pago';
+  document.getElementById('apt-adelanto').value=a?a.abono||0:0;
+  document.getElementById('apt-fecha-limite').value=a?a.fecha_entrega||'':'';
   document.getElementById('apt-notas').value=a?a.notas||'':'';
   toggleAdelantoField(); renderAptItems();
   document.getElementById('modal-apartado').classList.add('open');
