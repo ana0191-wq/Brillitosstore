@@ -242,6 +242,8 @@ tr:hover td{background:#fff8fc}
       <div class="stat-card clickable" onclick="irA('reportes')" title="Ver reporte de ganancias"><div class="stat-num" id="d-ganancia">$0</div><div class="stat-label">📈 Ganancia bruta →</div></div>
       <div class="stat-card clickable" onclick="irA('apartados')" title="Ver apartados activos"><div class="stat-num" id="d-apartados">0</div><div class="stat-label">📌 Apartados activos →</div></div>
     </div>
+    <!-- Desglose moneda Bs / $ -->
+    <div id="dash-desglose-moneda" style="margin-top:10px"></div>
     <div class="bcv-box" id="bcv-dash" style="margin-top:12px">
       <span style="font-size:11px;text-transform:uppercase;font-weight:700;color:#555">Tasa BCV oficial hoy</span>
       <div class="bcv-rate" id="bcv-rate-dash">Cargando...</div>
@@ -1358,6 +1360,17 @@ function cargarDashboard(){
   const aptActivos = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
   const totalHoy = vH.reduce((s,v)=>s+parseFloat(v.total||0),0);
   const totalMes = vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
+
+  // ── Separar hoy por moneda ──
+  // Ventas en Bs (moneda_pago Bs o monto_bs > 0)
+  const vHBs  = vH.filter(v=>v.moneda_pago==='Bs'||(v.monto_bs&&parseFloat(v.monto_bs)>0));
+  // Ventas en $ (USD, Binance, PayPal, Efectivo $, etc.)
+  const vHUsd = vH.filter(v=>!v.moneda_pago||v.moneda_pago==='USD'||(!v.monto_bs||parseFloat(v.monto_bs)===0));
+  const totalHoyBs  = vHBs.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
+  const totalHoyUsd = vHUsd.reduce((s,v)=>s+parseFloat(v.total||0),0);
+  // Mes en Bs y $
+  const totalMesBs  = vM.filter(v=>v.monto_bs&&parseFloat(v.monto_bs)>0).reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
+  const totalMesUsd = vM.reduce((s,v)=>s+parseFloat(v.total||0),0); // total siempre en $
   // Ganancia bruta estimada
   let gan=0;
   vM.forEach(v=>{
@@ -1377,6 +1390,37 @@ function cargarDashboard(){
   document.getElementById('d-mes').textContent = '$'+totalMes.toFixed(2);
   document.getElementById('d-ganancia').textContent = '$'+gan.toFixed(2);
   document.getElementById('d-apartados').textContent = aptActivos.length;
+
+  // Desglose Bs / $ del día
+  const dsgEl = document.getElementById('dash-desglose-moneda');
+  if(dsgEl){
+    const tieneBs  = totalHoyBs > 0;
+    const tieneUsd = totalHoyUsd > 0;
+    dsgEl.innerHTML =
+      '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px">'
+      +(tieneBs
+        ?'<div style="flex:1;min-width:140px;background:#e8f5e9;border-radius:12px;padding:12px 16px;border-left:4px solid #2e7d32">'
+          +'<div style="font-size:11px;font-weight:700;color:#2e7d32;text-transform:uppercase;letter-spacing:.5px">💵 Bolívares hoy</div>'
+          +'<div style="font-size:22px;font-weight:800;color:#1b5e20;margin-top:4px">Bs. '+totalHoyBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
+          +'<div style="font-size:11px;color:#388e3c;margin-top:2px">'+vHBs.length+' venta'+(vHBs.length!==1?'s':'')+' en Bs</div>'
+          +'</div>'
+        :'')
+      +(tieneUsd
+        ?'<div style="flex:1;min-width:140px;background:#e3f2fd;border-radius:12px;padding:12px 16px;border-left:4px solid #1565c0">'
+          +'<div style="font-size:11px;font-weight:700;color:#1565c0;text-transform:uppercase;letter-spacing:.5px">💲 Dólares hoy</div>'
+          +'<div style="font-size:22px;font-weight:800;color:#0d47a1;margin-top:4px">$'+totalHoyUsd.toFixed(2)+'</div>'
+          +'<div style="font-size:11px;color:#1976d2;margin-top:2px">'+vHUsd.length+' venta'+(vHUsd.length!==1?'s':'')+' en $</div>'
+          +'</div>'
+        :'')
+      +(!tieneBs && !tieneUsd
+        ?'<div style="color:var(--gray);font-size:13px;padding:8px">Sin ventas hoy todavía 🌸</div>'
+        :'')
+      +'</div>'
+      // Mes en Bs también
+      +(totalMesBs>0
+        ?'<div style="margin-top:8px;font-size:12px;color:#555;padding:6px 10px;background:#f9fbe7;border-radius:8px">📅 Este mes en Bs: <strong style="color:#33691e">Bs. '+totalMesBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</strong> &nbsp;|&nbsp; En $: <strong style="color:#1565c0">$'+totalMesUsd.toFixed(2)+'</strong></div>'
+        :'');
+  }
 
   // Resumen financiero
   document.getElementById('dash-financiero').innerHTML =
