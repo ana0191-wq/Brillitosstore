@@ -10,18 +10,31 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 :root{
-  --pink:#e91e8c;--pink-dark:#c2185b;--pink-light:#fce4f0;--pink-mid:#f48cb6;
-  --bg:#f8f0f5;--white:#fff;--text:#2d1b35;--gray:#888;--border:#f0d6e8;
-  --green:#4caf50;--orange:#ff9800;--red:#f44336;--blue:#2196f3;--purple:#9c27b0;--teal:#009688;
+  --pink:#d63a8a;
+  --pink-dark:#b5306e;
+  --pink-light:#fdeef6;
+  --pink-mid:#f2a8cc;
+  --pink-pale:#fff0f8;
+  --bg:#fdf6fb;
+  --white:#ffffff;
+  --text:#3d2040;
+  --gray:#a08caa;
+  --border:#f0dcea;
+  --green:#5a9e6f;--green-light:#eaf4ee;
+  --orange:#d4884a;--orange-light:#fef3e8;
+  --red:#c95c6e;--red-light:#fdedf0;
+  --blue:#5a8fc7;--blue-light:#eaf1fb;
+  --purple:#9b72b8;--purple-light:#f3edf9;
+  --teal:#4fa8a0;
 }
 body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 .app{display:flex;min-height:100vh}
-.sidebar{width:210px;background:linear-gradient(180deg,#2d1b35,#1a0f20);color:white;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto}
-.sidebar-logo{padding:16px 18px;font-size:16px;font-weight:800;border-bottom:1px solid rgba(255,255,255,0.1)}
-.sidebar-logo span{color:var(--pink-mid)}
-.nav-item{display:flex;align-items:center;gap:9px;padding:11px 18px;cursor:pointer;font-size:13px;transition:all 0.2s;border-left:3px solid transparent;user-select:none}
-.nav-item:hover{background:rgba(255,255,255,0.08)}
-.nav-item.active{background:rgba(233,30,140,0.2);border-left-color:var(--pink)}
+.sidebar{width:210px;background:linear-gradient(180deg,#fff5fb,#fde8f4);color:var(--text);flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto;border-right:1.5px solid var(--border);box-shadow:2px 0 12px rgba(214,58,138,.06)}
+.sidebar-logo{padding:16px 18px;font-size:16px;font-weight:800;border-bottom:1.5px solid var(--border)}
+.sidebar-logo span{color:var(--pink)}
+.nav-item{display:flex;align-items:center;gap:9px;padding:11px 18px;cursor:pointer;font-size:13px;transition:all 0.2s;border-left:3px solid transparent;user-select:none;color:var(--text);font-weight:500}
+.nav-item:hover{background:rgba(214,58,138,.08);color:var(--pink)}
+.nav-item.active{background:rgba(214,58,138,.12);border-left-color:var(--pink);color:var(--pink);font-weight:700}
 .nav-icon{font-size:15px;width:20px;text-align:center}
 .main{flex:1;overflow-y:auto;overflow-x:hidden}
 .page-header{background:white;padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
@@ -29,7 +42,7 @@ body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-hei
 .header-actions{display:flex;gap:7px;flex-wrap:wrap}
 .btn{padding:7px 14px;border:none;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s;display:inline-flex;align-items:center;gap:5px;user-select:none}
 .btn:active{opacity:0.8;transform:scale(0.97)}
-.btn-primary{background:var(--pink);color:white}
+.btn-primary{background:var(--pink);color:white;box-shadow:0 2px 8px rgba(214,58,138,.25)}
 .btn-success{background:var(--green);color:white}
 .btn-warning{background:var(--orange);color:white}
 .btn-danger{background:var(--red);color:white}
@@ -57,8 +70,8 @@ td{padding:8px 12px;border-bottom:1px solid var(--pink-light);font-size:13px;ver
 tr:last-child td{border-bottom:none}
 tr:hover td{background:#fff8fc}
 .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:600}
-.badge-pendiente{background:#fff3e0;color:#e65100}
-.badge-pagado{background:#e8f5e9;color:#2e7d32}
+.badge-pendiente{background:var(--orange-light);color:var(--orange)}
+.badge-pagado{background:var(--green-light);color:var(--green)}
 .badge-entregado{background:#e3f2fd;color:#1565c0}
 .badge-cancelado{background:#fdecea;color:#b71c1c}
 .badge-activo{background:#e8f5e9;color:#2e7d32}
@@ -113,7 +126,7 @@ tr:hover td{background:#fff8fc}
 /* POS */
 #page-pos{background:#f0e8f4}
 .pos-layout{display:grid;grid-template-columns:1fr 340px;height:calc(100vh - 52px);overflow:hidden}
-.pos-productos{overflow-y:auto;padding:12px;background:#f0e8f4}
+.pos-productos{overflow-y:auto;padding:12px;background:var(--bg)}
 .pos-cats{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
 .pos-cat{padding:7px 14px;border-radius:20px;background:white;border:2px solid var(--border);font-size:13px;font-weight:600;cursor:pointer;transition:all 0.15s}
 .pos-cat.active{background:var(--pink);color:white;border-color:var(--pink)}
