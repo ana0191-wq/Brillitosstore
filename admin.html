@@ -941,10 +941,17 @@ async function sbGet(t,q=''){
 }
 async function sbPost(t,d){
   const r=await fetch(SB+'/rest/v1/'+t,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(d)});
+  if(!r.ok){ const e=await r.text(); console.error('sbPost error',t,r.status,e); return []; }
   return r.json();
 }
 async function sbPatch(t,id,d){
-  await fetch(SB+'/rest/v1/'+t+'?id=eq.'+id,{method:'PATCH',headers:H,body:JSON.stringify(d)});
+  const r=await fetch(SB+'/rest/v1/'+t+'?id=eq.'+id,{
+    method:'PATCH',
+    headers:{...H,'Prefer':'return=minimal'},
+    body:JSON.stringify(d)
+  });
+  if(!r.ok){ const e=await r.text(); console.error('sbPatch error',t,id,r.status,e); }
+  return r;
 }
 async function sbDelete(t,f){
   await fetch(SB+'/rest/v1/'+t+'?'+f,{method:'DELETE',headers:H});
@@ -978,22 +985,22 @@ async function cargarBCVVenta(){
   const tasa = await getBCV(fecha);
   const hoy = new Date().toISOString().slice(0,10);
   document.getElementById('bcv-rate-venta').textContent = 'Bs. '+parseFloat(tasa).toFixed(2);
-  document.getElementById('bcv-info-venta').textContent = fecha===hoy ? '✅ Tasa de hoy — BCV oficial' : '⚠️ Aprox. para '+fecha+' — ajusta si conoces el valor exacto';
+  document.getElementById('bcv-info-venta').textContent = fecha===hoy ? '✅ Tasa de hoy' : '⚠️ Tasa aprox. — ajusta si sabes el valor exacto';
   document.getElementById('v-tasa-bcv').value = parseFloat(tasa).toFixed(2);
-  // Solo auto-calcular Bs si no fue editado manualmente y no hay valor guardado
-  const bsActual = parseFloat(document.getElementById('v-total-bs').value)||0;
-  if(!v_bs_manual && bsActual===0) calcularMontoBs();
-  else if(!v_bs_manual) calcularMontoBs();
+  if(!v_bs_manual) calcularMontoBs();
 }
 
 let v_bs_manual = false;
 function calcularMontoBs(){
-  if(v_bs_manual) return; // usuario editó el Bs manualmente — no sobreescribir
-  const totalStr = (document.getElementById('t-total')?document.getElementById('t-total').textContent:'0').replace('$','');
-  const total = parseFloat(totalStr)||0;
-  const tasa = parseFloat(document.getElementById('v-tasa-bcv').value)||0;
-  if(tasa>0){
-    document.getElementById('v-total-bs').value = (total*tasa).toFixed(2);
+  if(v_bs_manual) return;
+  const el = document.getElementById('t-total');
+  const bsEl = document.getElementById('v-total-bs');
+  const wrapEl = document.getElementById('bcv-venta-wrap');
+  if(!el||!bsEl||!wrapEl||wrapEl.style.display==='none') return;
+  const total = parseFloat((el.textContent||'0').replace('$',''))||0;
+  const tasa = parseFloat((document.getElementById('v-tasa-bcv')||{}).value)||0;
+  if(tasa>0 && total>0){
+    bsEl.value = (total*tasa).toFixed(2);
   }
 }
 function recalcularBsDesdeTotal(){
@@ -1054,6 +1061,28 @@ function confirmarMbs(){
   const bs = parseFloat(bsStr)||0;
   cerrarModal('modal-bs');
   if(mbsCallback) mbsCallback(tasa, bs);
+}
+
+// ===== DEBUG =====
+async function testStock(){
+  console.log('🔍 Test stock...');
+  const ps = await fetch(SB+'/rest/v1/productos?select=id,nombre,stock&limit=5',{headers:H});
+  const data = await ps.json();
+  console.log('Productos:', data);
+  if(!ps.ok) console.error('❌ Error RLS productos:', ps.status);
+  else console.log('✅ RLS ok, productos:', data.length);
+}
+async function testPatch(){
+  const p = productos[0];
+  if(!p){ console.log('No hay productos cargados'); return; }
+  console.log('🔍 Test patch producto id='+p.id+' stock actual='+p.stock);
+  const r = await fetch(SB+'/rest/v1/productos?id=eq.'+p.id,{
+    method:'PATCH',
+    headers:{...H,'Prefer':'return=minimal'},
+    body:JSON.stringify({stock:p.stock})
+  });
+  console.log('Patch status:', r.status, r.ok?'✅ OK':'❌ FAIL');
+  if(!r.ok) console.error(await r.text());
 }
 
 // ===== INIT =====
@@ -1558,11 +1587,17 @@ function abrirModalVenta(v=null){
   document.getElementById('v-estado').value=v?v.estado||'Pendiente':'Pendiente';
   document.getElementById('v-tasa-bcv').value=v?v.tasa_bcv_usada||'':'';
   document.getElementById('v-evento').value=v?v.evento_id||'':'';
-  // Cargar monto_bs guardado
+  // Resetear estado Bs SIEMPRE al abrir modal
   v_bs_manual = false;
-  const bsGuardado = v&&parseFloat(v.monto_bs||0)>0 ? parseFloat(v.monto_bs).toFixed(2) : '';
-  document.getElementById('v-total-bs').value = bsGuardado;
+  document.getElementById('v-total-bs').value = '';
   toggleEventoWrap(); renderItems(); onMetodoCambio();
+  // Si tiene monto_bs guardado, cargarlo DESPUÉS de que onMetodoCambio termine
+  if(v && parseFloat(v.monto_bs||0)>0){
+    setTimeout(()=>{
+      document.getElementById('v-total-bs').value = parseFloat(v.monto_bs).toFixed(2);
+      v_bs_manual = true; // marcar como manual para no sobreescribir
+    }, 200);
+  }
   document.getElementById('modal-venta').classList.add('open');
 }
 function editarVenta(id){ const v=ventas.find(x=>x.id===id); if(v) abrirModalVenta(v); }
@@ -1615,8 +1650,7 @@ function calcularTotal(){
   document.getElementById('t-envio').textContent='$'+env.toFixed(2);
   document.getElementById('t-descuento').textContent='-$'+desc.toFixed(2);
   document.getElementById('t-total').textContent='$'+tot.toFixed(2);
-  // Solo recalcula Bs si NO fue editado manualmente
-  if(!v_bs_manual) calcularMontoBs();
+  calcularMontoBs(); // siempre recalcula si no es manual
 }
 function buscarCliente(q){
   const res=document.getElementById('cliente-results'); if(!q){res.style.display='none';return;}
@@ -1639,7 +1673,9 @@ async function guardarVenta(){
   const metodo=document.getElementById('v-metodo').value;
   const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(metodo);
   const tasa=parseFloat(document.getElementById('v-tasa-bcv').value)||0;
-  const monto_bs=esBs ? (parseFloat(document.getElementById('v-total-bs').value)||0) : 0;
+  const _bsInput = parseFloat(document.getElementById('v-total-bs').value)||0;
+  const _tasaGuardar = parseFloat(document.getElementById('v-tasa-bcv').value)||0;
+  const monto_bs = esBs ? (_bsInput>0 ? _bsInput : total*_tasaGuardar) : 0;
   const eventoId=document.getElementById('v-evento').value||null;
   const data={
     cliente_id:document.getElementById('v-cliente-id').value||null,
