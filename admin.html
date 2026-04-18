@@ -987,6 +987,7 @@ async function cargarBCVVenta(){
   document.getElementById('bcv-rate-venta').textContent = 'Bs. '+parseFloat(tasa).toFixed(2);
   document.getElementById('bcv-info-venta').textContent = fecha===hoy ? '✅ Tasa de hoy' : '⚠️ Tasa aprox. — ajusta si sabes el valor exacto';
   document.getElementById('v-tasa-bcv').value = parseFloat(tasa).toFixed(2);
+  bcvHoy = parseFloat(tasa); // actualizar variable global también
   if(!v_bs_manual) calcularMontoBs();
 }
 
@@ -1591,12 +1592,15 @@ function abrirModalVenta(v=null){
   v_bs_manual = false;
   document.getElementById('v-total-bs').value = '';
   toggleEventoWrap(); renderItems(); onMetodoCambio();
-  // Si tiene monto_bs guardado, cargarlo DESPUÉS de que onMetodoCambio termine
+  // Si tiene monto_bs guardado, cargarlo; si no, dejar que calcule automático
   if(v && parseFloat(v.monto_bs||0)>0){
     setTimeout(()=>{
       document.getElementById('v-total-bs').value = parseFloat(v.monto_bs).toFixed(2);
-      v_bs_manual = true; // marcar como manual para no sobreescribir
-    }, 200);
+      v_bs_manual = true;
+    }, 250);
+  } else {
+    // Sin Bs previo — esperar a que cargue la tasa y forzar cálculo
+    setTimeout(()=>{ v_bs_manual=false; calcularMontoBs(); }, 800);
   }
   document.getElementById('modal-venta').classList.add('open');
 }
@@ -1673,9 +1677,17 @@ async function guardarVenta(){
   const metodo=document.getElementById('v-metodo').value;
   const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(metodo);
   const tasa=parseFloat(document.getElementById('v-tasa-bcv').value)||0;
+  // Calcular monto_bs — usar el input si existe, sino calcular con tasa
   const _bsInput = parseFloat(document.getElementById('v-total-bs').value)||0;
   const _tasaGuardar = parseFloat(document.getElementById('v-tasa-bcv').value)||0;
-  const monto_bs = esBs ? (_bsInput>0 ? _bsInput : total*_tasaGuardar) : 0;
+  // Si esBs pero no hay valor todavía, intentar con bcvHoy como fallback
+  const _tasaFinal = _tasaGuardar>0 ? _tasaGuardar : (bcvHoy||0);
+  const monto_bs = esBs ? (_bsInput>0 ? _bsInput : (_tasaFinal>0 ? parseFloat((total*_tasaFinal).toFixed(2)) : 0)) : 0;
+  // Actualizar el input visualmente también
+  if(esBs && monto_bs>0 && _bsInput===0){
+    const bsEl=document.getElementById('v-total-bs');
+    if(bsEl) bsEl.value=monto_bs.toFixed(2);
+  }
   const eventoId=document.getElementById('v-evento').value||null;
   const data={
     cliente_id:document.getElementById('v-cliente-id').value||null,
