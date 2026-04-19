@@ -23,9 +23,10 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 .app{
   display:grid;
   grid-template-columns:72px 1fr 320px;
-  grid-template-rows:100vh;
   height:100vh;height:100dvh;
   overflow:hidden;
+  width:100%;
+  max-width:100vw;
 }
 
 /* ── SIDEBAR ── */
@@ -62,7 +63,8 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 /* ── CENTRO ── */
 .main{
   display:flex;flex-direction:column;overflow:hidden;
-  background:var(--bg);
+  background:var(--bg);height:100%;
+  min-width:0;
 }
 
 /* Topbar */
@@ -373,22 +375,25 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 /* ── MÓVIL ── */
 
 @media(max-width:768px){
-  .app{display:block;width:100%;height:100vh;height:100dvh;overflow:hidden}
-  .sidebar{display:none}
-  .main{display:flex;flex-direction:column;width:100%;height:100vh;height:100dvh;overflow:hidden}
-  .topbar{padding:10px 12px 8px;gap:8px}
-  .topbar-title{font-size:15px}
-  .bcv-pill{display:none}
-  .scan-btn{display:none!important}
-  .scan-fab-left{display:flex!important}
-  .cats-row{padding:0 12px 8px;gap:7px}
-  .cat-card{width:56px;padding:8px 5px 7px;font-size:10px}
-  .cat-card .ico{font-size:16px}
-  .prod-section{padding:0 12px 6px}
-  .grid{flex:1;overflow-y:auto;padding:0 12px 90px;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
+  html,body{overflow:hidden;width:100%;max-width:100vw}
+  .app{
+    display:flex!important;flex-direction:column!important;
+    width:100vw!important;max-width:100vw!important;
+    height:100vh;height:100dvh;
+    overflow:hidden;
+    grid-template-columns:unset!important;
+  }
+  .sidebar{display:none!important}
+  .main{
+    display:flex;flex-direction:column;
+    width:100vw!important;max-width:100vw!important;
+    height:100vh;height:100svh;
+    overflow:hidden;flex:1;min-width:0;
+  }
   .cart{
     position:fixed!important;bottom:0;left:0;right:0;
-    width:100%;height:78vh;
+    width:100%!important;max-width:100vw!important;
+    height:78vh;
     border-radius:20px 20px 0 0;border-left:none;
     border-top:2px solid var(--pk-m);
     box-shadow:0 -8px 32px rgba(0,0,0,.12);
@@ -399,6 +404,22 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   .cart.open{transform:translateY(0)!important}
   .cart-handle{display:flex!important;justify-content:center;padding:10px 0 4px;flex-shrink:0;cursor:pointer}
   .cart-handle-bar{width:40px;height:4px;border-radius:2px;background:var(--pk-m)}
+  .topbar{padding:10px 12px 8px;gap:8px;width:100%;box-sizing:border-box}
+  .topbar-title{font-size:15px}
+  .bcv-pill{display:none}
+  .scan-btn{display:none!important}
+  .scan-fab-left{display:flex!important}
+  .cats-row{padding:0 12px 8px;gap:7px;width:100%;box-sizing:border-box;overflow-x:auto;flex-wrap:nowrap}
+  .cat-card{width:56px;min-width:56px;padding:8px 5px 7px;font-size:10px}
+  .cat-card .ico{font-size:16px}
+  .prod-section{padding:0 12px 6px;width:100%;box-sizing:border-box}
+  .grid{
+    flex:1;min-height:0;overflow-y:auto;
+    padding:0 12px 90px;
+    width:100%;box-sizing:border-box;
+    grid-template-columns:repeat(2,1fr)!important;
+    gap:8px;
+  }
   .cart-fab{
     display:flex!important;position:fixed;bottom:18px;right:16px;
     width:58px;height:58px;border-radius:29px;
