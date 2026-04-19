@@ -310,16 +310,31 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 /* Método de pago */
 .cart-met{flex-shrink:0;padding:8px 16px}
 .cart-met-lbl{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
-.met-chips{display:flex;flex-wrap:wrap;gap:5px}
+.met-chips{display:flex;flex-wrap:wrap;gap:6px}
 .met-btn{
-  height:28px;padding:0 10px;
-  border-radius:14px;border:1.5px solid var(--border);
-  background:var(--bg);font-size:11px;font-weight:700;color:var(--sub);
-  display:flex;align-items:center;gap:4px;
+  height:34px;padding:0 11px;
+  border-radius:10px;border:1.5px solid var(--border);
+  background:var(--bg);font-size:11px;font-weight:600;color:var(--sub);
+  display:flex;align-items:center;gap:5px;
   transition:all .12s;white-space:nowrap;
 }
-.met-btn .mico{font-size:13px}
-.met-btn.active{border-color:var(--pk);background:var(--pk-l);color:var(--pk)}
+.met-btn svg{flex-shrink:0}
+.met-btn.active{border-color:var(--pk);background:var(--pk-l);color:var(--pk-d);font-weight:700}
+/* Botón scan grande fijo en móvil */
+.scan-fab-left{
+  display:none;
+  position:fixed;bottom:18px;left:16px;
+  height:58px;padding:0 22px;border-radius:29px;
+  background:linear-gradient(135deg,var(--pk),var(--pk-d));
+  color:var(--white);font-size:15px;font-weight:800;
+  align-items:center;gap:8px;
+  box-shadow:0 4px 20px rgba(214,58,138,.45);
+  z-index:199;border:none;
+}
+@media(max-width:768px){
+  .scan-btn{display:none!important}
+  .scan-fab-left{display:flex!important}
+}
 
 /* Cuenta + Bs */
 .cart-cuenta{flex-shrink:0;padding:0 16px 5px;display:none}
@@ -590,6 +605,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
       <div class="bcv-pill" id="bcv-badge">💱 …</div>
       <button class="scan-btn" onclick="abrirScanner()">📷 Escanear</button>
     </div>
+    <button class="scan-fab-left" onclick="abrirScanner()">📷 Escanear</button>
 
     <!-- Categorías -->
     <div class="cats-row" id="cats-row"></div>
@@ -651,11 +667,35 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <div class="cart-met">
       <div class="cart-met-lbl">Método de pago</div>
       <div class="met-chips">
-        <button class="met-btn active" onclick="selMet(this,'Pago Móvil')"><span class="mico">📱</span>Pago Móvil</button>
-        <button class="met-btn" onclick="selMet(this,'BCV')"><span class="mico">🏦</span>BCV</button>
-        <button class="met-btn" onclick="selMet(this,'Efectivo Bs')"><span class="mico">💴</span>Ef. Bs</button>
-        <button class="met-btn" onclick="selMet(this,'Efectivo 
-    </div>
+        <button class="met-btn active" onclick="selMet(this,'Pago Móvil')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="5" y="2" width="14" height="20" rx="3" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="17" r="1.2" fill="currentColor"/></svg>
+          Pago Móvil
+        </button>
+        <button class="met-btn" onclick="selMet(this,'BCV')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="3" stroke="currentColor" stroke-width="2"/><path d="M2 10h20" stroke="currentColor" stroke-width="1.5"/><path d="M6 14h5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          BCV
+        </button>
+        <button class="met-btn" onclick="selMet(this,'Efectivo Bs')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="3" stroke="currentColor" stroke-width="2"/><text x="12" y="15.5" font-size="7.5" font-weight="bold" fill="currentColor" text-anchor="middle" font-family="sans-serif">Bs</text></svg>
+          Ef. Bs
+        </button>
+        <button class="met-btn" onclick="selMet(this,'Efectivo $')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><rect x="2" y="5" width="20" height="14" rx="3" stroke="currentColor" stroke-width="2"/><text x="12" y="15.5" font-size="9" font-weight="bold" fill="currentColor" text-anchor="middle" font-family="sans-serif">$</text></svg>
+          Ef. $
+        </button>
+        <button class="met-btn" onclick="selMet(this,'Binance/USDT')">
+          <svg width="16" height="16" viewBox="0 0 24 24"><polygon points="12,3 15,6 12,7.5 9,6" fill="#F3BA2F"/><polygon points="6,8.5 9,10 9,13 6,11.5" fill="#F3BA2F"/><polygon points="18,8.5 15,10 15,13 18,11.5" fill="#F3BA2F"/><polygon points="9,10 12,11.5 15,10 12,8.5" fill="#F3BA2F"/><polygon points="9,13 12,14.5 15,13 12,11.5" fill="#F3BA2F"/><polygon points="12,14.5 15,16 12,17.5 9,16" fill="#F3BA2F"/><polygon points="12,17.5 15,18.5 12,21 9,18.5" fill="#F3BA2F"/></svg>
+          Binance
+        </button>
+        <button class="met-btn" onclick="selMet(this,'PayPal')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6.5 4h7a4 4 0 0 1 0 8H9l-1.5 8H5L6.5 4z" stroke="#003087" stroke-width="1.5"/><path d="M10 9h6a3 3 0 0 1 0 6H11" stroke="#009cde" stroke-width="1.5"/></svg>
+          PayPal
+        </button>
+        <button class="met-btn" onclick="selMet(this,'Zelle')">
+          <svg width="16" height="16" viewBox="0 0 24 24"><rect width="24" height="24" rx="12" fill="#6D1ED4"/><text x="12" y="17" font-size="11" font-weight="bold" fill="white" text-anchor="middle" font-family="sans-serif">Z</text></svg>
+          Zelle
+        </button>
+      </div>
 
     <div class="cart-cuenta" id="wrap-cuenta">
       <select id="sel-cuenta"><option value="">— Cuenta —</option></select>
