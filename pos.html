@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Brillitos POS</title>
-<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
   --pk:#d63a8a; --pk-d:#b5306e; --pk-l:#fdf0f7; --pk-m:#f2b8d8;
@@ -119,6 +118,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 }
 .cat-card .ico{font-size:22px;line-height:1}
 .cat-card:hover{border-color:var(--pk-m);color:var(--pk)}
+@media(hover:hover){.cat-card:hover{border-color:var(--pk-m);color:var(--pk)}}
 .cat-card.active{
   border-color:var(--pk);background:var(--pk-l);color:var(--pk);
   box-shadow:0 2px 12px rgba(214,58,138,.18);
@@ -152,9 +152,10 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   display:flex;flex-direction:column;
   border:1.5px solid transparent;
   box-shadow:var(--sh);cursor:pointer;
-  transition:transform .12s,box-shadow .12s,border-color .12s;
+  transition:box-shadow .15s,border-color .15s;
   position:relative;overflow:hidden;
   -webkit-user-select:none;user-select:none;
+  -webkit-transform:translateZ(0);transform:translateZ(0);
 }
 .pcard:hover{box-shadow:var(--sh2);transform:translateY(-2px)}
 .pcard:active{transform:scale(.98)}
@@ -486,7 +487,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 .qr-corner.br{bottom:8px;right:8px;border-width:0 3px 3px 0;border-radius:0 0 6px 0}
 .qr-line{position:absolute;left:8px;right:8px;height:2px;background:var(--pk);
   opacity:.9;animation:qrscan 2s linear infinite;z-index:2}
-@keyframes qrscan{0%{top:8px}100%{top:250px}}
+@keyframes qrscan{0%{top:12px}100%{top:240px}}
 #qr-reader-inner{position:absolute;inset:0}
 .scan-status{color:var(--white);font-size:13px;font-weight:500;text-align:center;
   padding:8px 18px;background:rgba(255,255,255,.08);border-radius:12px;max-width:280px}
@@ -558,8 +559,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:14px;z-index:999;
 }
-.loading-logo{font-size:56px;animation:lbounce 1.2s ease-in-out infinite}
-@keyframes lbounce{0%,100%{transform:scale(1) rotate(-3deg)}50%{transform:scale(1.1) rotate(3deg)}}
+.loading-logo{font-size:56px}
 .loading-txt{font-size:20px;font-weight:800;color:var(--pk)}
 .loading-sub{font-size:13px;color:var(--sub)}
 .spinner{width:28px;height:28px;border:3px solid var(--pk-l);
@@ -822,6 +822,37 @@ async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H
 async function POST(t,d){const r=await fetch(`${SB}/rest/v1/${t}`,{method:'POST',headers:{...H,Prefer:'return=representation'},body:JSON.stringify(d)});return r.json();}
 async function PATCH(t,id,d){await fetch(`${SB}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:{...H,Prefer:'return=minimal'},body:JSON.stringify(d)});}
 
+// ── EVENT DELEGATION en grid (1 listener, no 100+) ──
+document.addEventListener('DOMContentLoaded',()=>{
+  const g=document.getElementById('prod-grid');
+  if(!g)return;
+  g.addEventListener('click',e=>{
+    // Botón +/- dentro del contador
+    const pcBtn=e.target.closest('.pc-btn');
+    if(pcBtn){
+      e.stopPropagation();
+      const counter=pcBtn.closest('.pcard-counter');
+      const pid=parseInt(counter.dataset.id);
+      const d=parseInt(pcBtn.dataset.d);
+      const i=carrito.findIndex(x=>x.id===pid);
+      if(i>=0)chgQty(i,d);
+      return;
+    }
+    // Botón + agregar
+    const addBtn=e.target.closest('.pcard-add-btn');
+    if(addBtn){
+      e.stopPropagation();
+      agregar(parseInt(addBtn.dataset.id));
+      return;
+    }
+    // Click en card
+    const card=e.target.closest('.pcard');
+    if(card&&!card.classList.contains('agotado')){
+      agregar(parseInt(card.dataset.id));
+    }
+  });
+});
+
 // ── INIT ──
 async function init(){
   $('loading-sub').textContent='Cargando productos...';
@@ -883,20 +914,20 @@ function renderProds(){
     const enc=carrito.find(x=>x.id===p.id);
     const foto=p.imagen||p.foto||(Array.isArray(p.imagenes)?p.imagenes[0]:'')||'';
     const imgEl=foto
-      ?`<img class="pcard-img" src="${foto}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'pcard-ph',textContent:'🌸'}))">`
+      ?`<img class="pcard-img" src="${foto}" alt="" loading="lazy">`
       :`<div class="pcard-ph">🌸</div>`;
     const stkBadge=stk<=0?'<span class="pcard-badge-stock out">Agotado</span>'
       :stk<=3?`<span class="pcard-badge-stock low">Últimos ${stk}</span>`
-      :`<span class="pcard-badge-stock ok">${stk} disp.</span>`;
+      :`<span class="pcard-badge-stock ok">${stk}</span>`;
     const qtyBadge=enc?`<div class="pcard-qty">${enc.cantidad}</div>`:'';
     const ctrl=enc
-      ?`<div class="pcard-counter">
-          <button class="pc-btn" onclick="event.stopPropagation();qtyCard(${p.id},-1)">−</button>
+      ?`<div class="pcard-counter" data-id="${p.id}">
+          <button class="pc-btn" data-d="-1">−</button>
           <span class="pc-n">${enc.cantidad}</span>
-          <button class="pc-btn" onclick="event.stopPropagation();qtyCard(${p.id},1)">+</button>
+          <button class="pc-btn" data-d="1">+</button>
         </div>`
-      :`<button class="pcard-add-btn" onclick="event.stopPropagation();agregar(${p.id})">+</button>`;
-    return `<div class="pcard${stk<=0?' agotado':''}${enc?' incarrito':''}" onclick="agregar(${p.id})">
+      :`<button class="pcard-add-btn" data-id="${p.id}">+</button>`;
+    return `<div class="pcard${stk<=0?' agotado':''}${enc?' incarrito':''}" data-id="${p.id}">
       <div class="pcard-img-wrap">${imgEl}${stkBadge}${qtyBadge}</div>
       <div class="pcard-body">
         <div class="pcard-name">${p.nombre||''}</div>
@@ -1108,7 +1139,13 @@ async function guardarApartado(){
 }
 
 function abrirScanner(){
-  if(typeof Html5Qrcode==='undefined'){toast('⚠️ Scanner no cargó');return;}
+  if(typeof Html5Qrcode==='undefined'){
+    const s=document.createElement('script');
+    s.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+    s.onload=()=>abrirScanner();
+    document.head.appendChild(s);
+    toast('📷 Cargando scanner...');return;
+  }
   if(scanner){try{scanner.stop().catch(()=>{});}catch(e){}scanner=null;}
   $('scan-ov').classList.add('open');
   $('scan-status').textContent='📷 Apunta al código del producto';
@@ -1280,6 +1317,37 @@ async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H
 async function POST(t,d){const r=await fetch(`${SB}/rest/v1/${t}`,{method:'POST',headers:{...H,Prefer:'return=representation'},body:JSON.stringify(d)});return r.json();}
 async function PATCH(t,id,d){await fetch(`${SB}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:{...H,Prefer:'return=minimal'},body:JSON.stringify(d)});}
 
+// ── EVENT DELEGATION en grid (1 listener, no 100+) ──
+document.addEventListener('DOMContentLoaded',()=>{
+  const g=document.getElementById('prod-grid');
+  if(!g)return;
+  g.addEventListener('click',e=>{
+    // Botón +/- dentro del contador
+    const pcBtn=e.target.closest('.pc-btn');
+    if(pcBtn){
+      e.stopPropagation();
+      const counter=pcBtn.closest('.pcard-counter');
+      const pid=parseInt(counter.dataset.id);
+      const d=parseInt(pcBtn.dataset.d);
+      const i=carrito.findIndex(x=>x.id===pid);
+      if(i>=0)chgQty(i,d);
+      return;
+    }
+    // Botón + agregar
+    const addBtn=e.target.closest('.pcard-add-btn');
+    if(addBtn){
+      e.stopPropagation();
+      agregar(parseInt(addBtn.dataset.id));
+      return;
+    }
+    // Click en card
+    const card=e.target.closest('.pcard');
+    if(card&&!card.classList.contains('agotado')){
+      agregar(parseInt(card.dataset.id));
+    }
+  });
+});
+
 // ── INIT ──
 async function init(){
   $('loading-sub').textContent='Cargando productos...';
@@ -1341,20 +1409,20 @@ function renderProds(){
     const enc=carrito.find(x=>x.id===p.id);
     const foto=p.imagen||p.foto||(Array.isArray(p.imagenes)?p.imagenes[0]:'')||'';
     const imgEl=foto
-      ?`<img class="pcard-img" src="${foto}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'pcard-ph',textContent:'🌸'}))">`
+      ?`<img class="pcard-img" src="${foto}" alt="" loading="lazy">`
       :`<div class="pcard-ph">🌸</div>`;
     const stkBadge=stk<=0?'<span class="pcard-badge-stock out">Agotado</span>'
       :stk<=3?`<span class="pcard-badge-stock low">Últimos ${stk}</span>`
-      :`<span class="pcard-badge-stock ok">${stk} disp.</span>`;
+      :`<span class="pcard-badge-stock ok">${stk}</span>`;
     const qtyBadge=enc?`<div class="pcard-qty">${enc.cantidad}</div>`:'';
     const ctrl=enc
-      ?`<div class="pcard-counter">
-          <button class="pc-btn" onclick="event.stopPropagation();qtyCard(${p.id},-1)">−</button>
+      ?`<div class="pcard-counter" data-id="${p.id}">
+          <button class="pc-btn" data-d="-1">−</button>
           <span class="pc-n">${enc.cantidad}</span>
-          <button class="pc-btn" onclick="event.stopPropagation();qtyCard(${p.id},1)">+</button>
+          <button class="pc-btn" data-d="1">+</button>
         </div>`
-      :`<button class="pcard-add-btn" onclick="event.stopPropagation();agregar(${p.id})">+</button>`;
-    return `<div class="pcard${stk<=0?' agotado':''}${enc?' incarrito':''}" onclick="agregar(${p.id})">
+      :`<button class="pcard-add-btn" data-id="${p.id}">+</button>`;
+    return `<div class="pcard${stk<=0?' agotado':''}${enc?' incarrito':''}" data-id="${p.id}">
       <div class="pcard-img-wrap">${imgEl}${stkBadge}${qtyBadge}</div>
       <div class="pcard-body">
         <div class="pcard-name">${p.nombre||''}</div>
@@ -1566,7 +1634,13 @@ async function guardarApartado(){
 }
 
 function abrirScanner(){
-  if(typeof Html5Qrcode==='undefined'){toast('⚠️ Scanner no cargó');return;}
+  if(typeof Html5Qrcode==='undefined'){
+    const s=document.createElement('script');
+    s.src='https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js';
+    s.onload=()=>abrirScanner();
+    document.head.appendChild(s);
+    toast('📷 Cargando scanner...');return;
+  }
   if(scanner){try{scanner.stop().catch(()=>{});}catch(e){}scanner=null;}
   $('scan-ov').classList.add('open');
   $('scan-status').textContent='📷 Apunta al código del producto';
