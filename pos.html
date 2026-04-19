@@ -287,7 +287,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
 /* Resumen */
 .cart-summary{
-  flex-shrink:0;padding:12px 20px;
+  flex-shrink:0;padding:10px 16px;
   border-top:1px solid var(--border);
 }
 .sum-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:5px}
@@ -308,37 +308,39 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 .sum-bs{font-size:11px;color:var(--green);font-weight:700;text-align:right;margin-top:2px}
 
 /* Método de pago */
-.cart-met{flex-shrink:0;padding:10px 20px}
-.cart-met-lbl{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
-.met-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.cart-met{flex-shrink:0;padding:8px 16px}
+.cart-met-lbl{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.met-chips{display:flex;flex-wrap:wrap;gap:5px}
 .met-btn{
-  padding:8px 4px;border-radius:10px;border:1.5px solid var(--border);
-  background:var(--bg);font-size:10px;font-weight:700;color:var(--sub);
-  text-align:center;line-height:1.3;transition:all .12s;
+  height:28px;padding:0 10px;
+  border-radius:14px;border:1.5px solid var(--border);
+  background:var(--bg);font-size:11px;font-weight:700;color:var(--sub);
+  display:flex;align-items:center;gap:4px;
+  transition:all .12s;white-space:nowrap;
 }
-.met-btn .mico{display:block;font-size:16px;margin-bottom:2px}
+.met-btn .mico{font-size:13px}
 .met-btn.active{border-color:var(--pk);background:var(--pk-l);color:var(--pk)}
 
 /* Cuenta + Bs */
-.cart-cuenta{flex-shrink:0;padding:0 20px 6px;display:none}
+.cart-cuenta{flex-shrink:0;padding:0 16px 5px;display:none}
 .cart-cuenta.show{display:block}
 .cart-cuenta select{
-  width:100%;height:34px;border:1px solid var(--border);
-  border-radius:10px;padding:0 10px;font-size:12px;
+  width:100%;height:30px;border:1px solid var(--border);
+  border-radius:8px;padding:0 9px;font-size:11px;
   background:var(--bg);color:var(--text);outline:none;
 }
-.cart-bs{flex-shrink:0;padding:0 20px 8px;display:none}
-.cart-bs.show{display:flex;gap:8px}
-.bs-field{flex:1;display:flex;flex-direction:column;gap:3px}
+.cart-bs{flex-shrink:0;padding:0 16px 6px;display:none}
+.cart-bs.show{display:flex;gap:6px}
+.bs-field{flex:1;display:flex;flex-direction:column;gap:2px}
 .bs-field label{font-size:9px;font-weight:700;color:var(--sub);text-transform:uppercase}
 .bs-field input{
-  height:32px;border:1px solid var(--border);border-radius:9px;
-  padding:0 9px;font-size:12px;font-weight:600;outline:none;
+  height:28px;border:1px solid var(--border);border-radius:7px;
+  padding:0 8px;font-size:11px;font-weight:600;outline:none;
   background:var(--bg);color:var(--text);
 }
 
 /* Footer */
-.cart-footer{flex-shrink:0;padding:8px 16px 16px;display:flex;flex-direction:column;gap:6px}
+.cart-footer{flex-shrink:0;padding:6px 16px 14px;display:flex;flex-direction:column;gap:6px}
 .apt-btn{
   width:100%;height:36px;border-radius:10px;
   border:1.5px solid var(--pk-m);background:var(--pk-l);
@@ -601,11 +603,466 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
     <div class="cart-met">
       <div class="cart-met-lbl">Método de pago</div>
-      <div class="met-grid">
+      <div class="met-chips">
         <button class="met-btn active" onclick="selMet(this,'Pago Móvil')"><span class="mico">📱</span>Pago Móvil</button>
         <button class="met-btn" onclick="selMet(this,'BCV')"><span class="mico">🏦</span>BCV</button>
         <button class="met-btn" onclick="selMet(this,'Efectivo Bs')"><span class="mico">💴</span>Ef. Bs</button>
-        <button class="met-btn" onclick="selMet(this,'Efectivo $')"><span class="mico">💵</span>Ef. $</button>
+        <button class="met-btn" onclick="selMet(this,'Efectivo 
+    </div>
+
+    <div class="cart-cuenta" id="wrap-cuenta">
+      <select id="sel-cuenta"><option value="">— Cuenta —</option></select>
+    </div>
+    <div class="cart-bs" id="wrap-bs">
+      <div class="bs-field"><label>Tasa BCV</label>
+        <input type="number" id="inp-tasa" step="0.01" placeholder="480" oninput="calcBs()">
+      </div>
+      <div class="bs-field"><label>Monto Bs.</label>
+        <input type="number" id="inp-bs" step="0.01" placeholder="Auto">
+      </div>
+    </div>
+
+    <div class="cart-footer">
+      <button class="apt-btn" onclick="abrirApartado()">📌 Guardar como apartado</button>
+      <button class="cobrar-btn" id="cobrar-btn" onclick="confirmar()" disabled>Cobrar $0.00</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- FAB móvil -->
+<button class="cart-fab" id="cart-fab" onclick="toggleCart()" style="display:none">
+  🛒<span class="fab-badge" id="fab-badge" style="display:none">0</span>
+</button>
+
+<!-- SCANNER -->
+<div class="scan-ov" id="scan-ov">
+  <div class="scan-box">
+    <div class="qr-corner tl"></div><div class="qr-corner tr"></div>
+    <div class="qr-corner bl"></div><div class="qr-corner br"></div>
+    <div class="qr-line"></div>
+    <div id="qr-reader-inner"></div>
+  </div>
+  <div class="scan-status" id="scan-status">📷 Apunta al código del producto</div>
+  <div class="scan-manual">
+    <input id="inp-manual" placeholder="Código manual..." onkeydown="if(event.key==='Enter')buscarManual()">
+    <button onclick="buscarManual()">Buscar</button>
+  </div>
+  <button class="scan-close" onclick="cerrarScanner()">✕ Cerrar</button>
+</div>
+
+<!-- MODAL CONFIRMAR -->
+<div class="modal-ov" id="modal-confirm">
+  <div class="modal-box">
+    <div class="modal-ico">💳</div>
+    <div class="modal-tit" id="mc-tit">Confirmar cobro</div>
+    <div class="modal-sub" id="mc-sub"></div>
+    <div class="modal-items" id="mc-items"></div>
+    <div class="modal-btns">
+      <button class="mbtn sec" onclick="$('modal-confirm').classList.remove('open')">Cancelar</button>
+      <button class="mbtn pri" id="mc-ok" onclick="ejecutarCobro()">✅ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL ÉXITO -->
+<div class="modal-ov" id="modal-ok">
+  <div class="modal-box">
+    <div class="modal-ico">🎉</div>
+    <div class="modal-tit">¡Venta registrada!</div>
+    <div class="modal-sub" id="mok-sub"></div>
+    <div class="modal-btns">
+      <button class="mbtn sec" onclick="waRecibo()">📱 WhatsApp</button>
+      <button class="mbtn pri" onclick="nuevaVenta()">Nueva venta</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL APARTADO -->
+<div class="modal-ov" id="modal-apt">
+  <div class="modal-box">
+    <div class="modal-ico">📌</div>
+    <div class="modal-tit">Crear Apartado</div>
+    <div class="apt-field"><label>Cliente *</label><input id="apt-cli" placeholder="Nombre del cliente"></div>
+    <div class="apt-field"><label>Abono $</label><input type="number" id="apt-abono" value="0" min="0" step="0.5"></div>
+    <div class="apt-field"><label>Fecha límite</label><input type="date" id="apt-fecha"></div>
+    <div class="apt-field"><label>Notas</label><input id="apt-notas" placeholder="Opcional"></div>
+    <div class="modal-btns" style="margin-top:12px">
+      <button class="mbtn sec" onclick="$('modal-apt').classList.remove('open')">Cancelar</button>
+      <button class="mbtn pri" onclick="guardarApartado()">📌 Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SB  = 'https://xavqokyzdmqzguicjsrq.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU';
+const H   = {apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'};
+const CUENTAS=[
+  {id:'bancaamiga_luisma',label:'BancaAmiga Luisma',tipo:'Pago Móvil'},
+  {id:'bancaamiga_ana',   label:'BancaAmiga Ana',   tipo:'Pago Móvil'},
+  {id:'bancaamiga_luisma',label:'BancaAmiga Luisma',tipo:'BCV'},
+  {id:'bancaamiga_ana',   label:'BancaAmiga Ana',   tipo:'BCV'},
+  {id:'bancaamiga_luisma',label:'BancaAmiga Luisma',tipo:'Efectivo Bs'},
+  {id:'bancaamiga_ana',   label:'BancaAmiga Ana',   tipo:'Efectivo Bs'},
+  {id:'binance',          label:'Binance/USDT',     tipo:'Binance/USDT'},
+  {id:'paypal',           label:'PayPal',           tipo:'PayPal'},
+  {id:'efectivo_usd',     label:'Efectivo $',       tipo:'Efectivo $'},
+];
+
+let prods=[],carrito=[],bcv=0,metodo='Pago Móvil',cat='Todas';
+let scanner=null,scanActivo=false,scanLock=false,lastCode=null,pendiente=null;
+
+const $=id=>document.getElementById(id);
+function hoy(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240);return d.toISOString().slice(0,10);}
+function codProd(id){return 'BRILL-'+id;}
+function toast(msg,ms=2600){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),ms);}
+function beep(){
+  try{
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    [1050,1320].forEach((freq,i)=>{
+      const o=ctx.createOscillator(),g=ctx.createGain();
+      o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;
+      const t=ctx.currentTime+i*0.11;
+      g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.45,t+0.01);
+      g.gain.exponentialRampToValueAtTime(.001,t+0.10);o.start(t);o.stop(t+0.12);
+    });
+  }catch(e){}
+}
+async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H});return r.ok?r.json():[];}
+async function POST(t,d){const r=await fetch(`${SB}/rest/v1/${t}`,{method:'POST',headers:{...H,Prefer:'return=representation'},body:JSON.stringify(d)});return r.json();}
+async function PATCH(t,id,d){await fetch(`${SB}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:{...H,Prefer:'return=minimal'},body:JSON.stringify(d)});}
+
+// ── INIT ──
+async function init(){
+  $('loading-sub').textContent='Cargando productos...';
+  try{
+    const data=await GET('productos','select=*&order=id.desc&limit=500');
+    prods=Array.isArray(data)?data.filter(p=>p.activo!==false):[];
+    $('loading-sub').textContent='Cargando tasa BCV...';
+    try{
+      const r=await fetch('https://ve.dolarapi.com/v1/dolares/oficial',{signal:AbortSignal.timeout(6000)});
+      const j=await r.json();bcv=parseFloat(j.promedio||j.precio||0);
+    }catch(e){bcv=0;}
+    $('bcv-badge').textContent=bcv>0?'💱 Bs. '+bcv.toFixed(2):'💱 Sin tasa';
+    if(bcv>0)$('inp-tasa').value=bcv.toFixed(2);
+    renderCats();renderProds();poblarCuentas();
+    selMet(document.querySelector('.met-btn.active'),'Pago Móvil');
+    $('loading').style.display='none';
+    $('app').style.display='grid';
+  }catch(e){$('loading-sub').textContent='❌ Error: '+e.message;}
+}
+
+// ── CATEGORÍAS ──
+const CAT_ICONS={'Todas':'🛍️','Stickers':'✨','Anime':'🎌','Bolsos / Carteras':'👜',
+  'Papelería':'✏️','Accesorios':'💎','Llaveros':'🔑','Peluches':'🧸',
+  'Mochilas':'🎒','Joyería':'💍','Ropa':'👕','Bisutería':'💍',
+  'Accesorios cabello':'🎀','Agendas':'📔','Bolígrafos':'🖊️','Otros':'📦'};
+function catIcon(c){return CAT_ICONS[c]||'🌸';}
+
+function renderCats(){
+  const cats=['Todas',...new Set(prods.map(p=>(p.categoria||'').trim()).filter(Boolean))].sort((a,b)=>a==='Todas'?-1:b==='Todas'?1:a.localeCompare(b));
+  $('cats-row').innerHTML=cats.map(c=>`
+    <button class="cat-card${c===cat?' active':''}" onclick="selCat(this,'${c.replace(/'/g,"&#39;")}')">
+      <span class="ico">${catIcon(c)}</span>
+      ${c}
+    </button>`).join('');
+}
+
+function selCat(el,c){
+  cat=c;
+  document.querySelectorAll('.cat-card').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  renderProds();
+}
+
+// ── PRODUCTOS ──
+function renderProds(){
+  const q=$('search-inp').value.toLowerCase().trim();
+  let lista=[...prods];
+  if(cat!=='Todas')lista=lista.filter(p=>(p.categoria||'').trim()===cat);
+  if(q)lista=lista.filter(p=>(p.nombre||'').toLowerCase().includes(q));
+  lista.sort((a,b)=>{
+    if(a.es_nuevo&&!b.es_nuevo)return -1;if(!a.es_nuevo&&b.es_nuevo)return 1;
+    return(b.id||0)-(a.id||0);
+  });
+  $('prod-count').textContent=lista.length?`· ${lista.length} productos`:'';
+  const g=$('prod-grid');
+  if(!lista.length){g.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--sub);padding:40px;font-size:14px">Sin productos 🌸</div>';return;}
+  g.innerHTML=lista.map(p=>{
+    const stk=parseInt(p.stock||0);
+    const enc=carrito.find(x=>x.id===p.id);
+    const foto=p.imagen||p.foto||(Array.isArray(p.imagenes)?p.imagenes[0]:'')||'';
+    const imgEl=foto
+      ?`<img class="pcard-img" src="${foto}" alt="" loading="lazy" onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'pcard-ph',textContent:'🌸'}))">`
+      :`<div class="pcard-ph">🌸</div>`;
+    const stkBadge=stk<=0?'<span class="pcard-badge-stock out">Agotado</span>'
+      :stk<=3?`<span class="pcard-badge-stock low">Últimos ${stk}</span>`
+      :`<span class="pcard-badge-stock ok">${stk} disp.</span>`;
+    const qtyBadge=enc?`<div class="pcard-qty">${enc.cantidad}</div>`:'';
+    const ctrl=enc
+      ?`<div class="pcard-counter">
+          <button class="pc-btn" onclick="event.stopPropagation();qtyCard(${p.id},-1)">−</button>
+          <span class="pc-n">${enc.cantidad}</span>
+          <button class="pc-btn" onclick="event.stopPropagation();qtyCard(${p.id},1)">+</button>
+        </div>`
+      :`<button class="pcard-add-btn" onclick="event.stopPropagation();agregar(${p.id})">+</button>`;
+    return `<div class="pcard${stk<=0?' agotado':''}${enc?' incarrito':''}" onclick="agregar(${p.id})">
+      <div class="pcard-img-wrap">${imgEl}${stkBadge}${qtyBadge}</div>
+      <div class="pcard-body">
+        <div class="pcard-name">${p.nombre||''}</div>
+        <div class="pcard-foot">
+          <div class="pcard-price">$${parseFloat(p.precio||0).toFixed(2)}</div>
+          ${ctrl}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function filtrar(){renderProds();}
+function qtyCard(pid,d){const i=carrito.findIndex(x=>x.id===pid);if(i>=0)chgQty(i,d);}
+
+// ── CARRITO ──
+function agregar(pid){
+  const p=prods.find(x=>x.id===pid);if(!p)return;
+  const stk=parseInt(p.stock||0);
+  const i=carrito.findIndex(x=>x.id===pid);
+  if(i>=0){
+    if(carrito[i].cantidad>=stk&&stk>0){toast('⚠️ Stock máximo');return;}
+    carrito[i].cantidad++;carrito[i].sub=carrito[i].cantidad*carrito[i].precio;
+  }else{
+    if(stk<=0){toast('⚠️ Agotado');return;}
+    const foto=p.imagen||p.foto||(Array.isArray(p.imagenes)?p.imagenes[0]:'')||'';
+    carrito.push({id:pid,nombre:p.nombre,precio:parseFloat(p.precio||0),cantidad:1,sub:parseFloat(p.precio||0),foto});
+  }
+  if(navigator.vibrate)navigator.vibrate(25);
+  beep();renderCarrito();renderProds();
+}
+
+function chgQty(i,d){
+  if(!carrito[i])return;
+  const p=prods.find(x=>x.id===carrito[i].id);
+  const stk=p?parseInt(p.stock||0):999;
+  carrito[i].cantidad+=d;
+  if(carrito[i].cantidad<=0)carrito.splice(i,1);
+  else{
+    if(carrito[i].cantidad>stk&&stk>0){carrito[i].cantidad=stk;toast('⚠️ Stock máximo');}
+    carrito[i].sub=carrito[i].cantidad*carrito[i].precio;
+  }
+  renderCarrito();renderProds();
+}
+
+function vaciar(){carrito=[];renderCarrito();renderProds();}
+
+function renderCarrito(){
+  const cnt=carrito.reduce((s,i)=>s+i.cantidad,0);
+  $('cart-count').textContent=cnt;
+  const fab=$('cart-fab'),badge=$('fab-badge');
+  if(fab)fab.style.display=window.innerWidth<=768?'flex':'none';
+  if(badge){badge.textContent=cnt;badge.style.display=cnt>0?'flex':'none';}
+  const el=$('cart-items');
+  if(!carrito.length){
+    el.innerHTML='<div class="cart-empty"><div class="cart-empty-ico">🛒</div><div class="cart-empty-txt">Toca un producto para agregarlo</div></div>';
+    calcTotal();return;
+  }
+  const tasa=parseFloat($('inp-tasa').value)||bcv||0;
+  el.innerHTML=carrito.map((it,i)=>{
+    const bsItem=tasa>0?'Bs. '+(it.sub*tasa).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
+    const imgEl=it.foto
+      ?`<img class="citem-img" src="${it.foto}" loading="lazy" onerror="this.className='citem-ph';this.textContent='🌸'">`
+      :`<div class="citem-ph">🌸</div>`;
+    return `<div class="citem">
+      ${imgEl}
+      <div class="citem-info">
+        <div class="citem-name">${it.nombre}</div>
+        <div class="citem-meta">$${it.precio.toFixed(2)} × ${it.cantidad}</div>
+        ${bsItem?`<div class="citem-bs">${bsItem}</div>`:''}
+      </div>
+      <div class="citem-ctrl">
+        <button class="qty-btn" onclick="chgQty(${i},-1)">−</button>
+        <span class="qty-n">${it.cantidad}</span>
+        <button class="qty-btn" onclick="chgQty(${i},1)">+</button>
+      </div>
+      <div class="citem-price">$${it.sub.toFixed(2)}</div>
+    </div>`;
+  }).join('');
+  calcTotal();
+}
+
+function calcTotal(){
+  const sub=carrito.reduce((s,i)=>s+i.sub,0);
+  const desc=parseFloat($('inp-desc').value)||0;
+  const total=Math.max(0,sub-desc);
+  $('ct-sub').textContent='$'+sub.toFixed(2);
+  if(desc>0){$('desc-row').style.display='flex';$('ct-desc').textContent='−$'+desc.toFixed(2);}
+  else{$('desc-row').style.display='none';}
+  $('ct-val').textContent='$'+total.toFixed(2);
+  $('cobrar-btn').textContent='Cobrar $'+total.toFixed(2);
+  $('cobrar-btn').disabled=carrito.length===0;
+  calcBs();
+}
+
+function calcBs(){
+  const sub=carrito.reduce((s,i)=>s+i.sub,0);
+  const desc=parseFloat($('inp-desc').value)||0;
+  const total=Math.max(0,sub-desc);
+  const tasa=parseFloat($('inp-tasa').value)||bcv||0;
+  if(tasa>0&&total>0){
+    const bs=total*tasa;
+    $('ct-bs').textContent='≈ Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+' · tasa '+tasa.toFixed(2);
+    $('inp-bs').value=bs.toFixed(2);
+    document.querySelectorAll('.citem-bs').forEach((el,i)=>{
+      if(carrito[i])el.textContent='Bs. '+(carrito[i].sub*tasa).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+    });
+  }else{$('ct-bs').textContent='';}
+}
+
+function selMet(el,m){
+  metodo=m;
+  document.querySelectorAll('.met-btn').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(m);
+  $('wrap-bs').classList.toggle('show',esBs);
+  if(esBs&&bcv>0)$('inp-tasa').value=bcv.toFixed(2);
+  poblarCuentas(m);calcTotal();
+}
+
+function poblarCuentas(m){
+  const met=m||metodo;
+  const lista=CUENTAS.filter(c=>c.tipo===met);
+  const wrap=$('wrap-cuenta');
+  if(lista.length){
+    $('sel-cuenta').innerHTML='<option value="">— Cuenta —</option>'+lista.map(c=>`<option value="${c.id}">${c.label}</option>`).join('');
+    wrap.classList.add('show');
+  }else{$('sel-cuenta').innerHTML='';wrap.classList.remove('show');}
+}
+
+function confirmar(){
+  if(!carrito.length){toast('⚠️ Carrito vacío');return;}
+  const sub=carrito.reduce((s,i)=>s+i.sub,0);
+  const desc=parseFloat($('inp-desc').value)||0;
+  const total=Math.max(0,sub-desc);
+  const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(metodo);
+  const tasa=parseFloat($('inp-tasa').value)||bcv||0;
+  const bs=parseFloat($('inp-bs').value)||0;
+  const cliente=$('inp-cliente').value.trim()||'Cliente POS';
+  const cuenta=$('sel-cuenta').value;
+  $('mc-tit').textContent='Cobro a '+cliente;
+  $('mc-sub').innerHTML='<strong>$'+total.toFixed(2)+'</strong> vía '+metodo+(esBs&&bs>0?'<br><span style="color:var(--green)">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'');
+  $('mc-items').innerHTML=carrito.map(it=>`<div class="m-row"><span>${it.nombre} ×${it.cantidad}</span><span>$${it.sub.toFixed(2)}</span></div>`).join('')
+    +(desc>0?`<div class="m-row"><span>Descuento</span><span style="color:var(--green)">−$${desc.toFixed(2)}</span></div>`:'')+
+    `<div class="m-row"><span>TOTAL</span><span>$${total.toFixed(2)}</span></div>`;
+  pendiente={total,sub,desc,esBs,tasa,bs,cliente,cuenta,metodo};
+  $('modal-confirm').classList.add('open');
+}
+
+async function ejecutarCobro(){
+  if(!pendiente)return;
+  const btn=$('mc-ok');btn.disabled=true;btn.textContent='⏳...';
+  const {total,sub,desc,esBs,tasa,bs,cliente,cuenta,metodo:met}=pendiente;
+  try{
+    const res=await POST('ventas',{cliente_nombre:cliente,canal:'POS',metodo_pago:met,estado:'Pagado',
+      subtotal:sub,costo_envio:0,descuento:desc,total,fecha_venta:hoy(),
+      tasa_bcv_usada:esBs?tasa:0,monto_bs:esBs?bs:0,moneda_pago:esBs?'Bs':'USD',
+      cuenta_cobro:cuenta||null,numero:'POS-'+Date.now()});
+    const vid=res[0]&&res[0].id;
+    if(!vid)throw new Error('Sin ID de venta');
+    for(const it of carrito){
+      await fetch(`${SB}/rest/v1/venta_items`,{method:'POST',headers:H,
+        body:JSON.stringify({venta_id:vid,producto_id:it.id,producto_nombre:it.nombre,precio_unitario:it.precio,cantidad:it.cantidad,subtotal:it.sub})});
+      const p=prods.find(x=>x.id===it.id);
+      if(p&&parseInt(p.stock||0)>0){const ns=Math.max(0,p.stock-it.cantidad);await PATCH('productos',p.id,{stock:ns});p.stock=ns;}
+    }
+    $('modal-confirm').classList.remove('open');beep();
+    $('mok-sub').innerHTML=cliente+'<br><strong>$'+total.toFixed(2)+'</strong> · '+met+
+      (esBs&&bs>0?'<br><span style="color:var(--green)">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'')+
+      '<br><span style="font-size:11px;color:var(--sub)">'+carrito.map(i=>i.nombre+' ×'+i.cantidad).join(' · ')+'</span>';
+    $('modal-ok').classList.add('open');renderProds();
+  }catch(e){toast('❌ '+e.message,4000);btn.disabled=false;btn.textContent='✅ Confirmar';}
+}
+
+function nuevaVenta(){
+  carrito=[];$('inp-cliente').value='';$('inp-desc').value='0';pendiente=null;
+  $('modal-ok').classList.remove('open');renderCarrito();renderProds();toast('✅ Nueva venta 🌸');
+}
+
+function waRecibo(){
+  if(!pendiente)return;
+  const {total,esBs,bs,tasa,metodo:met,cliente}=pendiente;
+  let msg=`🌸 *Brillitos Store*\n✅ Venta confirmada\n👤 ${cliente}\n💳 ${met}\n`;
+  if(esBs&&bs>0)msg+=`💴 Bs. ${bs.toLocaleString('es-VE',{minimumFractionDigits:2})} (tasa ${tasa.toFixed(2)})\n`;
+  msg+=`💵 Total: $${total.toFixed(2)}\n\n`;
+  carrito.forEach(it=>{msg+=`· ${it.nombre} ×${it.cantidad} — $${it.sub.toFixed(2)}\n`;});
+  window.open('https://wa.me/?text='+encodeURIComponent(msg),'_blank');
+}
+
+function abrirApartado(){
+  if(!carrito.length){toast('⚠️ Carrito vacío');return;}
+  $('apt-cli').value=$('inp-cliente').value;
+  const d=new Date();d.setDate(d.getDate()+7);$('apt-fecha').value=d.toISOString().slice(0,10);
+  $('modal-apt').classList.add('open');
+}
+async function guardarApartado(){
+  const cli=$('apt-cli').value.trim();
+  if(!cli){toast('⚠️ Ingresa nombre del cliente');return;}
+  const total=carrito.reduce((s,i)=>s+i.sub,0);
+  try{
+    const res=await POST('apartados',{cliente_nombre:cli,total,abono:parseFloat($('apt-abono').value)||0,
+      fecha_entrega:$('apt-fecha').value,notas:$('apt-notas').value,estado:'Pendiente',canal:'POS'});
+    const aid=res[0]&&res[0].id;
+    if(aid)for(const it of carrito)
+      await fetch(`${SB}/rest/v1/apartado_items`,{method:'POST',headers:H,
+        body:JSON.stringify({apartado_id:aid,producto_id:it.id,producto_nombre:it.nombre,precio_unitario:it.precio,cantidad:it.cantidad,subtotal:it.sub})});
+    $('modal-apt').classList.remove('open');toast('📌 Apartado guardado 🌸');carrito=[];renderCarrito();renderProds();
+  }catch(e){toast('❌ '+e.message);}
+}
+
+function abrirScanner(){
+  if(typeof Html5Qrcode==='undefined'){toast('⚠️ Scanner no cargó');return;}
+  if(scanner){try{scanner.stop().catch(()=>{});}catch(e){}scanner=null;}
+  $('scan-ov').classList.add('open');
+  $('scan-status').textContent='📷 Apunta al código del producto';
+  $('scan-status').className='scan-status';
+  $('inp-manual').value='';
+  scanActivo=true;scanLock=false;lastCode=null;
+  $('qr-reader-inner').innerHTML='';
+  scanner=new Html5Qrcode('qr-reader-inner');
+  scanner.start({facingMode:'environment'},{fps:5,qrbox:{width:200,height:200},
+    formatsToSupport:[Html5QrcodeSupportedFormats.QR_CODE]},onScan,()=>{})
+  .catch(()=>{$('scan-status').textContent='⚠️ Sin cámara — usa código manual';$('scan-status').className='scan-status err';});
+}
+function cerrarScanner(){
+  scanActivo=false;$('scan-ov').classList.remove('open');
+  if(scanner){scanner.stop().catch(()=>{});scanner=null;}
+}
+function onScan(decoded){
+  if(!scanActivo||scanLock||decoded===lastCode)return;
+  scanActivo=false;scanLock=true;lastCode=decoded;
+  cerrarScanner();
+  setTimeout(()=>{scanLock=false;lastCode=null;},3000);
+  const p=prods.find(x=>codProd(x.id)===decoded||String(x.id)===decoded||(x.codigo&&x.codigo===decoded));
+  if(p&&p.activo!==false){beep();agregar(p.id);toast('✅ '+p.nombre+' 🌸');}
+  else if(p)toast('⚠️ Producto inactivo');
+  else toast('❓ No encontrado: '+decoded);
+}
+function buscarManual(){const v=$('inp-manual').value.trim();if(v)onScan(v);}
+
+function toggleCart(){$('cart-panel').classList.toggle('open');}
+document.addEventListener('click',e=>{
+  if(window.innerWidth>768)return;
+  const panel=$('cart-panel'),fab=$('cart-fab');
+  if(panel.classList.contains('open')&&!panel.contains(e.target)&&e.target!==fab&&!fab.contains(e.target))
+    panel.classList.remove('open');
+});
+
+init();
+</script>
+</body>
+</html>
+)"><span class="mico">💵</span>Ef. $</button>
         <button class="met-btn" onclick="selMet(this,'Binance/USDT')"><span class="mico">🔷</span>Binance</button>
         <button class="met-btn" onclick="selMet(this,'PayPal')"><span class="mico">🅿️</span>PayPal</button>
       </div>
