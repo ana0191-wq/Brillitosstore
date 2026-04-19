@@ -2027,7 +2027,17 @@ function renderApartados(){
       +'<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">'
       +'<div style="flex:1">'
       +'<div style="font-size:15px;font-weight:700;margin-bottom:3px">'+(a.numero||'#'+a.id)+' — '+(a.cliente_nombre||'Cliente')+' <span class="badge badge-'+(a.estado||'').toLowerCase()+'">'+(a.estado||'')+'</span></div>'
-      +'<div style="font-size:12px;color:var(--gray)">📱 '+(a.metodo_pago||'—')+' · 📦 '+(a.tipo_entrega||'—')+(a.fecha_entrega?' · Entrega: '+formatFecha(a.fecha_entrega):'')+' '+(pronto?'⚠️ ¡'+dias+' días!':'')+'</div>'
+      +(()=>{
+    const metEmoji={'Pago Móvil':'📱','BCV':'🏦','Efectivo Bs':'💵','Efectivo $':'💵','Binance/USDT':'🔷','PayPal':'🅿️','Zelle':'💙','Sin pago':'⏳'};
+    const mico=metEmoji[a.metodo_pago]||'💳';
+    return '<div style="font-size:12px;color:var(--gray);margin-top:3px">'
+      +(a.metodo_pago?'<span style="background:#fce4ec;color:#c2185b;padding:2px 7px;border-radius:10px;font-weight:600;margin-right:6px">'+mico+' '+(a.metodo_pago)+'</span>':'')
+      +(a.tipo_pago?'<span style="background:#f3e5f5;color:#7b1fa2;padding:2px 7px;border-radius:10px;margin-right:6px">'+a.tipo_pago+'</span>':'')
+      +(a.tipo_entrega?'📦 '+a.tipo_entrega:'')
+      +(a.fecha_entrega?' · 📅 '+formatFecha(a.fecha_entrega):'')
+      +' '+(pronto?'<strong style="color:#e53935">⚠️ ¡'+dias+' días!</strong>':'')
+      +'</div>';
+  })()
       +(items?'<div style="font-size:13px;margin-top:5px;color:#444">'+items+'</div>':'')
       +(abono>0?'<div style="font-size:12px;color:#2e7d32;margin-top:4px">✅ Abono: $'+abono.toFixed(2)+'</div>':'')
       +(a.notas?'<div style="font-size:11px;color:var(--gray);margin-top:3px;font-style:italic">📝 '+a.notas+'</div>':'')
@@ -2035,7 +2045,7 @@ function renderApartados(){
       +'<div style="text-align:right;min-width:90px">'
       +'<div style="font-size:18px;font-weight:800;color:var(--pink)">$'+total.toFixed(2)+'</div>'
       +(saldo>0?'<div style="font-size:12px;color:var(--gray)">Saldo: $'+saldo.toFixed(2)+'</div>':'<div style="font-size:11px;color:#2e7d32;font-weight:700">✅ Pagado</div>')
-      +(a.monto_bs>0?'<div style="font-size:11px;color:#2e7d32">Bs.'+parseFloat(a.monto_bs).toFixed(2)+'</div>':'')
+      +(a.monto_bs>0?'<div style="font-size:12px;color:#2e7d32;font-weight:600;margin-top:2px">🇻🇪 Bs. '+parseFloat(a.monto_bs).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')
       +'</div></div>'
       +((a.estado==='Pendiente'||a.estado==='Activo')?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="completarApartado('+a.id+')">✅ Completar → Venta</button><button class="btn btn-warning btn-sm" onclick="abrirModalApartado('+a.id+')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="cancelarApartado('+a.id+')">✕ Cancelar</button></div>':'')
       +'</div>';
@@ -2047,8 +2057,10 @@ function abrirModalApartado(id=null){
   document.getElementById('modal-apt-title').textContent=a?'✏️ Editar':'📌 Nuevo Apartado';
   document.getElementById('apt-cliente-search').value=a?a.cliente_nombre||'':'';
   document.getElementById('apt-cliente-id').value=a?a.cliente_id||'':'';
-  document.getElementById('apt-tipo').value=a?a.metodo_pago||'Sin pago':'Sin pago';
+  if(document.getElementById('apt-metodo')) document.getElementById('apt-metodo').value=a?a.metodo_pago||'Pago Móvil':'Pago Móvil';
+  document.getElementById('apt-tipo').value=a?a.tipo_pago||a.metodo_pago||'Sin pago':'Sin pago';
   document.getElementById('apt-adelanto').value=a?a.abono||0:0;
+  if(document.getElementById('apt-monto-bs')) document.getElementById('apt-monto-bs').value=a?a.monto_bs||'':'';
   document.getElementById('apt-fecha-limite').value=a?a.fecha_entrega||'':'';
   document.getElementById('apt-notas').value=a?a.notas||'':'';
   toggleAdelantoField(); renderAptItems();
