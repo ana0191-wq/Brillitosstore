@@ -120,30 +120,29 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 /* Categorías como tarjetas */
 .cats-section{
   flex-shrink:0;
-  display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(80px,1fr));
-  gap:6px;padding:10px 12px 6px;
+  display:flex;flex-wrap:nowrap;overflow-x:auto;
+  gap:5px;padding:7px 10px;
   background:var(--white);border-bottom:1.5px solid var(--border);
-  max-height:96px;overflow-y:hidden;overflow-x:auto;
+  scrollbar-width:none;
 }
+.cats-section::-webkit-scrollbar{display:none}
 .cat-card{
-  display:flex;flex-direction:column;align-items:center;gap:3px;
-  padding:7px 4px;border-radius:var(--r-sm);border:1.5px solid var(--border);
+  display:flex;align-items:center;gap:5px;
+  padding:5px 11px;border-radius:20px;border:1.5px solid var(--border);
   background:var(--white);cursor:pointer;transition:all .15s;
-  font-size:10px;font-weight:700;color:var(--gray);text-align:center;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  min-width:0;
+  font-size:11px;font-weight:700;color:var(--gray);
+  white-space:nowrap;flex-shrink:0;
 }
 .cat-card:hover{border-color:var(--pk-m);color:var(--pk)}
 .cat-card.active{border-color:var(--pk);background:var(--pk-l);color:var(--pk);font-weight:800}
-.cat-icon{font-size:18px;line-height:1}
-.cat-count{font-size:9px;color:inherit;opacity:.7}
+.cat-icon{font-size:14px;line-height:1}
+.cat-count{display:none}
 
 /* Grid de productos */
 .grid{
   flex:1;overflow-y:auto;padding:10px 12px;
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  grid-template-columns:repeat(auto-fill,minmax(170px,1fr));
   grid-auto-rows:min-content;
   gap:10px;align-content:start;
 }
@@ -809,15 +808,12 @@ function renderCats(){
       <span class="nav-item-icon">${catIcon(c)}</span>${c}
     </div>`).join('');
 
-  // Cards grid (desktop)
-  $('cats-section').innerHTML=cats.map(c=>{
-    const cnt=c==='Todas'?prods.length:prods.filter(p=>(p.categoria||'').trim()===c).length;
-    return `<button class="cat-card${c===cat?' active':''}" onclick="selCat(this,'${c.replace(/'/g,"&#39;")}')">
-      <span class="cat-icon">${catIcon(c)}</span>
-      ${c}
-      <span class="cat-count">${cnt}</span>
-    </button>`;
-  }).join('');
+  // Chips horizontales (desktop)
+  $('cats-section').innerHTML=cats.map(c=>
+    `<button class="cat-card${c===cat?' active':''}" onclick="selCat(this,'${c.replace(/'/g,"&#39;")}')">
+      <span class="cat-icon">${catIcon(c)}</span>${c}
+    </button>`
+  ).join('');
 }
 
 function selCat(el,c){
