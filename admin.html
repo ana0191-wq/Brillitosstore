@@ -677,15 +677,15 @@ tr:hover td{background:#fff8fc}
     </div>
     <div class="form-group">
       <label>Método de pago</label>
-      <select id="apt-metodo">
-        <option value="Pago Móvil">📱 Pago Móvil</option>
-        <option value="BCV">🏦 BCV</option>
-        <option value="Efectivo Bs">💵 Efectivo Bs</option>
-        <option value="Efectivo $">💵 Efectivo $</option>
-        <option value="Binance/USDT">🔷 Binance/USDT</option>
-        <option value="PayPal">🅿️ PayPal</option>
-        <option value="Zelle">💙 Zelle</option>
-        <option value="Sin pago">⏳ Sin pago</option>
+            <select id="apt-metodo">
+        <option value="Pago Movil">Pago Movil</option>
+        <option value="BCV">BCV</option>
+        <option value="Efectivo Bs">Efectivo Bs</option>
+        <option value="Efectivo $">Efectivo $</option>
+        <option value="Binance/USDT">Binance/USDT</option>
+        <option value="PayPal">PayPal</option>
+        <option value="Zelle">Zelle</option>
+        <option value="Sin pago">Sin pago</option>
       </select>
     </div>
     <div class="form-group">
@@ -2074,7 +2074,7 @@ function abrirModalApartado(id=null){
   document.getElementById('modal-apt-title').textContent=a?'✏️ Editar':'📌 Nuevo Apartado';
   document.getElementById('apt-cliente-search').value=a?a.cliente_nombre||'':'';
   document.getElementById('apt-cliente-id').value=a?a.cliente_id||'':'';
-  if(document.getElementById('apt-metodo')) document.getElementById('apt-metodo').value=a?a.metodo_pago||'Pago Móvil':'Pago Móvil';
+  if(document.getElementById('apt-metodo')) document.getElementById('apt-metodo').value=a?a.metodo_pago||'Pago Movil':'Pago Movil';
   document.getElementById('apt-tipo').value=a?a.tipo_pago||a.metodo_pago||'Sin pago':'Sin pago';
   document.getElementById('apt-adelanto').value=a?a.abono||0:0;
   if(document.getElementById('apt-monto-bs')) document.getElementById('apt-monto-bs').value=a?a.monto_bs||'':'';
@@ -2108,7 +2108,7 @@ async function guardarApartado(){
   if(!nombre||!aptItems.length){ toast('⚠️ Nombre y al menos un producto'); return; }
   const total=aptItems.reduce((s,i)=>s+parseFloat(i.subtotal||0),0);
   const adelanto=parseFloat(document.getElementById('apt-adelanto').value)||0;
-  const metodoApt=document.getElementById('apt-metodo')?document.getElementById('apt-metodo').value:'Pago Móvil';
+  const metodoApt=document.getElementById('apt-metodo')?document.getElementById('apt-metodo').value:'Pago Movil';
   const tipoApt=document.getElementById('apt-tipo')?document.getElementById('apt-tipo').value:'Sin pago';
   const montoBS=parseFloat(document.getElementById('apt-monto-bs')?.value)||0;
   const data={
