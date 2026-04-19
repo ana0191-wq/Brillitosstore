@@ -1375,6 +1375,7 @@ function editVentaById(id){irA('ventas');setTimeout(()=>{const v=ventas.find(x=>
 function editApartadoById(id){irA('apartados');setTimeout(()=>{abrirModalApartado(id);},150);}
 function irAApartados(){irA('apartados');}
 
+
 function verificarApartadosVencidos(){
   const hoy = new Date().toISOString().slice(0,10);
   apartados.filter(a=>(a.estado==='Pendiente'||a.estado==='Activo')&&a.fecha_entrega&&a.fecha_entrega<hoy).forEach(async a=>{
@@ -2112,7 +2113,7 @@ async function guardarApartado(){
   productos=await sbGet('productos','select=*&order=nombre.asc&limit=1000');
   if(!Array.isArray(apartados)) apartados=[];
   if(!Array.isArray(productos)) productos=[];
-  cerrarModal('modal-apartado'); renderApartados(); renderProductos(); renderPOS(); cargarDashboard();
+  editAptId=null; aptItems=[]; cerrarModal('modal-apartado'); renderApartados(); renderProductos(); renderPOS(); cargarDashboard();
 }
 async function completarApartado(id){
   const a=apartados.find(x=>x.id===id); if(!a||!confirm('¿Convertir en venta?')) return;
