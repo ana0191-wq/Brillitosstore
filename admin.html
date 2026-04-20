@@ -879,6 +879,17 @@ tr:hover td{background:#fff8fc}
         <option>Bolsas / Empaques</option><option>Otro</option>
       </select>
     </div>
+    <div class="form-group form-full">
+      <label>Tipo</label>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:normal">
+          <input type="radio" name="g-tipo" value="Gasto" checked> Gasto
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:normal">
+          <input type="radio" name="g-tipo" value="Inversión"> Inversión
+        </label>
+      </div>
+    </div>
     <div class="form-group"><label>Monto *</label><input type="number" id="g-monto" step="0.01" min="0" oninput="calcGastoUsd()"></div>
     <div class="form-group">
       <label>Moneda</label>
@@ -2398,6 +2409,7 @@ async function renderEventos(){
         return '<div class="gasto-row"><span>'+g.concepto+' <small style="color:#aaa">'+(g.fecha||'')+'</small></span>'
           +'<span style="text-align:right"><strong style="color:var(--pink)">'+usdStr+'</strong>'
           +(bsStr?'<br><small style="color:var(--purple)">'+bsStr+'</small>'+tasaStr:'')
+          +'<br><small style="color:'+(g.tipo==='Inversión'?'#1976d2':'var(--red)')+'">'+((g.tipo||'Gasto'))+'</small>'
           +'<button class="btn btn-danger btn-sm" style="padding:1px 5px;font-size:10px;margin-left:8px" onclick="eliminarGasto('+g.id+')">✕</button></span></div>';
       }).join(''):'<div style="color:var(--gray);font-size:13px">Sin gastos aún</div>')
       +'<div style="display:flex;justify-content:space-between;padding-top:7px;margin-top:3px;border-top:2px solid var(--border);font-weight:700;font-size:13px"><span>Total gastos</span><span style="color:var(--red)">$'+totalG.toFixed(2)+'</span></div></div>'
@@ -2431,6 +2443,7 @@ function abrirModalGasto(eventoId){
   document.getElementById('g-monto').value=''; document.getElementById('g-moneda').value='USD';
   document.getElementById('g-tasa').value=''; document.getElementById('g-notas').value='';
   document.getElementById('g-fecha').value=new Date().toISOString().slice(0,10);
+  const radioGasto=document.querySelector('input[name="g-tipo"][value="Gasto"]'); if(radioGasto) radioGasto.checked=true;
   toggleTasaGasto(); document.getElementById('modal-gasto').classList.add('open');
 }
 function toggleTasaGasto(){ const bs=document.getElementById('g-moneda').value==='Bs'; document.getElementById('g-tasa-wrap').style.display=bs?'block':'none'; document.getElementById('g-usd-wrap').style.display=bs?'block':'none'; if(bs&&bcvHoy>0) document.getElementById('g-tasa').value=bcvHoy.toFixed(2); }
@@ -2441,7 +2454,8 @@ async function guardarGasto(){
   const moneda=document.getElementById('g-moneda').value; const tasa=parseFloat(document.getElementById('g-tasa').value)||0;
   const monto_usd=moneda==='Bs'&&tasa>0?monto/tasa:monto;
   const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
-  await sbPost('evento_gastos',{evento_id:parseInt(document.getElementById('g-evento-id').value),concepto,monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value});
+  const tipo_gasto=document.querySelector('input[name="g-tipo"]:checked')?.value||'Gasto';
+  await sbPost('evento_gastos',{evento_id:parseInt(document.getElementById('g-evento-id').value),concepto,monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value,tipo:tipo_gasto});
   cerrarModal('modal-gasto'); renderEventos(); toast('✅ Gasto registrado');
 }
 async function eliminarGasto(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('evento_gastos','id=eq.'+id); renderEventos(); toast('🗑️ Eliminado'); }
