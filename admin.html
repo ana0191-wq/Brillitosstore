@@ -1806,7 +1806,7 @@ function renderVentas(lista){
     +'<td style="font-size:11px">'+(v.tasa_bcv_usada>0?parseFloat(v.tasa_bcv_usada).toFixed(2):'—')+'</td>'
     +'<td style="font-size:12px">'+(v.metodo_pago||'')+'</td>'
     +'<td style="font-size:11px">'+cuentaNombre(v.cuenta_cobro)+'</td>'
-    +'<td>'+'<select style="font-size:11px;border-radius:6px;border:1px solid #ddd;padding:2px 4px;cursor:pointer;background:#fff;" onchange="cambiarEstadoVenta('+v.id+',this.value)">'+['Pagado','Pendiente','Cancelado','Entregado'].map(s=>'<option value="'+s+'"'+(v.estado===s?' selected':'')+'>'+s+'</option>').join('')+'</select>'+'</td>'
+    +(()=>{const colores={Pagado:'background:#e8f5e9;color:#2e7d32',Pendiente:'background:#fff3e0;color:#e65100',Cancelado:'background:#ffebee;color:#c62828',Entregado:'background:#e3f2fd;color:#1565c0'};const cur=v.estado||'Pendiente';const st=colores[cur]||'background:#f5f5f5;color:#333';return '<td><select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarEstadoVenta('+v.id+',this.value)">'+['Pagado','Pendiente','Cancelado','Entregado'].map(s=>'<option value="'+s+'"'+(cur===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td>';})()
     +'<td style="white-space:nowrap">'
     +'<button class="btn btn-warning btn-sm" onclick="editarVenta('+v.id+')">✏️</button> '
     +'<button class="btn btn-blue btn-sm" onclick="verCotizacionVenta('+v.id+')">📄</button> '
@@ -2482,6 +2482,12 @@ function poblarMesesFiltroGasto(){
   const sel=document.getElementById('filtro-mes-gasto'); if(!sel)return;
   sel.innerHTML='<option value="">Todos los meses</option>'+[...meses].sort().reverse().map(m=>'<option value="'+m+'">'+m+'</option>').join('');
 }
+async function cambiarTipoGasto(id, nuevoTipo){
+  await sbPatch('gastos_globales',id,{tipo:nuevoTipo});
+  const g=gastosGlobales.find(x=>x.id==id); if(g) g.tipo=nuevoTipo;
+  renderGastosGlobal();
+  toast('✅ Tipo actualizado');
+}
 function renderGastosGlobal(){
   const cat=document.getElementById('filtro-cat-gasto')?document.getElementById('filtro-cat-gasto').value:'';
   const mes=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
@@ -2511,7 +2517,7 @@ function renderGastosGlobal(){
       const bs=g.moneda==='Bs'?parseFloat(g.monto||0):usd*tasa;
       return bs>0?'Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
     })()+'</td>'
-    +'<td><span class="badge" style="background:'+(g.tipo==='Inversión'?'#e3f2fd':g.tipo==='Pago personal'?'#ede7f6':'#fff3e0')+';color:'+(g.tipo==='Inversión'?'#1565c0':g.tipo==='Pago personal'?'#4527a0':'#e65100')+'">'+(g.tipo||'Gasto')+'</span></td>'
+    +(()=>{const tipoMap={'Gasto evento':'background:#fff3e0;color:#e65100','Inversión':'background:#e3f2fd;color:#1565c0','Gasto operativo':'background:#fce4ec;color:#c62828','Pago personal':'background:#ede7f6;color:#4527a0'};const cur=g.tipo||'Gasto evento';const st=tipoMap[cur]||'background:#f5f5f5;color:#333';return '<td><select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarTipoGasto('+g.id+',this.value)">'+Object.keys(tipoMap).map(t=>'<option value="'+t+'"'+(cur===t?' selected':'')+'>'+t+'</option>').join('')+'</select></td>';})()
     +'<td style="font-size:11px;color:var(--gray)">'+(g.evento_id?(eventos.find(e=>e.id==g.evento_id)&&eventos.find(e=>e.id==g.evento_id).nombre||'Evento'):'—')+'</td>'
     +'<td><button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">🗑️</button></td></tr>').join('')
     :'<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:20px">Sin gastos registrados</td></tr>';
