@@ -2371,8 +2371,9 @@ async function guardarCliente(){
 async function eliminarCliente(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('clientes','id=eq.'+id); clientes=clientes.filter(c=>c.id!==id); renderClientes(); toast('🗑️ Eliminado'); }
 
 // ===== EVENTOS =====
-async function renderEventos(){
-  gastosEvento=await sbGet('evento_gastos','select=*&order=fecha.desc');
+async async function renderEventos(){
+  const freshGastos=await sbGet('evento_gastos','select=*&order=fecha.desc');
+  if(Array.isArray(freshGastos)) gastosEvento=freshGastos;
   const div=document.getElementById('lista-eventos');
   if(!eventos.length){ div.innerHTML='<div class="card" style="text-align:center;color:var(--gray)">No hay eventos</div>'; return; }
   div.innerHTML=eventos.map(e=>{
