@@ -1790,7 +1790,7 @@ async function confirmarVentaVoz(){
 
 // ===== VENTAS =====
 async function cambiarEstadoVenta(id, nuevoEstado){
-  await sbPatch('ventas','id=eq.'+id,{estado:nuevoEstado});
+  await sbPatch('ventas',id,{estado:nuevoEstado});
   const v=ventas.find(x=>x.id==id); if(v) v.estado=nuevoEstado;
   toast('✅ Estado actualizado a '+nuevoEstado);
 }
