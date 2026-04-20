@@ -2428,7 +2428,8 @@ async function guardarGasto(){
   if(!monto){ toast('⚠️ Monto obligatorio'); return; }
   const moneda=document.getElementById('g-moneda').value; const tasa=parseFloat(document.getElementById('g-tasa').value)||0;
   const monto_usd=moneda==='Bs'&&tasa>0?monto/tasa:monto;
-  await sbPost('evento_gastos',{evento_id:parseInt(document.getElementById('g-evento-id').value),concepto,monto,moneda,tasa_bcv:tasa||null,monto_usd,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value});
+  const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
+  await sbPost('evento_gastos',{evento_id:parseInt(document.getElementById('g-evento-id').value),concepto,monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value});
   cerrarModal('modal-gasto'); renderEventos(); toast('✅ Gasto registrado');
 }
 async function eliminarGasto(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('evento_gastos','id=eq.'+id); renderEventos(); toast('🗑️ Eliminado'); }
@@ -2453,17 +2454,19 @@ function renderGastosGlobal(){
   const porCat={};
   lista.forEach(g=>{porCat[g.categoria||'?']=(porCat[g.categoria||'?']||0)+parseFloat(g.monto_usd||g.monto||0);});
   const top=Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
+  const totalBs=lista.filter(g=>g.moneda==='Bs').reduce((s,g)=>s+parseFloat(g.monto||0),0);
+  const tasaRef=parseFloat(document.getElementById('inp-tasa')?document.getElementById('inp-tasa').value:0)||bcvHoy||0;
   document.getElementById('gastos-stats').innerHTML=
-    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUSD.toFixed(2)+'</div><div class="stat-label">💸 Total gastos (filtro)</div></div>'
+    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUSD.toFixed(2)+'</div><div class="stat-label">💸 Total USD (filtro)</div>'+(totalBs>0?'<div style="font-size:12px;color:#777;margin-top:2px">+ Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')+'</div>'
+    +'<div class="stat-card" style="border-left:4px solid #e91e8c">'+(tasaRef>0?'<div class="stat-num" style="color:#e91e8c">Bs. '+(totalUSD*tasaRef).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'<div class="stat-num" style="color:#e91e8c;font-size:16px">Sin tasa</div>')+'<div class="stat-label">🇻🇪 Equiv. Bs (tasa actual)</div></div>'
     +'<div class="stat-card" style="border-left:4px solid var(--orange)"><div class="stat-num" style="color:var(--orange)">'+lista.filter(g=>g.tipo==='Inversión').length+'</div><div class="stat-label">📈 Inversiones</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid var(--blue)"><div class="stat-num" style="color:var(--blue)">'+lista.filter(g=>g.tipo==='Gasto operativo').length+'</div><div class="stat-label">🔄 Gastos operativos</div></div>'
     +'<div class="stat-card" style="border-left:4px solid var(--purple)"><div class="stat-num" style="color:var(--purple);font-size:14px">'+(top[0]?top[0][0]:'—')+'</div><div class="stat-label">🏆 Mayor categoría</div></div>';
   document.getElementById('tbody-gastos').innerHTML=lista.length?lista.map(g=>
     '<tr><td>'+formatFecha(g.fecha)+'</td>'
     +'<td><strong>'+(g.categoria||'—')+'</strong></td>'
     +'<td>'+(g.descripcion||g.notas||'—')+'</td>'
-    +'<td>'+(g.moneda==='Bs'?'Bs.'+parseFloat(g.monto).toFixed(2):'$'+parseFloat(g.monto).toFixed(2))+'</td>'
-    +'<td><strong style="color:var(--red)">$'+parseFloat(g.monto_usd||g.monto||0).toFixed(2)+'</strong></td>'
+    +'<td>'+(g.moneda==='Bs'?'<span style="color:#7b1fa2;font-weight:600">Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'<strong>$'+parseFloat(g.monto).toFixed(2)+'</strong>')+'</td>'
+    +'<td><strong style="color:var(--red)">$'+parseFloat(g.monto_usd||g.monto||0).toFixed(2)+'</strong>'+(g.moneda==='Bs'&&g.tasa_bcv?'<br><span style="font-size:10px;color:#999">tasa: '+parseFloat(g.tasa_bcv).toFixed(2)+'</span>':'')+'</td>'
     +'<td><span class="badge" style="background:'+(g.tipo==='Inversión'?'#e3f2fd':g.tipo==='Pago personal'?'#ede7f6':'#fff3e0')+';color:'+(g.tipo==='Inversión'?'#1565c0':g.tipo==='Pago personal'?'#4527a0':'#e65100')+'">'+(g.tipo||'Gasto')+'</span></td>'
     +'<td style="font-size:11px;color:var(--gray)">'+(g.evento_id?(eventos.find(e=>e.id==g.evento_id)&&eventos.find(e=>e.id==g.evento_id).nombre||'Evento'):'—')+'</td>'
     +'<td><button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">🗑️</button></td></tr>').join('')
@@ -2484,8 +2487,9 @@ async function guardarGastoGlobal(){
   if(!desc||!monto){ toast('⚠️ Descripción y monto obligatorios'); return; }
   const moneda=document.getElementById('gg-moneda').value; const tasa=parseFloat(document.getElementById('gg-tasa').value)||0;
   const monto_usd=moneda==='Bs'&&tasa>0?monto/tasa:monto;
+  const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
   const eventoId=document.getElementById('gg-evento').value||null;
-  const data={tipo:document.getElementById('gg-tipo').value,categoria:document.getElementById('gg-categoria').value,descripcion:desc,monto,moneda,tasa_bcv:tasa||null,monto_usd,fecha:document.getElementById('gg-fecha').value,evento_id:eventoId?parseInt(eventoId):null,notas:document.getElementById('gg-notas').value};
+  const data={tipo:document.getElementById('gg-tipo').value,categoria:document.getElementById('gg-categoria').value,descripcion:desc,monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('gg-fecha').value,evento_id:eventoId?parseInt(eventoId):null,notas:document.getElementById('gg-notas').value};
   const res=await sbPost('gastos_globales',data);
   if(res[0]) gastosGlobales.unshift(res[0]);
   cerrarModal('modal-gasto-global'); renderGastosGlobal(); poblarMesesFiltroGasto(); cargarDashboard(); toast('✅ Gasto registrado');
