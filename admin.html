@@ -2388,7 +2388,18 @@ async function renderEventos(){
       +'<div style="display:flex;gap:6px"><button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button><button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button><button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button></div></div>'
       +'<div style="background:#fafafa;border-radius:10px;padding:10px;margin-bottom:9px">'
       +'<div style="font-size:10px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase">Gastos del evento</div>'
-      +(gastosE.length?gastosE.map(g=>'<div class="gasto-row"><span>'+g.concepto+' <small style="color:#aaa">'+(g.fecha||'')+'</small></span><span><strong>'+(g.moneda==='Bs'?'Bs.'+parseFloat(g.monto).toFixed(2):'$'+parseFloat(g.monto).toFixed(2))+'</strong>'+(g.moneda==='Bs'&&g.monto_usd?' <small>(≈$'+parseFloat(g.monto_usd).toFixed(2)+')</small>':'')+'<button class="btn btn-danger btn-sm" style="padding:1px 5px;font-size:10px;margin-left:5px" onclick="eliminarGasto('+g.id+')">✕</button></span></div>').join(''):'<div style="color:var(--gray);font-size:13px">Sin gastos aún</div>')
+      +(gastosE.length?gastosE.map(g=>{
+        const usd=parseFloat(g.monto_usd||0);
+        const bs=parseFloat(g.monto||0);
+        const tasa=parseFloat(g.tasa_bcv||0);
+        const usdStr='$'+usd.toFixed(2);
+        const bsStr=g.moneda==='Bs'?('Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})):'';
+        const tasaStr=g.moneda==='Bs'&&tasa>0?' <small style="color:#aaa">· tasa '+tasa.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</small>':'';
+        return '<div class="gasto-row"><span>'+g.concepto+' <small style="color:#aaa">'+(g.fecha||'')+'</small></span>'
+          +'<span style="text-align:right"><strong style="color:var(--pink)">'+usdStr+'</strong>'
+          +(bsStr?'<br><small style="color:var(--purple)">'+bsStr+'</small>'+tasaStr:'')
+          +'<button class="btn btn-danger btn-sm" style="padding:1px 5px;font-size:10px;margin-left:8px" onclick="eliminarGasto('+g.id+')">✕</button></span></div>';
+      }).join(''):'<div style="color:var(--gray);font-size:13px">Sin gastos aún</div>')
       +'<div style="display:flex;justify-content:space-between;padding-top:7px;margin-top:3px;border-top:2px solid var(--border);font-weight:700;font-size:13px"><span>Total gastos</span><span style="color:var(--red)">$'+totalG.toFixed(2)+'</span></div></div>'
       +'<div class="grid-3" style="margin-bottom:8px">'
       +'<div class="stat-card" style="padding:9px"><div class="stat-num" style="font-size:16px">$'+totalV.toFixed(2)+'</div><div class="stat-label">Ventas ('+vts.length+')</div></div>'
