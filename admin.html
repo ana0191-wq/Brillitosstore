@@ -465,7 +465,7 @@ tr:hover td{background:#fff8fc}
       </select>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap">
-      <table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>En USD</th><th>Tipo</th><th>Evento</th><th></th></tr></thead>
+      <table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>En USD</th><th>Bs.</th><th>Tipo</th><th>Evento</th><th></th></tr></thead>
       <tbody id="tbody-gastos"></tbody></table>
     </div></div>
   </div>
@@ -2466,7 +2466,13 @@ function renderGastosGlobal(){
     +'<td><strong>'+(g.categoria||'—')+'</strong></td>'
     +'<td>'+(g.descripcion||g.notas||'—')+'</td>'
     +'<td>'+(g.moneda==='Bs'?'<span style="color:#7b1fa2;font-weight:600">Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'<strong>$'+parseFloat(g.monto).toFixed(2)+'</strong>')+'</td>'
-    +'<td><strong style="color:var(--red)">$'+parseFloat(g.monto_usd||g.monto||0).toFixed(2)+'</strong>'+(g.moneda==='Bs'&&g.tasa_bcv?'<br><span style="font-size:10px;color:#999">tasa: '+parseFloat(g.tasa_bcv).toFixed(2)+'</span>':'')+'</td>'
+    +'<td><strong style="color:var(--red)">$'+parseFloat(g.monto_usd||g.monto||0).toFixed(2)+'</strong></td>'
+    +'<td style="color:#7b1fa2;font-weight:600">'+(()=>{
+      const usd=parseFloat(g.monto_usd||g.monto||0);
+      const tasa=g.moneda==='Bs'&&g.tasa_bcv?parseFloat(g.tasa_bcv):bcvHoy||0;
+      const bs=g.moneda==='Bs'?parseFloat(g.monto||0):usd*tasa;
+      return bs>0?'Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+    })()+'</td>'
     +'<td><span class="badge" style="background:'+(g.tipo==='Inversión'?'#e3f2fd':g.tipo==='Pago personal'?'#ede7f6':'#fff3e0')+';color:'+(g.tipo==='Inversión'?'#1565c0':g.tipo==='Pago personal'?'#4527a0':'#e65100')+'">'+(g.tipo||'Gasto')+'</span></td>'
     +'<td style="font-size:11px;color:var(--gray)">'+(g.evento_id?(eventos.find(e=>e.id==g.evento_id)&&eventos.find(e=>e.id==g.evento_id).nombre||'Evento'):'—')+'</td>'
     +'<td><button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">🗑️</button></td></tr>').join('')
