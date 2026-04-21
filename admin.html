@@ -2512,9 +2512,8 @@ function renderGastosGlobal(){
     +'<td>'+(g.moneda==='Bs'?'<span style="color:#7b1fa2;font-weight:600">Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'<strong>$'+parseFloat(g.monto).toFixed(2)+'</strong>')+'</td>'
     +'<td><strong style="color:var(--red)">$'+parseFloat(g.monto_usd||g.monto||0).toFixed(2)+'</strong></td>'
     +'<td style="color:#7b1fa2;font-weight:600">'+(()=>{
-      const usd=parseFloat(g.monto_usd||g.monto||0);
-      const tasa=g.moneda==='Bs'&&g.tasa_bcv?parseFloat(g.tasa_bcv):bcvHoy||0;
-      const bs=g.moneda==='Bs'?parseFloat(g.monto||0):usd*tasa;
+      // Usar SOLO el valor histórico guardado, nunca recalcular con tasa actual
+      const bs=g.moneda==='Bs'?parseFloat(g.monto||0):parseFloat(g.monto_bs||0);
       return bs>0?'Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
     })()+'</td>'
     +(()=>{const tipoMap={'Gasto evento':'background:#fff3e0;color:#e65100','Inversión':'background:#e3f2fd;color:#1565c0','Gasto operativo':'background:#fce4ec;color:#c62828','Pago personal':'background:#ede7f6;color:#4527a0'};const cur=g.tipo||'Gasto evento';const st=tipoMap[cur]||'background:#f5f5f5;color:#333';return '<td><select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarTipoGasto('+g.id+',this.value)">'+Object.keys(tipoMap).map(t=>'<option value="'+t+'"'+(cur===t?' selected':'')+'>'+t+'</option>').join('')+'</select></td>';})()
