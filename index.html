@@ -1335,19 +1335,19 @@ function sendWA(method){
     const pct=parseFloat(document.getElementById('pp-pct').value)||5.4;
     const fix=parseFloat(document.getElementById('pp-fix').value)||0.30;
     const charge=(sub+fix)/(1-pct/100);
-    payLine='\n🅿️ *Método de pago: PayPal*\nDirección PayPal: ana0191@gmail.com\n💰 *Total a pagar: $'+charge.toFixed(2)+' USD*';
+    payLine='\n🅿️ *Método de pago: PayPal*\nDirección: ana0191@gmail.com\n💰 *Total a pagar: $'+charge.toFixed(2)+' USD*';
   } else if(method==='binance'){
     const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
     const pct=parseFloat(document.getElementById('bnc-pct').value)||0;
     const fee=sub*(pct/100);
     const total=(sub+fee)/rate;
-    payLine='\n₿ *Método de pago: Binance Pay (USDT)*\nDirección Binance: ana0191@gmail.com\n💰 *Total a pagar: '+total.toFixed(4)+' USDT*\n📸 Enviaré el capture del pago por aquí';
+    payLine='\n₿ *Método de pago: Binance Pay (USDT)*\nDirección: ana0191@gmail.com\n💰 *Total a pagar: '+total.toFixed(4)+' USDT*\n📸 Enviaré el capture del pago por aquí';
   } else if(method==='bolivares'){
     const rate=parseFloat(document.getElementById('bs-rate').value)||40;
     const bs=sub*rate;
     payLine='\n🇻🇪 *Método de pago: Pago Móvil / Bolívares*\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*\n(Tasa BCV: Bs.'+rate+'/$)\n📸 Enviaré el comprobante por aquí';
   } else {
-    payLine=sub>0?'\n💰 *Total estimado: $'+sub.toFixed(2)+' USD*\n(confirmar método de pago)':'\n(Precios a consultar)';
+    payLine=sub>0?'\n💰 *Total estimado: $'+sub.toFixed(2)+' USD*':'\n(Precios a consultar)';
   }
   const msg='🌸 *Pedido Brillitos* 🌸\n\n'+lines+'\n'+payLine+'\n\n¡Hola! Quiero hacer este pedido 💖';
   const num=document.getElementById('wa-num')?.value?.replace(/\D/g,'')||WA_NUMBER;
