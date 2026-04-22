@@ -2467,7 +2467,7 @@ async function guardarGasto(){
   const monto_usd=moneda==='Bs'&&tasa>0?monto/tasa:monto;
   const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
   const tipo_gasto=document.querySelector('input[name="g-tipo"]:checked')?.value||'Gasto';
-  await sbPost('gastos_globales',{evento_id:parseInt(document.getElementById('g-evento-id').value),concepto,monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value,tipo:tipo_gasto});
+  await sbPost('gastos_globales',{evento_id:parseInt(document.getElementById('g-evento-id').value),descripcion:concepto,categoria:'Stand / Evento',monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value,tipo:tipo_gasto});
   cerrarModal('modal-gasto'); renderEventos(); toast('✅ Gasto registrado');
 }
 async function eliminarGasto(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('gastos_globales','id=eq.'+id); renderEventos(); toast('🗑️ Eliminado'); }
