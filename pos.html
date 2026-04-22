@@ -277,6 +277,8 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .citem-meta{font-size:11px;color:var(--sub);margin-top:2px}
 .citem-bs{font-size:10px;color:var(--green);font-weight:700;margin-top:1px}
+.citem-num{width:22px;height:22px;border-radius:50%;background:var(--pk-l);color:var(--pk);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.citem-img,.citem-ph{display:none!important}
 .citem-ctrl{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .qty-btn{
   width:24px;height:24px;border-radius:7px;
@@ -398,7 +400,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     border-radius:20px 20px 0 0;border-left:none;
     border-top:2px solid var(--pk-m);
     box-shadow:0 -8px 32px rgba(0,0,0,.12);
-    transform:translateY(100%);
+    transform:translateY(calc(100% - 56px));
     transition:transform .32s cubic-bezier(.32,.72,0,1);
     z-index:200;display:flex;flex-direction:column;overflow:hidden;
   }
@@ -777,9 +779,15 @@ const $=id=>document.getElementById(id);
 function hoy(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240);return d.toISOString().slice(0,10);}
 function codProd(id){return 'BRILL-'+id;}
 function toast(msg,ms=2600){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),ms);}
+let _audioCtx=null;
+function getAudioCtx(){
+  if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(_audioCtx.state==='suspended') _audioCtx.resume();
+  return _audioCtx;
+}
 function beep(){
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=getAudioCtx();
     [1050,1320].forEach((freq,i)=>{
       const o=ctx.createOscillator(),g=ctx.createGain();
       o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;
@@ -825,6 +833,7 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 // ── INIT ──
+document.addEventListener('touchstart',function ia(){getAudioCtx();document.removeEventListener('touchstart',ia);},{once:true});
 async function init(){
   $('loading-sub').textContent='Cargando productos...';
   try{
@@ -960,15 +969,11 @@ function renderCarrito(){
   const tasa=parseFloat($('inp-tasa').value)||bcv||0;
   el.innerHTML=carrito.map((it,i)=>{
     const bsItem=tasa>0?'Bs. '+(it.sub*tasa).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
-    const imgEl=it.foto
-      ?`<img class="citem-img" src="${it.foto}" loading="lazy" onerror="this.className='citem-ph';this.textContent='🌸'">`
-      :`<div class="citem-ph">🌸</div>`;
     return `<div class="citem">
-      ${imgEl}
+      <div class="citem-num">${i+1}</div>
       <div class="citem-info">
         <div class="citem-name">${it.nombre}</div>
-        <div class="citem-meta">$${it.precio.toFixed(2)} × ${it.cantidad}</div>
-        ${bsItem?`<div class="citem-bs">${bsItem}</div>`:''}
+        <div class="citem-meta">$${it.precio.toFixed(2)} c/u${bsItem?' · <span style="color:var(--pk);font-weight:700">'+bsItem+'</span>':''}</div>
       </div>
       <div class="citem-ctrl">
         <button class="qty-btn" onclick="chgQty(${i},-1)">−</button>
