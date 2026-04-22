@@ -70,15 +70,17 @@ header{position:sticky;top:0;z-index:100;background:var(--ye);border-bottom:2px 
 .stat-label{font-size:.7rem;color:var(--ts);font-weight:700}
 
 /* ── FILTERS ── */
-.filters-section{background:var(--pu-l);padding:14px 40px;border-bottom:2px dashed var(--br)}
-.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px}
+.filters-section{background:#fff;border-bottom:1px solid #eee;padding:0 0 10px}
+.cat-navbar{display:flex;align-items:center;overflow-x:auto;white-space:nowrap;gap:0;padding:0 24px;scrollbar-width:none;border-bottom:1px solid #eee}
+.cat-navbar::-webkit-scrollbar{display:none}
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:8px 24px 0;margin-bottom:0}
 .filter-row:last-child{margin-bottom:0}
-.filter-label{font-size:.75rem;font-weight:800;color:var(--ts);white-space:nowrap}
-.pills{display:flex;gap:6px;flex-wrap:wrap}
-@media(max-width:600px){.pills{gap:4px}}
-.pill{background:#fff;border:2px solid var(--pu);border-radius:var(--rb);padding:5px 14px;font-family:var(--fb);font-size:.78rem;font-weight:800;color:#8B5ABB;cursor:pointer;transition:all .2s}
-@media(max-width:600px){.pill{padding:4px 10px;font-size:.68rem;font-weight:700}}
-.pill.active,.pill:hover{background:linear-gradient(135deg,var(--pa),var(--pu));color:#fff;border-color:var(--pa)}
+.filter-label{display:none}
+.pills{display:contents}
+@media(max-width:600px){.pills{display:contents}}
+.pill{background:none;border:none;border-bottom:2px solid transparent;border-radius:0;padding:12px 16px;font-family:var(--fb);font-size:.82rem;font-weight:600;color:#444;cursor:pointer;transition:all .2s;white-space:nowrap;flex-shrink:0}
+@media(max-width:600px){.pill{padding:10px 12px;font-size:.78rem}}
+.pill.active,.pill:hover{color:var(--pk-d);border-bottom:2px solid var(--pk-d);font-weight:800}
 .price-filter{display:flex;align-items:center;gap:8px}
 input[type=range]{accent-color:var(--pk);width:120px}
 .price-val{font-size:.78rem;font-weight:800;color:var(--pk)}
@@ -385,11 +387,8 @@ input[type=range]{accent-color:var(--pk);width:120px}
 </div>
 
 <section class="filters-section" id="productos">
-  <div class="filter-row">
-    <span class="filter-label">Categoría:</span>
-    <div class="pills" id="cat-pills">
-      <button class="pill active" data-cat="all">Todas 🌸</button>
-    </div>
+  <div class="cat-navbar" id="cat-pills">
+    <button class="pill active" data-cat="all">Todas 🌸</button>
   </div>
   <div class="filter-row">
     <span class="filter-label">Precio máx:</span>
