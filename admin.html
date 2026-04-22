@@ -1418,7 +1418,7 @@ function editApartadoById(id){irA('apartados');setTimeout(()=>{abrirModalApartad
 function irAApartados(){irA('apartados');}
 
 
-function verificarApartadosVencidos(){
+async function verificarApartadosVencidos(){
   const hoy = new Date().toISOString().slice(0,10);
   apartados.filter(a=>(a.estado==='Pendiente'||a.estado==='Activo')&&a.fecha_entrega&&a.fecha_entrega<hoy).forEach(async a=>{
     await sbPatch('apartados',a.id,{estado:'Vencido'});
