@@ -1145,7 +1145,16 @@ function onScan(decoded){
 }
 function buscarManual(){const v=$('inp-manual').value.trim();if(v)onScan(v);}
 
-function toggleCart(){$('cart-panel').classList.toggle('open');}
+function toggleCart(){
+  const panel=$('cart-panel');
+  const abriendo=!panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if(abriendo) history.pushState({cart:true},'','');
+}
+window.addEventListener('popstate',function(){
+  const panel=$('cart-panel');
+  if(panel && panel.classList.contains('open')) panel.classList.remove('open');
+});
 document.addEventListener('click',e=>{
   if(window.innerWidth>768)return;
   const panel=$('cart-panel'),fab=$('cart-fab');
