@@ -536,6 +536,15 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 .spinner{width:28px;height:28px;border:3px solid var(--pk-l);
   border-top-color:var(--pk);border-radius:50%;animation:spin .75s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+/* ── POS TABS ── */
+.pos-tabs{display:none;flex-shrink:0;background:#fff;border-bottom:2px solid #f0e6f6;padding:0 16px}
+.pos-tab{flex:1;padding:12px 8px;border:none;background:none;font-size:15px;font-weight:700;color:#888;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s}
+.pos-tab.active{color:#d63a8a;border-bottom-color:#d63a8a;font-weight:900}
+@media(max-width:768px){
+  .pos-tabs{display:flex!important}
+  .scan-btn{display:none!important}
+  .scan-fab-left{display:none!important}
+}
 </style>
 </head>
 <body>
@@ -578,16 +587,28 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     </div>
     <button class="scan-fab-left" onclick="abrirScanner()">📷 Escanear</button>
 
-    <!-- Categorías -->
-    <div class="cats-row" id="cats-row"></div>
-
-    <!-- Título sección -->
-    <div class="prod-section">
-      <div class="prod-section-title">Elige productos</div>
+    <!-- Tabs móvil -->
+    <div class="pos-tabs" id="pos-tabs">
+      <button class="pos-tab active" id="tab-prods" onclick="switchPosTab('prods')">🛍️ Productos</button>
+      <button class="pos-tab" id="tab-scan" onclick="switchPosTab('scan')">📷 Escanear</button>
     </div>
 
-    <!-- Grid -->
-    <div class="grid" id="prod-grid"></div>
+    <!-- Vista Productos -->
+    <div id="view-prods" style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden">
+      <div class="cats-row" id="cats-row"></div>
+      <div class="prod-section"><div class="prod-section-title">Elige productos</div></div>
+      <div class="grid" id="prod-grid"></div>
+    </div>
+
+    <!-- Vista Escanear -->
+    <div id="view-scan" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:24px">
+      <div style="font-size:5rem">📷</div>
+      <div style="font-size:1.2rem;font-weight:800;color:#222;text-align:center">Escanea el código QR<br>del producto</div>
+      <button onclick="abrirScanner()" style="width:100%;max-width:320px;height:72px;border-radius:20px;background:linear-gradient(135deg,#F387C3,#d63a8a);color:#fff;font-size:1.3rem;font-weight:900;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(214,58,138,.4);display:flex;align-items:center;justify-content:center;gap:12px">
+        📷 Escanear producto
+      </button>
+      <div style="font-size:.85rem;color:#888;text-align:center">También puedes buscar<br>por nombre en Productos</div>
+    </div>
   </div>
 
   <!-- CARRITO -->
@@ -1145,6 +1166,19 @@ function onScan(decoded){
 }
 function buscarManual(){const v=$('inp-manual').value.trim();if(v)onScan(v);}
 
+function switchPosTab(tab){
+  document.getElementById('tab-prods').classList.toggle('active', tab==='prods');
+  document.getElementById('tab-scan').classList.toggle('active', tab==='scan');
+  const vp=document.getElementById('view-prods');
+  const vs=document.getElementById('view-scan');
+  if(tab==='prods'){
+    vp.style.display='flex';
+    vs.style.display='none';
+  } else {
+    vp.style.display='none';
+    vs.style.display='flex';
+  }
+}
 function toggleCart(){
   const panel=$('cart-panel');
   const abriendo=!panel.classList.contains('open');
