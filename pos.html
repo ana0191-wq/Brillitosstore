@@ -278,7 +278,8 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 .citem-meta{font-size:11px;color:var(--sub);margin-top:2px}
 .citem-bs{font-size:10px;color:var(--green);font-weight:700;margin-top:1px}
 .citem-num{width:22px;height:22px;border-radius:50%;background:var(--pk-l);color:var(--pk);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.citem-img,.citem-ph{display:none!important}
+.citem-img{width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0}
+.citem-ph{width:48px;height:48px;border-radius:10px;background:var(--pk-l);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
 .citem-ctrl{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .qty-btn{
   width:24px;height:24px;border-radius:7px;
@@ -440,7 +441,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   .prod-section{padding:0 12px 6px;width:100%;box-sizing:border-box}
   .grid{
     flex:1;min-height:0;overflow-y:auto;
-    padding:0 12px 80px;
+    padding:0 12px 140px;
     width:100%;box-sizing:border-box;
     grid-template-columns:repeat(2,1fr)!important;
     gap:8px;
@@ -990,8 +991,11 @@ function renderCarrito(){
   const tasa=parseFloat($('inp-tasa').value)||bcv||0;
   el.innerHTML=carrito.map((it,i)=>{
     const bsItem=tasa>0?'Bs. '+(it.sub*tasa).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
+    const imgEl=it.foto
+      ?`<img class="citem-img" src="${it.foto}" loading="lazy" onerror="this.style.display='none'">`
+      :`<div class="citem-ph">🌸</div>`;
     return `<div class="citem">
-      <div class="citem-num">${i+1}</div>
+      ${imgEl}
       <div class="citem-info">
         <div class="citem-name">${it.nombre}</div>
         <div class="citem-meta">$${it.precio.toFixed(2)} c/u${bsItem?' · <span style="color:var(--pk);font-weight:700">'+bsItem+'</span>':''}</div>
