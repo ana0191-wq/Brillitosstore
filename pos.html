@@ -1149,12 +1149,66 @@ function toggleCart(){
   const panel=$('cart-panel');
   const abriendo=!panel.classList.contains('open');
   panel.classList.toggle('open');
-  if(abriendo) history.pushState({cart:true},'','');
+  if(abriendo){
+    // Push state para que atrás lo cierre
+    history.pushState({cart:true},'','#carrito');
+  } else {
+    // Si lo cerramos manualmente, quitar el state
+    if(location.hash==='#carrito') history.back();
+  }
 }
-window.addEventListener('popstate',function(){
+function cerrarCarrito(){
   const panel=$('cart-panel');
-  if(panel && panel.classList.contains('open')) panel.classList.remove('open');
+  if(panel && panel.classList.contains('open')){
+    panel.classList.remove('open');
+    panel.style.transform='';
+  }
+}
+// Botón atrás cierra carrito en vez de salir
+window.addEventListener('popstate',function(e){
+  const panel=$('cart-panel');
+  if(panel && panel.classList.contains('open')){
+    panel.classList.remove('open');
+    panel.style.transform='';
+  }
 });
+// Swipe down para cerrar el carrito
+(function(){
+  var startY=0, startX=0, dragging=false;
+  document.addEventListener('touchstart',function(e){
+    const panel=$('cart-panel');
+    if(!panel||!panel.classList.contains('open')) return;
+    startY=e.touches[0].clientY;
+    startX=e.touches[0].clientX;
+    dragging=true;
+    panel.style.transition='none';
+  },{passive:true});
+  document.addEventListener('touchmove',function(e){
+    if(!dragging) return;
+    const panel=$('cart-panel');
+    if(!panel||!panel.classList.contains('open')) return;
+    const dy=e.touches[0].clientY-startY;
+    const dx=e.touches[0].clientX-startX;
+    // Solo drag vertical hacia abajo
+    if(dy>0 && Math.abs(dy)>Math.abs(dx)){
+      panel.style.transform='translateY('+dy+'px)';
+    }
+  },{passive:true});
+  document.addEventListener('touchend',function(e){
+    if(!dragging) return;
+    dragging=false;
+    const panel=$('cart-panel');
+    if(!panel) return;
+    const dy=e.changedTouches[0].clientY-startY;
+    panel.style.transition='';
+    if(dy>120){
+      cerrarCarrito();
+      if(location.hash==='#carrito') history.back();
+    } else {
+      panel.style.transform='';
+    }
+  },{passive:true});
+})();
 document.addEventListener('click',e=>{
   if(window.innerWidth>768)return;
   const panel=$('cart-panel'),fab=$('cart-fab');
