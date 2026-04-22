@@ -523,7 +523,7 @@ tr:hover td{background:#fff8fc}
 <!-- ===== MODALES ===== -->
 
 <!-- MODAL: CONFIRMACIÓN BS (para POS y ventas) -->
-<div class="modal-bg" id="modal-bs">
+<div class="modal-bg" id="modal-bs" onclick="if(event.target===this)cerrarModal('modal-bs')">
 <div class="modal" style="max-width:400px">
   <h2>💱 Confirmar monto en Bolívares</h2>
   <div class="bcv-box">
@@ -552,7 +552,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: VENTA -->
-<div class="modal-bg" id="modal-venta">
+<div class="modal-bg" id="modal-venta" onclick="if(event.target===this)cerrarModal('modal-venta')">
 <div class="modal modal-lg">
   <h2 id="modal-venta-title">🛒 Nueva Venta</h2>
   <div class="form-grid">
@@ -665,7 +665,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: COTIZACION -->
-<div class="modal-bg" id="modal-cotizacion">
+<div class="modal-bg" id="modal-cotizacion" onclick="if(event.target===this)cerrarModal('modal-cotizacion')">
 <div class="modal">
   <h2>📄 Cotización</h2>
   <div id="cotizacion-contenido"></div>
@@ -677,7 +677,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: APARTADO -->
-<div class="modal-bg" id="modal-apartado">
+<div class="modal-bg" id="modal-apartado" onclick="if(event.target===this)cerrarModal('modal-apartado')">
 <div class="modal modal-lg">
   <h2 id="modal-apt-title">📌 Nuevo Apartado</h2>
   <div class="form-grid">
@@ -744,7 +744,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: PRODUCTO -->
-<div class="modal-bg" id="modal-producto">
+<div class="modal-bg" id="modal-producto" onclick="if(event.target===this)cerrarModal('modal-producto')">
 <div class="modal">
   <h2 id="modal-prod-title">📦 Producto</h2>
   <div class="form-grid">
@@ -802,7 +802,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: IMPRIMIR QR -->
-<div class="modal-bg" id="modal-imprimir-qr">
+<div class="modal-bg" id="modal-imprimir-qr" onclick="if(event.target===this)cerrarModal('modal-imprimir-qr')">
 <div class="modal" style="max-width:520px">
   <h2>🔲 Códigos QR — Brillitos Store</h2>
   <p style="font-size:12px;color:var(--gray);margin-bottom:4px">Toca un QR para verlo grande. Usa el botón 🖨️ para imprimir todos en hoja.</p>
@@ -818,7 +818,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: VER QR INDIVIDUAL -->
-<div class="modal-bg" id="modal-qr-single">
+<div class="modal-bg" id="modal-qr-single" onclick="if(event.target===this)cerrarModal('modal-qr-single')">
 <div class="modal" style="max-width:320px;text-align:center">
   <h2 id="qr-single-nombre">Producto</h2>
   <img id="qr-single-img" src="" style="width:220px;height:220px;border-radius:12px;border:2px solid var(--pink-light);margin:10px auto;display:block">
@@ -832,7 +832,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: CLIENTE -->
-<div class="modal-bg" id="modal-cliente">
+<div class="modal-bg" id="modal-cliente" onclick="if(event.target===this)cerrarModal('modal-cliente')">
 <div class="modal">
   <h2>👤 Cliente</h2>
   <div class="form-grid">
@@ -849,7 +849,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: EVENTO -->
-<div class="modal-bg" id="modal-evento">
+<div class="modal-bg" id="modal-evento" onclick="if(event.target===this)cerrarModal('modal-evento')">
 <div class="modal">
   <h2>🎪 Evento</h2>
   <div class="form-grid">
@@ -866,7 +866,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: GASTO EVENTO -->
-<div class="modal-bg" id="modal-gasto">
+<div class="modal-bg" id="modal-gasto" onclick="if(event.target===this)cerrarModal('modal-gasto')">
 <div class="modal">
   <h2>💸 Gasto del Evento</h2>
   <input type="hidden" id="g-evento-id">
@@ -916,7 +916,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: GASTO GLOBAL -->
-<div class="modal-bg" id="modal-gasto-global">
+<div class="modal-bg" id="modal-gasto-global" onclick="if(event.target===this)cerrarModal('modal-gasto-global')">
 <div class="modal">
   <h2>💸 Registrar Gasto / Inversión</h2>
   <div class="form-grid">
@@ -970,7 +970,7 @@ tr:hover td{background:#fff8fc}
 </div>
 
 <!-- MODAL: POS OK -->
-<div class="modal-bg" id="modal-pos-ok">
+<div class="modal-bg" id="modal-pos-ok" onclick="if(event.target===this)cerrarModal('modal-pos-ok')">
 <div class="modal" style="text-align:center;max-width:340px">
   <div style="font-size:60px;margin-bottom:10px">✅</div>
   <h2 style="text-align:center;font-size:18px;color:var(--green)">¡Venta registrada!</h2>
@@ -2618,6 +2618,13 @@ function cerrarMobNav(){
   nav.style.transform='translateX(-100%)';
   setTimeout(()=>{nav.style.display='none';if(ov)ov.style.display='none';},280);
 }
+// Evitar que clic dentro del modal cierre el fondo
+document.addEventListener('DOMContentLoaded', function(){
+  document.querySelectorAll('.modal').forEach(function(m){
+    m.addEventListener('click', function(e){ e.stopPropagation(); });
+  });
+});
+
 </script>
 </body>
 </html>
