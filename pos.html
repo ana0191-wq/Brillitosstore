@@ -780,15 +780,12 @@ const SB  = 'https://xavqokyzdmqzguicjsrq.supabase.co';
 const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU';
 const H   = {apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'};
 const CUENTAS=[
-  {id:'bancaamiga_luisma',label:'BancaAmiga Luisma',tipo:'Pago Móvil',tlf:'04249372490',cuenta:'26.239.265',banco:'Bancamiga'},
-  {id:'bancaamiga_ana',   label:'BancaAmiga Ana',   tipo:'Pago Móvil',tlf:'',cuenta:'',banco:'Bancamiga'},
-  {id:'bancaamiga_luisma',label:'BancaAmiga Luisma',tipo:'BCV',        tlf:'04249372490',cuenta:'26.239.265',banco:'Bancamiga'},
-  {id:'bancaamiga_ana',   label:'BancaAmiga Ana',   tipo:'BCV',        tlf:'',cuenta:'',banco:'Bancamiga'},
-  {id:'bancaamiga_luisma',label:'BancaAmiga Luisma',tipo:'Efectivo Bs',tlf:'04249372490',cuenta:'26.239.265',banco:'Bancamiga'},
-  {id:'bancaamiga_ana',   label:'BancaAmiga Ana',   tipo:'Efectivo Bs',tlf:'',cuenta:'',banco:'Bancamiga'},
-  {id:'binance',          label:'Binance/USDT',     tipo:'Binance/USDT',tlf:'',cuenta:'ana0191@gmail.com',banco:'Binance'},
-  {id:'paypal',           label:'PayPal',           tipo:'PayPal',     tlf:'',cuenta:'ana0191@gmail.com',banco:'PayPal'},
-  {id:'efectivo_usd',     label:'Efectivo $',       tipo:'Efectivo $', tlf:'',cuenta:'',banco:''},
+  {id:'bancaamiga',label:'Bancamiga',tipo:'Pago Móvil',  tlf:'04249372490',cuenta:'26.239.265',banco:'Bancamiga'},
+  {id:'bancaamiga',label:'Bancamiga',tipo:'BCV',          tlf:'04249372490',cuenta:'26.239.265',banco:'Bancamiga'},
+  {id:'bancaamiga',label:'Bancamiga',tipo:'Efectivo Bs',  tlf:'04249372490',cuenta:'26.239.265',banco:'Bancamiga'},
+  {id:'binance',   label:'Binance',  tipo:'Binance/USDT', tlf:'',cuenta:'ana0191@gmail.com',banco:'Binance'},
+  {id:'paypal',    label:'PayPal',   tipo:'PayPal',        tlf:'',cuenta:'ana0191@gmail.com',banco:'PayPal'},
+  {id:'efectivo_usd',label:'Efectivo $',tipo:'Efectivo $',tlf:'',cuenta:'',banco:''},
 ];
 
 let prods=[],carrito=[],bcv=0,metodo='Pago Móvil',cat='Todas';
