@@ -1344,7 +1344,7 @@ function sendWA(method){
   } else if(method==='bolivares'){
     const rate=parseFloat(document.getElementById('bs-rate').value)||40;
     const bs=sub*rate;
-    payLine='\n🇻🇪 *Método de pago: Pago Móvil / Bolívares*\n📱 Teléfono: 04249372490 (Bancamiga - Luisma)\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*\n(Tasa BCV: Bs.'+rate+'/$)\n📸 Enviaré el comprobante por aquí';
+    payLine='\n🇻🇪 *Método de pago: Pago Móvil / Bolívares*\n📱 Teléfono: 04249372490 (Bancamiga)\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*\n(Tasa BCV: Bs.'+rate+'/$)\n📸 Enviaré el comprobante por aquí';
   } else {
     payLine=sub>0?'\n💰 Subtotal estimado: $'+sub.toFixed(2)+' USD\n(productos sin precio se consultan aparte)':'\n(Precios a consultar)';
   }
