@@ -377,6 +377,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
 /* ── MÓVIL ── */
 
+/* ── BARRA INFERIOR MÓVIL ── */
+.mob-bottom-bar{display:none}
+
 @media(max-width:768px){
   html,body{overflow:hidden;width:100%;max-width:100vw}
   .app{
@@ -391,22 +394,41 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     display:flex;flex-direction:column;
     width:100vw!important;max-width:100vw!important;
     height:100vh;height:100svh;
-    overflow:hidden;flex:1;min-width:0;
+    overflow:hidden;flex:1;min-width:0;position:relative;
   }
+  /* Carrito como pantalla deslizable desde abajo */
   .cart{
     position:fixed!important;bottom:0;left:0;right:0;
     width:100%!important;max-width:100vw!important;
-    height:78vh;
+    height:92vh;
     border-radius:20px 20px 0 0;border-left:none;
     border-top:2px solid var(--pk-m);
-    box-shadow:0 -8px 32px rgba(0,0,0,.12);
-    transform:translateY(calc(100% - 56px));
+    box-shadow:0 -8px 32px rgba(0,0,0,.15);
+    transform:translateY(100%);
     transition:transform .32s cubic-bezier(.32,.72,0,1);
-    z-index:200;display:flex;flex-direction:column;overflow:hidden;
+    z-index:300;display:flex;flex-direction:column;overflow:hidden;
+    background:#fff;
   }
-  .cart.open{transform:translateY(0)!important;display:flex!important;flex-direction:column!important}
-  .cart-handle{display:flex!important;justify-content:center;padding:10px 0 4px;flex-shrink:0;cursor:pointer}
-  .cart-handle-bar{width:40px;height:4px;border-radius:2px;background:var(--pk-m)}
+  .cart.open{transform:translateY(0)!important}
+  .cart-handle{display:flex!important;justify-content:center;padding:12px 0 6px;flex-shrink:0;cursor:pointer}
+  .cart-handle-bar{width:44px;height:4px;border-radius:2px;background:var(--pk-m)}
+  /* Barra inferior fija */
+  .mob-bottom-bar{
+    display:flex!important;
+    position:fixed;bottom:0;left:0;right:0;
+    height:64px;z-index:200;
+    background:#fff;border-top:1px solid var(--border);
+    align-items:center;padding:0 16px;gap:12px;
+    box-shadow:0 -4px 16px rgba(0,0,0,.08);
+  }
+  .mob-bottom-info{flex:1;display:flex;flex-direction:column;gap:1px}
+  .mob-bottom-count{font-size:11px;color:var(--gray);font-weight:600}
+  .mob-bottom-total{font-size:20px;font-weight:900;color:var(--pk-d)}
+  .mob-bottom-ticket{
+    background:var(--pk);color:#fff;border:none;border-radius:14px;
+    padding:10px 20px;font-size:14px;font-weight:800;cursor:pointer;
+    white-space:nowrap;box-shadow:0 4px 12px rgba(214,58,138,.35);
+  }
   .topbar{padding:10px 12px 8px;gap:8px;width:100%;box-sizing:border-box}
   .topbar-title{font-size:15px}
   .bcv-pill{display:none}
@@ -418,23 +440,13 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   .prod-section{padding:0 12px 6px;width:100%;box-sizing:border-box}
   .grid{
     flex:1;min-height:0;overflow-y:auto;
-    padding:0 12px 90px;
+    padding:0 12px 80px;
     width:100%;box-sizing:border-box;
     grid-template-columns:repeat(2,1fr)!important;
     gap:8px;
   }
-  .cart-fab{
-    display:flex!important;position:fixed;bottom:18px;right:16px;
-    width:58px;height:58px;border-radius:29px;
-    background:var(--pk);color:var(--white);font-size:24px;
-    align-items:center;justify-content:center;
-    box-shadow:0 4px 20px rgba(214,58,138,.45);z-index:199;border:none;
-  }
-  .fab-badge{
-    position:absolute;top:-3px;right:-3px;background:#ff3333;color:var(--white);
-    font-size:10px;font-weight:800;min-width:20px;height:20px;border-radius:10px;
-    display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--white);
-  }
+  .cart-fab{display:none!important}
+  .fab-badge{display:none!important}
 }
 @media(min-width:769px){
   .cart-fab{display:none!important}
@@ -590,6 +602,15 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
     <!-- Grid -->
     <div class="grid" id="prod-grid"></div>
+  </div>
+
+  <!-- BARRA INFERIOR MÓVIL -->
+  <div class="mob-bottom-bar" id="mob-bottom-bar">
+    <div class="mob-bottom-info">
+      <span class="mob-bottom-count" id="mob-cnt">0 items</span>
+      <span class="mob-bottom-total" id="mob-total">$0.00</span>
+    </div>
+    <button class="mob-bottom-ticket" onclick="abrirTicketMob()">🧾 Ver ticket</button>
   </div>
 
   <!-- CARRITO -->
@@ -984,6 +1005,20 @@ function renderCarrito(){
     </div>`;
   }).join('');
   calcTotal();
+}
+function actualizarBarraMob(){
+  const cnt = carrito.reduce((s,i)=>s+i.cantidad,0);
+  const sub = carrito.reduce((s,i)=>s+i.sub,0);
+  const el = document.getElementById('mob-bottom-bar');
+  if(!el) return;
+  const cntEl = document.getElementById('mob-cnt');
+  const totEl = document.getElementById('mob-total');
+  if(cntEl) cntEl.textContent = cnt===0 ? 'Carrito vacío' : cnt+' item'+(cnt!==1?'s':'');
+  if(totEl) totEl.textContent = '$'+sub.toFixed(2);
+}
+function abrirTicketMob(){
+  const cart = document.getElementById('cart-panel');
+  if(cart){ cart.classList.add('open'); }
 }
 
 function calcTotal(){
