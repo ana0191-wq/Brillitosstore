@@ -572,7 +572,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <div class="bs-note" id="bs-note-usd">⏳ Cargando tasa BCV…</div>
         <div class="subtotal-row"><span class="label">Total en Bolívares (Bs.)</span><span class="val highlight" id="bs-total">Bs. 0.00</span></div>
         <div class="subtotal-row" style="margin-bottom:4px"><span class="label" style="font-size:.72rem">Tasa usada</span><span class="val" id="bs-used-rate" style="font-size:.72rem">—</span></div>
-        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Pago móvil</span><span class="val" id="bs-pm" style="font-size:.72rem">—</span></div>
+        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Pago móvil</span><span class="val" id="bs-pm" style="font-size:.72rem">04249372490 · Bancamiga</span></div>
         <button class="pay-action pk" onclick="sendWA('bolivares')">💬 Enviar con total en Bs.</button>
       </div>
     </div>
@@ -1344,7 +1344,7 @@ function sendWA(method){
   } else if(method==='bolivares'){
     const rate=parseFloat(document.getElementById('bs-rate').value)||40;
     const bs=sub*rate;
-    payLine='\n🇻🇪 *Pago móvil / Bs.*\nSubtotal: $'+sub.toFixed(2)+'\nTasa BCV: Bs.'+rate+'/$\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*';
+    payLine='\n🇻🇪 *Método de pago: Pago Móvil / Bolívares*\n📱 Teléfono: 04249372490 (Bancamiga - Luisma)\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*\n(Tasa BCV: Bs.'+rate+'/$)\n📸 Enviaré el comprobante por aquí';
   } else {
     payLine=sub>0?'\n💰 Subtotal estimado: $'+sub.toFixed(2)+' USD\n(productos sin precio se consultan aparte)':'\n(Precios a consultar)';
   }
