@@ -1004,15 +1004,11 @@ let bcvHoy=0, bcvCache={};
 
 // ===== CUENTAS DE COBRO =====
 const CUENTAS = [
-  {id:'bancaamiga_luisma', nombre:'BancaAmiga Luisma', tipo:'Pago Móvil', emoji:'🏦'},
-  {id:'bancaamiga_ana',    nombre:'BancaAmiga Ana',    tipo:'Pago Móvil', emoji:'🏦'},
-  {id:'bancaamiga_luisma', nombre:'BancaAmiga Luisma', tipo:'BCV',        emoji:'🏦'},
-  {id:'bancaamiga_ana',    nombre:'BancaAmiga Ana',    tipo:'BCV',        emoji:'🏦'},
-  {id:'bancaamiga_luisma', nombre:'BancaAmiga Luisma', tipo:'Efectivo Bs',emoji:'🏦'},
-  {id:'bancaamiga_ana',    nombre:'BancaAmiga Ana',    tipo:'Efectivo Bs',emoji:'🏦'},
-  {id:'binance',           nombre:'Binance/USDT',      tipo:'Binance/USDT',emoji:'🔷'},
-  {id:'paypal',            nombre:'PayPal',            tipo:'PayPal',     emoji:'🅿️'},
-  {id:'efectivo_usd',      nombre:'Efectivo $',        tipo:'Efectivo $', emoji:'💵'},
+  {id:'bancaamiga_luisma', nombre:'BancaAmiga Luisma', tipo:'Bs',         emoji:'🏦', moneda:'Bs'},
+  {id:'binance',           nombre:'Binance/USDT',      tipo:'Binance/USDT',emoji:'🔷', moneda:'USD'},
+  {id:'paypal',            nombre:'PayPal',            tipo:'PayPal',     emoji:'🅿️', moneda:'USD'},
+  {id:'efectivo_usd',      nombre:'Efectivo $',        tipo:'Efectivo $', emoji:'💵', moneda:'USD'},
+  {id:'efectivo_bs',       nombre:'Efectivo Bs',       tipo:'Efectivo Bs',emoji:'💴', moneda:'Bs'},
 ];
 function cuentasPorMetodo(m){
   const seen=new Set();
@@ -2468,7 +2464,7 @@ async function guardarGasto(){
   const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
   const tipo_gasto=document.querySelector('input[name="g-tipo"]:checked')?.value||'Gasto';
   await sbPost('gastos_globales',{evento_id:parseInt(document.getElementById('g-evento-id').value),descripcion:concepto,categoria:'Stand / Evento',monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value,tipo:tipo_gasto});
-  cerrarModal('modal-gasto'); renderEventos(); toast('✅ Gasto registrado');
+  cerrarModal('modal-gasto'); renderEventos(); gastosGlobales=await sbGet('gastos_globales','select=*&order=creado_en.desc'); toast('✅ Gasto registrado — descontado de BancaAmiga Luisma');
 }
 async function eliminarGasto(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('gastos_globales','id=eq.'+id); renderEventos(); toast('🗑️ Eliminado'); }
 
@@ -2541,7 +2537,7 @@ async function guardarGastoGlobal(){
   const data={tipo:document.getElementById('gg-tipo').value,categoria:document.getElementById('gg-categoria').value,descripcion:desc,monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('gg-fecha').value,evento_id:eventoId?parseInt(eventoId):null,notas:document.getElementById('gg-notas').value};
   const res=await sbPost('gastos_globales',data);
   if(res[0]) gastosGlobales.unshift(res[0]);
-  cerrarModal('modal-gasto-global'); renderGastosGlobal(); poblarMesesFiltroGasto(); cargarDashboard(); toast('✅ Gasto registrado');
+  cerrarModal('modal-gasto-global'); renderGastosGlobal(); poblarMesesFiltroGasto(); cargarDashboard(); if(data.moneda==='Bs') toast('✅ Gasto Bs registrado — descontado de BancaAmiga Luisma 🏦'); else toast('✅ Gasto registrado');
 }
 async function eliminarGastoGlobal(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('gastos_globales','id=eq.'+id); gastosGlobales=gastosGlobales.filter(g=>g.id!==id); renderGastosGlobal(); cargarDashboard(); toast('🗑️ Eliminado'); }
 function exportarGastosCSV(){
