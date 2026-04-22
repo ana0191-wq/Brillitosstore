@@ -135,9 +135,9 @@ input[type=range]{accent-color:var(--pk);width:120px}
 .feat-row-nuevos .feat-arrow:hover{background:#F387C3!important;color:#fff!important}
 
 /* ── SNIPPETS ── */
-.snippets-section{padding:0 0 8px}
-.snippets-title{font-family:var(--fh);font-size:1.2rem;color:var(--ts);padding:20px 40px 12px}
-.snippets-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;padding:0 40px 24px;max-width:860px}
+.snippets-section{padding:0 40px 24px;max-width:860px}
+.snippets-title{font-family:var(--fh);font-size:1.2rem;color:var(--ts);padding:20px 0 12px}
+.snippets-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:0;padding:0;max-width:860px;width:100%}
 .snippet-card{background:#fff;border-bottom:1px solid var(--pk-l);display:flex;align-items:center;gap:14px;padding:13px 8px;cursor:pointer;transition:background .15s;border-right:1px solid transparent}
 .snippet-card:nth-child(odd){border-right:1px solid var(--pk-l)}
 .snippet-card:hover{background:var(--pk-l)}
@@ -148,7 +148,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 .snippet-name{font-size:.9rem;font-weight:800;color:var(--tx);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .snippet-count{font-size:.72rem;color:var(--ts);font-weight:600;margin-top:2px}
 .snippet-arrow{font-size:1.1rem;color:var(--pk-d);flex-shrink:0;opacity:.5}
-@media(max-width:600px){.snippets-grid{grid-template-columns:1fr;padding:0 16px 24px}.snippets-title{padding:20px 16px 12px}.snippet-card:nth-child(odd){border-right:1px solid transparent}}
+@media(max-width:600px){.snippets-section{padding:0 16px 16px}.snippets-grid{grid-template-columns:1fr}.snippets-title{padding:14px 0 8px}.snippet-card:nth-child(odd){border-right:1px solid transparent}}
 
 /* ── PRODUCT CARDS ── */
 .feat-strip>.product-card{min-width:200px!important;max-width:200px!important}
@@ -341,7 +341,8 @@ input[type=range]{accent-color:var(--pk);width:120px}
   #product-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;padding:14px 16px}
   .snippets-grid{grid-template-columns:1fr;padding:0 16px 16px}
   .snippet-card:nth-child(odd){border-right:1px solid transparent}
-  .snippets-title{padding:14px 16px 8px}
+  .snippets-section{padding:0 16px 16px}
+  .snippets-title{padding:14px 0 8px}
   .feat-row-title{font-size:1.05rem}
   .brl-footer{padding:16px}
   .feat-mini-grid{padding:4px 16px 14px}
