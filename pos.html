@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Brillitos POS</title>
@@ -632,7 +635,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
   <!-- CARRITO -->
   <div class="cart" id="cart-panel">
-    <div class="cart-handle" onclick="toggleCart()"><div class="cart-handle-bar"></div></div>
+    <div class="cart-handle" onclick="cerrarTicketMob()"><div class="cart-handle-bar"></div></div>
 
     <div class="cart-head">
       <div class="cart-head-row">
@@ -1045,8 +1048,21 @@ function actualizarBarraMob(){
 }
 function abrirTicketMob(){
   const cart = document.getElementById('cart-panel');
-  if(cart){ cart.classList.add('open'); }
+  if(cart){
+    cart.classList.add('open');
+    history.pushState({ticketOpen:true}, '', '');
+  }
 }
+function cerrarTicketMob(){
+  const cart = document.getElementById('cart-panel');
+  if(cart) cart.classList.remove('open');
+}
+window.addEventListener('popstate', function(e){
+  const cart = document.getElementById('cart-panel');
+  if(cart && cart.classList.contains('open')){
+    cart.classList.remove('open');
+  }
+});
 
 function calcTotal(){
   const sub=carrito.reduce((s,i)=>s+i.sub,0);
@@ -1222,10 +1238,18 @@ document.addEventListener('click',e=>{
 
 init();
 window.addEventListener('resize',function(){
-  var bar=document.getElementById('mob-bottom-bar');
-  if(!bar) return;
-  bar.style.display=window.innerWidth<=768?'flex':'none';
+  aplicarLayoutMovil();
 });
+function aplicarLayoutMovil(){
+  var isMob = window.innerWidth<=768;
+  var bar = document.getElementById('mob-bottom-bar');
+  if(bar) bar.style.cssText = isMob
+    ? 'display:flex!important;position:fixed;bottom:0;left:0;right:0;height:68px;z-index:200;background:#fff;border-top:2px solid #ffd6ec;align-items:center;padding:0 16px;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.10)'
+    : 'display:none!important';
+  var scanBtn = document.querySelector('.scan-btn');
+  if(scanBtn) scanBtn.style.cssText = 'display:flex!important;height:44px;padding:0 16px;font-size:14px;font-weight:800;border-radius:12px;flex-shrink:0;background:#F387C3;color:#fff;border:none;align-items:center;gap:6px;cursor:pointer';
+}
+document.addEventListener('DOMContentLoaded', aplicarLayoutMovil);
 </script>
 </body>
 </html>
