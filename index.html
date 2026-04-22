@@ -544,8 +544,9 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <input type="hidden" id="pp-fix" value="0.30">
         <div class="subtotal-row"><span class="label">Comisión PayPal</span><span class="val" id="pp-fee">$0.00</span></div>
         <div class="subtotal-row"><span class="label">Total a cobrar al cliente</span><span class="val highlight" id="pp-total">$0.00</span></div>
-        <div class="pp-note" style="margin-bottom:8px">📧 PayPal: <strong>ana0191@gmail.com</strong></div>
-        <button class="pay-action blue" onclick="sendWA('paypal')">💬 Pagar con PayPal</button>
+        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Tú recibirás aprox.</span><span class="val" id="pp-recv" style="font-size:.72rem">$0.00</span></div>
+        <div class="pp-note" style="margin-bottom:8px">📧 Tu PayPal: <strong>ana0191@gmail.com</strong></div>
+        <button class="pay-action blue" onclick="sendWA('paypal')">💬 Enviar con total PayPal</button>
       </div>
       <div class="pay-section" id="sec-bnc">
         <div class="subtotal-row"><span class="label">Subtotal en USD</span><span class="val" id="bnc-sub">$0.00</span></div>
@@ -557,9 +558,8 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <div class="pp-note">💡 USDT es estable: 1 USDT ≈ $1 USD.</div>
         <div class="subtotal-row"><span class="label">Total a cobrar en USDT</span><span class="val highlight" id="bnc-total">0.00 USDT</span></div>
         <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Equivale a</span><span class="val" id="bnc-usd" style="font-size:.72rem">$0.00</span></div>
-        <div class="pp-note" style="margin-bottom:8px">📧 Binance Pay: <strong>ana0191@gmail.com</strong></div>
-        <div class="pp-note" style="margin-bottom:8px">📸 Luego de pagar, envía el <strong>capture</strong> por WhatsApp</div>
-        <button class="pay-action yellow" onclick="sendWA('binance')">💬 Pagar con Binance</button>
+        <div class="pp-note" style="margin-bottom:8px">📧 Tu Binance Pay: <strong>ana0191@gmail.com</strong></div>
+        <button class="pay-action yellow" onclick="sendWA('binance')">💬 Enviar con total Binance</button>
       </div>
       <div class="pay-section" id="sec-bs">
         <div class="subtotal-row"><span class="label">Subtotal USD</span><span class="val" id="bs-sub">$0.00</span></div>
@@ -573,8 +573,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <div class="subtotal-row"><span class="label">Total en Bolívares (Bs.)</span><span class="val highlight" id="bs-total">Bs. 0.00</span></div>
         <div class="subtotal-row" style="margin-bottom:4px"><span class="label" style="font-size:.72rem">Tasa usada</span><span class="val" id="bs-used-rate" style="font-size:.72rem">—</span></div>
         <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Pago móvil</span><span class="val" id="bs-pm" style="font-size:.72rem">—</span></div>
-        <div class="pp-note" style="margin-bottom:8px">📸 Luego de pagar, envía el <strong>comprobante</strong> por WhatsApp</div>
-        <button class="pay-action pk" onclick="sendWA('bolivares')">💬 Pagar con Bolívares</button>
+        <button class="pay-action pk" onclick="sendWA('bolivares')">💬 Enviar con total en Bs.</button>
       </div>
     </div>
   </div>
@@ -1335,21 +1334,21 @@ function sendWA(method){
     const pct=parseFloat(document.getElementById('pp-pct').value)||5.4;
     const fix=parseFloat(document.getElementById('pp-fix').value)||0.30;
     const charge=(sub+fix)/(1-pct/100);
-    payLine='\n🅿️ *Método de pago: PayPal*\nDirección: ana0191@gmail.com\n💰 *Total a pagar: $'+charge.toFixed(2)+' USD*';
+    payLine='\n🅿️ *Pago por PayPal*\nEnviar a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\nComisión PayPal ('+pct+'% + '+fix+'): '+(charge-sub).toFixed(2)+'\n💰 *Total a pagar: '+charge.toFixed(2)+' USD*';
   } else if(method==='binance'){
     const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
     const pct=parseFloat(document.getElementById('bnc-pct').value)||0;
     const fee=sub*(pct/100);
     const total=(sub+fee)/rate;
-    payLine='\n₿ *Método de pago: Binance Pay (USDT)*\nDirección: ana0191@gmail.com\n💰 *Total a pagar: '+total.toFixed(4)+' USDT*\n📸 Enviaré el capture del pago por aquí';
+    payLine='\n₿ *Pago por Binance Pay (USDT)*\nEnviar a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\n💰 *Total a pagar: '+total.toFixed(4)+' USDT*';
   } else if(method==='bolivares'){
     const rate=parseFloat(document.getElementById('bs-rate').value)||40;
     const bs=sub*rate;
-    payLine='\n🇻🇪 *Método de pago: Pago Móvil / Bolívares*\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*\n(Tasa BCV: Bs.'+rate+'/$)\n📸 Enviaré el comprobante por aquí';
+    payLine='\n🇻🇪 *Pago móvil / Bs.*\nSubtotal: $'+sub.toFixed(2)+'\nTasa BCV: Bs.'+rate+'/$\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*';
   } else {
-    payLine=sub>0?'\n💰 *Total estimado: $'+sub.toFixed(2)+' USD*':'\n(Precios a consultar)';
+    payLine=sub>0?'\n💰 Subtotal estimado: $'+sub.toFixed(2)+' USD\n(productos sin precio se consultan aparte)':'\n(Precios a consultar)';
   }
-  const msg='🌸 *Pedido Brillitos* 🌸\n\n'+lines+'\n'+payLine+'\n\n¡Hola! Quiero hacer este pedido 💖';
+  const msg='🌸 *Pedido Brillitos 2026* 🌸\n\n'+lines+'\n'+payLine+'\n\n¡Hola! Quiero hacer este pedido 💖';
   const num=document.getElementById('wa-num')?.value?.replace(/\D/g,'')||WA_NUMBER;
   const url=num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
   window.open(url,'_blank');
