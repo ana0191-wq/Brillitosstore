@@ -2,9 +2,6 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Brillitos POS</title>
@@ -280,9 +277,6 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .citem-meta{font-size:11px;color:var(--sub);margin-top:2px}
 .citem-bs{font-size:10px;color:var(--green);font-weight:700;margin-top:1px}
-.citem-num{width:22px;height:22px;border-radius:50%;background:var(--pk-l);color:var(--pk);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.citem-img{width:48px;height:48px;border-radius:10px;object-fit:cover;flex-shrink:0}
-.citem-ph{width:48px;height:48px;border-radius:10px;background:var(--pk-l);display:flex;align-items:center;justify-content:center;font-size:1.2rem;flex-shrink:0}
 .citem-ctrl{display:flex;align-items:center;gap:4px;flex-shrink:0}
 .qty-btn{
   width:24px;height:24px;border-radius:7px;
@@ -381,19 +375,6 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
 /* ── MÓVIL ── */
 
-/* ── BARRA INFERIOR MÓVIL ── */
-.mob-bottom-bar{display:none}
-@media(max-width:768px){
-  .mob-bottom-bar{
-    display:flex!important;
-    position:fixed;bottom:0;left:0;right:0;
-    height:68px;z-index:250;
-    background:#fff;border-top:2px solid #ffd6ec;
-    align-items:center;padding:0 16px;gap:12px;
-    box-shadow:0 -4px 20px rgba(0,0,0,.10);
-  }
-}
-
 @media(max-width:768px){
   html,body{overflow:hidden;width:100%;max-width:100vw}
   .app{
@@ -407,76 +388,51 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   .main{
     display:flex;flex-direction:column;
     width:100vw!important;max-width:100vw!important;
-    height:100%;
+    height:100vh;height:100svh;
     overflow:hidden;flex:1;min-width:0;
   }
-  /* Topbar móvil: título + buscador + botón escanear grande */
-  .topbar{
-    padding:10px 12px 8px;gap:8px;
-    width:100%;box-sizing:border-box;
-    flex-wrap:nowrap;
+  .cart{
+    position:fixed!important;bottom:0;left:0;right:0;
+    width:100%!important;max-width:100vw!important;
+    height:78vh;
+    border-radius:20px 20px 0 0;border-left:none;
+    border-top:2px solid var(--pk-m);
+    box-shadow:0 -8px 32px rgba(0,0,0,.12);
+    transform:translateY(100%);
+    transition:transform .32s cubic-bezier(.32,.72,0,1);
+    z-index:200;display:flex;flex-direction:column;overflow:hidden;
   }
-  .topbar-title{font-size:14px;white-space:nowrap}
-  .topbar-search{flex:1}
-  .bcv-pill{display:none!important}
-  /* Botón escanear visible y grande en móvil */
-  .scan-btn{
-    display:flex!important;
-    height:44px;padding:0 16px;
-    font-size:14px;font-weight:800;
-    border-radius:12px;flex-shrink:0;
-    background:var(--pk);color:#fff;border:none;
-    align-items:center;gap:6px;cursor:pointer;
-  }
-  .scan-fab-left{display:none!important}
-  /* Categorías */
+  .cart.open{transform:translateY(0)!important;display:flex!important;flex-direction:column!important}
+  .cart-handle{display:flex!important;justify-content:center;padding:10px 0 4px;flex-shrink:0;cursor:pointer}
+  .cart-handle-bar{width:40px;height:4px;border-radius:2px;background:var(--pk-m)}
+  .topbar{padding:10px 12px 8px;gap:8px;width:100%;box-sizing:border-box}
+  .topbar-title{font-size:15px}
+  .bcv-pill{display:none}
+  .scan-btn{display:none!important}
+  .scan-fab-left{display:flex!important}
   .cats-row{padding:0 12px 8px;gap:7px;width:100%;box-sizing:border-box;overflow-x:auto;flex-wrap:nowrap}
   .cat-card{width:56px;min-width:56px;padding:8px 5px 7px;font-size:10px}
   .cat-card .ico{font-size:16px}
-  .prod-section{padding:0 12px 4px;width:100%;box-sizing:border-box}
-  /* Grid productos — ocupa todo el espacio disponible */
+  .prod-section{padding:0 12px 6px;width:100%;box-sizing:border-box}
   .grid{
     flex:1;min-height:0;overflow-y:auto;
-    padding:0 12px 140px;
+    padding:0 12px 90px;
     width:100%;box-sizing:border-box;
     grid-template-columns:repeat(2,1fr)!important;
     gap:8px;
   }
-  /* Carrito: pantalla completa deslizable desde abajo */
-  .cart{
-    position:fixed!important;bottom:0;left:0;right:0;
-    width:100%!important;max-width:100vw!important;
-    height:92vh;
-    border-radius:20px 20px 0 0;border-left:none;
-    border-top:2px solid var(--pk-m);
-    box-shadow:0 -8px 32px rgba(0,0,0,.15);
-    transform:translateY(100%);
-    transition:transform .32s cubic-bezier(.32,.72,0,1);
-    z-index:300;display:flex!important;flex-direction:column;overflow:hidden;
-    background:#fff;
+  .cart-fab{
+    display:flex!important;position:fixed;bottom:18px;right:16px;
+    width:58px;height:58px;border-radius:29px;
+    background:var(--pk);color:var(--white);font-size:24px;
+    align-items:center;justify-content:center;
+    box-shadow:0 4px 20px rgba(214,58,138,.45);z-index:199;border:none;
   }
-  .cart.open{transform:translateY(0)!important}
-  .cart-handle{display:flex!important;justify-content:center;padding:12px 0 6px;flex-shrink:0;cursor:pointer}
-  .cart-handle-bar{width:44px;height:4px;border-radius:2px;background:var(--pk-m)}
-  /* Barra inferior fija */
-  .mob-bottom-bar{
-    display:flex!important;
-    position:fixed;bottom:0;left:0;right:0;
-    height:68px;z-index:200;
-    background:#fff;border-top:2px solid var(--pk-l);
-    align-items:center;padding:0 16px;gap:12px;
-    box-shadow:0 -4px 20px rgba(0,0,0,.10);
+  .fab-badge{
+    position:absolute;top:-3px;right:-3px;background:#ff3333;color:var(--white);
+    font-size:10px;font-weight:800;min-width:20px;height:20px;border-radius:10px;
+    display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--white);
   }
-  .mob-bottom-info{flex:1;display:flex;flex-direction:column;gap:1px}
-  .mob-bottom-count{font-size:11px;color:var(--gray);font-weight:600}
-  .mob-bottom-total{font-size:22px;font-weight:900;color:var(--pk-d)}
-  .mob-bottom-ticket{
-    background:var(--pk);color:#fff;border:none;border-radius:14px;
-    padding:12px 22px;font-size:15px;font-weight:800;cursor:pointer;
-    white-space:nowrap;box-shadow:0 4px 12px rgba(214,58,138,.35);
-  }
-  .cart-fab{display:none!important}
-  .fab-badge{display:none!important}
 }
 @media(min-width:769px){
   .cart-fab{display:none!important}
@@ -618,9 +574,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
         <input id="search-inp" placeholder="Buscar producto..." oninput="filtrar()" autocomplete="off">
       </div>
       <div class="bcv-pill" id="bcv-badge">💱 …</div>
-      <button class="scan-btn" onclick="abrirScanner()" style="display:flex!important;height:44px;padding:0 16px;font-size:14px;font-weight:800;border-radius:12px;flex-shrink:0;background:var(--pk);color:#fff;border:none;align-items:center;gap:6px;cursor:pointer">📷 Escanear</button>
+      <button class="scan-btn" onclick="abrirScanner()">📷 Escanear</button>
     </div>
-    <button class="scan-fab-left" onclick="abrirScanner()" style="display:none!important">📷 Escanear</button>
+    <button class="scan-fab-left" onclick="abrirScanner()">📷 Escanear</button>
 
     <!-- Categorías -->
     <div class="cats-row" id="cats-row"></div>
@@ -634,18 +590,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <div class="grid" id="prod-grid"></div>
   </div>
 
-  <!-- BARRA INFERIOR MÓVIL -->
-  <div class="mob-bottom-bar" id="mob-bottom-bar">
-    <div class="mob-bottom-info">
-      <span class="mob-bottom-count" id="mob-cnt">0 items</span>
-      <span class="mob-bottom-total" id="mob-total">$0.00</span>
-    </div>
-    <button class="mob-bottom-ticket" onclick="toggleCart()">🧾 Ver ticket</button>
-  </div>
-
   <!-- CARRITO -->
   <div class="cart" id="cart-panel">
-    <div class="cart-handle" onclick="cerrarTicketMob()"><div class="cart-handle-bar"></div></div>
+    <div class="cart-handle" onclick="toggleCart()"><div class="cart-handle-bar"></div></div>
 
     <div class="cart-head">
       <div class="cart-head-row">
@@ -830,15 +777,9 @@ const $=id=>document.getElementById(id);
 function hoy(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240);return d.toISOString().slice(0,10);}
 function codProd(id){return 'BRILL-'+id;}
 function toast(msg,ms=2600){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),ms);}
-let _audioCtx=null;
-function getAudioCtx(){
-  if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
-  if(_audioCtx.state==='suspended') _audioCtx.resume();
-  return _audioCtx;
-}
 function beep(){
   try{
-    const ctx=getAudioCtx();
+    const ctx=new(window.AudioContext||window.webkitAudioContext)();
     [1050,1320].forEach((freq,i)=>{
       const o=ctx.createOscillator(),g=ctx.createGain();
       o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;
@@ -884,14 +825,6 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 // ── INIT ──
-document.addEventListener('touchstart',function ia(){getAudioCtx();document.removeEventListener('touchstart',ia);},{once:true});
-// Mostrar barra inferior en móvil
-(function(){
-  if(window.innerWidth<=768){
-    var bar=document.getElementById('mob-bottom-bar');
-    if(bar) bar.style.display='flex';
-  }
-})();
 async function init(){
   $('loading-sub').textContent='Cargando productos...';
   try{
@@ -1028,13 +961,14 @@ function renderCarrito(){
   el.innerHTML=carrito.map((it,i)=>{
     const bsItem=tasa>0?'Bs. '+(it.sub*tasa).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'';
     const imgEl=it.foto
-      ?`<img class="citem-img" src="${it.foto}" loading="lazy" onerror="this.style.display='none'">`
+      ?`<img class="citem-img" src="${it.foto}" loading="lazy" onerror="this.className='citem-ph';this.textContent='🌸'">`
       :`<div class="citem-ph">🌸</div>`;
     return `<div class="citem">
       ${imgEl}
       <div class="citem-info">
         <div class="citem-name">${it.nombre}</div>
-        <div class="citem-meta">$${it.precio.toFixed(2)} c/u${bsItem?' · <span style="color:var(--pk);font-weight:700">'+bsItem+'</span>':''}</div>
+        <div class="citem-meta">$${it.precio.toFixed(2)} × ${it.cantidad}</div>
+        ${bsItem?`<div class="citem-bs">${bsItem}</div>`:''}
       </div>
       <div class="citem-ctrl">
         <button class="qty-btn" onclick="chgQty(${i},-1)">−</button>
@@ -1046,32 +980,6 @@ function renderCarrito(){
   }).join('');
   calcTotal();
 }
-function actualizarBarraMob(){
-  const cnt = carrito.reduce((s,i)=>s+i.cantidad,0);
-  const sub = carrito.reduce((s,i)=>s+i.sub,0);
-  const el = document.getElementById('mob-bottom-bar');
-  if(!el) return;
-  const cntEl = document.getElementById('mob-cnt');
-  const totEl = document.getElementById('mob-total');
-  if(cntEl) cntEl.textContent = cnt===0 ? 'Carrito vacío' : cnt+' item'+(cnt!==1?'s':'');
-  if(totEl) totEl.textContent = '$'+sub.toFixed(2);
-}
-function abrirTicketMob(){
-  const cart = document.getElementById('cart-panel');
-  if(cart){
-    cart.classList.add('open');
-    history.pushState({ticketOpen:true}, '', '');
-  }
-}
-function cerrarTicketMob(){
-  $('cart-panel').classList.remove('open');
-}
-window.addEventListener('popstate', function(e){
-  const cart = document.getElementById('cart-panel');
-  if(cart && cart.classList.contains('open')){
-    cart.classList.remove('open');
-  }
-});
 
 function calcTotal(){
   const sub=carrito.reduce((s,i)=>s+i.sub,0);
@@ -1237,14 +1145,7 @@ function onScan(decoded){
 }
 function buscarManual(){const v=$('inp-manual').value.trim();if(v)onScan(v);}
 
-function toggleCart(){
-  const panel = $('cart-panel');
-  const isOpen = panel.classList.contains('open');
-  panel.classList.toggle('open');
-  if(!isOpen && window.innerWidth<=768){
-    history.pushState({ticketOpen:true},'','');
-  }
-}
+function toggleCart(){$('cart-panel').classList.toggle('open');}
 document.addEventListener('click',e=>{
   if(window.innerWidth>768)return;
   const panel=$('cart-panel'),fab=$('cart-fab');
@@ -1253,19 +1154,6 @@ document.addEventListener('click',e=>{
 });
 
 init();
-window.addEventListener('resize',function(){
-  aplicarLayoutMovil();
-});
-function aplicarLayoutMovil(){
-  var isMob = window.innerWidth<=768;
-  var bar = document.getElementById('mob-bottom-bar');
-  if(bar) bar.style.cssText = isMob
-    ? 'display:flex!important;position:fixed;bottom:0;left:0;right:0;height:68px;z-index:200;background:#fff;border-top:2px solid #ffd6ec;align-items:center;padding:0 16px;gap:12px;box-shadow:0 -4px 20px rgba(0,0,0,.10)'
-    : 'display:none!important';
-  var scanBtn = document.querySelector('.scan-btn');
-  if(scanBtn) scanBtn.style.cssText = 'display:flex!important;height:44px;padding:0 16px;font-size:14px;font-weight:800;border-radius:12px;flex-shrink:0;background:#F387C3;color:#fff;border:none;align-items:center;gap:6px;cursor:pointer';
-}
-// layout móvil manejado por CSS
 </script>
 </body>
 </html>
