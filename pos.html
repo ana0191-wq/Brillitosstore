@@ -383,6 +383,16 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
 /* ── BARRA INFERIOR MÓVIL ── */
 .mob-bottom-bar{display:none}
+@media(max-width:768px){
+  .mob-bottom-bar{
+    display:flex!important;
+    position:fixed;bottom:0;left:0;right:0;
+    height:68px;z-index:250;
+    background:#fff;border-top:2px solid #ffd6ec;
+    align-items:center;padding:0 16px;gap:12px;
+    box-shadow:0 -4px 20px rgba(0,0,0,.10);
+  }
+}
 
 @media(max-width:768px){
   html,body{overflow:hidden;width:100%;max-width:100vw}
@@ -625,12 +635,12 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   </div>
 
   <!-- BARRA INFERIOR MÓVIL -->
-  <div class="mob-bottom-bar" id="mob-bottom-bar" style="display:none">
+  <div class="mob-bottom-bar" id="mob-bottom-bar">
     <div class="mob-bottom-info">
       <span class="mob-bottom-count" id="mob-cnt">0 items</span>
       <span class="mob-bottom-total" id="mob-total">$0.00</span>
     </div>
-    <button class="mob-bottom-ticket" onclick="abrirTicketMob()">🧾 Ver ticket</button>
+    <button class="mob-bottom-ticket" onclick="toggleCart()">🧾 Ver ticket</button>
   </div>
 
   <!-- CARRITO -->
@@ -1054,8 +1064,7 @@ function abrirTicketMob(){
   }
 }
 function cerrarTicketMob(){
-  const cart = document.getElementById('cart-panel');
-  if(cart) cart.classList.remove('open');
+  $('cart-panel').classList.remove('open');
 }
 window.addEventListener('popstate', function(e){
   const cart = document.getElementById('cart-panel');
@@ -1228,7 +1237,14 @@ function onScan(decoded){
 }
 function buscarManual(){const v=$('inp-manual').value.trim();if(v)onScan(v);}
 
-function toggleCart(){$('cart-panel').classList.toggle('open');}
+function toggleCart(){
+  const panel = $('cart-panel');
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  if(!isOpen && window.innerWidth<=768){
+    history.pushState({ticketOpen:true},'','');
+  }
+}
 document.addEventListener('click',e=>{
   if(window.innerWidth>768)return;
   const panel=$('cart-panel'),fab=$('cart-fab');
@@ -1249,7 +1265,7 @@ function aplicarLayoutMovil(){
   var scanBtn = document.querySelector('.scan-btn');
   if(scanBtn) scanBtn.style.cssText = 'display:flex!important;height:44px;padding:0 16px;font-size:14px;font-weight:800;border-radius:12px;flex-shrink:0;background:#F387C3;color:#fff;border:none;align-items:center;gap:6px;cursor:pointer';
 }
-document.addEventListener('DOMContentLoaded', aplicarLayoutMovil);
+// layout móvil manejado por CSS
 </script>
 </body>
 </html>
