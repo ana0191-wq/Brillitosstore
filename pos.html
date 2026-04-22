@@ -605,9 +605,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
         <input id="search-inp" placeholder="Buscar producto..." oninput="filtrar()" autocomplete="off">
       </div>
       <div class="bcv-pill" id="bcv-badge">💱 …</div>
-      <button class="scan-btn" onclick="abrirScanner()">📷 Escanear</button>
+      <button class="scan-btn" onclick="abrirScanner()" style="display:flex!important;height:44px;padding:0 16px;font-size:14px;font-weight:800;border-radius:12px;flex-shrink:0;background:var(--pk);color:#fff;border:none;align-items:center;gap:6px;cursor:pointer">📷 Escanear</button>
     </div>
-    <button class="scan-fab-left" onclick="abrirScanner()">📷 Escanear</button>
+    <button class="scan-fab-left" onclick="abrirScanner()" style="display:none!important">📷 Escanear</button>
 
     <!-- Categorías -->
     <div class="cats-row" id="cats-row"></div>
@@ -622,7 +622,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   </div>
 
   <!-- BARRA INFERIOR MÓVIL -->
-  <div class="mob-bottom-bar" id="mob-bottom-bar">
+  <div class="mob-bottom-bar" id="mob-bottom-bar" style="display:none">
     <div class="mob-bottom-info">
       <span class="mob-bottom-count" id="mob-cnt">0 items</span>
       <span class="mob-bottom-total" id="mob-total">$0.00</span>
@@ -872,6 +872,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 
 // ── INIT ──
 document.addEventListener('touchstart',function ia(){getAudioCtx();document.removeEventListener('touchstart',ia);},{once:true});
+// Mostrar barra inferior en móvil
+(function(){
+  if(window.innerWidth<=768){
+    var bar=document.getElementById('mob-bottom-bar');
+    if(bar) bar.style.display='flex';
+  }
+})();
 async function init(){
   $('loading-sub').textContent='Cargando productos...';
   try{
@@ -1214,6 +1221,11 @@ document.addEventListener('click',e=>{
 });
 
 init();
+window.addEventListener('resize',function(){
+  var bar=document.getElementById('mob-bottom-bar');
+  if(!bar) return;
+  bar.style.display=window.innerWidth<=768?'flex':'none';
+});
 </script>
 </body>
 </html>
