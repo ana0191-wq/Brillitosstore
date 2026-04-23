@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776962824 -->
+<head><!-- v1776962911 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -772,13 +772,11 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   <div class="modal-box" style="max-width:340px;padding:0;overflow:hidden;border-radius:22px" onclick="event.stopPropagation()">
     <div id="pedido-contenido" style="padding:22px 18px;text-align:center"></div>
     <div style="border-top:1px solid #f0e6f6">
+      <button onclick="imprimirPedido()" id="btn-imprimir-pedido" style="width:100%;padding:15px;background:#e8f5e9;border:none;border-bottom:1px solid #f0e6f6;font-size:16px;color:#2e7d32;font-weight:700;cursor:pointer;display:block">🖨️ Imprimir en GB01</button>
       <div style="display:flex;gap:0">
-        <button onclick="imprimirPedido()" id="btn-imprimir-pedido" style="flex:1;padding:14px;background:#e8f5e9;border:none;font-size:15px;color:#2e7d32;font-weight:700;cursor:pointer;border-right:1px solid #f0e6f6">🖨️ Imprimir</button>
-        <button onclick="compartirPedido()" style="flex:1;padding:14px;background:#fff;border:none;font-size:15px;color:#c2185b;font-weight:700;cursor:pointer">📤 Compartir</button>
-      </div>
-      <div style="display:flex;gap:0;border-top:1px solid #f0e6f6">
         <button onclick="cerrarPedido()" style="flex:1;padding:14px;background:#fff;border:none;font-size:15px;color:#888;cursor:pointer;border-radius:0 0 0 22px;border-right:1px solid #f0e6f6">✖ Cerrar</button>
-        <button onclick="confirmarDesdePedido()" style="flex:1;padding:14px;background:var(--pk);border:none;font-size:16px;color:#fff;font-weight:700;cursor:pointer;border-radius:0 0 22px 0">✅ Cobrar</button>
+        <button onclick="compartirPedido()" style="flex:1;padding:14px;background:#fff;border:none;font-size:15px;color:#555;cursor:pointer;border-right:1px solid #f0e6f6">📤 Compartir</button>
+        <button onclick="confirmarDesdePedido()" style="flex:1;padding:14px;background:var(--pk);border:none;font-size:15px;color:#fff;font-weight:700;cursor:pointer;border-radius:0 0 22px 0">✅ Cobrar</button>
       </div>
     </div>
   </div>
@@ -1048,10 +1046,14 @@ async function compartirPedido(){
     +'\n─────────────\nTOTAL: $'+total.toFixed(2)
     +(bs>0?'\nBs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'')
     +(pmCuenta&&pmCuenta.tlf?'\n\n📱 Pago Móvil\n'+pmCuenta.tlf+' · '+pmCuenta.banco+'\nCédula: '+pmCuenta.cuenta:'');
-  if(navigator.share){
-    try{ await navigator.share({text:txt,title:'Pedido Brillitos'}); }catch(e){}
+  // Copiar al portapapeles — el share lo decide el usuario
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast('📋 Pedido copiado — pégalo en WhatsApp',3000));
   } else {
-    navigator.clipboard?.writeText(txt).then(()=>toast('📋 Copiado al portapapeles'));
+    const ta=document.createElement('textarea');
+    ta.value=txt; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+    toast('📋 Pedido copiado 🌸',3000);
   }
 }
 
