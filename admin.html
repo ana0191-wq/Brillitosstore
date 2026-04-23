@@ -596,6 +596,11 @@ tr:hover td{background:#fff8fc}
       </select>
     </div>
     <div class="form-group">
+      <label>🧾 Referencia de pago</label>
+      <input type="text" id="v-referencia" placeholder="Número de referencia (opcional)">
+    </div>
+    
+    <div class="form-group">
       <label>📅 Fecha de la venta</label>
       <input type="date" id="v-fecha-venta" onchange="onFechaCambio()">
     </div>
@@ -1965,11 +1970,28 @@ function abrirModalVenta(v=null){
   document.getElementById('v-descuento').value=v?v.descuento||0:0;
   document.getElementById('v-estado').value=v?v.estado||'Pendiente':'Pendiente';
   document.getElementById('v-tasa-bcv').value=v?v.tasa_bcv_usada||'':'';
+  if(document.getElementById('v-referencia')) document.getElementById('v-referencia').value=v?v.referencia_pago||'':'';
   document.getElementById('v-evento').value=v?v.evento_id||'':'';
   // Resetear estado Bs SIEMPRE al abrir modal
   v_bs_manual = false;
   document.getElementById('v-total-bs').value = '';
   toggleEventoWrap(); renderItems(); onMetodoCambio();
+  // Restaurar cuenta cobro guardada
+  if(v && v.cuenta_cobro){
+    setTimeout(()=>{
+      const sel=document.getElementById('v-cuenta');
+      if(sel){
+        // Intentar por value directo
+        sel.value=v.cuenta_cobro;
+        // Si no matchea (valor es nombre en vez de id), buscar por nombre
+        if(!sel.value){
+          const opts=[...sel.options];
+          const match=opts.find(o=>o.text.toLowerCase().includes((v.cuenta_cobro||'').toLowerCase()));
+          if(match) sel.value=match.value;
+        }
+      }
+    },100);
+  }
   // Si tiene monto_bs guardado, cargarlo; si no, dejar que calcule automático
   if(v && parseFloat(v.monto_bs||0)>0){
     setTimeout(()=>{
@@ -2096,7 +2118,8 @@ async function guardarVenta(){
     subtotal:sub, costo_envio:env, descuento:desc, total,
     tasa_bcv_usada:tasa||0, monto_bs:parseFloat(monto_bs)||0,
     moneda_pago:esBs?'Bs':'USD',
-    cuenta_cobro:document.getElementById('v-cuenta')?document.getElementById('v-cuenta').value||null:null
+    cuenta_cobro:document.getElementById('v-cuenta')?document.getElementById('v-cuenta').value||null:null,
+    referencia_pago:document.getElementById('v-referencia')?document.getElementById('v-referencia').value.trim()||null:null
   };
   console.log('💾 guardarVenta data:', JSON.stringify(data));
   if(editVentaId){
