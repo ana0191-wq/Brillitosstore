@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776970109 -->
+<head><!-- v1776970477 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -959,7 +959,6 @@ async function imprimirPedido(){
   const btn=document.getElementById('btn-imprimir-pedido');
   if(btn){ btn.textContent='⏳...'; btn.disabled=true; }
 
-  // Generar texto del recibo
   const sub=carrito.reduce((s,i)=>s+i.sub,0);
   const desc=parseFloat($('inp-desc').value)||0;
   const total=Math.max(0,sub-desc);
@@ -993,18 +992,6 @@ async function imprimirPedido(){
   lineas.push('');
   const txt=lineas.join('\n');
 
-  // Intentar Web Bluetooth si disponible
-  if(navigator.bluetooth && _printer && _printer.char){
-    try{
-      const enc=new TextEncoder();
-      await _enviarBytes(enc.encode(txt+'\n\n\n\n'));
-      toast('🖨️ Imprimiendo 🌸',3000);
-      if(btn){ btn.textContent='🖨️ Imprimir en GB01'; btn.disabled=false; }
-      return;
-    }catch(e){ console.warn('BT directo falló:',e); }
-  }
-
-  // Copiar al portapapeles
   try{
     await navigator.clipboard.writeText(txt);
   }catch(e){
@@ -1013,15 +1000,7 @@ async function imprimirPedido(){
     document.execCommand('copy'); document.body.removeChild(ta);
   }
 
-  // Intent a Fun Printer (com.phucynwa.mini.portable.cat.printer)
-  const intentUrl='intent://print#Intent;scheme=funprinter;package=com.phucynwa.mini.portable.cat.printer;S.text='+encodeURIComponent(txt)+';end';
-  const a=document.createElement('a');
-  a.href=intentUrl;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-
-  toast('🖨️ Abriendo Fun Printer...',3000);
+  toast('📋 Recibo copiado — pégalo en Fun Printer 🌸',4000);
   if(btn){ btn.textContent='🖨️ Imprimir en GB01'; btn.disabled=false; }
 }
 
@@ -1443,15 +1422,11 @@ async function ejecutarCobro(){
         const p=prods.find(x=>x.id===it.id);
         if(p) await PATCH('productos',p.id,{stock:p.stock});
       }
-    // 🖨️ Imprimir automáticamente al confirmar
-    setTimeout(()=>imprimirPedido(), 400);
     } else {
       toast('⚠️ Venta registrada localmente — error al sincronizar',4000);
-      setTimeout(()=>imprimirPedido(), 400);
     }
   }catch(e){
     toast('⚠️ Venta registrada — sin conexión ('+e.message+')',5000);
-    setTimeout(()=>imprimirPedido(), 400);
   }
 }
 
