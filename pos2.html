@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776967077 -->
+<head><!-- v1776967198 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -902,6 +902,16 @@ const GB01_SVC  = 0xAE30;
 const GB01_CHAR = 0xAE01;
 const GB01_CHUNK = 200; // bytes por paquete
 
+
+function toggleImpresora(){
+  // Si Web Bluetooth disponible, intentar conectar
+  if(navigator.bluetooth){
+    conectarImpresora();
+    return;
+  }
+  // Si no, mostrar instrucciones para Android
+  toast('💡 Abre iPrint, conecta la GB01 y usa el POS desde ahí', 4000);
+}
 async function conectarImpresora(){
   const btn=document.getElementById('printer-fab')||$('printer-btn');
   if(!navigator.bluetooth){ toast('⚠️ Web Bluetooth no disponible en este navegador'); return; }
@@ -1008,17 +1018,8 @@ async function imprimirPedido(){
     document.execCommand('copy'); document.body.removeChild(ta);
   }
 
-  // Intentar abrir iPrint via intent Android
-  const isAndroid=/android/i.test(navigator.userAgent);
-  if(isAndroid){
-    // Intent para abrir iPrint (com.iposprinter.iposprinterservice) con texto
-    const intentUrl='intent://print#Intent;scheme=iposprinter;package=com.iposprinter.iposprinterservice;end';
-    const a=document.createElement('a');
-    a.href=intentUrl; a.click();
-    toast('📋 Texto copiado — pégalo en iPrint 🖨️',4000);
-  } else {
-    toast('📋 Pedido copiado — pégalo en tu app de impresión 🌸',4000);
-  }
+  // Mostrar instrucciones claras
+  toast('📋 Pedido copiado al portapapeles — pégalo en iPrint 🖨️', 5000);
 
   if(btn){ btn.textContent='🖨️ Imprimir en GB01'; btn.disabled=false; }
 }
@@ -1614,7 +1615,7 @@ init();
 </script>
 
 <!-- Botón impresora flotante siempre visible -->
-<button id="printer-fab" onclick="conectarImpresora()" title="Conectar impresora GB01"
+<button id="printer-fab" onclick="toggleImpresora()" title="Conectar impresora GB01"
   style="position:fixed;bottom:90px;right:16px;z-index:999;
          width:48px;height:48px;border-radius:50%;border:2px solid #a5d6a7;
          background:#e8f5e9;color:#2e7d32;font-size:22px;
