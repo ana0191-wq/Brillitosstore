@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776966429 -->
+<head><!-- v1776967077 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -947,7 +947,7 @@ function _lineaBytes(){ return new TextEncoder().encode('-----------------------
 
 async function imprimirPedido(){
   const btn=document.getElementById('btn-imprimir-pedido');
-  btn.textContent='⏳...'; btn.disabled=true;
+  if(btn){ btn.textContent='⏳...'; btn.disabled=true; }
 
   // Generar texto del pedido
   const sub=carrito.reduce((s,i)=>s+i.sub,0);
@@ -1020,7 +1020,7 @@ async function imprimirPedido(){
     toast('📋 Pedido copiado — pégalo en tu app de impresión 🌸',4000);
   }
 
-  btn.textContent='🖨️ Imprimir en GB01'; btn.disabled=false;
+  if(btn){ btn.textContent='🖨️ Imprimir en GB01'; btn.disabled=false; }
 }
 
 function mostrarPedido(){
