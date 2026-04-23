@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776962509 -->
+<head><!-- v1776962696 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -8,6 +8,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Brillitos POS</title>
+<meta name="build" content="1776962696">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 :root{
@@ -1028,8 +1029,8 @@ function cerrarPedido(){
 }
 
 function confirmarDesdePedido(){
-  cerrarPedido();
-  confirmar();
+  $('modal-pedido').classList.remove('open');
+  setTimeout(()=>{ confirmar(); }, 50);
 }
 
 async function compartirPedido(){
@@ -1350,8 +1351,9 @@ function confirmar(){
 
 async function ejecutarCobro(){
   if(!pendiente)return;
+  const _pend=pendiente; pendiente=null; // consumir pendiente INMEDIATAMENTE para evitar doble cobro
   const btn=$('mc-ok');btn.disabled=true;btn.textContent='⏳...';
-  const {total,sub,desc,esBs,tasa,bs,cliente,cuenta,metodo:met}=pendiente;
+  const {total,sub,desc,esBs,tasa,bs,cliente,cuenta,metodo:met}=_pend;
   const canalPOS=$('inp-canal')?$('inp-canal').value:'POS';
   const snapCarrito=[...carrito];
 
