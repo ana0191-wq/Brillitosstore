@@ -633,6 +633,13 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
       </div>
       <div class="cart-cliente">
         <input id="inp-cliente" placeholder="👤 Cliente (opcional)" autocomplete="off">
+      <select id="inp-canal" style="width:100%;margin-top:6px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:#fff;color:#333;outline:none">
+        <option value="POS">🏪 POS (presencial)</option>
+        <option value="WhatsApp">💬 WhatsApp</option>
+        <option value="Instagram">📸 Instagram</option>
+        <option value="Web">🌐 Web</option>
+        <option value="Evento">🎪 Evento</option>
+      </select>
       </div>
     </div>
 
@@ -1091,7 +1098,8 @@ async function ejecutarCobro(){
   const btn=$('mc-ok');btn.disabled=true;btn.textContent='⏳...';
   const {total,sub,desc,esBs,tasa,bs,cliente,cuenta,metodo:met}=pendiente;
   try{
-    const res=await POST('ventas',{cliente_nombre:cliente,canal:'POS',metodo_pago:met,estado:'Pagado',
+    const canalPOS=$('inp-canal')?$('inp-canal').value:'POS';
+    const res=await POST('ventas',{cliente_nombre:cliente,canal:canalPOS,tipo_venta:'Venta rápida',metodo_pago:met,estado:'Pagado',
       subtotal:sub,costo_envio:0,descuento:desc,total,fecha_venta:hoy(),
       tasa_bcv_usada:esBs?tasa:0,monto_bs:esBs?bs:0,moneda_pago:esBs?'Bs':'USD',
       cuenta_cobro:cuenta||null,numero:'POS-'+Date.now()});
@@ -1108,6 +1116,7 @@ async function ejecutarCobro(){
       (esBs&&bs>0?'<br><span style="color:var(--green)">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'')+
       '<br><span style="font-size:11px;color:var(--sub)">'+carrito.map(i=>i.nombre+' ×'+i.cantidad).join(' · ')+'</span>';
     $('modal-ok').classList.add('open');renderProds();
+    if($('inp-canal')) $('inp-canal').value='POS';
   }catch(e){toast('❌ '+e.message,4000);btn.disabled=false;btn.textContent='✅ Confirmar';}
 }
 
@@ -1144,6 +1153,7 @@ async function guardarApartado(){
       await fetch(`${SB}/rest/v1/apartado_items`,{method:'POST',headers:H,
         body:JSON.stringify({apartado_id:aid,producto_id:it.id,producto_nombre:it.nombre,precio_unitario:it.precio,cantidad:it.cantidad,subtotal:it.sub})});
     $('modal-apt').classList.remove('open');toast('📌 Apartado guardado 🌸');carrito=[];renderCarrito();renderProds();
+    if($('inp-canal')) $('inp-canal').value='POS';
   }catch(e){toast('❌ '+e.message);}
 }
 
