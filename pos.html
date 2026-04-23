@@ -1122,7 +1122,7 @@ async function ejecutarCobro(){
   const {total,sub,desc,esBs,tasa,bs,cliente,cuenta,metodo:met}=pendiente;
   try{
     const canalPOS=$('inp-canal')?$('inp-canal').value:'POS';
-    const res=await POST('ventas',{cliente_nombre:cliente,canal:canalPOS,tipo_venta:'Venta rápida',metodo_pago:met,estado:'Pagado',
+    const res=await POST('ventas',{cliente_nombre:cliente,canal:canalPOS,metodo_pago:met,estado:'Pagado',
       subtotal:sub,costo_envio:0,descuento:desc,total,fecha_venta:hoy(),
       tasa_bcv_usada:esBs?tasa:0,monto_bs:esBs?bs:0,moneda_pago:esBs?'Bs':'USD',
       cuenta_cobro:cuenta||null,numero:'POS-'+Date.now()});
