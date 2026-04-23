@@ -1132,7 +1132,6 @@ async function ejecutarCobro(){
   carrito=[];
   $('inp-cliente').value=''; $('inp-desc').value='0'; pendiente=null;
   $('modal-confirm').classList.remove('open');
-  if(history.state&&history.state.modal==='modal-confirm')history.back();
   beep();
   $('mok-sub').innerHTML=cliente+'<br><strong>$'+total.toFixed(2)+'</strong> · '+met+
     (esBs&&bs>0?'<br><span style="color:var(--green)">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'')+
