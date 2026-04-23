@@ -1911,7 +1911,7 @@ function renderVentas(lista){
     +'<td style="white-space:nowrap">'
     +'<button class="btn btn-warning btn-sm" onclick="editarVenta('+v.id+')">✏️</button> '
     +'<button class="btn btn-blue btn-sm" onclick="verCotizacionVenta('+v.id+')">📄</button> '
-    +'<button class="btn btn-danger btn-sm" onclick="eliminarVenta('+v.id+')">🗑️</button>'
+    +'<button class="btn btn-warning btn-sm" style="font-size:11px" onclick="cancelarVenta('+v.id+')">↩️</button> <button class="btn btn-danger btn-sm" onclick="eliminarVenta('+v.id+')">🗑️</button>'
     +'</td></tr>').join('');
 }
 function filtrarVentas(){
@@ -2110,19 +2110,27 @@ async function guardarVenta(){
   renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
   } catch(err){ console.error('❌ Error guardarVenta:', err); toast('❌ Error: '+err.message); }
 }
-async function eliminarVenta(id){
-  if(!confirm('¿Eliminar venta? Se restaurará el stock.')) return;
-  const v=ventas.find(x=>x.id===id);
-  if(v&&v.estado!=='Cancelado'){
-    for(const it of (v.venta_items||[])){
-      if(it.producto_id){const p=productos.find(x=>x.id==it.producto_id);if(p){const ns=(p.stock||0)+parseInt(it.cantidad||1);await sbPatch('productos',p.id,{stock:ns});p.stock=ns;}}
-    }
+async function cancelarVenta(id){
+  const v=ventas.find(x=>x.id===id); if(!v) return;
+  if(v.estado==='Cancelado'){ toast('Ya está cancelada'); return; }
+  if(!confirm('¿Cancelar esta venta? Se restaurará el stock.')) return;
+  for(const it of (v.venta_items||[])){
+    if(it.producto_id){const p=productos.find(x=>x.id==it.producto_id);if(p){const ns=(p.stock||0)+parseInt(it.cantidad||1);await sbPatch('productos',p.id,{stock:ns});p.stock=ns;}}
   }
+  await sbPatch('ventas',id,{estado:'Cancelado'});
+  v.estado='Cancelado';
+  renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
+  toast('↩️ Venta cancelada — stock restaurado');
+}
+async function eliminarVenta(id){
+  const v=ventas.find(x=>x.id===id);
+  if(v&&v.estado!=='Cancelado'){ toast('⚠️ Cancela la venta primero antes de eliminar'); return; }
+  if(!confirm('¿Eliminar permanentemente esta venta cancelada?')) return;
   await sbDelete('venta_items','venta_id=eq.'+id);
   await sbDelete('ventas','id=eq.'+id);
-  ventas=ventas.filter(v=>v.id!==id);
-  renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
-  toast('🗑️ Venta eliminada — stock restaurado');
+  ventas=ventas.filter(x=>x.id!==id);
+  renderVentas(); cargarDashboard();
+  toast('🗑️ Venta eliminada');
 }
 
 // ===== COTIZACIÓN =====
