@@ -834,7 +834,8 @@ tr:hover td{background:#fff8fc}
 <div class="modal" style="max-width:320px;text-align:center">
   <h2 id="qr-single-nombre">Producto</h2>
   <img id="qr-single-img" src="" style="width:220px;height:220px;border-radius:12px;border:2px solid var(--pink-light);margin:10px auto;display:block">
-  <div id="qr-single-code" style="font-family:monospace;font-size:13px;color:var(--gray);margin-bottom:8px"></div>
+  <div id="qr-single-code" style="font-family:monospace;font-size:13px;color:var(--gray);margin-bottom:4px"></div>
+  <div id="qr-single-precio" style="font-size:18px;font-weight:800;color:#c2185b;margin-bottom:8px"></div>
   <p style="font-size:12px;color:var(--gray)">Imprime y pega en el producto o etiqueta de precio</p>
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-qr-single')">Cerrar</button>
@@ -1372,6 +1373,7 @@ function verQRProducto(id){
   document.getElementById('qr-single-nombre').textContent = p.nombre;
   document.getElementById('qr-single-img').src = qrUrl(id, 220);
   document.getElementById('qr-single-code').textContent = codigoProd(id);
+  document.getElementById('qr-single-precio').textContent = '$'+parseFloat(p.precio||0).toFixed(2);
   document.getElementById('modal-qr-single').classList.add('open');
 }
 
@@ -1491,7 +1493,7 @@ function imprimirQRGrid(){
   const lista = productos.filter(p=>p.activo!==false && (!q || (p.nombre||'').toLowerCase().includes(q)));
   const win = window.open('','_blank');
   win.document.write('<html><head><title>QR Brillitos</title><style>');
-  win.document.write('body{font-family:sans-serif;padding:20px}');
+  win.document.write('body{font-family:sans-serif;padding:20px}'); win.document.write('.price{font-size:13px;font-weight:800;color:#c2185b;margin:2px 0}');
   win.document.write('h1{color:#c2185b;font-size:18px;text-align:center}');
   win.document.write('.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}');
   win.document.write('.item{display:flex;flex-direction:column;align-items:center;border:1px dashed #ccc;padding:8px;border-radius:8px}');
@@ -1499,7 +1501,7 @@ function imprimirQRGrid(){
   win.document.write('</style></head><body>');
   win.document.write('<h1>🌸 Brillitos Store — Etiquetas QR</h1><div class="grid">');
   lista.forEach(p=>{
-    win.document.write('<div class="item"><img src="'+qrUrl(p.id,80)+'"><span class="name">'+p.nombre+'</span><span class="code">'+codigoProd(p.id)+'</span></div>');
+    win.document.write('<div class="item"><img src="'+qrUrl(p.id,80)+'"><span class="name">'+p.nombre+'</span><span class="price">$'+parseFloat(p.precio||0).toFixed(2)+'</span><span class="code">'+codigoProd(p.id)+'</span></div>');
   });
   win.document.write('</div></body></html>');
   win.document.close();
