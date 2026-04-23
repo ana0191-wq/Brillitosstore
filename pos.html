@@ -537,7 +537,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   border-top-color:var(--pk);border-radius:50%;animation:spin .75s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 /* ── POS TABS ── */
-.pos-tabs{display:none;flex-shrink:0;background:#fff;border-bottom:2px solid #f0e6f6;padding:0 16px}
+.pos-tabs{display:flex;flex-shrink:0;background:#fff;border-bottom:2px solid #f0e6f6;padding:0 16px}
 .pos-tab{flex:1;padding:12px 8px;border:none;background:none;font-size:15px;font-weight:700;color:#888;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s}
 .pos-tab.active{color:#d63a8a;border-bottom-color:#d63a8a;font-weight:900}
 @media(max-width:768px){
@@ -869,127 +869,87 @@ async function generarPapelito(){
   const total=Math.max(0,sub-desc);
   const tasa=parseFloat($('inp-tasa').value)||bcv||0;
   const bs=tasa>0?total*tasa:0;
-  const cliente=$('inp-cliente').value.trim()||'Cliente';
+  const cliente=$('inp-cliente').value.trim()||'';
   const snap=[...carrito];
   const num='APT-'+Date.now();
+  const pmCuenta=CUENTAS.find(c=>c.tipo==='Pago Móvil');
 
-  // ── Crear apartado en Supabase ──
-  try{
-    const aptData={
-      cliente_nombre:cliente, canal:'Evento', metodo_pago:'Pago Móvil',
-      estado:'Pendiente', total, abono:0, saldo:total,
-      tasa_bcv_usada:tasa||0, monto_bs:bs||0,
-      notas:'Papelito generado desde POS', numero:num
-    };
-    const res=await POST('apartados',aptData);
+  // ── Crear apartado en Supabase en background ──
+  POST('apartados',{
+    cliente_nombre:cliente||'Cliente', canal:'Evento', metodo_pago:'Pago Móvil',
+    estado:'Pendiente', total, abono:0, saldo:total,
+    tasa_bcv_usada:tasa||0, monto_bs:bs||0,
+    notas:'Papelito POS', numero:num
+  }).then(res=>{
     const aid=res&&res[0]&&res[0].id;
     if(aid){
-      for(const it of snap){
-        await fetchTimeout(SB+'/rest/v1/apartado_items',{method:'POST',headers:H,
-          body:JSON.stringify({apartado_id:aid,producto_id:it.id,producto_nombre:it.nombre,precio_unitario:it.precio,cantidad:it.cantidad,subtotal:it.sub})});
-      }
-      // Descontar stock
-      for(const it of snap){
-        const p=prods.find(x=>x.id===it.id);
-        if(p){ const ns=Math.max(0,(p.stock||0)-it.cantidad); await PATCH('productos',p.id,{stock:ns}); p.stock=ns; }
-      }
+      snap.forEach(it=>fetchTimeout(SB+'/rest/v1/apartado_items',{method:'POST',headers:H,
+        body:JSON.stringify({apartado_id:aid,producto_id:it.id,producto_nombre:it.nombre,
+          precio_unitario:it.precio,cantidad:it.cantidad,subtotal:it.sub})}));
+      snap.forEach(it=>{ const p=prods.find(x=>x.id===it.id);
+        if(p){ p.stock=Math.max(0,(p.stock||0)-it.cantidad); PATCH('productos',p.id,{stock:p.stock}); }});
     }
-  }catch(e){ toast('⚠️ Sin conexión — papelito generado sin guardar',3000); }
+  }).catch(()=>{});
 
-  // ── Generar imagen para iPrint ──
-  const canvas=document.createElement('canvas');
-  // 57mm a 203dpi = ~456px, usamos 384px (ancho estándar térmicas 58mm)
-  const W=384; const PADDING=16;
-  canvas.width=W;
+  // ── HTML del papelito — abrir directo para compartir ──
+  const rows=snap.map(it=>`<tr><td>${it.nombre}${it.cantidad>1?' ×'+it.cantidad:''}</td><td>$${it.sub.toFixed(2)}</td></tr>`).join('');
+  const html=`<!DOCTYPE html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,sans-serif;width:58mm;padding:4mm;background:#fff;color:#000;font-size:14pt}
+  h1{font-size:18pt;font-weight:900;text-align:center;margin-bottom:2mm}
+  .sub{font-size:11pt;text-align:center;color:#555;margin-bottom:3mm}
+  hr{border:none;border-top:1px dashed #000;margin:3mm 0}
+  table{width:100%;border-collapse:collapse}
+  td{padding:1.5mm 0;font-size:13pt;vertical-align:top}
+  td:last-child{text-align:right;white-space:nowrap;font-weight:700}
+  .total-row td{font-size:17pt;font-weight:900;padding-top:2mm}
+  .bs-row td{font-size:13pt;color:#333}
+  .pago{margin-top:3mm}
+  .pago-tit{font-size:15pt;font-weight:900;margin-bottom:1.5mm}
+  .pago-dat{font-size:14pt;font-weight:700;margin:1mm 0}
+  .pago-sub{font-size:12pt;color:#333}
+  .footer{text-align:center;font-size:12pt;margin-top:4mm;color:#555}
+  .num{font-size:10pt;text-align:center;color:#888;margin-bottom:2mm}
+  @media print{body{width:58mm}}
+</style></head><body>
+<h1>🌸 Brillitos</h1>
+<div class="num">${num}</div>
+${cliente?`<div class="sub">👤 ${cliente}</div>`:''}
+<hr>
+<table>${rows}
+${desc>0?`<tr><td>Descuento</td><td>-$${desc.toFixed(2)}</td></tr>`:''}
+<tr class="total-row"><td>TOTAL</td><td>$${total.toFixed(2)}</td></tr>
+${bs>0?`<tr class="bs-row"><td>Bs. (${tasa})</td><td>${bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})}</td></tr>`:''}
+</table>
+<hr>
+<div class="pago">
+  <div class="pago-tit">📱 Pago Móvil</div>
+  ${pmCuenta?`<div class="pago-dat">${pmCuenta.tlf}</div>
+  <div class="pago-dat">${pmCuenta.banco}</div>
+  <div class="pago-sub">Cédula: ${pmCuenta.cuenta}</div>`:''}
+</div>
+<hr>
+<div class="footer">Muestra tu comprobante<br>para confirmar 🌸</div>
+</body></html>`;
 
-  // Calcular alto dinámico
-  const lineH=28, smallH=22;
-  let estimH = 60+30+20+(snap.length*(lineH+4))+20+30+80+(bs>0?30:0)+60+40;
-  canvas.height=estimH;
-  const ctx=canvas.getContext('2d');
+  const blob=new Blob([html],{type:'text/html'});
+  const url=URL.createObjectURL(blob);
 
-  // Fondo blanco
-  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,estimH);
-
-  let y=20;
-  const center=(txt,size,bold=false)=>{
-    ctx.font=(bold?'bold ':'')+size+'px Arial';
-    ctx.fillStyle='#000000';
-    ctx.textAlign='center';
-    ctx.fillText(txt,W/2,y); y+=size+8;
-  };
-  const left=(txt,size,bold=false,color='#000')=>{
-    ctx.font=(bold?'bold ':'')+size+'px Arial';
-    ctx.fillStyle=color;
-    ctx.textAlign='left';
-    ctx.fillText(txt,PADDING,y); y+=size+6;
-  };
-  const right=(txt,size,bold=false)=>{
-    ctx.font=(bold?'bold ':'')+size+'px Arial';
-    ctx.fillStyle='#000000';
-    ctx.textAlign='right';
-    ctx.fillText(txt,W-PADDING,y);
-  };
-  const line=()=>{ ctx.strokeStyle='#000'; ctx.setLineDash([4,4]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(PADDING,y); ctx.lineTo(W-PADDING,y); ctx.stroke(); ctx.setLineDash([]); y+=10; };
-
-  // Encabezado
-  center('🌸 Brillitos Store 🌸',22,true); y+=4;
-  center('Pedido: '+num,14);
-  center(new Date().toLocaleString('es-VE',{dateStyle:'short',timeStyle:'short'}),13);
-  y+=6; line();
-
-  // Cliente
-  if(cliente&&cliente!=='Cliente'){ left('👤 '+cliente,15,true); y+=4; }
-
-  // Productos
-  left('PRODUCTOS:',14,true); y+=4;
-  for(const it of snap){
-    const nombre=it.nombre.length>22?it.nombre.substring(0,20)+'..':it.nombre;
-    left(nombre+' x'+it.cantidad,14);
-    right('$'+it.sub.toFixed(2),14);
-    y+=2;
+  // Intentar Web Share API primero (móvil) — si no, abrir ventana
+  if(navigator.share&&navigator.canShare&&navigator.canShare({files:[new File([blob],'papelito.html',{type:'text/html'})]})){
+    await navigator.share({title:'Papelito Brillitos',files:[new File([blob],'papelito.html',{type:'text/html'})]});
+  } else {
+    const w=window.open(url,'_blank','width=300,height=600');
+    if(w) setTimeout(()=>w.print(),600);
   }
-  y+=4; line();
-
-  // Totales
-  if(desc>0){ left('Descuento:',14); right('-$'+desc.toFixed(2),14); y+=lineH; }
-  left('TOTAL A PAGAR:',18,true); right('$'+total.toFixed(2),18,true); y+=lineH+4;
-  if(bs>0){ left('En Bs. (tasa '+tasa+'):',14); right('Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}),14,true); y+=lineH; }
-
-  y+=6; line();
-
-  // Datos de pago
-  left('📱 PAGO MÓVIL:',16,true); y+=6;
-  // Buscar cuenta Pago Móvil de CUENTAS
-  const pmCuenta=CUENTAS.find(c=>c.tipo==='Pago Móvil');
-  if(pmCuenta){
-    left('Teléfono: '+pmCuenta.tlf,15,true);
-    left('Banco: '+pmCuenta.banco,14);
-    left('Cédula/RIF: '+pmCuenta.cuenta,14);
-  }
-  y+=6; line();
-  center('Muestra tu comprobante',13);
-  center('para confirmar tu pedido 🌸',13);
-  y+=10;
-
-  // Recortar canvas al alto real
-  const finalCanvas=document.createElement('canvas');
-  finalCanvas.width=W; finalCanvas.height=y+10;
-  const fctx=finalCanvas.getContext('2d');
-  fctx.fillStyle='#fff'; fctx.fillRect(0,0,W,y+10);
-  fctx.drawImage(canvas,0,0);
-
-  // Descargar imagen
-  const link=document.createElement('a');
-  link.download='papelito-'+num+'.png';
-  link.href=finalCanvas.toDataURL('image/png');
-  link.click();
 
   // Limpiar carrito
   carrito=[]; $('inp-cliente').value=''; $('inp-desc').value='0';
   renderCarrito(); renderProds();
   btn.disabled=false; btn.textContent='🖨️ Papelito';
-  toast('🖨️ Papelito descargado — comparte a iPrint 🌸',4000);
+  toast('🖨️ Papelito listo 🌸',3000);
 }
 
 async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H});return r.ok?r.json():[];}
@@ -1414,6 +1374,7 @@ function switchPosTab(tab){
   const vp=document.getElementById('view-prods');
   const vs=document.getElementById('view-scan');
   if(tab==='prods'){
+    vp.style.cssText=vp.style.cssText.replace('display:none','display:flex')||'';
     vp.style.display='flex';
     vs.style.display='none';
   } else {
