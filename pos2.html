@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776970021 -->
+<head><!-- v1776970109 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -1443,11 +1443,15 @@ async function ejecutarCobro(){
         const p=prods.find(x=>x.id===it.id);
         if(p) await PATCH('productos',p.id,{stock:p.stock});
       }
+    // 🖨️ Imprimir automáticamente al confirmar
+    setTimeout(()=>imprimirPedido(), 400);
     } else {
       toast('⚠️ Venta registrada localmente — error al sincronizar',4000);
+      setTimeout(()=>imprimirPedido(), 400);
     }
   }catch(e){
     toast('⚠️ Venta registrada — sin conexión ('+e.message+')',5000);
+    setTimeout(()=>imprimirPedido(), 400);
   }
 }
 
