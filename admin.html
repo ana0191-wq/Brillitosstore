@@ -384,7 +384,7 @@ tr:hover td{background:#fff8fc}
 <div class="page" id="page-apartados">
   <div class="page-header">
     <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">📌 Apartados</div>
-    <div class="header-actions"><button class="btn btn-teal" onclick="abrirModalApartado()">+ Apartado</button></div>
+    <div class="header-actions"><button id="btn-select-apt" onclick="toggleSelectApt()" style="background:#fff0f6;border:1px solid var(--pink);color:var(--pink);border-radius:20px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer">☑️ Seleccionar</button><button class="btn btn-teal" onclick="abrirModalApartado()">+ Apartado</button></div>
   </div>
   <div class="content">
     <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none;margin-bottom:12px" id="filtro-estado-apt" onchange="renderApartados()">
