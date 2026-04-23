@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776962696 -->
+<head><!-- v1776962824 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -769,7 +769,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
 <!-- MODAL PEDIDO CLIENTE -->
 <div class="modal-ov" id="modal-pedido" onclick="if(event.target===this)cerrarPedido()">
-  <div class="modal-box" style="max-width:340px;padding:0;overflow:hidden;border-radius:22px">
+  <div class="modal-box" style="max-width:340px;padding:0;overflow:hidden;border-radius:22px" onclick="event.stopPropagation()">
     <div id="pedido-contenido" style="padding:22px 18px;text-align:center"></div>
     <div style="border-top:1px solid #f0e6f6">
       <div style="display:flex;gap:0">
@@ -1021,6 +1021,7 @@ function mostrarPedido(){
       <div style="margin-top:10px;text-align:center"><img src="https://ana0191-wq.github.io/Brillitosstore/qr-bancamiga.jpg" onerror="this.style.display='none'" style="width:160px;height:160px;object-fit:contain;border-radius:8px;border:1px solid #c8e6c9" alt="QR Bancamiga"><div style="font-size:11px;color:#555;margin-top:3px">📷 Escanea para pagar</div></div>
     </div>`:''}
   `;
+  pendiente=null; // limpiar cualquier pendiente anterior
   $('modal-pedido').classList.add('open');
 }
 
