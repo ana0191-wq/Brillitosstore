@@ -1083,7 +1083,7 @@ function confirmar(){
     +(desc>0?`<div class="m-row"><span>Descuento</span><span style="color:var(--green)">−$${desc.toFixed(2)}</span></div>`:'')+
     `<div class="m-row"><span>TOTAL</span><span>$${total.toFixed(2)}</span></div>`;
   pendiente={total,sub,desc,esBs,tasa,bs,cliente,cuenta,metodo};
-  $('modal-confirm').classList.add('open');
+  $('modal-confirm').classList.add('open'); history.pushState({modal:'modal-confirm'},'','');
 }
 
 async function ejecutarCobro(){
@@ -1103,7 +1103,7 @@ async function ejecutarCobro(){
       const p=prods.find(x=>x.id===it.id);
       if(p&&parseInt(p.stock||0)>0){const ns=Math.max(0,p.stock-it.cantidad);await PATCH('productos',p.id,{stock:ns});p.stock=ns;}
     }
-    $('modal-confirm').classList.remove('open');beep();
+    $('modal-confirm').classList.remove('open'); if(history.state&&history.state.modal==='modal-confirm')history.back();beep();
     $('mok-sub').innerHTML=cliente+'<br><strong>$'+total.toFixed(2)+'</strong> · '+met+
       (esBs&&bs>0?'<br><span style="color:var(--green)">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'')+
       '<br><span style="font-size:11px;color:var(--sub)">'+carrito.map(i=>i.nombre+' ×'+i.cantidad).join(' · ')+'</span>';
@@ -1217,8 +1217,15 @@ function cerrarCarrito(){
 }
 // Botón atrás cierra carrito en vez de salir
 window.addEventListener('popstate',function(e){
+  // Cerrar modal confirm si está abierto
+  const mc=$('modal-confirm');
+  if(mc&&mc.classList.contains('open')){ mc.classList.remove('open'); return; }
+  // Cerrar modal ok
+  const mo=$('modal-ok');
+  if(mo&&mo.classList.contains('open')){ mo.classList.remove('open'); return; }
+  // Cerrar carrito
   const panel=$('cart-panel');
-  if(panel && panel.classList.contains('open')){
+  if(panel&&panel.classList.contains('open')){
     panel.classList.remove('open');
     panel.style.transform='';
   }
