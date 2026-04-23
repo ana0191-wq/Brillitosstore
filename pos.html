@@ -770,6 +770,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
       <button class="mbtn sec" onclick="waRecibo()">📱 WhatsApp</button>
       <button class="mbtn pri" onclick="nuevaVenta()">Nueva venta</button>
     </div>
+    <button id="pos-anular-btn" onclick="anularUltimaVenta()" style="display:none;margin-top:10px;width:100%;padding:10px;background:#fff0f0;color:#c62828;border:1.5px solid #ffcdd2;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer">↩️ Anular esta venta (30s)</button>
   </div>
 </div>
 
@@ -828,6 +829,24 @@ function beep(){
       g.gain.exponentialRampToValueAtTime(.001,t+0.10);o.start(t);o.stop(t+0.12);
     });
   }catch(e){}
+}
+async function anularUltimaVenta(){
+  if(!window._lastVentaId){ toast('⚠️ No hay venta reciente para anular'); return; }
+  if(!confirm('¿Anular esta venta? Se restaurará el stock.')) return;
+  clearInterval(window._anulI);
+  const _ab=$('pos-anular-btn'); if(_ab) _ab.style.display='none';
+  const vid=window._lastVentaId;
+  // Restaurar stock
+  for(const it of (window._lastCarrito||[])){
+    const p=prods.find(x=>x.id===it.id);
+    if(p){ const ns=(p.stock||0)+parseInt(it.cantidad||1); await PATCH('productos',p.id,{stock:ns}); p.stock=ns; }
+  }
+  // Marcar venta como Cancelado
+  await PATCH('ventas',vid,{estado:'Cancelado'});
+  window._lastVentaId=null; window._lastCarrito=[];
+  $('modal-ok').classList.remove('open');
+  renderProds();
+  toast('↩️ Venta anulada — stock restaurado');
 }
 async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H});return r.ok?r.json():[];}
 async function POST(t,d){const r=await fetch(`${SB}/rest/v1/${t}`,{method:'POST',headers:{...H,Prefer:'return=representation'},body:JSON.stringify(d)});return r.json();}
@@ -1115,12 +1134,28 @@ async function ejecutarCobro(){
     $('mok-sub').innerHTML=cliente+'<br><strong>$'+total.toFixed(2)+'</strong> · '+met+
       (esBs&&bs>0?'<br><span style="color:var(--green)">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'')+
       '<br><span style="font-size:11px;color:var(--sub)">'+carrito.map(i=>i.nombre+' ×'+i.cantidad).join(' · ')+'</span>';
-    $('modal-ok').classList.add('open');renderProds();
+    $('modal-ok').classList.add('open');
+    window._lastVentaId=vid;
+    window._lastCarrito=[...carrito];
+    const _ab=$('pos-anular-btn');
+    if(_ab){ _ab.style.display='block'; _ab.textContent='↩️ Anular esta venta (30s)';
+      let _sec=30;
+      clearInterval(window._anulI);
+      window._anulI=setInterval(()=>{
+        _sec--;
+        if(_ab) _ab.textContent='↩️ Anular esta venta ('+_sec+'s)';
+        if(_sec<=0){ clearInterval(window._anulI); if(_ab)_ab.style.display='none'; window._lastVentaId=null; }
+      },1000);
+    }
+    renderProds();
     if($('inp-canal')) $('inp-canal').value='POS';
   }catch(e){toast('❌ '+e.message,4000);btn.disabled=false;btn.textContent='✅ Confirmar';}
 }
 
 function nuevaVenta(){
+  clearInterval(window._anulI);
+  const _ab=$('pos-anular-btn'); if(_ab) _ab.style.display='none';
+  window._lastVentaId=null; window._lastCarrito=[];
   carrito=[];$('inp-cliente').value='';$('inp-desc').value='0';pendiente=null;
   $('modal-ok').classList.remove('open');renderCarrito();renderProds();toast('✅ Nueva venta 🌸');
 }
