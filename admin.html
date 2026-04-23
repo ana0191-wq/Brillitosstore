@@ -1062,6 +1062,10 @@ async function sbDelete(t,f){
   await fetch(SB+'/rest/v1/'+t+'?'+f,{method:'DELETE',headers:H});
 }
 
+window.addEventListener('popstate',function(){
+  const abierto=document.querySelector('.modal-bg.open');
+  if(abierto) abierto.classList.remove('open');
+});
 // ===== BCV AUTOMÁTICO =====
 async function getBCV(fecha){
   const hoy = new Date().toISOString().slice(0,10);
@@ -1458,7 +1462,7 @@ async function descargarPDFQR(){
 
 function abrirImprimirQR(){
   renderQRGrid();
-  document.getElementById('modal-imprimir-qr').classList.add('open');
+  abrirModal('modal-imprimir-qr');
 }
 
 function renderQRGrid(){
@@ -1943,7 +1947,7 @@ function abrirModalVenta(v=null){
     // Sin Bs previo — esperar a que cargue la tasa y forzar cálculo
     setTimeout(()=>{ v_bs_manual=false; calcularMontoBs(); }, 800);
   }
-  document.getElementById('modal-venta').classList.add('open');
+  abrirModal('modal-venta');
 }
 function editarVenta(id){ const v=ventas.find(x=>x.id===id); if(v) abrirModalVenta(v); }
 function toggleEventoWrap(){ document.getElementById('v-evento-wrap').style.display=document.getElementById('v-canal').value==='Evento'?'block':'none'; }
@@ -2125,12 +2129,12 @@ function verCotizacion(){
   const sub=ventaItems.reduce((s,i)=>s+parseFloat(i.subtotal||0),0);
   const tasa=parseFloat(document.getElementById('v-tasa-bcv').value)||0;
   mostrarCotizacion({nombre,metodo,entrega,envio:env,desc,subtotal:sub,total:sub+env-desc,tasa,fecha:new Date().toLocaleDateString('es-VE'),items:ventaItems});
-  document.getElementById('modal-cotizacion').classList.add('open');
+  abrirModal('modal-cotizacion');
 }
 function verCotizacionVenta(id){
   const v=ventas.find(x=>x.id===id); if(!v) return;
   mostrarCotizacion({nombre:v.cliente_nombre||'Cliente',metodo:v.metodo_pago,entrega:v.tipo_entrega,envio:parseFloat(v.costo_envio||0),desc:parseFloat(v.descuento||0),subtotal:parseFloat(v.subtotal||0),total:parseFloat(v.total||0),tasa:v.tasa_bcv_usada||0,fecha:formatFecha(v.fecha_venta||v.creado_en),items:v.venta_items||[],numero:v.numero});
-  document.getElementById('modal-cotizacion').classList.add('open');
+  abrirModal('modal-cotizacion');
 }
 function mostrarCotizacion(d){
   document.getElementById('cotizacion-contenido').innerHTML=
@@ -2200,7 +2204,7 @@ function abrirModalApartado(id=null){
   document.getElementById('apt-fecha-limite').value=a?a.fecha_entrega||'':'';
   document.getElementById('apt-notas').value=a?a.notas||'':'';
   toggleAdelantoField(); renderAptItems();
-  document.getElementById('modal-apartado').classList.add('open');
+  abrirModal('modal-apartado');
 }
 function toggleAdelantoField(){ document.getElementById('apt-adelanto-wrap').style.display=document.getElementById('apt-tipo').value!=='Sin pago'?'block':'none'; }
 function buscarClienteApt(q){
@@ -2386,7 +2390,7 @@ function abrirModalProducto(id=null){
     document.getElementById('prod-qr-code').textContent = codigoProd(p.id);
     qrWrap.style.display = 'flex';
   } else { qrWrap.style.display = 'none'; }
-  document.getElementById('modal-producto').classList.add('open');
+  abrirModal('modal-producto');
 }
 async function guardarProducto(){
   const nombre=document.getElementById('p-nombre').value.trim(); const precio=parseFloat(document.getElementById('p-precio').value);
@@ -2474,7 +2478,7 @@ function abrirModalCliente(id=null){
   document.getElementById('c-telefono').value=c?c.telefono||'':'';
   document.getElementById('c-instagram').value=c?c.instagram||'':'';
   document.getElementById('c-notas').value=c?c.notas||'':'';
-  document.getElementById('modal-cliente').classList.add('open');
+  abrirModal('modal-cliente');
 }
 async function guardarCliente(){
   const nombre=document.getElementById('c-nombre').value.trim(); if(!nombre){ toast('⚠️ Nombre obligatorio'); return; }
@@ -2539,7 +2543,7 @@ function abrirModalEvento(id=null){
   document.getElementById('e-fecha').value=e?e.fecha||'':'';
   document.getElementById('e-lugar').value=e?e.lugar||'':'';
   document.getElementById('e-notas').value=e?e.notas||'':'';
-  document.getElementById('modal-evento').classList.add('open');
+  abrirModal('modal-evento');
 }
 async function guardarEvento(){
   const nombre=document.getElementById('e-nombre').value.trim(); if(!nombre){ toast('⚠️ Nombre obligatorio'); return; }
@@ -2555,7 +2559,7 @@ function abrirModalGasto(eventoId){
   document.getElementById('g-tasa').value=''; document.getElementById('g-notas').value='';
   document.getElementById('g-fecha').value=new Date().toISOString().slice(0,10);
   const radioGasto=document.querySelector('input[name="g-tipo"][value="Gasto"]'); if(radioGasto) radioGasto.checked=true;
-  toggleTasaGasto(); document.getElementById('modal-gasto').classList.add('open');
+  toggleTasaGasto(); abrirModal('modal-gasto');
 }
 function toggleTasaGasto(){ const bs=document.getElementById('g-moneda').value==='Bs'; document.getElementById('g-tasa-wrap').style.display=bs?'block':'none'; document.getElementById('g-usd-wrap').style.display=bs?'block':'none'; if(bs&&bcvHoy>0) document.getElementById('g-tasa').value=bcvHoy.toFixed(2); }
 function calcGastoUsd(){ const m=parseFloat(document.getElementById('g-monto').value)||0; const t=parseFloat(document.getElementById('g-tasa').value)||0; if(document.getElementById('g-moneda').value==='Bs'&&t>0) document.getElementById('g-monto-usd').value='$'+(m/t).toFixed(2); }
@@ -2569,7 +2573,7 @@ async function guardarGasto(){
   await sbPost('gastos_globales',{evento_id:parseInt(document.getElementById('g-evento-id').value),descripcion:concepto,categoria:'Stand / Evento',monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value,tipo:tipo_gasto});
   cerrarModal('modal-gasto'); renderEventos(); gastosGlobales=await sbGet('gastos_globales','select=*&order=creado_en.desc'); toast('✅ Gasto registrado — descontado de BancaAmiga Luisma');
 }
-async function eliminarGasto(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('gastos_globales','id=eq.'+id); renderEventos(); toast('🗑️ Eliminado'); }
+async function eliminarGasto(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('gastos_globales','id=eq.'+id); gastosGlobales=gastosGlobales.filter(g=>g.id!==id); renderGastosGlobal(); cargarDashboard(); toast('🗑️ Eliminado'); }
 
 // ===== GASTOS GLOBALES =====
 function poblarEventosGastoGlobal(){
@@ -2626,7 +2630,7 @@ function abrirModalGastoGlobal(){
   document.getElementById('gg-tasa').value=''; document.getElementById('gg-fecha').value=new Date().toISOString().slice(0,10);
   document.getElementById('gg-tipo').value='Gasto operativo'; document.getElementById('gg-categoria').value='Mercancía / Stock';
   document.getElementById('gg-evento').value=''; toggleTasaGastoGlobal();
-  document.getElementById('modal-gasto-global').classList.add('open');
+  abrirModal('modal-gasto-global');
 }
 function toggleTasaGastoGlobal(){ const bs=document.getElementById('gg-moneda').value==='Bs'; document.getElementById('gg-tasa-wrap').style.display=bs?'block':'none'; document.getElementById('gg-usd-wrap').style.display=bs?'block':'none'; if(bs&&bcvHoy>0) document.getElementById('gg-tasa').value=bcvHoy.toFixed(2); calcGastoGlobalUsd(); }
 function calcGastoGlobalUsd(){ const m=parseFloat(document.getElementById('gg-monto').value)||0; const t=parseFloat(document.getElementById('gg-tasa').value)||0; if(document.getElementById('gg-moneda').value==='Bs'&&t>0) document.getElementById('gg-monto-usd').value='$'+(m/t).toFixed(2); }
@@ -2695,7 +2699,14 @@ function exportarProductosCSV(){
 function descargarCSV(csv,nombre){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'})); a.download=nombre; a.click(); }
 
 // ===== UTILS =====
-function cerrarModal(id){ document.getElementById(id).classList.remove('open'); }
+function cerrarModal(id){
+  document.getElementById(id).classList.remove('open');
+  if(history.state&&history.state.modal===id) history.back();
+}
+function abrirModal(id){
+  document.getElementById(id).classList.add('open');
+  history.pushState({modal:id},'','');
+}
 function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3000); }
 function formatFecha(str){ if(!str)return'—'; try{return new Date(str).toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return str;} }
 document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
