@@ -226,6 +226,7 @@ tr:hover td{background:#fff8fc}
 }
 </style>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
@@ -815,6 +816,7 @@ tr:hover td{background:#fff8fc}
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
     <input id="qr-search-filter" style="flex:1;min-width:120px;padding:7px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Filtrar..." oninput="renderQRGrid()">
     <button class="btn btn-secondary" onclick="imprimirQRGrid()">🖨️ Imprimir</button>
+    <button class="btn btn-primary" onclick="descargarPDFQR()">📄 PDF 2.5×2.5cm</button>
   </div>
   <div id="qr-grid-container" class="qr-print-grid"></div>
   <div class="modal-footer">
@@ -1373,6 +1375,83 @@ function imprimirQRSingle(){
 }
 
 // QR: modal imprimir todos
+async function descargarPDFQR(){
+  const btn = event.target;
+  btn.disabled = true;
+  btn.textContent = '⏳ Generando...';
+  try {
+    const {jsPDF} = window.jspdf;
+    const doc = new jsPDF({unit:'mm', format:'a4'});
+    const q = (document.getElementById('qr-search-filter')?.value||'').toLowerCase();
+    const lista = productos.filter(p=>p.activo!==false && (!q||(p.nombre||'').toLowerCase().includes(q)));
+
+    // Tamaño celda 2.5x2.5cm = 25x25mm, margen 10mm, gap 3mm
+    const W=25, H=28, GAP=3, MARGINX=10, MARGINY=10;
+    const cols = Math.floor((210 - MARGINX*2 + GAP) / (W + GAP)); // ~6 columnas en A4
+    let col=0, row=0;
+
+    for(let i=0; i<lista.length; i++){
+      const p = lista[i];
+      const x = MARGINX + col*(W+GAP);
+      const y = MARGINY + row*(H+GAP);
+
+      // Nueva página si no cabe
+      if(y + H > 287){
+        doc.addPage();
+        col=0; row=0;
+      }
+      const nx = MARGINX + col*(W+GAP);
+      const ny = MARGINY + row*(H+GAP);
+
+      // Cargar imagen QR
+      const qrSrc = qrUrl(p.id, 200);
+      await new Promise((resolve)=>{
+        const img = new Image();
+        img.crossOrigin='anonymous';
+        img.onload = function(){
+          try{
+            const canvas = document.createElement('canvas');
+            canvas.width=200; canvas.height=200;
+            const ctx2=canvas.getContext('2d');
+            ctx2.fillStyle='#ffffff';
+            ctx2.fillRect(0,0,200,200);
+            ctx2.drawImage(img,0,0,200,200);
+            const imgData=canvas.toDataURL('image/png');
+            doc.addImage(imgData,'PNG', nx, ny, W, W);
+          }catch(e){}
+          resolve();
+        };
+        img.onerror=resolve;
+        img.src=qrSrc;
+      });
+
+      // Nombre (truncado) y precio
+      doc.setFontSize(5.5);
+      doc.setFont('helvetica','bold');
+      const nombre = p.nombre.length>28 ? p.nombre.substring(0,26)+'…' : p.nombre;
+      doc.text(nombre, nx + W/2, ny + W + 2, {align:'center', maxWidth: W});
+      doc.setFontSize(6);
+      doc.setTextColor(180,30,100);
+      doc.text('$'+parseFloat(p.precio||0).toFixed(2), nx + W/2, ny + W + 5.5, {align:'center'});
+      doc.setTextColor(0,0,0);
+
+      // Borde suave
+      doc.setDrawColor(220,180,220);
+      doc.setLineWidth(0.2);
+      doc.rect(nx-1, ny-1, W+2, H+2);
+
+      col++;
+      if(col>=cols){ col=0; row++; }
+    }
+
+    doc.save('brillitos_qr_etiquetas.pdf');
+  } catch(e){
+    alert('Error generando PDF: '+e.message);
+  }
+  btn.disabled=false;
+  btn.textContent='📄 PDF 2.5×2.5cm';
+}
+
 function abrirImprimirQR(){
   renderQRGrid();
   document.getElementById('modal-imprimir-qr').classList.add('open');
