@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776962096 -->
+<head><!-- v1776962324 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -770,11 +770,15 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 <div class="modal-ov" id="modal-pedido" onclick="if(event.target===this)cerrarPedido()">
   <div class="modal-box" style="max-width:340px;padding:0;overflow:hidden;border-radius:22px">
     <div id="pedido-contenido" style="padding:22px 18px;text-align:center"></div>
-    <div style="display:flex;gap:0;border-top:1px solid #f0e6f6">
-      <button onclick="cerrarPedido()" style="flex:1;padding:16px;background:#fff;border:none;font-size:15px;color:#888;cursor:pointer;border-radius:0 0 0 22px">✖ Cerrar</button>
-      <button onclick="imprimirPedido()" id="btn-imprimir-pedido" style="flex:1;padding:16px;background:#fff;border:none;font-size:15px;color:#2e7d32;font-weight:700;cursor:pointer">🖨️ Imprimir</button>
-      <button onclick="compartirPedido()" style="flex:1;padding:16px;background:#fff;border:none;font-size:15px;color:#c2185b;font-weight:700;cursor:pointer;border-right:none">📤 Compartir</button>
-      <button onclick="confirmarDesdePedido()" style="flex:1;padding:16px;background:var(--pk);border:none;font-size:15px;color:#fff;font-weight:700;cursor:pointer;border-radius:0 0 22px 0">✅ Cobrar</button>
+    <div style="border-top:1px solid #f0e6f6">
+      <div style="display:flex;gap:0">
+        <button onclick="imprimirPedido()" id="btn-imprimir-pedido" style="flex:1;padding:14px;background:#e8f5e9;border:none;font-size:15px;color:#2e7d32;font-weight:700;cursor:pointer;border-right:1px solid #f0e6f6">🖨️ Imprimir</button>
+        <button onclick="compartirPedido()" style="flex:1;padding:14px;background:#fff;border:none;font-size:15px;color:#c2185b;font-weight:700;cursor:pointer">📤 Compartir</button>
+      </div>
+      <div style="display:flex;gap:0;border-top:1px solid #f0e6f6">
+        <button onclick="cerrarPedido()" style="flex:1;padding:14px;background:#fff;border:none;font-size:15px;color:#888;cursor:pointer;border-radius:0 0 0 22px;border-right:1px solid #f0e6f6">✖ Cerrar</button>
+        <button onclick="confirmarDesdePedido()" style="flex:1;padding:14px;background:var(--pk);border:none;font-size:16px;color:#fff;font-weight:700;cursor:pointer;border-radius:0 0 22px 0">✅ Cobrar</button>
+      </div>
     </div>
   </div>
 </div>
