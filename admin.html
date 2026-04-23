@@ -1029,7 +1029,9 @@ let bcvHoy=0, bcvCache={};
 
 // ===== CUENTAS DE COBRO =====
 const CUENTAS = [
-  {id:'bancaamiga_luisma', nombre:'BancaAmiga Luisma', tipo:'Bs',         emoji:'🏦', moneda:'Bs'},
+  {id:'bancaamiga_luisma', nombre:'BancaAmiga Luisma', tipo:'Pago Móvil', emoji:'🏦', moneda:'Bs'},
+  {id:'bancaamiga_luisma_bcv', nombre:'BancaAmiga Luisma', tipo:'BCV', emoji:'🏦', moneda:'Bs'},
+  {id:'bancaamiga_luisma_bs',  nombre:'BancaAmiga Luisma', tipo:'Efectivo Bs', emoji:'🏦', moneda:'Bs'},
   {id:'binance',           nombre:'Binance/USDT',      tipo:'Binance/USDT',emoji:'🔷', moneda:'USD'},
   {id:'paypal',            nombre:'PayPal',            tipo:'PayPal',     emoji:'🅿️', moneda:'USD'},
   {id:'efectivo_usd',      nombre:'Efectivo $',        tipo:'Efectivo $', emoji:'💵', moneda:'USD'},
@@ -1037,7 +1039,14 @@ const CUENTAS = [
 ];
 function cuentasPorMetodo(m){
   const seen=new Set();
-  return CUENTAS.filter(c=>{if(c.tipo!==m||seen.has(c.id))return false;seen.add(c.id);return true;});
+  return CUENTAS.filter(c=>{
+    if(c.tipo!==m) return false;
+    // Usar id base (sin sufijo _bcv, _bs) para evitar duplicados visuales
+    const baseId=c.id.replace(/_bcv$|_bs$/,'');
+    if(seen.has(baseId)) return false;
+    seen.add(baseId);
+    return true;
+  }).map(c=>({...c, id: c.id.replace(/_bcv$|_bs$/, '')}));
 }
 function cuentaNombre(id){
   const c=CUENTAS.find(x=>x.id===id);
