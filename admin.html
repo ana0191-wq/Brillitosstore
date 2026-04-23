@@ -1211,7 +1211,7 @@ async function init(){
   toast('Cargando Brillitos... 🌸');
   document.getElementById('v-fecha-venta').value = hoyVEN();
   const results = await Promise.allSettled([
-    sbGet('productos','select=*&activo=eq.true&order=nombre.asc&limit=1000'),
+    sbGet('productos','select=*&activo=is.true&order=nombre.asc&limit=1000'),
     sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500'),
     sbGet('clientes','select=*&order=nombre.asc'),
     sbGet('eventos','select=*&order=fecha.desc'),
@@ -1233,6 +1233,12 @@ async function init(){
   if(!Array.isArray(gastosGlobales)) gastosGlobales=[];
 
   await mostrarBCVDash();
+  renderProductos();
+  renderVentas();
+  renderClientes();
+  renderEventos();
+  renderApartados();
+  renderGastosGlobal();
   cargarDashboard();
   poblarEventosSelect();
   poblarEventosGastoGlobal();
@@ -2086,7 +2092,7 @@ async function guardarVenta(){
   }
   cerrarModal('modal-venta');
   ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
-  productos=await sbGet('productos','select=*&activo=eq.true&order=nombre.asc&limit=1000');
+  productos=await sbGet('productos','select=*&activo=is.true&order=nombre.asc&limit=1000');
   if(!Array.isArray(ventas)) ventas=[];
   if(!Array.isArray(productos)) productos=[];
   renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
@@ -2254,7 +2260,7 @@ async function guardarApartado(){
     toast('✅ Apartado creado — stock descontado');
   }
   apartados=await sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200');
-  productos=await sbGet('productos','select=*&activo=eq.true&order=nombre.asc&limit=1000');
+  productos=await sbGet('productos','select=*&activo=is.true&order=nombre.asc&limit=1000');
   if(!Array.isArray(apartados)) apartados=[];
   if(!Array.isArray(productos)) productos=[];
   editAptId=null; aptItems=[]; cerrarModal('modal-apartado'); renderApartados(); renderProductos(); renderPOS(); cargarDashboard();
@@ -2270,7 +2276,7 @@ async function completarApartado(id){
   await sbPatch('apartados',id,{estado:'Completado'}); a.estado='Completado';
   ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
   apartados=await sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200');
-  productos=await sbGet('productos','select=*&activo=eq.true&order=nombre.asc&limit=1000');
+  productos=await sbGet('productos','select=*&activo=is.true&order=nombre.asc&limit=1000');
   if(!Array.isArray(ventas)) ventas=[];
   if(!Array.isArray(apartados)) apartados=[];
   if(!Array.isArray(productos)) productos=[];
@@ -2282,7 +2288,7 @@ async function cancelarApartado(id){
   await sbPatch('apartados',id,{estado:'Cancelado'});
   for(const it of a.apartado_items||[]) if(it.producto_id){ const p=productos.find(x=>x.id==it.producto_id); if(p){ await sbPatch('productos',p.id,{stock:(p.stock||0)+it.cantidad}); p.stock=(p.stock||0)+it.cantidad; } }
   a.estado='Cancelado';
-  productos=await sbGet('productos','select=*&activo=eq.true&order=nombre.asc&limit=1000');
+  productos=await sbGet('productos','select=*&activo=is.true&order=nombre.asc&limit=1000');
   if(!Array.isArray(productos)) productos=[];
   renderApartados(); renderProductos(); renderPOS(); cargarDashboard();
   toast('✅ Apartado cancelado — stock restaurado 🌸');
@@ -2389,7 +2395,7 @@ async function guardarProducto(){
   const data={nombre,precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:document.getElementById('p-categoria').value.trim(),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,observaciones:document.getElementById('p-observaciones').value.trim(),es_nuevo:document.getElementById('p-nuevo').checked,activo:document.getElementById('p-activo').checked};
   if(editProdId){ await sbPatch('productos',editProdId,data); const i=productos.findIndex(p=>p.id===editProdId); if(i>=0) productos[i]={...productos[i],...data}; toast('✅ Actualizado'); }
   else{ const res=await sbPost('productos',data); if(res[0]) productos.push(res[0]); toast('✅ Agregado'); }
-  productos=await sbGet('productos','select=*&activo=eq.true&order=nombre.asc&limit=1000');
+  productos=await sbGet('productos','select=*&activo=is.true&order=nombre.asc&limit=1000');
   if(!Array.isArray(productos)) productos=[];
   cerrarModal('modal-producto'); renderProductos(); renderPOS();
 }
