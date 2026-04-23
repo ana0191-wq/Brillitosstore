@@ -2259,7 +2259,7 @@ function renderApartados(){
       +(saldo>0?'<div style="font-size:12px;color:var(--gray)">Saldo: $'+saldo.toFixed(2)+'</div>':'<div style="font-size:11px;color:#2e7d32;font-weight:700">✅ Pagado</div>')
       +(a.monto_bs>0?'<div style="font-size:12px;color:#2e7d32;font-weight:600;margin-top:2px">🇻🇪 Bs. '+parseFloat(a.monto_bs).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')
       +'</div></div>'
-      +(a.estado==='Por confirmar'?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="confirmarPedidoWeb('+a.id+')">✅ Confirmar pedido</button><button class="btn btn-danger btn-sm" onclick="rechazarPedidoWeb('+a.id+')">✕ Rechazar</button></div>':((a.estado==='Pendiente'||a.estado==='Activo')?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="completarApartado('+a.id+')">✅ Completar → Venta</button><button class="btn btn-warning btn-sm" onclick="abrirModalApartado('+a.id+')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="cancelarApartado('+a.id+')">✕ Cancelar</button></div>':''))
+      +(a.estado==='Por confirmar'?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="confirmarPedidoWeb('+a.id+')">✅ Confirmar pedido</button><button class="btn btn-danger btn-sm" onclick="rechazarPedidoWeb('+a.id+')">✕ Rechazar</button></div>':((a.estado==='Pendiente'||a.estado==='Activo')?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="completarApartado('+a.id+')">✅ Completar → Venta</button><button class="btn btn-warning btn-sm" onclick="abrirModalApartado('+a.id+')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="cancelarApartado('+a.id+')">✕ Cancelar</button></div>':(a.estado==='Cancelado'||a.estado==='Completado'||a.estado==='Vencido'?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-sm" style="background:#ffebee;color:#c62828;border:1px solid #ef9a9a" onclick="eliminarApartado('+a.id+')">🗑️ Eliminar</button></div>':'')))
       +'</div>';
   }).join(''):'<div class="card" style="text-align:center;color:var(--gray);padding:30px">No hay apartados 🌸</div>';
 }
@@ -2360,6 +2360,16 @@ async function completarApartado(id){
   if(!Array.isArray(productos)) productos=[];
   renderApartados(); renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
   toast('✅ Apartado completado → Venta creada 🌸');
+}
+async function eliminarApartado(id){
+  const a=apartados.find(x=>x.id===id);
+  if(!a){ toast('No encontrado'); return; }
+  if(!confirm('¿Eliminar permanentemente el apartado #'+(a.numero||id)+'? Esta acción no se puede deshacer.')) return;
+  await sbDelete('apartado_items','apartado_id=eq.'+id);
+  await sbDelete('apartados','id=eq.'+id);
+  apartados=apartados.filter(x=>x.id!==id);
+  renderApartados(); cargarDashboard();
+  toast('🗑️ Apartado eliminado');
 }
 async function cancelarApartado(id){
   const a=apartados.find(x=>x.id===id); if(!a||!confirm('¿Cancelar apartado?')) return;
