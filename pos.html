@@ -719,7 +719,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
     <div class="cart-footer">
       <button class="apt-btn" onclick="abrirApartado()">📌 Guardar como apartado</button>
-      <button class="apt-btn" id="papelito-btn" onclick="generarPapelito()" style="background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80" disabled>🖨️ Papelito</button>
+      <button class="apt-btn" id="papelito-btn" onclick="mostrarPedido()" style="background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80" disabled>🧾 Ver pedido</button>
       <button class="cobrar-btn" id="cobrar-btn" onclick="confirmar()" disabled>Cobrar $0.00</button>
     </div>
   </div>
@@ -758,6 +758,18 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <div class="modal-btns">
       <button class="mbtn sec" onclick="$('modal-confirm').classList.remove('open')">Cancelar</button>
       <button class="mbtn pri" id="mc-ok" onclick="ejecutarCobro()">✅ Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL PEDIDO CLIENTE -->
+<div class="modal-ov" id="modal-pedido" onclick="if(event.target===this)cerrarPedido()">
+  <div class="modal-box" style="max-width:340px;padding:0;overflow:hidden;border-radius:22px">
+    <div id="pedido-contenido" style="padding:22px 18px;text-align:center"></div>
+    <div style="display:flex;gap:0;border-top:1px solid #f0e6f6">
+      <button onclick="cerrarPedido()" style="flex:1;padding:16px;background:#fff;border:none;font-size:15px;color:#888;cursor:pointer;border-radius:0 0 0 22px">✖ Cerrar</button>
+      <button onclick="compartirPedido()" style="flex:1;padding:16px;background:#fff;border:none;font-size:15px;color:#c2185b;font-weight:700;cursor:pointer;border-right:none">📤 Compartir</button>
+      <button onclick="confirmarDesdePedido()" style="flex:1;padding:16px;background:var(--pk);border:none;font-size:15px;color:#fff;font-weight:700;cursor:pointer;border-radius:0 0 22px 0">✅ Cobrar</button>
     </div>
   </div>
 </div>
@@ -862,116 +874,72 @@ async function anularUltimaVenta(){
   renderProds();
   toast('↩️ Venta anulada — stock restaurado');
 }
-async function generarPapelito(){
+function mostrarPedido(){
   if(!carrito.length){ toast('⚠️ Carrito vacío'); return; }
-  const btn=$('papelito-btn'); btn.disabled=true; btn.textContent='⏳...';
   const sub=carrito.reduce((s,i)=>s+i.sub,0);
   const desc=parseFloat($('inp-desc').value)||0;
   const total=Math.max(0,sub-desc);
   const tasa=parseFloat($('inp-tasa').value)||bcv||0;
   const bs=tasa>0?total*tasa:0;
   const cliente=$('inp-cliente').value.trim()||'';
-  const snap=[...carrito];
-  const num='APT-'+Date.now();
   const pmCuenta=CUENTAS.find(c=>c.tipo==='Pago Móvil');
 
-  // Guardar apartado en background
-  POST('apartados',{
-    cliente_nombre:cliente||'Cliente', canal:'Evento', metodo_pago:'Pago Móvil',
-    estado:'Pendiente', total, abono:0, saldo:total,
-    tasa_bcv_usada:tasa||0, monto_bs:bs||0, notas:'Papelito POS', numero:num
-  }).then(res=>{
-    const aid=res&&res[0]&&res[0].id;
-    if(aid){
-      snap.forEach(it=>fetchTimeout(SB+'/rest/v1/apartado_items',{method:'POST',headers:H,
-        body:JSON.stringify({apartado_id:aid,producto_id:it.id,producto_nombre:it.nombre,
-          precio_unitario:it.precio,cantidad:it.cantidad,subtotal:it.sub})}));
-      snap.forEach(it=>{ const p=prods.find(x=>x.id===it.id);
-        if(p){ p.stock=Math.max(0,(p.stock||0)-it.cantidad); PATCH('productos',p.id,{stock:p.stock}); }});
-    }
-  }).catch(()=>{});
+  const rows=carrito.map(it=>`
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid #f5f5f5;font-size:15px">
+      <span>${it.nombre}${it.cantidad>1?' <strong>×'+it.cantidad+'</strong>':''}</span>
+      <span style="font-weight:700">$${it.sub.toFixed(2)}</span>
+    </div>`).join('');
 
-  // ── Dibujar PNG en canvas 58mm @203dpi = 464px ──
-  const W=464;
-  const PAD=18;
-  const LH=36;   // line height normal
-  const LHS=28;  // line height small
+  $('pedido-contenido').innerHTML=`
+    <div style="font-size:22px;font-weight:900;color:#c2185b;margin-bottom:4px">🌸 Brillitos Store</div>
+    ${cliente?`<div style="font-size:14px;color:#888;margin-bottom:12px">👤 ${cliente}</div>`:'<div style="margin-bottom:12px"></div>'}
+    <div style="background:#fafafa;border-radius:12px;padding:12px;margin-bottom:12px;text-align:left">
+      ${rows}
+      ${desc>0?`<div style="display:flex;justify-content:space-between;padding:7px 0;font-size:14px;color:#888"><span>Descuento</span><span>-$${desc.toFixed(2)}</span></div>`:''}
+      <div style="display:flex;justify-content:space-between;padding:10px 0 4px;font-size:20px;font-weight:900;color:#c2185b;border-top:2px solid #f0e6f6;margin-top:4px">
+        <span>TOTAL</span><span>$${total.toFixed(2)}</span>
+      </div>
+      ${bs>0?`<div style="text-align:right;font-size:16px;font-weight:700;color:#2e7d32">Bs. ${bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`:''}
+    </div>
+    ${pmCuenta&&pmCuenta.tlf?`
+    <div style="background:#e8f5e9;border-radius:12px;padding:12px;text-align:left">
+      <div style="font-size:12px;color:#555;font-weight:600;margin-bottom:6px">📱 DATOS PAGO MÓVIL</div>
+      <div style="font-size:22px;font-weight:900;letter-spacing:1px;color:#1b5e20">${pmCuenta.tlf}</div>
+      <div style="font-size:14px;color:#333;margin-top:3px">${pmCuenta.banco}</div>
+      <div style="font-size:13px;color:#666;margin-top:2px">Cédula/RIF: ${pmCuenta.cuenta}</div>
+    </div>`:''}
+  `;
+  $('modal-pedido').classList.add('open');
+}
 
-  // Pre-calcular alto
-  let H2 = 20 + 40 + 20; // top + titulo + num
-  if(cliente) H2+=LHS+6;
-  H2+=12; // hr
-  H2+=snap.length*(LH+4);
-  if(desc>0) H2+=LH+4;
-  H2+=LH+8; // total
-  if(bs>0) H2+=LHS+4;
-  H2+=12; // hr
-  H2+=LH+8; // "Pago Móvil"
-  if(pmCuenta){ H2+=LH+4; H2+=LHS+4; H2+=LHS+4; } // tlf, banco, cedula
-  H2+=12; // hr
-  H2+=LHS*2+16; // footer
-  H2+=20; // bottom
+function cerrarPedido(){
+  $('modal-pedido').classList.remove('open');
+}
 
-  const cv=document.createElement('canvas');
-  cv.width=W; cv.height=H2;
-  const c=cv.getContext('2d');
+function confirmarDesdePedido(){
+  cerrarPedido();
+  confirmar();
+}
 
-  // Fondo
-  c.fillStyle='#fff'; c.fillRect(0,0,W,H2);
-
-  let y=20;
-  const cx=(txt,sz,bold)=>{ c.font=(bold?'bold ':'')+sz+'px Arial'; c.fillStyle='#000'; c.textAlign='center'; c.fillText(txt,W/2,y); y+=sz+10; };
-  const lx=(txt,sz,bold,color)=>{ c.font=(bold?'bold ':'')+sz+'px Arial'; c.fillStyle=color||'#000'; c.textAlign='left'; c.fillText(txt,PAD,y); };
-  const rx=(txt,sz,bold)=>{ c.font=(bold?'bold ':'')+sz+'px Arial'; c.fillStyle='#000'; c.textAlign='right'; c.fillText(txt,W-PAD,y); };
-  const row=(l,r,sz,bold)=>{ lx(l,sz,bold); rx(r,sz,bold); y+=sz+8; };
-  const hr=()=>{ c.strokeStyle='#000'; c.setLineDash([5,5]); c.lineWidth=1.5; c.beginPath(); c.moveTo(PAD,y); c.lineTo(W-PAD,y); c.stroke(); c.setLineDash([]); y+=14; };
-
-  cx('🌸 Brillitos Store 🌸', 26, true);
-  cx(num, 18, false);
-  if(cliente){ cx('👤 '+cliente, 20, false); }
-  hr();
-
-  snap.forEach(it=>{
-    const nom=it.nombre.length>24?it.nombre.slice(0,22)+'..':it.nombre;
-    row((it.cantidad>1?nom+' ×'+it.cantidad:nom), '$'+it.sub.toFixed(2), 22, false);
-  });
-  if(desc>0) row('Descuento', '-$'+desc.toFixed(2), 22, false);
-  y+=4; hr();
-  row('TOTAL', '$'+total.toFixed(2), 28, true);
-  if(bs>0){ y+=2; row('Bs. (tasa '+tasa+')', bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}), 22, true); }
-  hr();
-
-  lx('📱 PAGO MÓVIL', 24, true); y+=34;
-  if(pmCuenta){
-    lx(pmCuenta.tlf, 26, true); y+=36;
-    lx(pmCuenta.banco, 22, false); y+=32;
-    lx('Cédula/RIF: '+pmCuenta.cuenta, 20, false); y+=28;
+async function compartirPedido(){
+  const el=$('pedido-contenido');
+  // Web Share text fallback
+  const sub=carrito.reduce((s,i)=>s+i.sub,0);
+  const desc=parseFloat($('inp-desc').value)||0;
+  const total=Math.max(0,sub-desc);
+  const tasa=parseFloat($('inp-tasa').value)||bcv||0;
+  const bs=tasa>0?total*tasa:0;
+  const pmCuenta=CUENTAS.find(c=>c.tipo==='Pago Móvil');
+  const txt='🌸 Brillitos Store\n'
+    +carrito.map(it=>it.nombre+(it.cantidad>1?' ×'+it.cantidad:'')+' $'+it.sub.toFixed(2)).join('\n')
+    +'\n─────────────\nTOTAL: $'+total.toFixed(2)
+    +(bs>0?'\nBs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'')
+    +(pmCuenta&&pmCuenta.tlf?'\n\n📱 Pago Móvil\n'+pmCuenta.tlf+' · '+pmCuenta.banco+'\nCédula: '+pmCuenta.cuenta:'');
+  if(navigator.share){
+    try{ await navigator.share({text:txt,title:'Pedido Brillitos'}); }catch(e){}
+  } else {
+    navigator.clipboard?.writeText(txt).then(()=>toast('📋 Copiado al portapapeles'));
   }
-  hr();
-  cx('Muestra tu comprobante', 20, false);
-  cx('para confirmar tu pedido 🌸', 20, false);
-
-  // ── Compartir como PNG via Web Share API ──
-  cv.toBlob(async blob=>{
-    const file=new File([blob],'papelito.png',{type:'image/png'});
-    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-      try{
-        await navigator.share({files:[file], title:'Papelito Brillitos'});
-      }catch(e){
-        // usuario canceló — no pasa nada
-      }
-    } else {
-      // Fallback: abrir imagen en nueva pestaña
-      const url=URL.createObjectURL(blob);
-      window.open(url,'_blank');
-    }
-    btn.disabled=false; btn.textContent='🖨️ Papelito';
-    toast('🖨️ Listo 🌸',2000);
-  },'image/png');
-
-  // Limpiar carrito inmediatamente
-  carrito=[]; $('inp-cliente').value=''; $('inp-desc').value='0';
-  renderCarrito(); renderProds();
 }
 
 async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H});return r.ok?r.json():[];}
