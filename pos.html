@@ -719,6 +719,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
     <div class="cart-footer">
       <button class="apt-btn" onclick="abrirApartado()">📌 Guardar como apartado</button>
+      <button class="apt-btn" id="papelito-btn" onclick="generarPapelito()" style="background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80" disabled>🖨️ Papelito</button>
       <button class="cobrar-btn" id="cobrar-btn" onclick="confirmar()" disabled>Cobrar $0.00</button>
     </div>
   </div>
@@ -848,6 +849,137 @@ async function anularUltimaVenta(){
   renderProds();
   toast('↩️ Venta anulada — stock restaurado');
 }
+async function generarPapelito(){
+  if(!carrito.length){ toast('⚠️ Carrito vacío'); return; }
+  const btn=$('papelito-btn'); btn.disabled=true; btn.textContent='⏳...';
+  const sub=carrito.reduce((s,i)=>s+i.sub,0);
+  const desc=parseFloat($('inp-desc').value)||0;
+  const total=Math.max(0,sub-desc);
+  const tasa=parseFloat($('inp-tasa').value)||bcv||0;
+  const bs=tasa>0?total*tasa:0;
+  const cliente=$('inp-cliente').value.trim()||'Cliente';
+  const snap=[...carrito];
+  const num='APT-'+Date.now();
+
+  // ── Crear apartado en Supabase ──
+  try{
+    const aptData={
+      cliente_nombre:cliente, canal:'Evento', metodo_pago:'Pago Móvil',
+      estado:'Pendiente', total, abono:0, saldo:total,
+      tasa_bcv_usada:tasa||0, monto_bs:bs||0,
+      notas:'Papelito generado desde POS', numero:num
+    };
+    const res=await POST('apartados',aptData);
+    const aid=res&&res[0]&&res[0].id;
+    if(aid){
+      for(const it of snap){
+        await fetchTimeout(SB+'/rest/v1/apartado_items',{method:'POST',headers:H,
+          body:JSON.stringify({apartado_id:aid,producto_id:it.id,producto_nombre:it.nombre,precio_unitario:it.precio,cantidad:it.cantidad,subtotal:it.sub})});
+      }
+      // Descontar stock
+      for(const it of snap){
+        const p=prods.find(x=>x.id===it.id);
+        if(p){ const ns=Math.max(0,(p.stock||0)-it.cantidad); await PATCH('productos',p.id,{stock:ns}); p.stock=ns; }
+      }
+    }
+  }catch(e){ toast('⚠️ Sin conexión — papelito generado sin guardar',3000); }
+
+  // ── Generar imagen para iPrint ──
+  const canvas=document.createElement('canvas');
+  // 57mm a 203dpi = ~456px, usamos 384px (ancho estándar térmicas 58mm)
+  const W=384; const PADDING=16;
+  canvas.width=W;
+
+  // Calcular alto dinámico
+  const lineH=28, smallH=22;
+  let estimH = 60+30+20+(snap.length*(lineH+4))+20+30+80+(bs>0?30:0)+60+40;
+  canvas.height=estimH;
+  const ctx=canvas.getContext('2d');
+
+  // Fondo blanco
+  ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,W,estimH);
+
+  let y=20;
+  const center=(txt,size,bold=false)=>{
+    ctx.font=(bold?'bold ':'')+size+'px Arial';
+    ctx.fillStyle='#000000';
+    ctx.textAlign='center';
+    ctx.fillText(txt,W/2,y); y+=size+8;
+  };
+  const left=(txt,size,bold=false,color='#000')=>{
+    ctx.font=(bold?'bold ':'')+size+'px Arial';
+    ctx.fillStyle=color;
+    ctx.textAlign='left';
+    ctx.fillText(txt,PADDING,y); y+=size+6;
+  };
+  const right=(txt,size,bold=false)=>{
+    ctx.font=(bold?'bold ':'')+size+'px Arial';
+    ctx.fillStyle='#000000';
+    ctx.textAlign='right';
+    ctx.fillText(txt,W-PADDING,y);
+  };
+  const line=()=>{ ctx.strokeStyle='#000'; ctx.setLineDash([4,4]); ctx.lineWidth=1; ctx.beginPath(); ctx.moveTo(PADDING,y); ctx.lineTo(W-PADDING,y); ctx.stroke(); ctx.setLineDash([]); y+=10; };
+
+  // Encabezado
+  center('🌸 Brillitos Store 🌸',22,true); y+=4;
+  center('Pedido: '+num,14);
+  center(new Date().toLocaleString('es-VE',{dateStyle:'short',timeStyle:'short'}),13);
+  y+=6; line();
+
+  // Cliente
+  if(cliente&&cliente!=='Cliente'){ left('👤 '+cliente,15,true); y+=4; }
+
+  // Productos
+  left('PRODUCTOS:',14,true); y+=4;
+  for(const it of snap){
+    const nombre=it.nombre.length>22?it.nombre.substring(0,20)+'..':it.nombre;
+    left(nombre+' x'+it.cantidad,14);
+    right('$'+it.sub.toFixed(2),14);
+    y+=2;
+  }
+  y+=4; line();
+
+  // Totales
+  if(desc>0){ left('Descuento:',14); right('-$'+desc.toFixed(2),14); y+=lineH; }
+  left('TOTAL A PAGAR:',18,true); right('$'+total.toFixed(2),18,true); y+=lineH+4;
+  if(bs>0){ left('En Bs. (tasa '+tasa+'):',14); right('Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}),14,true); y+=lineH; }
+
+  y+=6; line();
+
+  // Datos de pago
+  left('📱 PAGO MÓVIL:',16,true); y+=6;
+  // Buscar cuenta Pago Móvil de CUENTAS
+  const pmCuenta=CUENTAS.find(c=>c.tipo==='Pago Móvil');
+  if(pmCuenta){
+    left('Teléfono: '+pmCuenta.tlf,15,true);
+    left('Banco: '+pmCuenta.banco,14);
+    left('Cédula/RIF: '+pmCuenta.cuenta,14);
+  }
+  y+=6; line();
+  center('Muestra tu comprobante',13);
+  center('para confirmar tu pedido 🌸',13);
+  y+=10;
+
+  // Recortar canvas al alto real
+  const finalCanvas=document.createElement('canvas');
+  finalCanvas.width=W; finalCanvas.height=y+10;
+  const fctx=finalCanvas.getContext('2d');
+  fctx.fillStyle='#fff'; fctx.fillRect(0,0,W,y+10);
+  fctx.drawImage(canvas,0,0);
+
+  // Descargar imagen
+  const link=document.createElement('a');
+  link.download='papelito-'+num+'.png';
+  link.href=finalCanvas.toDataURL('image/png');
+  link.click();
+
+  // Limpiar carrito
+  carrito=[]; $('inp-cliente').value=''; $('inp-desc').value='0';
+  renderCarrito(); renderProds();
+  btn.disabled=false; btn.textContent='🖨️ Papelito';
+  toast('🖨️ Papelito descargado — comparte a iPrint 🌸',4000);
+}
+
 async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H});return r.ok?r.json():[];}
 function fetchTimeout(url,opts,ms=10000){
   const ctrl=new AbortController();
@@ -1062,6 +1194,7 @@ function calcTotal(){
   $('ct-val').textContent='$'+total.toFixed(2);
   $('cobrar-btn').textContent='Cobrar $'+total.toFixed(2);
   $('cobrar-btn').disabled=carrito.length===0;
+  const _pb=$('papelito-btn'); if(_pb) _pb.disabled=carrito.length===0;
   calcBs();
 }
 
