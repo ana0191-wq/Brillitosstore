@@ -1095,7 +1095,7 @@ function poblarCuentas(m){
   const lista=CUENTAS.filter(c=>c.tipo===met);
   const wrap=$('wrap-cuenta');
   if(lista.length){
-    $('sel-cuenta').innerHTML='<option value="">— Cuenta —</option>'+lista.map(c=>`<option value="${c.id}">${c.label}</option>`).join('');
+    $('sel-cuenta').innerHTML='<option value="">— Cuenta —</option>'+lista.map(c=>`<option value="${CUENTAS.indexOf(c)}">${c.label}</option>`).join('');
     wrap.classList.add('show');
   }else{$('sel-cuenta').innerHTML='';wrap.classList.remove('show');}
 }
@@ -1109,8 +1109,9 @@ function confirmar(){
   const tasa=parseFloat($('inp-tasa').value)||bcv||0;
   const bs=parseFloat($('inp-bs').value)||0;
   const cliente=$('inp-cliente').value.trim()||'Cliente POS';
-  const cuenta=$('sel-cuenta').value;
-  const cuentaObj=CUENTAS.find(c=>c.id===cuenta)||null;
+  const cuentaIdx=parseInt($('sel-cuenta').value);
+  const cuentaObj=(!isNaN(cuentaIdx)&&CUENTAS[cuentaIdx])?CUENTAS[cuentaIdx]:null;
+  const cuenta=cuentaObj?cuentaObj.id:'';
   // Título dinámico según método
   const metEmoji={'Pago Móvil':'📱','BCV':'🏦','Efectivo Bs':'💵','Efectivo $':'💵','Binance/USDT':'🔷','PayPal':'🅿️','Zelle':'💙'};
   const ico=metEmoji[metodo]||'💳';
