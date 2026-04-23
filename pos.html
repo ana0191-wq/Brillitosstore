@@ -849,12 +849,17 @@ async function anularUltimaVenta(){
   toast('↩️ Venta anulada — stock restaurado');
 }
 async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H});return r.ok?r.json():[];}
+function fetchTimeout(url,opts,ms=10000){
+  const ctrl=new AbortController();
+  const tid=setTimeout(()=>ctrl.abort(),ms);
+  return fetch(url,{...opts,signal:ctrl.signal}).finally(()=>clearTimeout(tid));
+}
 async function POST(t,d){
-  const r=await fetch(`${SB}/rest/v1/${t}`,{method:'POST',headers:{...H,Prefer:'return=representation'},body:JSON.stringify(d)});
+  const r=await fetchTimeout(`${SB}/rest/v1/${t}`,{method:'POST',headers:{...H,Prefer:'return=representation'},body:JSON.stringify(d)}).catch(e=>{throw new Error(e.name==='AbortError'?'Sin respuesta de Supabase (timeout)':e.message);});
   if(!r.ok){ const err=await r.json().catch(()=>({message:r.statusText})); throw new Error((err.message||err.hint||JSON.stringify(err))+' ['+t+']'); }
   return r.json();
 }
-async function PATCH(t,id,d){await fetch(`${SB}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:{...H,Prefer:'return=minimal'},body:JSON.stringify(d)});}
+async function PATCH(t,id,d){await fetchTimeout(`${SB}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:{...H,Prefer:'return=minimal'},body:JSON.stringify(d)});}
 
 // ── EVENT DELEGATION en grid (1 listener, no 100+) ──
 document.addEventListener('DOMContentLoaded',()=>{
@@ -1129,7 +1134,7 @@ async function ejecutarCobro(){
     const vid=res[0]&&res[0].id;
     if(!vid)throw new Error('Sin ID de venta — respuesta: '+JSON.stringify(res));
     for(const it of carrito){
-      await fetch(`${SB}/rest/v1/venta_items`,{method:'POST',headers:H,
+      await fetchTimeout(`${SB}/rest/v1/venta_items`,{method:'POST',headers:H,
         body:JSON.stringify({venta_id:vid,producto_id:it.id,producto_nombre:it.nombre,precio_unitario:it.precio,cantidad:it.cantidad,subtotal:it.sub})});
       const p=prods.find(x=>x.id===it.id);
       if(p&&parseInt(p.stock||0)>0){const ns=Math.max(0,p.stock-it.cantidad);await PATCH('productos',p.id,{stock:ns});p.stock=ns;}
