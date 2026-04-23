@@ -545,6 +545,15 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   .scan-btn{display:none!important}
   .scan-fab-left{display:none!important}
 }
+.pcard-price-overlay{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(transparent,rgba(0,0,0,.62));
+  color:#fff;font-size:13px;font-weight:900;
+  padding:14px 8px 6px;
+  border-radius:0 0 10px 10px;
+  text-align:center;
+  pointer-events:none;
+}
 </style>
 </head>
 <body>
@@ -795,9 +804,15 @@ const $=id=>document.getElementById(id);
 function hoy(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240);return d.toISOString().slice(0,10);}
 function codProd(id){return 'BRILL-'+id;}
 function toast(msg,ms=2600){const el=$('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),ms);}
+let _audioCtx=null;
+function getAudioCtx(){
+  if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  if(_audioCtx.state==='suspended') _audioCtx.resume();
+  return _audioCtx;
+}
 function beep(){
   try{
-    const ctx=new(window.AudioContext||window.webkitAudioContext)();
+    const ctx=getAudioCtx();
     [1050,1320].forEach((freq,i)=>{
       const o=ctx.createOscillator(),g=ctx.createGain();
       o.connect(g);g.connect(ctx.destination);o.type='sine';o.frequency.value=freq;
@@ -842,6 +857,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   });
 });
 
+document.addEventListener('touchstart',function ia(){getAudioCtx();document.removeEventListener('touchstart',ia);},{once:true});
 // ── INIT ──
 async function init(){
   $('loading-sub').textContent='Cargando productos...';
@@ -916,12 +932,14 @@ function renderProds(){
           <button class="pc-btn" data-d="1">+</button>
         </div>`
       :`<button class="pcard-add-btn" data-id="${p.id}">+</button>`;
+    const precio=parseFloat(p.precio||0);
+    const precioOverlay=`<div class="pcard-price-overlay">$${precio.toFixed(2)}</div>`;
     return `<div class="pcard${stk<=0?' agotado':''}${enc?' incarrito':''}" data-id="${p.id}">
-      <div class="pcard-img-wrap">${imgEl}${stkBadge}${qtyBadge}</div>
+      <div class="pcard-img-wrap">${imgEl}${stkBadge}${qtyBadge}${precioOverlay}</div>
       <div class="pcard-body">
         <div class="pcard-name">${p.nombre||''}</div>
         <div class="pcard-foot">
-          <div class="pcard-price">$${parseFloat(p.precio||0).toFixed(2)}</div>
+          <div style="flex:1"></div>
           ${ctrl}
         </div>
       </div>
