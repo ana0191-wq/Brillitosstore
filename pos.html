@@ -1243,12 +1243,21 @@ function confirmar(){
   const metEmoji={'Pago Móvil':'📱','BCV':'🏦','Efectivo Bs':'💵','Efectivo $':'💵','Binance/USDT':'🔷','PayPal':'🅿️','Zelle':'💙'};
   const ico=metEmoji[metodo]||'💳';
   $('mc-tit').textContent=ico+' '+metodo+(cliente&&cliente!=='Cliente POS'?' · '+cliente:'');
-  // Info de cuenta según método
+  // Info de cuenta — usar cuentaObj o buscar por tipo si no hay selección
+  const datosPago = cuentaObj || CUENTAS.find(c=>c.tipo===metodo) || null;
   let cuentaInfo='';
-  if(cuentaObj){
-    if(cuentaObj.tlf) cuentaInfo+=`<div style="font-size:13px;margin-top:6px">📱 <strong>${cuentaObj.tlf}</strong> · ${cuentaObj.banco}</div>`;
-    if(['Binance/USDT','PayPal','Zelle'].includes(metodo)&&cuentaObj.cuenta) cuentaInfo+=`<div style="font-size:13px;margin-top:6px">📧 <strong>${cuentaObj.cuenta}</strong></div>`;
-    if(cuentaObj.cuenta&&cuentaObj.tlf) cuentaInfo+=`<div style="font-size:11px;color:#888;margin-top:2px">Cta: ${cuentaObj.cuenta}</div>`;
+  if(datosPago){
+    if(datosPago.tlf)
+      cuentaInfo+=`<div style="margin-top:10px;padding:10px;background:#f8f8f8;border-radius:10px;text-align:left">
+        <div style="font-size:18px;font-weight:800;letter-spacing:1px">📱 ${datosPago.tlf}</div>
+        <div style="font-size:14px;color:#555;margin-top:3px">${datosPago.banco}</div>
+        <div style="font-size:13px;color:#888;margin-top:2px">Cédula/RIF: ${datosPago.cuenta}</div>
+      </div>`;
+    else if(datosPago.cuenta)
+      cuentaInfo+=`<div style="margin-top:10px;padding:10px;background:#f8f8f8;border-radius:10px;text-align:left">
+        <div style="font-size:16px;font-weight:800">📧 ${datosPago.cuenta}</div>
+        <div style="font-size:13px;color:#888;margin-top:2px">${datosPago.banco}</div>
+      </div>`;
   }
   $('mc-sub').innerHTML='<strong style="font-size:1.3rem">$'+total.toFixed(2)+'</strong>'+(esBs&&bs>0?'<br><span style="color:var(--green);font-size:1.1rem">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'')+cuentaInfo;
   $('mc-items').innerHTML=carrito.map(it=>`<div class="m-row"><span>${it.nombre} ×${it.cantidad}</span><span>$${it.sub.toFixed(2)}</span></div>`).join('')
