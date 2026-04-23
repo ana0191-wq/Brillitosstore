@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776965779 -->
+<head><!-- v1776966250 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -737,7 +737,6 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <div class="cart-footer">
       <button class="apt-btn" onclick="abrirApartado()">📌 Guardar como apartado</button>
       <button class="apt-btn" id="papelito-btn" onclick="mostrarPedido()" style="background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80" disabled>🧾 Ver pedido</button>
-      <button class="apt-btn" id="printer-btn" onclick="conectarImpresora()" style="background:#e8f5e9;color:#2e7d32;border:1.5px solid #a5d6a7" title="Conectar impresora GB01">🖨️</button>
       <button class="cobrar-btn" id="cobrar-btn" onclick="confirmar()" disabled>Cobrar $0.00</button>
     </div>
   </div>
@@ -904,7 +903,7 @@ const GB01_CHAR = 0xAE01;
 const GB01_CHUNK = 200; // bytes por paquete
 
 async function conectarImpresora(){
-  const btn=$('printer-btn');
+  const btn=document.getElementById('printer-fab')||$('printer-btn');
   if(!navigator.bluetooth){ toast('⚠️ Web Bluetooth no disponible en este navegador'); return; }
   try{
     btn.textContent='⏳...'; btn.disabled=true;
@@ -1585,5 +1584,13 @@ document.addEventListener('click',e=>{
 
 init();
 </script>
+
+<!-- Botón impresora flotante siempre visible -->
+<button id="printer-fab" onclick="conectarImpresora()" title="Conectar impresora GB01"
+  style="position:fixed;bottom:90px;right:16px;z-index:999;
+         width:48px;height:48px;border-radius:50%;border:2px solid #a5d6a7;
+         background:#e8f5e9;color:#2e7d32;font-size:22px;
+         box-shadow:0 2px 8px rgba(0,0,0,0.18);cursor:pointer;
+         display:flex;align-items:center;justify-content:center;">🖨️</button>
 </body>
 </html>
