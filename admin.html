@@ -1682,9 +1682,25 @@ function cargarDashboard(){
 
   // Top productos
   const conteo={};
-  vM.forEach(v=>(v.venta_items||[]).forEach(it=>{const n=it.producto_nombre||'?';conteo[n]=(conteo[n]||0)+parseInt(it.cantidad||1);}));
+  const conteoClientes={};
+  vM.forEach(v=>(v.venta_items||[]).forEach(it=>{
+    const n=(it.producto_nombre||'').trim()||'Sin nombre (ID:'+it.producto_id+')';
+    conteo[n]=(conteo[n]||0)+parseInt(it.cantidad||1);
+    if(!conteoClientes[n]) conteoClientes[n]=new Set();
+    if(v.cliente_nombre) conteoClientes[n].add(v.cliente_nombre);
+  }));
   document.getElementById('top-productos').innerHTML = Object.entries(conteo).sort((a,b)=>b[1]-a[1]).slice(0,5)
-    .map(([n,c],i)=>'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><span style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;font-weight:800;color:var(--pink);min-width:16px">'+(i+1)+'.</span>'+n+'</span><strong style="color:var(--pink);background:var(--pink-light);padding:2px 8px;border-radius:10px;font-size:12px">'+c+'</strong></div>').join('')
+    .map(([n,c],i)=>{
+      const clientes=[...(conteoClientes[n]||new Set())].slice(0,3).join(', ');
+      return '<div style="padding:8px 0;border-bottom:1px solid var(--border)">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px">'
+        +'<span style="display:flex;align-items:center;gap:6px"><span style="font-size:11px;font-weight:800;color:var(--pink);min-width:16px">'+(i+1)+'.</span>'
+        +'<span style="font-weight:600">'+n+'</span></span>'
+        +'<strong style="color:var(--pink);background:var(--pink-light);padding:2px 8px;border-radius:10px;font-size:12px;white-space:nowrap">'+c+' uds</strong>'
+        +'</div>'
+        +(clientes?'<div style="font-size:11px;color:var(--gray);margin-top:2px;padding-left:22px">👤 '+clientes+'</div>':'')
+        +'</div>';
+    }).join('')
     || '<div style="color:var(--gray);font-size:13px">Sin ventas este mes</div>';
 
   // Canales
