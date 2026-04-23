@@ -763,12 +763,18 @@ tr:hover td{background:#fff8fc}
     <div class="form-group form-full"><label>Variantes</label><input type="text" id="p-observaciones" placeholder="Rosa, Azul, Negro..."></div>
   </div>
   <div class="section-title">📷 Fotos</div>
-  <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFiles(event)">
-    <div style="font-size:26px">📸</div>
-    <p><strong>Toca para elegir fotos</strong></p>
-    <p style="font-size:11px">JPG, PNG, WEBP — máx. 5</p>
+  <div style="display:flex;gap:8px;margin-bottom:4px">
+    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFiles(event)" style="flex:1">
+      <div style="font-size:22px">🖼️</div>
+      <p style="font-size:12px;margin:2px 0"><strong>Galería / Archivo</strong></p>
+    </div>
+    <div class="upload-zone" onclick="document.getElementById('file-camera').click()" style="flex:1;border-color:#d63a8a;background:#fff0f8">
+      <div style="font-size:22px">📷</div>
+      <p style="font-size:12px;margin:2px 0"><strong>Tomar foto</strong></p>
+    </div>
   </div>
   <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="subirFotos(this.files)">
+  <input type="file" id="file-camera" accept="image/*" capture="environment" style="display:none" onchange="subirFotos(this.files)">
   <div class="upload-progress"><div class="upload-progress-bar" id="upload-bar"></div></div>
   <div class="upload-previews" id="upload-previews"></div>
   <div style="display:flex;gap:16px;margin-top:10px;align-items:center;flex-wrap:wrap">
