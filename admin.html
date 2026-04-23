@@ -767,15 +767,19 @@ tr:hover td{background:#fff8fc}
   <div style="display:flex;gap:8px;margin-bottom:4px">
     <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()" ondragover="dragOver(event)" ondragleave="dragLeave(event)" ondrop="dropFiles(event)" style="flex:1">
       <div style="font-size:22px">🖼️</div>
-      <p style="font-size:12px;margin:2px 0"><strong>Galería / Archivo</strong></p>
+      <p style="font-size:12px;margin:2px 0"><strong>Galería</strong></p>
     </div>
-    <div class="upload-zone" onclick="document.getElementById('file-camera').click()" style="flex:1;border-color:#d63a8a;background:#fff0f8">
+    <div class="upload-zone" onclick="abrirCamara()" style="flex:1;border-color:#d63a8a;background:#fff0f8">
       <div style="font-size:22px">📷</div>
-      <p style="font-size:12px;margin:2px 0"><strong>Tomar foto</strong></p>
+      <p style="font-size:12px;margin:2px 0"><strong>Cámara</strong></p>
     </div>
   </div>
+  <!-- Galería: múltiples fotos, sin capture -->
   <input type="file" id="file-input" multiple accept="image/*" style="display:none" onchange="subirFotos(this.files)">
-  <input type="file" id="file-camera" accept="image/*" capture="environment" style="display:none" onchange="subirFotos(this.files)">
+  <!-- Cámara Android: capture=environment -->
+  <input type="file" id="file-camera-android" accept="image/*" capture="environment" style="display:none" onchange="subirFotos(this.files)">
+  <!-- Cámara iOS: capture=camera (sin environment) -->
+  <input type="file" id="file-camera-ios" accept="image/*" capture="camera" style="display:none" onchange="subirFotos(this.files)">
   <div class="upload-progress"><div class="upload-progress-bar" id="upload-bar"></div></div>
   <div class="upload-previews" id="upload-previews"></div>
   <div style="display:flex;gap:16px;margin-top:10px;align-items:center;flex-wrap:wrap">
@@ -2401,6 +2405,14 @@ async function eliminarProd(id){
 function dragOver(e){e.preventDefault();}
 function dragLeave(){}
 function dropFiles(e){e.preventDefault();subirFotos(e.dataTransfer.files);}
+function abrirCamara(){
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  if(isIOS){
+    document.getElementById('file-camera-ios').click();
+  } else {
+    document.getElementById('file-camera-android').click();
+  }
+}
 async function subirFotos(files){
   if(!files||!files.length) return;
   const arr=Array.from(files).slice(0,5-fotosSubidas.length);
@@ -2435,8 +2447,9 @@ async function subirFotos(files){
     }
   }
   setTimeout(()=>bar.style.width='0',2000);
-  document.getElementById('file-input').value='';
-  const fc=document.getElementById('file-camera');if(fc)fc.value='';
+  ['file-input','file-camera-android','file-camera-ios'].forEach(id=>{
+    const el=document.getElementById(id); if(el) el.value='';
+  });
 }
 function renderPreviews(){ document.getElementById('upload-previews').innerHTML=fotosSubidas.map((u,i)=>'<div class="upload-preview"><img src="'+u+'" alt="foto"><button class="rm-img" onclick="quitarFoto('+i+')">×</button></div>').join(''); }
 function quitarFoto(i){ fotosSubidas.splice(i,1); renderPreviews(); }
