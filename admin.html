@@ -390,7 +390,14 @@ tr:hover td{background:#fff8fc}
     <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none;margin-bottom:12px" id="filtro-estado-apt" onchange="renderApartados()">
       <option value="">Todos</option><option>Activo</option><option>Completado</option><option>Cancelado</option><option>Vencido</option>
     </select>
-    <div id="lista-apartados"></div>
+    <div id="bulk-apt-bar" style="display:none;background:#fff0f6;border-radius:12px;padding:10px 14px;margin-bottom:10px;display:none;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap">
+  <span id="bulk-apt-count" style="font-size:14px;color:var(--pink);font-weight:700">0 seleccionados</span>
+  <div style="display:flex;gap:8px">
+    <button onclick="selectAllApt()" style="background:#fce4ec;color:#c2185b;border:none;border-radius:20px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer">✅ Todos</button>
+    <button onclick="bulkDeleteApt()" style="background:#c62828;color:#fff;border:none;border-radius:20px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer">🗑️ Eliminar</button>
+  </div>
+</div>
+<div id="lista-apartados"></div>
   </div>
 </div>
 
@@ -2234,7 +2241,8 @@ function renderApartados(){
     const dias=a.fecha_entrega?Math.ceil((new Date(a.fecha_entrega)-new Date())/(86400000)):null;
     const pronto=dias!==null&&dias<=3&&(a.estado==='Pendiente'||a.estado==='Activo');
     const items=(a.apartado_items||[]).map(i=>(i.producto_nombre||'?')+' x'+i.cantidad).join(', ');
-    return '<div class="apartado-card '+(a.estado||'').toLowerCase()+'" style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid '+(a.estado==='Por confirmar'?'#ff9800':a.estado==='Pendiente'||a.estado==='Activo'?'var(--pink)':a.estado==='Completado'?'#2e7d32':'#ccc')+'">'
+    return '<div class="apartado-card apt-selectable" data-id="'+a.id+'" onclick="toggleAptCheck(event,'+a.id+')" style="cursor:pointer;position:relative">'+'<input type="checkbox" class="apt-check" data-id="'+a.id+'" style="display:none;position:absolute;top:12px;right:12px;width:20px;height:20px;accent-color:var(--pink);z-index:2" onclick="event.stopPropagation()" onchange="updateAptCount()">'
+      +'<div class="apartado-card '+(a.estado||'').toLowerCase()+'" style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid '+(a.estado==='Por confirmar'?'#ff9800':a.estado==='Pendiente'||a.estado==='Activo'?'var(--pink)':a.estado==='Completado'?'#2e7d32':'#ccc')+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">'
       +'<div style="flex:1">'
       +'<div style="font-size:15px;font-weight:700;margin-bottom:3px">'+(a.numero||'#'+a.id)+' — '+(a.cliente_nombre||'Cliente')+' <span class="badge badge-'+(a.estado||'').toLowerCase()+'">'+(a.estado||'')+'</span></div>'
@@ -2260,7 +2268,7 @@ function renderApartados(){
       +(a.monto_bs>0?'<div style="font-size:12px;color:#2e7d32;font-weight:600;margin-top:2px">🇻🇪 Bs. '+parseFloat(a.monto_bs).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')
       +'</div></div>'
       +(a.estado==='Por confirmar'?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="confirmarPedidoWeb('+a.id+')">✅ Confirmar pedido</button><button class="btn btn-danger btn-sm" onclick="rechazarPedidoWeb('+a.id+')">✕ Rechazar</button></div>':((a.estado==='Pendiente'||a.estado==='Activo')?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="completarApartado('+a.id+')">✅ Completar → Venta</button><button class="btn btn-warning btn-sm" onclick="abrirModalApartado('+a.id+')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="cancelarApartado('+a.id+')">✕ Cancelar</button></div>':(a.estado==='Cancelado'||a.estado==='Completado'||a.estado==='Vencido'?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-sm" style="background:#ffebee;color:#c62828;border:1px solid #ef9a9a" onclick="eliminarApartado('+a.id+')">🗑️ Eliminar</button></div>':'')))
-      +'</div>';
+      +'</div></div>';
   }).join(''):'<div class="card" style="text-align:center;color:var(--gray);padding:30px">No hay apartados 🌸</div>';
 }
 function abrirModalApartado(id=null){
@@ -2830,6 +2838,66 @@ document.addEventListener('DOMContentLoaded', function(){
   });
 });
 
+
+// ── Borrado masivo Apartados ──
+let _aptSelectMode = false;
+function toggleSelectApt(){
+  _aptSelectMode = !_aptSelectMode;
+  const btn = document.getElementById('btn-select-apt');
+  const bar = document.getElementById('bulk-apt-bar');
+  const checks = document.querySelectorAll('.apt-check');
+  if(_aptSelectMode){
+    btn.textContent = '✕ Cancelar';
+    bar.style.display = 'flex';
+    checks.forEach(c => c.style.display = 'block');
+  } else {
+    btn.textContent = '☑️ Seleccionar';
+    bar.style.display = 'none';
+    checks.forEach(c => { c.style.display = 'none'; c.checked = false; });
+    updateAptCount();
+  }
+}
+function toggleAptCheck(e, id){
+  if(!_aptSelectMode) return;
+  e.stopPropagation();
+  const cb = document.querySelector('.apt-check[data-id="'+id+'"]');
+  if(cb){ cb.checked = !cb.checked; updateAptCount(); }
+}
+function updateAptCount(){
+  const sel = document.querySelectorAll('.apt-check:checked').length;
+  const el = document.getElementById('bulk-apt-count');
+  if(el) el.textContent = sel + ' seleccionado' + (sel !== 1 ? 's' : '');
+}
+function selectAllApt(){
+  document.querySelectorAll('.apt-check').forEach(c => { c.checked = true; });
+  updateAptCount();
+}
+async function bulkDeleteApt(){
+  const ids = [...document.querySelectorAll('.apt-check:checked')].map(c => parseInt(c.dataset.id));
+  if(!ids.length){ showToast('Selecciona al menos un apartado'); return; }
+  if(!confirm('¿Eliminar ' + ids.length + ' apartado(s)? Esta acción no se puede deshacer.')){ return; }
+  showToast('Eliminando...');
+  let ok = 0, err = 0;
+  for(const id of ids){
+    try{
+      // Eliminar items primero
+      await fetch(SUPABASE_URL+'/rest/v1/apartado_items?apartado_id=eq.'+id, {
+        method:'DELETE', headers:{...H,'Prefer':'return=minimal'}
+      });
+      // Eliminar apartado
+      const r = await fetch(SUPABASE_URL+'/rest/v1/apartados?id=eq.'+id, {
+        method:'DELETE', headers:{...H,'Prefer':'return=minimal'}
+      });
+      if(r.ok){ ok++; apartados = apartados.filter(a => a.id !== id); }
+      else { err++; }
+    } catch(e){ err++; }
+  }
+  showToast(ok + ' apartado(s) eliminado(s)' + (err ? ' · ' + err + ' error(es)' : '') + ' 🌸');
+  _aptSelectMode = false;
+  const btn = document.getElementById('btn-select-apt');
+  if(btn) btn.textContent = '☑️ Seleccionar';
+  renderApartados();
+}
 </script>
 </body>
 </html>
