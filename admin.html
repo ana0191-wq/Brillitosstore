@@ -2395,7 +2395,7 @@ async function guardarProducto(){
   cerrarModal('modal-producto'); renderProductos(); renderPOS();
 }
 async function eliminarProd(id){
-  if(!confirm('¿Eliminar?')) return; await sbPatch('productos',id,{activo:false}); productos=productos.filter(x=>x.id!==id); renderProductos(); toast('🗑️ Eliminado');
+  if(!confirm('¿Eliminar?')) return; await sbPatch('productos',id,{activo:false,stock:0}); productos=productos.filter(x=>x.id!==id); renderProductos(); toast('🗑️ Eliminado');
 }
 // BUNNY
 function dragOver(e){e.preventDefault();}
@@ -2436,6 +2436,7 @@ async function subirFotos(files){
   }
   setTimeout(()=>bar.style.width='0',2000);
   document.getElementById('file-input').value='';
+  const fc=document.getElementById('file-camera');if(fc)fc.value='';
 }
 function renderPreviews(){ document.getElementById('upload-previews').innerHTML=fotosSubidas.map((u,i)=>'<div class="upload-preview"><img src="'+u+'" alt="foto"><button class="rm-img" onclick="quitarFoto('+i+')">×</button></div>').join(''); }
 function quitarFoto(i){ fotosSubidas.splice(i,1); renderPreviews(); }
