@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776970477 -->
+<head><!-- v1776970565 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -903,15 +903,6 @@ const GB01_CHAR = 0xAE01;
 const GB01_CHUNK = 200; // bytes por paquete
 
 
-function toggleImpresora(){
-  // Si Web Bluetooth disponible, intentar conectar
-  if(navigator.bluetooth){
-    conectarImpresora();
-    return;
-  }
-  // Si no, mostrar instrucciones para Android
-  toast('💡 Abre iPrint, conecta la GB01 y usa el POS desde ahí', 4000);
-}
 async function conectarImpresora(){
   const btn=document.getElementById('printer-fab')||$('printer-btn');
   if(!navigator.bluetooth){ toast('⚠️ Web Bluetooth no disponible en este navegador'); return; }
@@ -1594,12 +1585,5 @@ document.addEventListener('click',e=>{
 init();
 </script>
 
-<!-- Botón impresora flotante siempre visible -->
-<button id="printer-fab" onclick="toggleImpresora()" title="Conectar impresora GB01"
-  style="position:fixed;bottom:90px;right:16px;z-index:999;
-         width:48px;height:48px;border-radius:50%;border:2px solid #a5d6a7;
-         background:#e8f5e9;color:#2e7d32;font-size:22px;
-         box-shadow:0 2px 8px rgba(0,0,0,0.18);cursor:pointer;
-         display:flex;align-items:center;justify-content:center;">🖨️</button>
 </body>
 </html>
