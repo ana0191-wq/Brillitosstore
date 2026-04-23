@@ -832,7 +832,6 @@ function beep(){
 }
 async function anularUltimaVenta(){
   if(!window._lastVentaId){ toast('⚠️ No hay venta reciente para anular'); return; }
-  if(Date.now()-window._ventaTs > 30000){ toast('⏱️ Tiempo agotado, ya no se puede anular'); window._lastVentaId=null; return; }
   if(!confirm('¿Anular esta venta? Se restaurará el stock.')) return;
   clearInterval(window._anulI);
   const _ab=$('pos-anular-btn'); if(_ab) _ab.style.display='none';
@@ -1138,29 +1137,14 @@ async function ejecutarCobro(){
     $('modal-ok').classList.add('open');
     window._lastVentaId=vid;
     window._lastCarrito=[...carrito];
-    window._ventaTs=Date.now();
     const _ab=$('pos-anular-btn');
-    if(_ab){
-      _ab.style.display='block';
-      clearInterval(window._anulI);
-      window._anulI=setInterval(()=>{
-        const left=30-Math.floor((Date.now()-window._ventaTs)/1000);
-        if(left<=0){
-          clearInterval(window._anulI);
-          if(_ab) _ab.style.display='none';
-          window._lastVentaId=null;
-        } else {
-          if(_ab) _ab.textContent='↩️ Anular esta venta ('+left+'s)';
-        }
-      },250);
-    }
+    if(_ab){ _ab.style.display='block'; _ab.textContent='↩️ Anular esta venta'; }
     renderProds();
     if($('inp-canal')) $('inp-canal').value='POS';
   }catch(e){toast('❌ '+e.message,4000);btn.disabled=false;btn.textContent='✅ Confirmar';}
 }
 
 function nuevaVenta(){
-  clearInterval(window._anulI);
   const _ab=$('pos-anular-btn'); if(_ab) _ab.style.display='none';
   window._lastVentaId=null; window._lastCarrito=[];
   carrito=[];$('inp-cliente').value='';$('inp-desc').value='0';pendiente=null;
