@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1776966250 -->
+<head><!-- v1776966429 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -946,53 +946,81 @@ function _textoBytes(txt, ancho=32){
 function _lineaBytes(){ return new TextEncoder().encode('--------------------------------\n'); }
 
 async function imprimirPedido(){
-  if(!_printer.char){ toast('⚠️ Conecta la impresora primero (botón 🖨️)',3000); return; }
   const btn=document.getElementById('btn-imprimir-pedido');
   btn.textContent='⏳...'; btn.disabled=true;
-  try{
-    const sub=carrito.reduce((s,i)=>s+i.sub,0);
-    const desc=parseFloat($('inp-desc').value)||0;
-    const total=Math.max(0,sub-desc);
-    const tasa=parseFloat($('inp-tasa').value)||bcv||0;
-    const bs=tasa>0?total*tasa:0;
-    const cliente=$('inp-cliente').value.trim()||'';
-    const pmCuenta=CUENTAS.find(c=>c.tipo==='Pago Movil')||CUENTAS.find(c=>c.tipo==='Pago Móvil');
-    const enc=new TextEncoder();
 
-    const lineas=[];
-    lineas.push(..._textoBytes('* Brillitos Store *'));
-    if(cliente) lineas.push(...enc.encode('  '+cliente+'\n'));
-    lineas.push(..._lineaBytes());
-    for(const it of carrito){
-      const nom=(it.nombre.length>22?it.nombre.slice(0,20)+'..':it.nombre)+(it.cantidad>1?' x'+it.cantidad:'');
-      const pr=' $'+it.sub.toFixed(2);
-      const spaces=Math.max(1,32-nom.length-pr.length);
-      lineas.push(...enc.encode(nom+' '.repeat(spaces)+pr+'\n'));
-    }
-    if(desc>0) lineas.push(...enc.encode('Descuento:         -$'+desc.toFixed(2)+'\n'));
-    lineas.push(..._lineaBytes());
-    const totalStr='TOTAL: $'+total.toFixed(2);
-    lineas.push(...enc.encode(totalStr+'\n'));
-    if(bs>0) lineas.push(...enc.encode('Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'\n'));
-    lineas.push(..._lineaBytes());
-    lineas.push(..._textoBytes('PAGO MOVIL'));
-    if(pmCuenta&&pmCuenta.tlf){
-      lineas.push(..._textoBytes(pmCuenta.tlf));
-      lineas.push(..._textoBytes(pmCuenta.banco));
-      lineas.push(...enc.encode('  Ced/RIF: '+pmCuenta.cuenta+'\n'));
-    }
-    lineas.push(..._lineaBytes());
-    lineas.push(..._textoBytes('Muestra comprobante'));
-    lineas.push(..._textoBytes('para confirmar :)'));
-    // Feed final
-    lineas.push(...enc.encode('\n\n\n\n'));
+  // Generar texto del pedido
+  const sub=carrito.reduce((s,i)=>s+i.sub,0);
+  const desc=parseFloat($('inp-desc').value)||0;
+  const total=Math.max(0,sub-desc);
+  const tasa=parseFloat($('inp-tasa').value)||bcv||0;
+  const bs=tasa>0?total*tasa:0;
+  const cliente=$('inp-cliente').value.trim()||'';
+  const pmCuenta=CUENTAS.find(c=>c.tipo==='Pago Movil')||CUENTAS.find(c=>c.tipo==='Pago Móvil');
 
-    await _enviarBytes(new Uint8Array(lineas));
-    toast('🖨️ Imprimiendo 🌸',3000);
-  }catch(e){
-    toast('❌ Error: '+e.message,4000);
+  const lineas=[];
+  lineas.push('* Brillitos Store *');
+  if(cliente) lineas.push('  '+cliente);
+  lineas.push('--------------------------------');
+  for(const it of carrito){
+    const nom=(it.nombre.length>22?it.nombre.slice(0,20)+'..':it.nombre)+(it.cantidad>1?' x'+it.cantidad:'');
+    const pr=' $'+it.sub.toFixed(2);
+    const spaces=Math.max(1,32-nom.length-pr.length);
+    lineas.push(nom+' '.repeat(spaces)+pr);
   }
-  btn.textContent='🖨️ Imprimir'; btn.disabled=false;
+  if(desc>0) lineas.push('Descuento:         -$'+desc.toFixed(2));
+  lineas.push('--------------------------------');
+  lineas.push('TOTAL: $'+total.toFixed(2));
+  if(bs>0) lineas.push('Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}));
+  lineas.push('--------------------------------');
+  lineas.push('PAGO MOVIL');
+  if(pmCuenta&&pmCuenta.tlf){
+    lineas.push(pmCuenta.tlf);
+    lineas.push(pmCuenta.banco);
+    lineas.push('Ced/RIF: '+pmCuenta.cuenta);
+  }
+  lineas.push('--------------------------------');
+  lineas.push('Muestra comprobante para confirmar');
+  lineas.push('');
+  const txtPedido = lineas.join('\n');
+
+  // Intentar Web Bluetooth primero (Chrome desktop/Android nativo)
+  if(navigator.bluetooth && _printer.char){
+    try{
+      const enc=new TextEncoder();
+      const bytes=[];
+      bytes.push(...enc.encode(txtPedido+'\n\n\n\n'));
+      await _enviarBytes(new Uint8Array(bytes));
+      toast('🖨️ Imprimiendo 🌸',3000);
+      btn.textContent='🖨️ Imprimir en GB01'; btn.disabled=false;
+      return;
+    }catch(e){
+      console.warn('BT error:',e);
+    }
+  }
+
+  // Fallback: copiar al portapapeles + abrir iPrint
+  try{
+    await navigator.clipboard.writeText(txtPedido);
+  }catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=txtPedido; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  }
+
+  // Intentar abrir iPrint via intent Android
+  const isAndroid=/android/i.test(navigator.userAgent);
+  if(isAndroid){
+    // Intent para abrir iPrint (com.iposprinter.iposprinterservice) con texto
+    const intentUrl='intent://print#Intent;scheme=iposprinter;package=com.iposprinter.iposprinterservice;end';
+    const a=document.createElement('a');
+    a.href=intentUrl; a.click();
+    toast('📋 Texto copiado — pégalo en iPrint 🖨️',4000);
+  } else {
+    toast('📋 Pedido copiado — pégalo en tu app de impresión 🌸',4000);
+  }
+
+  btn.textContent='🖨️ Imprimir en GB01'; btn.disabled=false;
 }
 
 function mostrarPedido(){
