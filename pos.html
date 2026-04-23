@@ -1127,7 +1127,7 @@ function confirmar(){
     +(desc>0?`<div class="m-row"><span>Descuento</span><span style="color:var(--green)">−$${desc.toFixed(2)}</span></div>`:'')+
     `<div class="m-row"><span>TOTAL</span><span>$${total.toFixed(2)}</span></div>`;
   pendiente={total,sub,desc,esBs,tasa,bs,cliente,cuenta,metodo};
-  $('modal-confirm').classList.add('open'); history.pushState({modal:'modal-confirm'},'','');
+  $('modal-confirm').classList.add('open');
 }
 
 async function ejecutarCobro(){
@@ -1295,13 +1295,7 @@ function cerrarCarrito(){
 }
 // Botón atrás cierra carrito en vez de salir
 window.addEventListener('popstate',function(e){
-  // Cerrar modal confirm si está abierto
-  const mc=$('modal-confirm');
-  if(mc&&mc.classList.contains('open')){ mc.classList.remove('open'); return; }
-  // Cerrar modal ok
-  const mo=$('modal-ok');
-  if(mo&&mo.classList.contains('open')){ mo.classList.remove('open'); return; }
-  // Cerrar carrito
+  // Solo cerrar carrito con botón atrás
   const panel=$('cart-panel');
   if(panel&&panel.classList.contains('open')){
     panel.classList.remove('open');
