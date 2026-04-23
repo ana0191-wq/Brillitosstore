@@ -2159,6 +2159,30 @@ function mostrarCotizacion(d){
 function copiarCotizacion(){ navigator.clipboard.writeText(document.getElementById('cot-print').innerText); toast('📋 Copiado'); }
 
 // ===== APARTADOS =====
+async function confirmarPedidoWeb(id){
+  if(!confirm('¿Confirmar este pedido y descontar stock?')) return;
+  const a=apartados.find(x=>x.id===id); if(!a) return;
+  // Descontar stock
+  for(const it of (a.apartado_items||[])){
+    if(it.producto_id){
+      const p=productos.find(x=>x.id==it.producto_id);
+      if(p){ const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
+    }
+  }
+  await sbPatch('apartados',id,{estado:'Pendiente'});
+  a.estado='Pendiente';
+  renderApartados(); renderProductos(); renderPOS(); cargarDashboard();
+  toast('✅ Pedido confirmado — stock descontado');
+}
+async function rechazarPedidoWeb(id){
+  if(!confirm('¿Rechazar y eliminar este pedido? No afecta el stock.')) return;
+  await sbDelete('apartado_items','apartado_id=eq.'+id);
+  await sbDelete('apartados','id=eq.'+id);
+  apartados=apartados.filter(a=>a.id!==id);
+  renderApartados(); cargarDashboard();
+  toast('🗑️ Pedido rechazado');
+}
+
 function renderApartados(){
   const filtro=document.getElementById('filtro-estado-apt').value;
   const lista=filtro?apartados.filter(a=>a.estado===filtro):apartados;
@@ -2169,7 +2193,7 @@ function renderApartados(){
     const dias=a.fecha_entrega?Math.ceil((new Date(a.fecha_entrega)-new Date())/(86400000)):null;
     const pronto=dias!==null&&dias<=3&&(a.estado==='Pendiente'||a.estado==='Activo');
     const items=(a.apartado_items||[]).map(i=>(i.producto_nombre||'?')+' x'+i.cantidad).join(', ');
-    return '<div class="apartado-card '+(a.estado||'').toLowerCase()+'" style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid '+(a.estado==='Pendiente'||a.estado==='Activo'?'var(--pink)':a.estado==='Pagado'?'#2e7d32':'#ccc')+'">'
+    return '<div class="apartado-card '+(a.estado||'').toLowerCase()+'" style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid '+(a.estado==='Por confirmar'?'#ff9800':a.estado==='Pendiente'||a.estado==='Activo'?'var(--pink)':a.estado==='Completado'?'#2e7d32':'#ccc')+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">'
       +'<div style="flex:1">'
       +'<div style="font-size:15px;font-weight:700;margin-bottom:3px">'+(a.numero||'#'+a.id)+' — '+(a.cliente_nombre||'Cliente')+' <span class="badge badge-'+(a.estado||'').toLowerCase()+'">'+(a.estado||'')+'</span></div>'
@@ -2193,7 +2217,7 @@ function renderApartados(){
       +(saldo>0?'<div style="font-size:12px;color:var(--gray)">Saldo: $'+saldo.toFixed(2)+'</div>':'<div style="font-size:11px;color:#2e7d32;font-weight:700">✅ Pagado</div>')
       +(a.monto_bs>0?'<div style="font-size:12px;color:#2e7d32;font-weight:600;margin-top:2px">🇻🇪 Bs. '+parseFloat(a.monto_bs).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')
       +'</div></div>'
-      +((a.estado==='Pendiente'||a.estado==='Activo')?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="completarApartado('+a.id+')">✅ Completar → Venta</button><button class="btn btn-warning btn-sm" onclick="abrirModalApartado('+a.id+')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="cancelarApartado('+a.id+')">✕ Cancelar</button></div>':'')
+      +(a.estado==='Por confirmar'?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="confirmarPedidoWeb('+a.id+')">✅ Confirmar pedido</button><button class="btn btn-danger btn-sm" onclick="rechazarPedidoWeb('+a.id+')">✕ Rechazar</button></div>':((a.estado==='Pendiente'||a.estado==='Activo')?'<div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap"><button class="btn btn-success btn-sm" onclick="completarApartado('+a.id+')">✅ Completar → Venta</button><button class="btn btn-warning btn-sm" onclick="abrirModalApartado('+a.id+')">✏️ Editar</button><button class="btn btn-danger btn-sm" onclick="cancelarApartado('+a.id+')">✕ Cancelar</button></div>':''))
       +'</div>';
   }).join(''):'<div class="card" style="text-align:center;color:var(--gray);padding:30px">No hay apartados 🌸</div>';
 }
