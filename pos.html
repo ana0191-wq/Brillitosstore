@@ -754,6 +754,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <div class="modal-tit" id="mc-tit">Confirmar cobro</div>
     <div class="modal-sub" id="mc-sub"></div>
     <div class="modal-items" id="mc-items"></div>
+    <div id="mc-pago" style="margin-top:8px;width:100%"></div>
     <div class="modal-btns">
       <button class="mbtn sec" onclick="$('modal-confirm').classList.remove('open')">Cancelar</button>
       <button class="mbtn pri" id="mc-ok" onclick="ejecutarCobro()">✅ Confirmar</button>
@@ -1259,7 +1260,8 @@ function confirmar(){
         <div style="font-size:13px;color:#888;margin-top:2px">${datosPago.banco}</div>
       </div>`;
   }
-  $('mc-sub').innerHTML='<strong style="font-size:1.3rem">$'+total.toFixed(2)+'</strong>'+(esBs&&bs>0?'<br><span style="color:var(--green);font-size:1.1rem">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'')+cuentaInfo;
+  $('mc-sub').innerHTML='<strong style="font-size:1.3rem">$'+total.toFixed(2)+'</strong>'+(esBs&&bs>0?'<br><span style="color:var(--green);font-size:1.1rem">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'');
+  if($('mc-pago')) $('mc-pago').innerHTML=cuentaInfo;
   $('mc-items').innerHTML=carrito.map(it=>`<div class="m-row"><span>${it.nombre} ×${it.cantidad}</span><span>$${it.sub.toFixed(2)}</span></div>`).join('')
     +(desc>0?`<div class="m-row"><span>Descuento</span><span style="color:var(--green)">−$${desc.toFixed(2)}</span></div>`:'')+
     `<div class="m-row"><span>TOTAL</span><span>$${total.toFixed(2)}</span></div>`;
