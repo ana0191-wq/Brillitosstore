@@ -598,8 +598,8 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 
     <!-- Tabs móvil -->
     <div class="pos-tabs" id="pos-tabs">
-      <button class="pos-tab active" id="tab-prods" onclick="switchPosTab('prods')">🛍️ Productos</button>
-      <button class="pos-tab" id="tab-scan" onclick="switchPosTab('scan')">📷 Escanear</button>
+      <button class="pos-tab" id="tab-prods" onclick="switchPosTab('prods')">🛍️ Productos</button>
+      <button class="pos-tab active" id="tab-scan" onclick="switchPosTab('scan')">📷 Escanear</button>
     </div>
 
     <!-- Vista Productos -->
@@ -610,7 +610,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     </div>
 
     <!-- Vista Escanear -->
-    <div id="view-scan" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:24px">
+    <div id="view-scan" style="display:flex;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;gap:24px">
       <div style="font-size:5rem">📷</div>
       <div style="font-size:1.2rem;font-weight:800;color:#222;text-align:center">Escanea el código QR<br>del producto</div>
       <button onclick="abrirScanner()" style="width:100%;max-width:320px;height:72px;border-radius:20px;background:linear-gradient(135deg,#F387C3,#d63a8a);color:#fff;font-size:1.3rem;font-weight:900;border:none;cursor:pointer;box-shadow:0 8px 24px rgba(214,58,138,.4);display:flex;align-items:center;justify-content:center;gap:12px">
@@ -818,6 +818,18 @@ function getAudioCtx(){
   if(!_audioCtx) _audioCtx=new(window.AudioContext||window.webkitAudioContext)();
   if(_audioCtx.state==='suspended') _audioCtx.resume();
   return _audioCtx;
+}
+function beepScan(){
+  try{
+    const ctx=getAudioCtx();
+    const o=ctx.createOscillator(),g=ctx.createGain();
+    o.connect(g);g.connect(ctx.destination);
+    o.type='sine';o.frequency.value=1800;
+    const t=ctx.currentTime;
+    g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(.5,t+0.005);
+    g.gain.exponentialRampToValueAtTime(.001,t+0.08);
+    o.start(t);o.stop(t+0.09);
+  }catch(e){}
 }
 function beep(){
   try{
@@ -1042,6 +1054,7 @@ async function init(){
     selMet(document.querySelector('.met-btn.active'),'Pago Móvil');
     $('loading').style.display='none';
     $('app').style.display='grid';
+    switchPosTab('scan');
   }catch(e){$('loading-sub').textContent='❌ Error: '+e.message;}
 }
 
@@ -1389,7 +1402,7 @@ function onScan(decoded){
   cerrarScanner();
   setTimeout(()=>{scanLock=false;lastCode=null;},3000);
   const p=prods.find(x=>codProd(x.id)===decoded||String(x.id)===decoded||(x.codigo&&x.codigo===decoded));
-  if(p&&p.activo!==false){beep();agregar(p.id);toast('✅ '+p.nombre+' 🌸');}
+  if(p&&p.activo!==false){beepScan();agregar(p.id);toast('✅ '+p.nombre+' 🌸');}
   else if(p)toast('⚠️ Producto inactivo');
   else toast('❓ No encontrado: '+decoded);
 }
