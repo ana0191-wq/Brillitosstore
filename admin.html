@@ -1049,8 +1049,7 @@ async function sbPost(t,d){
   if(!r.ok){ const e=await r.text(); console.error('sbPost error',t,r.status,e); return []; }
   return r.json();
 }
-async /* sbPatch: ver async arriba */
-async /* sbDelete: ver async arriba */
+
 
 window.addEventListener('popstate',function(){
   const abierto=document.querySelector('.modal-bg.open');
