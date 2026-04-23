@@ -849,7 +849,11 @@ async function anularUltimaVenta(){
   toast('↩️ Venta anulada — stock restaurado');
 }
 async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H});return r.ok?r.json():[];}
-async function POST(t,d){const r=await fetch(`${SB}/rest/v1/${t}`,{method:'POST',headers:{...H,Prefer:'return=representation'},body:JSON.stringify(d)});return r.json();}
+async function POST(t,d){
+  const r=await fetch(`${SB}/rest/v1/${t}`,{method:'POST',headers:{...H,Prefer:'return=representation'},body:JSON.stringify(d)});
+  if(!r.ok){ const err=await r.json().catch(()=>({message:r.statusText})); throw new Error((err.message||err.hint||JSON.stringify(err))+' ['+t+']'); }
+  return r.json();
+}
 async function PATCH(t,id,d){await fetch(`${SB}/rest/v1/${t}?id=eq.${id}`,{method:'PATCH',headers:{...H,Prefer:'return=minimal'},body:JSON.stringify(d)});}
 
 // ── EVENT DELEGATION en grid (1 listener, no 100+) ──
@@ -1123,7 +1127,7 @@ async function ejecutarCobro(){
       tasa_bcv_usada:esBs?tasa:0,monto_bs:esBs?bs:0,moneda_pago:esBs?'Bs':'USD',
       cuenta_cobro:cuenta||null,numero:'POS-'+Date.now()});
     const vid=res[0]&&res[0].id;
-    if(!vid)throw new Error('Sin ID de venta');
+    if(!vid)throw new Error('Sin ID de venta — respuesta: '+JSON.stringify(res));
     for(const it of carrito){
       await fetch(`${SB}/rest/v1/venta_items`,{method:'POST',headers:H,
         body:JSON.stringify({venta_id:vid,producto_id:it.id,producto_nombre:it.nombre,precio_unitario:it.precio,cantidad:it.cantidad,subtotal:it.sub})});
