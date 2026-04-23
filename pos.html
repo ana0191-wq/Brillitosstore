@@ -1110,10 +1110,19 @@ function confirmar(){
   const bs=parseFloat($('inp-bs').value)||0;
   const cliente=$('inp-cliente').value.trim()||'Cliente POS';
   const cuenta=$('sel-cuenta').value;
-  $('mc-tit').textContent='Cobro a '+cliente;
   const cuentaObj=CUENTAS.find(c=>c.id===cuenta)||null;
-  const cuentaInfo=cuentaObj&&cuentaObj.tlf?`<br><span style="font-size:.8rem;color:#888">📱 ${cuentaObj.tlf} · ${cuentaObj.banco}${cuentaObj.cuenta?' · Cta: '+cuentaObj.cuenta:''}</span>`:'';
-  $('mc-sub').innerHTML='<strong>$'+total.toFixed(2)+'</strong> vía '+metodo+(esBs&&bs>0?'<br><span style="color:var(--green)">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'')+cuentaInfo;
+  // Título dinámico según método
+  const metEmoji={'Pago Móvil':'📱','BCV':'🏦','Efectivo Bs':'💵','Efectivo $':'💵','Binance/USDT':'🔷','PayPal':'🅿️','Zelle':'💙'};
+  const ico=metEmoji[metodo]||'💳';
+  $('mc-tit').textContent=ico+' '+metodo+(cliente&&cliente!=='Cliente POS'?' · '+cliente:'');
+  // Info de cuenta según método
+  let cuentaInfo='';
+  if(cuentaObj){
+    if(cuentaObj.tlf) cuentaInfo+=`<div style="font-size:13px;margin-top:6px">📱 <strong>${cuentaObj.tlf}</strong> · ${cuentaObj.banco}</div>`;
+    if(['Binance/USDT','PayPal','Zelle'].includes(metodo)&&cuentaObj.cuenta) cuentaInfo+=`<div style="font-size:13px;margin-top:6px">📧 <strong>${cuentaObj.cuenta}</strong></div>`;
+    if(cuentaObj.cuenta&&cuentaObj.tlf) cuentaInfo+=`<div style="font-size:11px;color:#888;margin-top:2px">Cta: ${cuentaObj.cuenta}</div>`;
+  }
+  $('mc-sub').innerHTML='<strong style="font-size:1.3rem">$'+total.toFixed(2)+'</strong>'+(esBs&&bs>0?'<br><span style="color:var(--green);font-size:1.1rem">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'')+cuentaInfo;
   $('mc-items').innerHTML=carrito.map(it=>`<div class="m-row"><span>${it.nombre} ×${it.cantidad}</span><span>$${it.sub.toFixed(2)}</span></div>`).join('')
     +(desc>0?`<div class="m-row"><span>Descuento</span><span style="color:var(--green)">−$${desc.toFixed(2)}</span></div>`:'')+
     `<div class="m-row"><span>TOTAL</span><span>$${total.toFixed(2)}</span></div>`;
