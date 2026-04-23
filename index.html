@@ -1325,7 +1325,7 @@ function buildOrderLines(){
   }).join('\n');
 }
 
-function sendWA(method){
+async function sendWA(method){
   if(cart.length===0){showToast('¡Agrega productos primero! 🌸');return;}
   const lines=buildOrderLines();
   const sub=cartSubtotal();
@@ -1351,6 +1351,39 @@ function sendWA(method){
   const msg='🌸 *Pedido Brillitos 2026* 🌸\n\n'+lines+'\n'+payLine+'\n\n¡Hola! Quiero hacer este pedido 💖';
   const num=document.getElementById('wa-num')?.value?.replace(/\D/g,'')||WA_NUMBER;
   const url=num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
+  // ── Guardar pedido en Supabase como "Por confirmar" ──
+  try{
+    const aptData={
+      cliente_nombre: 'Web — '+(method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance':'Consulta'),
+      canal: 'Web',
+      metodo_pago: method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance/USDT':'Consulta',
+      estado: 'Por confirmar',
+      total: sub,
+      abono: 0,
+      saldo: sub,
+      notas: 'Pedido desde la web — pendiente de confirmación',
+      numero: 'WEB-'+Date.now()
+    };
+    const r=await fetch(SUPABASE_URL+'/rest/v1/apartados',{
+      method:'POST',
+      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+      body:JSON.stringify(aptData)
+    });
+    if(r.ok){
+      const apt=await r.json();
+      const aid=apt[0]&&apt[0].id;
+      if(aid){
+        for(const it of cart){
+          await fetch(SUPABASE_URL+'/rest/v1/apartado_items',{
+            method:'POST',
+            headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
+            body:JSON.stringify({apartado_id:aid,producto_id:it.id,producto_nombre:it.nombre+(it.variant?' — '+it.variant:''),precio_unitario:it.precio||0,cantidad:it.qty||1,subtotal:(it.precio||0)*(it.qty||1)})
+          });
+        }
+      }
+    }
+  }catch(e){ console.warn('No se pudo guardar pedido en Supabase:',e); }
+  // ── Abrir WhatsApp ──
   window.open(url,'_blank');
 }
 
