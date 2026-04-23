@@ -1128,7 +1128,9 @@ async function ejecutarCobro(){
   const canalPOS=$('inp-canal')?$('inp-canal').value:'POS';
   const snapCarrito=[...carrito];
 
-  // ── Mostrar éxito inmediatamente ──
+  // ── Vaciar carrito y mostrar éxito inmediatamente ──
+  carrito=[];
+  $('inp-cliente').value=''; $('inp-desc').value='0'; pendiente=null;
   $('modal-confirm').classList.remove('open');
   if(history.state&&history.state.modal==='modal-confirm')history.back();
   beep();
