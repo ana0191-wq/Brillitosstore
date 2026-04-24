@@ -367,7 +367,7 @@ tr:hover td{background:#fff8fc}
     <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
       <input style="flex:1;min-width:150px;padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Buscar..." id="search-ventas" oninput="filtrarVentas()">
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-estado-venta" onchange="filtrarVentas()">
-        <option value="">Todos</option><option>Pendiente</option><option>Pagado</option><option>Entregado</option><option>Cancelado</option>
+        <option value="">Todos</option><option value="Pendiente">Pendiente</option><option value="Pagado">Pagado</option><option value="Entregado">Entregado</option><option value="Cancelado">Cancelado</option>
       </select>
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-canal-venta" onchange="filtrarVentas()">
         <option value="">Todos los canales</option><option>WhatsApp</option><option>Instagram</option><option>Evento</option><option>Web</option><option>POS</option>
@@ -585,8 +585,8 @@ tr:hover td{background:#fff8fc}
     <div class="form-group">
       <label>Método de pago</label>
       <select id="v-metodo" onchange="onMetodoCambio()">
-        <option>Pago Móvil</option><option>BCV</option><option>Efectivo Bs</option>
-        <option>Binance/USDT</option><option>PayPal</option><option>Efectivo $</option>
+        <option value="Pago Móvil">Pago Móvil</option><option value="BCV">BCV</option><option value="Efectivo Bs">Efectivo Bs</option>
+        <option value="Binance/USDT">Binance/USDT</option><option value="PayPal">PayPal</option><option value="Efectivo $">Efectivo $</option>
       </select>
     </div>
     <div class="form-group" id="v-cuenta-wrap">
@@ -607,8 +607,8 @@ tr:hover td{background:#fff8fc}
     <div class="form-group">
       <label>Tipo de entrega</label>
       <select id="v-entrega">
-        <option>Entrega directa</option><option>Altavista (Sábados)</option>
-        <option>Plaza Atlántico (L-V 5:30pm)</option><option>Centro Día (L-V 10am)</option><option>Envío Nacional</option>
+        <option value="Entrega directa">Entrega directa</option><option value="Altavista (Sábados)">Altavista (Sábados)</option>
+        <option value="Plaza Atlántico (L-V 5:30pm)">Plaza Atlántico (L-V 5:30pm)</option><option value="Centro Día (L-V 10am)">Centro Día (L-V 10am)</option><option value="Envío Nacional">Envío Nacional</option>
       </select>
     </div>
     <div class="form-group">
@@ -2024,8 +2024,8 @@ function renderItems(){
   document.getElementById('items-lista').innerHTML=ventaItems.map((it,i)=>
     '<div class="item-row">'
     +'<div class="search-wrap"><input type="text" value="'+(it.producto_nombre||'')+'" placeholder="Buscar..." oninput="buscarProdItem(this,'+i+',\'v\')" autocomplete="off"><div class="prod-search-results" id="prod-res-'+i+'" style="display:none"></div></div>'
-    +'<input type="number" value="'+(it.precio_unitario||0)+'" min="0" step="0.5" oninput="actualizarItem('+i+',\'precio\',this.value,\'v\')">'
-    +'<input type="number" value="'+(it.cantidad||1)+'" min="1" oninput="actualizarItem('+i+',\'cantidad\',this.value,\'v\')">'
+    +'<input type="number" value="'+(parseFloat(it.precio_unitario)||0)+'" min="0" step="0.5" oninput="actualizarItem('+i+',\'precio\',this.value,\'v\')">'
+    +'<input type="number" value="'+(parseInt(it.cantidad)||1)+'" min="1" oninput="actualizarItem('+i+',\'cantidad\',this.value,\'v\')">'
     +'<span class="item-subtotal">$'+parseFloat(it.subtotal||0).toFixed(2)+'</span>'
     +'<button class="btn-remove" onclick="quitarItem('+i+',\'v\')">×</button></div>').join('');
   calcularTotal();
