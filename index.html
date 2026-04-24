@@ -631,14 +631,27 @@ var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 
 async function cargarCatalogo() {
   try {
-    var resp = await fetch(SUPABASE_URL + '/rest/v1/productos?select=*,producto_variantes(*)&activo=eq.true&order=es_nuevo.desc,id.desc&limit=1000', {
-      headers: {
-        'apikey': SUPABASE_KEY,
-        'Authorization': 'Bearer ' + SUPABASE_KEY
-      }
-    });
-    var data = await resp.json();
+    // Query productos y variantes por separado para no depender del foreign key
+    var [respProds, respVars] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=eq.true&order=es_nuevo.desc,id.desc&limit=1000', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+      }),
+      fetch(SUPABASE_URL + '/rest/v1/producto_variantes?select=*&activo=eq.true&order=id.asc', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+      })
+    ]);
+    var data = await respProds.json();
+    var varsData = await respVars.json();
+    // Agrupar variantes por producto_id
+    var varsByProd = {};
+    if(Array.isArray(varsData)){
+      varsData.forEach(function(v){
+        if(!varsByProd[v.producto_id]) varsByProd[v.producto_id] = [];
+        varsByProd[v.producto_id].push(v);
+      });
+    }
     CATALOG = data.map(function(p) {
+      var variantes = (varsByProd[p.id] || []).filter(function(v){ return v.activo !== false; });
       return {
         id:           p.id,
         nombre:       p.nombre || '',
@@ -648,17 +661,19 @@ async function cargarCatalogo() {
         precio:       parseFloat(p.precio) || 0,
         stock:        parseInt(p.stock) || 0,
         observaciones:p.observaciones || '',
-        variantes: (p.producto_variantes||[]).filter(function(v){ return v.activo!==false; }),
+        variantes:    variantes,
         imagen:       p.imagen || '',
         imagenes:     p.imagenes || [],
         esNuevo:      p.es_nuevo || false
       };
     }).filter(function(p) {
-      if(!p.nombre || p.precio <= 0) return false;
+      if(!p.nombre) return false;
+      // Productos con variantes: mostrar si al menos una variante tiene stock
       if(p.variantes && p.variantes.length > 0){
         return p.variantes.some(function(v){ return v.stock > 0; });
       }
-      return p.stock > 0;
+      // Productos sin variantes: requieren precio y stock
+      return p.precio > 0 && p.stock > 0;
     });
     
     // Actualizar contador
