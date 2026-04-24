@@ -773,7 +773,7 @@ tr:hover td{background:#fff8fc}
     <div class="form-group"><label>Categoría</label><select id="p-categoria" onchange="actualizarSubcats()" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;width:100%;background:white;color:#1e293b;cursor:pointer"><option value="">— Seleccionar —</option></select></div>
     <div class="form-group"><label>Subcategoría</label><select id="p-subcategoria" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;width:100%;background:white;color:#1e293b;cursor:pointer"><option value="">— Opcional —</option></select></div>
     <div class="form-group form-full"><label>Descripción</label><textarea id="p-descripcion"></textarea></div>
-    <div class="form-group form-full"><label>Variantes</label><input type="text" id="p-observaciones" placeholder="Rosa, Azul, Negro..."></div>
+    <div class="form-group form-full"><label>🎨 Variantes <span style="font-size:11px;color:#888;font-weight:400">(nombre, stock, precio por variante)</span></label><div id="variantes-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div><button type="button" onclick="agregarVarianteRow()" style="background:var(--pink-light);color:var(--pink);border:1.5px dashed var(--pink);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;width:100%">➕ Agregar variante</button><input type="hidden" id="p-observaciones" value=""></div>
   </div>
   <div class="section-title">📷 Fotos</div>
   <div style="display:flex;gap:8px;margin-bottom:4px">
@@ -1250,7 +1250,7 @@ async function init(){
   toast('Cargando Brillitos... 🌸');
   document.getElementById('v-fecha-venta').value = hoyVEN();
   const results = await Promise.allSettled([
-    sbGet('productos','select=*&order=id.desc&limit=1000'),
+    sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000'),
     sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500'),
     sbGet('clientes','select=*&order=nombre.asc'),
     sbGet('eventos','select=*&order=fecha.desc'),
@@ -2581,7 +2581,9 @@ function abrirModalProducto(id=null){
   // Poblar selects de categoría ANTES de setear valores
   poblarCatsModal(p?p.categoria||'':'', p?p.subcategoria||'':'');
   // Setear campos de texto (categoria/subcategoria se manejan via poblarCatsModal)
-  ['nombre','precio','stock','descripcion','observaciones'].forEach(f=>document.getElementById('p-'+f).value=p?p[f]||'':'');
+  ['nombre','precio','stock','descripcion'].forEach(f=>document.getElementById('p-'+f).value=p?p[f]||'':'');
+  document.getElementById('p-observaciones').value=p?p.observaciones||'':'';
+  var pvList=p?(p.producto_variantes||[]).filter(function(v){return v.activo!==false;}):[]; renderVariantesModal(pvList);
   document.getElementById('p-costo').value=p?p.precio_costo||'':'';
   document.getElementById('p-nuevo').checked=p?p.es_nuevo||false:false;
   document.getElementById('p-activo').checked=p?p.activo!==false:true;
@@ -2598,12 +2600,23 @@ function abrirModalProducto(id=null){
   abrirModal('modal-producto');
 }
 async function guardarProducto(){
-  const nombre=document.getElementById('p-nombre').value.trim(); const precio=parseFloat(document.getElementById('p-precio').value);
-  if(!nombre||isNaN(precio)){ toast('⚠️ Nombre y precio obligatorios'); return; }
-  const data={nombre,precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:document.getElementById('p-categoria').value.trim(),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,observaciones:document.getElementById('p-observaciones').value.trim(),es_nuevo:document.getElementById('p-nuevo').checked,activo:document.getElementById('p-activo').checked};
-  if(editProdId){ await sbPatch('productos',editProdId,data); const i=productos.findIndex(p=>p.id===editProdId); if(i>=0) productos[i]={...productos[i],...data}; toast('✅ Actualizado'); }
-  else{ const res=await sbPost('productos',data); if(res[0]) productos.push(res[0]); toast('✅ Agregado'); }
-  productos=await sbGet('productos','select=*&order=id.desc&limit=1000');
+  var nombre=document.getElementById('p-nombre').value.trim();
+  var precio=parseFloat(document.getElementById('p-precio').value);
+  if(!nombre||isNaN(precio)){toast('⚠️ Nombre y precio obligatorios');return;}
+  var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:document.getElementById('p-categoria').value.trim(),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,observaciones:document.getElementById('p-observaciones').value.trim(),es_nuevo:document.getElementById('p-nuevo').checked,activo:document.getElementById('p-activo').checked};
+  var prodId=editProdId;
+  if(editProdId){
+    await sbPatch('productos',editProdId,data);
+    var idx2=productos.findIndex(function(p){return p.id===editProdId;});
+    if(idx2>=0) productos[idx2]=Object.assign({},productos[idx2],data);
+    toast('✅ Actualizado');
+  } else {
+    var res=await sbPost('productos',data);
+    if(res[0]){prodId=res[0].id;productos.push(res[0]);}
+    toast('✅ Agregado');
+  }
+  if(prodId) await guardarVariantesProducto(prodId);
+  productos=await sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000');
   if(!Array.isArray(productos)) productos=[];
   cerrarModal('modal-producto'); renderProductos(); renderPOS();
 }
@@ -3009,6 +3022,78 @@ async function bulkDeleteApt(){
   if(btn) btn.textContent = '☑️ Seleccionar';
   renderApartados();
 }
+
+// ── VARIANTES ADMIN ──────────────────────────────
+var _variantesModal = [];
+
+function renderVariantesModal(lista){
+  _variantesModal = lista.map(function(v){ return Object.assign({},v,{_delete:false}); });
+  _renderVariantRows();
+}
+
+function _renderVariantRows(){
+  var el = document.getElementById('variantes-lista');
+  if(!el) return;
+  var activas = _variantesModal.filter(function(v){ return !v._delete; });
+  if(!activas.length){
+    el.innerHTML = '<div style="font-size:13px;color:#aaa;text-align:center;padding:8px">Sin variantes — se vende como unidad \xfanica</div>';
+    return;
+  }
+  var rows = '';
+  _variantesModal.forEach(function(v,i){
+    if(v._delete) return;
+    var nom = (v.nombre||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+    rows += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fdf2f8;border-radius:10px;padding:8px">'
+      +'<input type="text" placeholder="Nombre (Rosa, Talla M...)" value="'+nom+'" data-vi="'+i+'" data-campo="nombre" class="v-inp" style="flex:2;min-width:100px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px">'
+      +'<input type="number" placeholder="Stock" value="'+(v.stock||0)+'" min="0" data-vi="'+i+'" data-campo="stock" class="v-inp" style="flex:1;min-width:60px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px">'
+      +'<input type="number" placeholder="Precio $" value="'+(v.precio||'')+'" min="0" step="0.5" data-vi="'+i+'" data-campo="precio" class="v-inp" style="flex:1;min-width:70px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px">'
+      +'<button type="button" data-vi="'+i+'" class="v-del" style="background:#ffe0f0;color:#e91e8c;border:none;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:16px;flex-shrink:0">\uD83D\uDDD1\uFE0F</button>'
+      +'</div>';
+  });
+  el.innerHTML = rows;
+  el.querySelectorAll('.v-inp').forEach(function(inp){
+    inp.addEventListener('input', function(){ _vSet(parseInt(this.dataset.vi), this.dataset.campo, this.value); });
+  });
+  el.querySelectorAll('.v-del').forEach(function(btn){
+    btn.addEventListener('click', function(){ _vDel(parseInt(this.dataset.vi)); });
+  });
+}
+
+function _vSet(i, campo, val){
+  if(!_variantesModal[i]) return;
+  if(campo==='stock') _variantesModal[i].stock = parseInt(val)||0;
+  else if(campo==='precio') _variantesModal[i].precio = val===''?null:(parseFloat(val)||null);
+  else _variantesModal[i][campo] = val;
+}
+
+function _vDel(i){
+  if(_variantesModal[i].id){ _variantesModal[i]._delete=true; }
+  else { _variantesModal.splice(i,1); }
+  _renderVariantRows();
+}
+
+function agregarVarianteRow(){
+  _variantesModal.push({id:null,nombre:'',precio:null,stock:0,activo:true,_delete:false});
+  _renderVariantRows();
+  var inputs = document.querySelectorAll('#variantes-lista .v-inp');
+  if(inputs.length) inputs[inputs.length-3].focus();
+}
+
+async function guardarVariantesProducto(prodId){
+  var ops = [];
+  _variantesModal.forEach(function(v){
+    if(v._delete && v.id){
+      ops.push(sbPatch('producto_variantes', v.id, {activo:false}));
+    } else if(!v._delete && !v.id && v.nombre && v.nombre.trim()){
+      ops.push(sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:v.precio||null,stock:v.stock||0,activo:true}));
+    } else if(!v._delete && v.id && v.nombre && v.nombre.trim()){
+      ops.push(sbPatch('producto_variantes', v.id, {nombre:v.nombre.trim(),precio:v.precio||null,stock:v.stock||0}));
+    }
+  });
+  await Promise.all(ops);
+}
+// ── FIN VARIANTES ADMIN ──────────────────────────
+
 </script>
 
 <a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
