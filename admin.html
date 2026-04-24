@@ -1113,7 +1113,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777074222
+// v1777074447
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1788,9 +1788,12 @@ function cargarDashboard(){
         && g.tipo !== 'Gasto ajeno'
       )
       .reduce((s,g) => s + parseFloat(g.monto||0), 0);
-    // Las reposiciones en Bs SUMAN al saldo
+    // Solo las reposiciones en Efectivo entran a BancaAmiga
+    // "Comprando mercancía", "Pagando gasto/inversión" = el dinero se usó directo, no entró a la cuenta
     const reposicionesBs = gastosGlobales
-      .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición')
+      .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición'
+        && (g.reposicion_de||'').startsWith('Efectivo')
+      )
       .reduce((s,g) => s + parseFloat(g.monto||0), 0);
     const saldoNeto = reposicionesBs - gastosBs;
     if(!porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'] = {total:0,bs:0,count:0};
