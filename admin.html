@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777057050
+// v1777057747
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -3486,13 +3486,13 @@ async function guardarVariantesProducto(prodId){
       );
     } else if(!v._delete && !v.id && v.nombre && v.nombre.trim()){
       ops.push(
-        sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:parseFloat(v.precio)||null,stock:parseInt(v.stock)||0,activo:true})
+        sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true})
           .then(function(r){ if(r&&r.length>0) creadas++; else errores++; })
           .catch(function(e){ errores++; toast('❌ Error creando variante "'+v.nombre+'": '+e.message); })
       );
     } else if(!v._delete && v.id && v.nombre && v.nombre.trim()){
       ops.push(
-        sbPatch('producto_variantes', v.id, {nombre:v.nombre.trim(),precio:parseFloat(v.precio)||null,stock:parseInt(v.stock)||0,activo:true})
+        sbPatch('producto_variantes', v.id, {nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true})
           .then(function(r){ if(r&&r.ok) actualizadas++; else errores++; })
           .catch(function(e){ errores++; toast('❌ Error actualizando variante "'+v.nombre+'": '+e.message); })
       );
