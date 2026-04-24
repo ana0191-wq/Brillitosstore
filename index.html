@@ -625,7 +625,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 <div class="toast" id="toast"></div>
 
 <script>
-// v1777060174
+// v1777062045
 var CATALOG = [];
 var SUPABASE_URL = "https://xavqokyzdmqzguicjsrq.supabase.co";
 var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
@@ -1273,20 +1273,14 @@ function updateCartUI(){
         (p.variant?'<div class="ci-variant">✨ '+esc(p.variant)+'</div>':'')+
         '<div class="ci-cat">'+esc(catT)+'</div>'+
         '<div class="ci-price">'+(p.precio!==null?'$'+(p.precio*(p.qty||1)).toFixed(2)+' '+(p.qty>1?'(x'+p.qty+')':''):'Consultar 💬')+'</div>'+
-        '<div class="ci-qty">'+
-        '<button onclick="changeQty(\''+ck+'\', -1)">−</button>'+
-        '<span>'+(p.qty||1)+'</span>'+
-        '<button onclick="changeQty(\''+ck+'\',+1)">+</button>'+
-        '</div>'+
-        '</div>'+
-        '<button class="ci-rm" onclick="removeFromCart(\''+ck+'\')" >✕</button>';
+        '<div class="ci-qty ci-qty-ro" style="font-size:13px;color:#888;margin-top:4px">'+(p.qty>1?p.qty+' unidades':'')+'</div>'+'</div>';
       frag.appendChild(d);
     });
     c.appendChild(frag);
   }
   
   const ccb=document.getElementById('clear-cart-btn');
-  if(ccb) ccb.style.display=cart.length>0?'block':'none';
+  if(ccb) ccb.style.display='none';
   
   const sf='$'+sub.toFixed(2);
   document.getElementById('wa-sub').textContent=sf;
