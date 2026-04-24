@@ -1072,12 +1072,17 @@ async function sbPost(t,d){
   return r.json();
 }
 async function sbPatch(t,id,d){
-  const r=await fetch(SB+'/rest/v1/'+t+'?id=eq.'+id,{
+  const url=SB+'/rest/v1/'+t+'?id=eq.'+id;
+  const r=await fetch(url,{
     method:'PATCH',
     headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},
     body:JSON.stringify(d)
   });
-  if(!r.ok){ const e=await r.text(); console.error('sbPatch error',t,id,r.status,e); }
+  if(!r.ok){
+    const e=await r.text();
+    console.error('sbPatch ERROR',t,id,r.status,e);
+    toast('❌ Error al guardar ('+r.status+'): '+e.slice(0,80), 6000);
+  }
   return r;
 }
 async function sbDelete(t,f){
