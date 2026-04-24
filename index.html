@@ -205,6 +205,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 .pp-add-btn{width:100%;background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border:none;border-radius:var(--rb);padding:13px;font-family:var(--fb);font-weight:800;font-size:.95rem;cursor:pointer;transition:all .2s}
 .pp-add-btn:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(243,135,195,.4)}
 .pp-add-btn:disabled{background:#eee;color:#aaa;cursor:not-allowed;transform:none}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 .pp-related{border-top:2px dashed var(--pk-l);padding-top:16px}
 .pp-related-title{font-family:var(--fh);font-size:1rem;color:var(--ts);margin-bottom:12px}
 .pp-related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
@@ -1686,7 +1687,11 @@ function openProductPage(p) {
 
   
   const stockEl = document.getElementById('pp-stock');
-  if(p.stock<=0){ stockEl.textContent='😢 Agotado'; stockEl.className='pp-stock out'; }
+  const tieneVarsStock = (p.variantes||[]).filter(function(v){return v.activo!==false;}).length > 0;
+  if(tieneVarsStock){
+    // Stock se muestra en cada botón de variante — ocultar indicador general
+    stockEl.textContent=''; stockEl.className='pp-stock';
+  } else if(p.stock<=0){ stockEl.textContent='😢 Agotado'; stockEl.className='pp-stock out'; }
   else if(p.stock===1){ stockEl.textContent='¡Último disponible!'; stockEl.className='pp-stock low'; }
   else if(p.stock<=3){ stockEl.textContent='Solo '+p.stock+' disponibles'; stockEl.className='pp-stock low'; }
   else { stockEl.textContent='✅ Stock disponible'; stockEl.className='pp-stock in'; }
@@ -1725,8 +1730,12 @@ function openProductPage(p) {
 
   
   const addBtn = document.getElementById('pp-add-btn');
-  addBtn.disabled = p.stock<=0;
-  addBtn.textContent = p.stock<=0 ? '😢 Agotado' : '🛒 Agregar al carrito';
+  const tieneVars = variantesReales.length > 0;
+  const hayStock = tieneVars
+    ? variantesReales.some(function(v){ return v.stock > 0; })
+    : p.stock > 0;
+  addBtn.disabled = !hayStock;
+  addBtn.textContent = !hayStock ? '😢 Agotado' : '🛒 Agregar al carrito';
 
   
   const _pool = (window._lastFiltered && window._lastFiltered.length>1)
@@ -1816,9 +1825,14 @@ function ppSelectVariant(btn, vi){
 }
 function ppAddToCart(){
   if(!_ppProduct) return;
-  const variants = parseVariants(_ppProduct.observaciones||'');
-  if(variants.length>0 && !_ppVariant){
-    alert('Por favor selecciona una variante 🌸');
+  const tieneVariantes = _ppProduct.variantes && _ppProduct.variantes.length > 0;
+  if(tieneVariantes && !_ppVariant){
+    // Resaltar el aviso de variante
+    const msg = document.getElementById('m-variant-msg');
+    if(msg){ msg.style.display='block'; msg.scrollIntoView({behavior:'smooth',block:'nearest'}); }
+    // Vibrar el bloque de variantes para llamar atención
+    const varEl = document.getElementById('pp-variants');
+    if(varEl){ varEl.style.animation='none'; setTimeout(()=>{ varEl.style.animation='shake .3s ease'; },10); }
     return;
   }
   addToCart(_ppProduct.id, _ppVariant);
