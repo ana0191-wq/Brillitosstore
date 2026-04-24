@@ -625,7 +625,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 <div class="toast" id="toast"></div>
 
 <script>
-// v1777062045
+// v1777062456
 var CATALOG = [];
 var SUPABASE_URL = "https://xavqokyzdmqzguicjsrq.supabase.co";
 var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
@@ -1280,7 +1280,7 @@ function updateCartUI(){
   }
   
   const ccb=document.getElementById('clear-cart-btn');
-  if(ccb) ccb.style.display='none';
+  if(ccb) ccb.style.display=cart.length>0?'block':'none';
   
   const sf='$'+sub.toFixed(2);
   document.getElementById('wa-sub').textContent=sf;
