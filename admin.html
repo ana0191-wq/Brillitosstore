@@ -965,10 +965,10 @@ tr:hover td{background:#fff8fc}
       <input type="text" id="rp-detalle" placeholder="Ej: Stickers inversión evento mayo">
     </div>
     <div class="form-group form-full" id="rp-gasto-ajeno-wrap">
-      <label>¿Repone algún gasto ajeno registrado? <span style="color:#999;font-weight:normal">(opcional)</span></label>
-      <select id="rp-gasto-ajeno">
-        <option value="">— Sin vincular —</option>
-      </select>
+      <label>¿Repone gastos ajenos registrados? <span style="color:#999;font-weight:normal">(opcional, puedes marcar varios)</span></label>
+      <div id="rp-gasto-ajeno-list" style="display:flex;flex-direction:column;gap:8px;max-height:200px;overflow-y:auto;padding:8px;border:1.5px solid var(--border);border-radius:10px;background:#fafafa">
+        <span style="color:#999;font-size:13px">Cargando...</span>
+      </div>
     </div>
     <div class="form-group form-full">
       <label>Descripción *</label>
@@ -3038,17 +3038,26 @@ function abrirModalReposicion(){
   document.getElementById('rp-fecha').value=new Date().toISOString().slice(0,10);
   document.getElementById('rp-detalle-wrap').style.display='none';
   document.getElementById('rp-monto-usd').value='';
-  // Poblar gastos ajenos pendientes
-  var sel=document.getElementById('rp-gasto-ajeno');
-  sel.innerHTML='<option value="">— Sin vincular —</option>';
-  var ajenos=gastosGlobales.filter(function(g){return (g.es_ajeno||g.tipo==='Pago personal') && !g.reposicion_de;});
-  ajenos.forEach(function(g){
-    var opt=document.createElement('option');
-    opt.value=g.id;
-    opt.textContent='🚨 '+formatFecha(g.fecha)+' — '+(g.descripcion||g.notas||'Sin desc')+' ('+
-      (g.moneda==='Bs'?'Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2}):'$'+parseFloat(g.monto).toFixed(2))+')';
-    sel.appendChild(opt);
-  });
+  // Poblar gastos ajenos pendientes como checkboxes
+  var lista_ajenos=gastosGlobales.filter(function(g){return (g.es_ajeno||g.tipo==='Pago personal') && !g.reposicion_de;});
+  var listEl=document.getElementById('rp-gasto-ajeno-list');
+  if(!lista_ajenos.length){
+    listEl.innerHTML='<span style="color:#999;font-size:13px">No hay gastos pendientes de reponer</span>';
+  } else {
+    listEl.innerHTML='';
+    lista_ajenos.forEach(function(g){
+      var monto=g.moneda==='Bs'?'Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2}):'$'+parseFloat(g.monto).toFixed(2);
+      var row=document.createElement('label');
+      row.style.cssText='display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:8px;background:white;border:1.5px solid #ffe082;font-size:13px';
+      var cb=document.createElement('input');
+      cb.type='checkbox'; cb.value=g.id; cb.className='rp-ajeno-check';
+      cb.style.cssText='width:18px;height:18px;accent-color:#2e7d32;flex-shrink:0;cursor:pointer';
+      var txt=document.createElement('span');
+      txt.innerHTML='<strong>🚨 '+formatFecha(g.fecha)+'</strong> — '+(g.descripcion||g.notas||'Sin desc')+'<br><span style="color:#7b1fa2;font-size:11px">'+monto+'</span>';
+      row.appendChild(cb); row.appendChild(txt);
+      listEl.appendChild(row);
+    });
+  }
   // Poblar eventos
   var selEv=document.getElementById('rp-evento');
   selEv.innerHTML='<option value="">— Sin evento —</option>';
@@ -3118,16 +3127,17 @@ async function guardarReposicion(){
   };
   const res=await sbPost('gastos_globales',data);
   if(res&&res[0]) gastosGlobales.unshift(res[0]);
-  // Si se vincula a un gasto ajeno, marcar ese gasto como repuesto
-  const ajenoId=document.getElementById('rp-gasto-ajeno').value;
-  if(ajenoId){
-    await sbPatch('gastos_globales',parseInt(ajenoId),{reposicion_de:'✅ Repuesto: '+reposicionDe});
-    const ga=gastosGlobales.find(function(g){return g.id==ajenoId;});
+  // Marcar todos los gastos ajenos seleccionados como repuestos
+  var checks=[...document.querySelectorAll('.rp-ajeno-check:checked')];
+  for(var ci=0;ci<checks.length;ci++){
+    var ajenoId=parseInt(checks[ci].value);
+    await sbPatch('gastos_globales',ajenoId,{reposicion_de:'✅ Repuesto: '+reposicionDe});
+    var ga=gastosGlobales.find(function(g){return g.id===ajenoId;});
     if(ga) ga.reposicion_de='✅ Repuesto: '+reposicionDe;
   }
   cerrarModal('modal-reposicion');
   renderGastosGlobal(); poblarMesesFiltroGasto(); cargarDashboard();
-  toast('💚 Reposición registrada'+(ajenoId?' — gasto ajeno marcado como repuesto ✅':''));
+  toast('💚 Reposición registrada'+(checks.length?' — '+checks.length+' gasto(s) marcado(s) como repuesto ✅':''));
 }
 
 function abrirModalGastoGlobal(){
