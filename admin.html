@@ -1164,11 +1164,12 @@ let reconocimiento=null, vozTranscript='', vozVentaDetectada=null;
 // ===== API SUPABASE =====
 async function sbGet(t,q=''){
   const r=await fetch(SB+'/rest/v1/'+t+'?'+q,{headers:H});
+  if(!r.ok){ const e=await r.text(); console.error('sbGet error',t,r.status,e); toast('❌ Error al cargar '+t+' ('+r.status+')'); return []; }
   return r.json();
 }
 async function sbPost(t,d){
   const r=await fetch(SB+'/rest/v1/'+t,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(d)});
-  if(!r.ok){ const e=await r.text(); console.error('sbPost error',t,r.status,e); return []; }
+  if(!r.ok){ const e=await r.text(); console.error('sbPost error',t,r.status,e); toast('❌ Error al crear en '+t+' ('+r.status+'): '+e.slice(0,80)); return []; }
   return r.json();
 }
 async function sbPatch(t,id,d){
@@ -2753,7 +2754,10 @@ async function guardarProducto(){
     if(res[0]){prodId=res[0].id;productos.push(res[0]);}
     toast('✅ Agregado');
   }
-  if(prodId) await guardarVariantesProducto(prodId);
+  if(prodId){
+    const varOk = await guardarVariantesProducto(prodId);
+    if(!varOk) toast('⚠️ Producto guardado pero hubo errores en las variantes');
+  }
   productos=await sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000');
   if(!Array.isArray(productos)) productos=[];
   cerrarModal('modal-producto'); renderProductos(); renderPOS();
@@ -3470,17 +3474,38 @@ function agregarVarianteRow(){
 }
 
 async function guardarVariantesProducto(prodId){
+  var creadas=0, actualizadas=0, eliminadas=0, errores=0;
   var ops = [];
   _variantesModal.forEach(function(v){
     if(v._delete && v.id){
-      ops.push(sbPatch('producto_variantes', v.id, {activo:false}));
+      ops.push(
+        sbPatch('producto_variantes', v.id, {activo:false})
+          .then(function(r){ if(r&&r.ok) eliminadas++; else errores++; })
+          .catch(function(e){ errores++; toast('❌ Error eliminando variante: '+e.message); })
+      );
     } else if(!v._delete && !v.id && v.nombre && v.nombre.trim()){
-      ops.push(sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:v.precio||null,stock:v.stock||0,activo:true}));
+      ops.push(
+        sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:parseFloat(v.precio)||null,stock:parseInt(v.stock)||0,activo:true})
+          .then(function(r){ if(r&&r.length>0) creadas++; else errores++; })
+          .catch(function(e){ errores++; toast('❌ Error creando variante "'+v.nombre+'": '+e.message); })
+      );
     } else if(!v._delete && v.id && v.nombre && v.nombre.trim()){
-      ops.push(sbPatch('producto_variantes', v.id, {nombre:v.nombre.trim(),precio:v.precio||null,stock:v.stock||0}));
+      ops.push(
+        sbPatch('producto_variantes', v.id, {nombre:v.nombre.trim(),precio:parseFloat(v.precio)||null,stock:parseInt(v.stock)||0,activo:true})
+          .then(function(r){ if(r&&r.ok) actualizadas++; else errores++; })
+          .catch(function(e){ errores++; toast('❌ Error actualizando variante "'+v.nombre+'": '+e.message); })
+      );
     }
   });
   await Promise.all(ops);
+  // Resumen
+  var msgs = [];
+  if(creadas>0)    msgs.push('✅ '+creadas+' variante'+(creadas>1?'s':'')+'  creada'+(creadas>1?'s':''));
+  if(actualizadas>0) msgs.push('✅ '+actualizadas+' actualizada'+(actualizadas>1?'s':''));
+  if(eliminadas>0) msgs.push('🗑️ '+eliminadas+' eliminada'+(eliminadas>1?'s':''));
+  if(errores>0)    msgs.push('❌ '+errores+' con error');
+  if(msgs.length>0) toast(msgs.join(' · '), errores>0?0:4000);
+  return errores === 0;
 }
 // ── FIN VARIANTES ADMIN ──────────────────────────
 
