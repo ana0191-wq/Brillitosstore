@@ -1113,7 +1113,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777073965
+// v1777074119
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1771,9 +1771,20 @@ function cargarDashboard(){
       porCuentaTodo[key].count++;
     });
     // Restar gastos en Bs de BancaAmiga Luisma
-    const gastosBs = gastosGlobales.filter(g=>g.moneda==='Bs').reduce((s,g)=>s+parseFloat(g.monto||0),0);
-    if(porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'].bs -= gastosBs;
-    else if(gastosBs>0) porCuentaTodo['bancaamiga_luisma']={total:0,bs:-gastosBs,count:0};
+    // Solo gastos reales: excluir Reposiciones (son entradas) y gastos que no son de Brillitos
+    const gastosBs = gastosGlobales
+      .filter(g => g.moneda === 'Bs'
+        && g.tipo !== 'Reposición'           // las reposiciones SUMAN, no restan
+        && g.tipo !== 'Gasto ajeno'          // gastos ajenos no afectan el saldo de Brillitos
+      )
+      .reduce((s,g) => s + parseFloat(g.monto||0), 0);
+    // Las reposiciones en Bs SUMAN al saldo de BancaAmiga
+    const reposicionesBs = gastosGlobales
+      .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición')
+      .reduce((s,g) => s + parseFloat(g.monto||0), 0);
+    const saldoNeto = reposicionesBs - gastosBs;
+    if(porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'].bs += saldoNeto;
+    else if(saldoNeto !== 0) porCuentaTodo['bancaamiga_luisma'] = {total:0, bs:saldoNeto, count:0};
     // Solo hoy — para badge
     const porCuentaHoy = {};
     vH.forEach(v=>{
