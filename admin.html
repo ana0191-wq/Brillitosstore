@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777064006
+// v1777064172
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -2592,11 +2592,22 @@ async function guardarApartado(){
     estado:'Pendiente'
   };
   if(editAptId){
+    // Devolver stock de los items ANTERIORES antes de borrarlos
+    const aptAnterior=apartados.find(x=>x.id===editAptId);
+    const itemsAnteriores=(aptAnterior&&aptAnterior.apartado_items)||[];
+    for(const it of itemsAnteriores){
+      if(it.producto_id){
+        const p=productos.find(x=>x.id==it.producto_id);
+        if(p){ await sbPatch('productos',p.id,{stock:(p.stock||0)+parseInt(it.cantidad||1)}); p.stock=(p.stock||0)+parseInt(it.cantidad||1); }
+      }
+    }
     await sbPatch('apartados',editAptId,data);
     await sbDelete('apartado_items','apartado_id=eq.'+editAptId);
     const HretE={...H,'Prefer':'return=minimal'};
     for(const it of aptItems) await fetch(SB+'/rest/v1/apartado_items',{method:'POST',headers:HretE,body:JSON.stringify({apartado_id:editAptId,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
-    toast('✅ Actualizado');
+    // Descontar stock de los items NUEVOS
+    for(const it of aptItems) if(it.producto_id){ const p=productos.find(x=>x.id==it.producto_id); if(p){ await sbPatch('productos',p.id,{stock:Math.max(0,(p.stock||0)-parseInt(it.cantidad||1))}); p.stock=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); } }
+    toast('✅ Actualizado — stock ajustado');
   } else {
     const cntApt=await sbGet('apartados','select=id&limit=1&order=id.desc');
     const lastAptId=(Array.isArray(cntApt)&&cntApt[0]&&cntApt[0].id)||0;
@@ -2637,11 +2648,19 @@ async function eliminarApartado(id){
   const a=apartados.find(x=>x.id===id);
   if(!a){ toast('No encontrado'); return; }
   if(!confirm('¿Eliminar permanentemente el apartado #'+(a.numero||id)+'? Esta acción no se puede deshacer.')) return;
+  // Devolver stock de los productos apartados
+  const items=(a.apartado_items)||[];
+  for(const it of items){
+    if(it.producto_id){
+      const p=productos.find(x=>x.id==it.producto_id);
+      if(p){ await sbPatch('productos',p.id,{stock:(p.stock||0)+parseInt(it.cantidad||1)}); p.stock=(p.stock||0)+parseInt(it.cantidad||1); }
+    }
+  }
   await sbDelete('apartado_items','apartado_id=eq.'+id);
   await sbDelete('apartados','id=eq.'+id);
   apartados=apartados.filter(x=>x.id!==id);
-  renderApartados(); cargarDashboard();
-  toast('🗑️ Apartado eliminado');
+  renderApartados(); renderProductos(); cargarDashboard();
+  toast('🗑️ Apartado eliminado — stock devuelto');
 }
 async function cancelarApartado(id){
   const a=apartados.find(x=>x.id===id); if(!a||!confirm('¿Cancelar apartado?')) return;
@@ -3413,6 +3432,15 @@ async function bulkDeleteApt(){
   let ok = 0, err = 0;
   for(const id of ids){
     try{
+      // Devolver stock
+      const aptB=apartados.find(x=>x.id===id);
+      const itemsB=(aptB&&aptB.apartado_items)||[];
+      for(const it of itemsB){
+        if(it.producto_id){
+          const p=productos.find(x=>x.id==it.producto_id);
+          if(p){ await sbPatch('productos',p.id,{stock:(p.stock||0)+parseInt(it.cantidad||1)}); p.stock=(p.stock||0)+parseInt(it.cantidad||1); }
+        }
+      }
       await fetch(SB+'/rest/v1/apartado_items?apartado_id=eq.'+id, {
         method:'DELETE', headers:{...H,'Prefer':'return=minimal'}
       });
@@ -3423,7 +3451,7 @@ async function bulkDeleteApt(){
       else { err++; }
     } catch(e){ err++; }
   }
-  toast(ok + ' apartado(s) eliminado(s)' + (err ? ' · ' + err + ' error(es)' : '') + ' 🌸');
+  toast(ok + ' apartado(s) eliminado(s) — stock devuelto' + (err ? ' · ' + err + ' error(es)' : '') + ' 🌸');
   _aptSelectMode = false;
   const btn = document.getElementById('btn-select-apt');
   if(btn) btn.textContent = '☑️ Seleccionar';
