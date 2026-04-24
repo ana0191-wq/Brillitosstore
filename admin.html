@@ -224,6 +224,8 @@ tr:hover td{background:#fff8fc}
   .pos-carrito-header{background:var(--pink);color:white;padding:10px 16px}
   .pos-carrito-title{color:white}
 }
+
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 </style>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -3297,11 +3299,28 @@ function abrirModal(id){
   document.getElementById(id).classList.add('open');
   history.pushState({modal:id},'','');
 }
-function toast(msg){ const el=document.getElementById('toast'); el.textContent=msg; el.classList.add('show'); setTimeout(()=>el.classList.remove('show'),3000); }
+function toast(msg,duracion){
+  var isError=msg.startsWith('❌')||msg.startsWith('⚠️');
+  if(isError){
+    var container=document.getElementById('error-stack');
+    if(!container){container=document.createElement('div');container.id='error-stack';container.style.cssText='position:fixed;bottom:80px;right:16px;z-index:99999;display:flex;flex-direction:column-reverse;gap:8px;max-width:360px';document.body.appendChild(container);}
+    var el=document.createElement('div');
+    el.style.cssText='background:'+(msg.startsWith('❌')?'#c62828':'#e65100')+';color:white;padding:12px 16px;border-radius:12px;font-size:13px;font-weight:600;display:flex;align-items:flex-start;gap:10px;box-shadow:0 4px 16px rgba(0,0,0,.25)';
+    var txt=document.createElement('span');txt.style.flex='1';txt.textContent=msg;
+    var btn=document.createElement('button');btn.textContent='✕';btn.style.cssText='background:none;border:none;color:white;font-size:16px;cursor:pointer;padding:0;line-height:1;flex-shrink:0';
+    btn.onclick=function(){el.remove();};
+    el.appendChild(txt);el.appendChild(btn);container.appendChild(el);return;
+  }
+  var toastEl=document.getElementById('toast');
+  toastEl.textContent=msg;toastEl.classList.add('show');
+  clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove('show');},duracion||3000);
+}
 function formatFecha(str){ if(!str)return'—'; try{return new Date(str).toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return str;} }
 document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
 
 init();
+window.addEventListener('error',function(e){toast('❌ Error JS: '+(e.message||'desconocido')+(e.lineno?' (L'+e.lineno+')':''));});
+window.addEventListener('unhandledrejection',function(e){toast('❌ '+(e.reason&&e.reason.message?e.reason.message:String(e.reason)));});
 
 function abrirMobNav(){
   const nav=document.getElementById('mob-nav');
