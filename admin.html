@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777061133
+// v1777061410
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -3486,16 +3486,16 @@ function vSubirFoto(vi){
   if(!fotos.length){ toast('\u26a0\ufe0f Primero sube fotos al producto'); return; }
   var picker = document.createElement('div');
   picker.id = 'v-foto-picker';
-  picker.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
-  var inner = '<div style="background:#fff;border-radius:16px;padding:20px;max-width:360px;width:90%">'
-    +'<div style="font-weight:700;font-size:15px;margin-bottom:12px;color:#e91e8c">\uD83D\uDCF7 Elige la foto de esta variante</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">';
+  picker.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:99999;display:flex;align-items:center;justify-content:center;-webkit-overflow-scrolling:touch';
+  var inner = '<div style="background:#fff;border-radius:20px;padding:22px;max-width:420px;width:92%;max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch">'
+    +'<div style="font-weight:800;font-size:16px;margin-bottom:14px;color:#e91e8c;text-align:center">\uD83D\uDCF7 Elige la foto para esta variante</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center">';
   fotos.forEach(function(url, fi){
-    inner += '<img src="'+url+'" data-url="'+url+'" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:3px solid transparent;cursor:pointer" onclick="vPickFoto('+vi+',this)">';
+    inner += '<img src="'+url+'" data-url="'+url+'" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:3px solid #eee;cursor:pointer;flex-shrink:0" onclick="vPickFoto('+vi+',this)">';
   });
   inner += '</div>'
-    +'<div style="margin-top:14px;text-align:center">'
-    +'<button onclick="var p=document.getElementById(\'v-foto-picker\');if(p)p.remove();" style="border:none;background:#f3f4f6;color:#666;border-radius:8px;padding:8px 20px;cursor:pointer;font-size:13px">Cancelar</button>'
+    +'<div style="margin-top:18px;text-align:center">'
+    +'<button onclick="var p=document.getElementById(\'v-foto-picker\');if(p)p.remove();" style="border:none;background:#f3f4f6;color:#666;border-radius:10px;padding:10px 28px;cursor:pointer;font-size:14px;font-weight:600">Cancelar</button>'
     +'</div></div>';
   picker.innerHTML = inner;
   picker.addEventListener('click', function(e){ if(e.target===picker) picker.remove(); });
