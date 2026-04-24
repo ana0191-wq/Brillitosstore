@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777062656
+// v1777063166
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -3398,25 +3398,23 @@ function selectAllApt(){
 }
 async function bulkDeleteApt(){
   const ids = [...document.querySelectorAll('.apt-check:checked')].map(c => parseInt(c.dataset.id));
-  if(!ids.length){ showToast('Selecciona al menos un apartado'); return; }
+  if(!ids.length){ toast('Selecciona al menos un apartado'); return; }
   if(!confirm('¿Eliminar ' + ids.length + ' apartado(s)? Esta acción no se puede deshacer.')){ return; }
-  showToast('Eliminando...');
+  toast('Eliminando...');
   let ok = 0, err = 0;
   for(const id of ids){
     try{
-      // Eliminar items primero
-      await fetch(SUPABASE_URL+'/rest/v1/apartado_items?apartado_id=eq.'+id, {
+      await fetch(SB+'/rest/v1/apartado_items?apartado_id=eq.'+id, {
         method:'DELETE', headers:{...H,'Prefer':'return=minimal'}
       });
-      // Eliminar apartado
-      const r = await fetch(SUPABASE_URL+'/rest/v1/apartados?id=eq.'+id, {
+      const r = await fetch(SB+'/rest/v1/apartados?id=eq.'+id, {
         method:'DELETE', headers:{...H,'Prefer':'return=minimal'}
       });
       if(r.ok){ ok++; apartados = apartados.filter(a => a.id !== id); }
       else { err++; }
     } catch(e){ err++; }
   }
-  showToast(ok + ' apartado(s) eliminado(s)' + (err ? ' · ' + err + ' error(es)' : '') + ' 🌸');
+  toast(ok + ' apartado(s) eliminado(s)' + (err ? ' · ' + err + ' error(es)' : '') + ' 🌸');
   _aptSelectMode = false;
   const btn = document.getElementById('btn-select-apt');
   if(btn) btn.textContent = '☑️ Seleccionar';
