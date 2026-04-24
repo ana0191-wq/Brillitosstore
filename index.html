@@ -630,7 +630,7 @@ var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 
 async function cargarCatalogo() {
   try {
-    var resp = await fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=eq.true&order=es_nuevo.desc,id.desc&limit=1000', {
+    var resp = await fetch(SUPABASE_URL + '/rest/v1/productos?select=*,producto_variantes(*)&activo=eq.true&order=es_nuevo.desc,id.desc&limit=1000', {
       headers: {
         'apikey': SUPABASE_KEY,
         'Authorization': 'Bearer ' + SUPABASE_KEY
@@ -647,11 +647,18 @@ async function cargarCatalogo() {
         precio:       parseFloat(p.precio) || 0,
         stock:        parseInt(p.stock) || 0,
         observaciones:p.observaciones || '',
+        variantes: (p.producto_variantes||[]).filter(function(v){ return v.activo!==false; }),
         imagen:       p.imagen || '',
         imagenes:     p.imagenes || [],
         esNuevo:      p.es_nuevo || false
       };
-    }).filter(function(p) { return p.nombre && p.precio > 0 && p.stock > 0; });
+    }).filter(function(p) {
+      if(!p.nombre || p.precio <= 0) return false;
+      if(p.variantes && p.variantes.length > 0){
+        return p.variantes.some(function(v){ return v.stock > 0; });
+      }
+      return p.stock > 0;
+    });
     
     // Actualizar contador
     var statEl = document.getElementById('stat-prods');
@@ -1193,29 +1200,29 @@ function cardAddToCart(id){
 }
 function addToCart(id, variantOverride){
   const p=CATALOG.find(x=>x.id===id); if(!p) return;
+  const tieneVariantes = p.variantes && p.variantes.length > 0;
+  let varObj = variantOverride || _ppVariant || null;
 
-  
-  const variants = parseVariants(p.observaciones);
-  let variant = variantOverride || _selectedVariant || null;
-
-  
-  if(variants.length > 0 && !variant){
+  if(tieneVariantes && !varObj){
     const msg = document.getElementById('m-variant-msg');
     if(msg){ msg.style.display='block'; msg.scrollIntoView({behavior:'smooth',block:'nearest'}); }
     return;
   }
 
-  
-  const cartKey = variant ? id+'__'+variant : String(id);
+  const cartKey = varObj ? id+'__'+(varObj.id||varObj.nombre) : String(id);
   const ex = cart.find(c=>c._cartKey===cartKey);
+  const precio = varObj&&varObj.precio ? parseFloat(varObj.precio) : p.precio;
 
   if(!ex){
-    cart.push({...p, qty:1, variant: variant||null, _cartKey: cartKey});
+    cart.push({...p, precio, qty:1,
+      variant: varObj ? varObj.nombre : null,
+      variante_id: varObj ? varObj.id : null,
+      _cartKey: cartKey});
   } else {
     ex.qty=(ex.qty||1)+1;
   }
   saveCart(); updateCartUI();
-  const label = variant ? p.nombre+' ('+variant+')' : p.nombre;
+  const label = varObj ? p.nombre+' ('+varObj.nombre+')' : p.nombre;
   showToast((ex?'Cantidad actualizada':'¡'+label+' agregado!')+' 🌸');
 }
 function clearCart(){cart=[];saveCart();updateCartUI();showToast('Carrito vaciado 🗑️');}
@@ -1433,15 +1440,11 @@ let _selectedVariant = null;
 
 
 function parseVariants(obs) {
+  // Legacy — ahora usamos variantes reales de BD
   if (!obs) return [];
-  
   const match = obs.match(/(?:Opciones|Disponible en):\s*([^\n]+)/i);
   if (!match) return [];
-  
-  return match[1].split(',').map(s => {
-    
-    return s.replace(/[.;]\s*[A-ZÁÉÍÓÚÑ][^,]*$/, '').trim();
-  }).filter(Boolean);
+  return match[1].split(',').map(s => s.trim()).filter(Boolean);
 }
 
  
@@ -1694,14 +1697,25 @@ function openProductPage(p) {
   descEl.textContent = p.descripcion || '';
 
   
-  const variantsEl = document.getElementById('pp-variants');
-  const variants = parseVariants(p.observaciones||'');
-  if(variants.length>0){
-    let vhtml = '<div class="pp-variant-label">Variante:</div><div class="pp-variant-opts">';
-    variants.forEach(v=>{
-      vhtml += '<button class="pp-variant-btn" onclick="ppSelectVariant(this,`'+v+'`)">' + v + '</button>';
+    const variantsEl = document.getElementById('pp-variants');
+  const variantesReales = (p.variantes||[]).filter(function(v){ return v.activo!==false; });
+  _ppVariants = variantesReales;
+  _ppSelectedVariant = null;
+  if(variantesReales.length > 0){
+    let vhtml = '<div class="pp-variant-label" style="font-weight:700;font-size:14px;margin-bottom:8px">Variante:</div>';
+    vhtml += '<div class="pp-variant-opts" style="display:flex;flex-wrap:wrap;gap:8px">';
+    variantesReales.forEach(function(v, i){
+      const sinStock = v.stock <= 0;
+      const precio = v.precio ? '$'+parseFloat(v.precio).toFixed(2) : '';
+      vhtml += '<button class="pp-variant-btn'+(sinStock?' agotado':'')+'" data-vi="'+i+'" '
+        +(sinStock?'disabled title="Agotado"':'onclick="ppSelectVariant(this,'+i+')"')
+        +' style="border:2px solid '+(sinStock?'#ddd':'var(--pk)')+';background:'+(sinStock?'#f5f5f5':'#fff')
+        +';color:'+(sinStock?'#aaa':'var(--pk)')+';border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700;cursor:'+(sinStock?'not-allowed':'pointer')+';">'
+        +v.nombre+(precio?' · '+precio:'')+(sinStock?' 😢':'')
+        +'</button>';
     });
     vhtml += '</div>';
+    vhtml += '<div id="m-variant-msg" style="display:none;color:#e91e8c;font-size:12px;margin-top:6px">⚠️ Elige una variante</div>';
     variantsEl.innerHTML = vhtml;
     variantsEl.style.display = 'block';
   } else {
@@ -1773,10 +1787,32 @@ function ppNext(){
   const imgs = (((_ppProduct.imagenes&&_ppProduct.imagenes.length>0)?_ppProduct.imagenes:[_ppProduct.imagen])).filter(u=>u&&u.startsWith('http'));
   ppSetImg((_ppImgIdx+1)%imgs.length);
 }
-function ppSelectVariant(btn, v){
-  _ppVariant = v;
+function ppSelectVariant(btn, vi){
+  _ppSelectedVariant = vi; // índice en _ppVariants
+  _ppVariant = _ppVariants[vi]; // objeto variante completo
   document.querySelectorAll('.pp-variant-btn').forEach(b=>b.classList.remove('selected'));
   btn.classList.add('selected');
+  // Ocultar mensaje de error
+  const msg = document.getElementById('m-variant-msg');
+  if(msg) msg.style.display='none';
+  // Actualizar precio si la variante tiene precio propio
+  const precio = _ppVariant.precio ? parseFloat(_ppVariant.precio) : _ppProduct.precio;
+  const el = document.getElementById('pp-price');
+  if(el){
+    const bsRate = window._bsRate||null;
+    let html = '<span>$'+precio.toFixed(2)+'</span>';
+    if(bsRate) html += '<div style="font-size:1rem;font-weight:600;color:#888;margin-top:4px">Bs. '+(precio*bsRate).toLocaleString('es-VE',{maximumFractionDigits:2})+'</div>';
+    el.innerHTML = html;
+  }
+  // Actualizar stock
+  const stockEl = document.getElementById('pp-stock');
+  if(stockEl){
+    const s = _ppVariant.stock||0;
+    if(s<=0){ stockEl.textContent='😢 Agotado'; stockEl.className='pp-stock out'; }
+    else if(s===1){ stockEl.textContent='¡Último disponible!'; stockEl.className='pp-stock low'; }
+    else if(s<=3){ stockEl.textContent='Solo '+s+' disponibles'; stockEl.className='pp-stock low'; }
+    else { stockEl.textContent='✅ Disponible'; stockEl.className='pp-stock in'; }
+  }
 }
 function ppAddToCart(){
   if(!_ppProduct) return;
