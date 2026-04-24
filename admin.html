@@ -2146,7 +2146,8 @@ async function guardarVenta(){
       tasa_bcv_usada: tasa||0,
       monto_bs:      parseFloat(monto_bs)||0,
       moneda_pago:   esBs ? 'Bs' : 'USD',
-      cuenta_cobro:  cuentaEl ? cuentaEl.value||null : null
+      cuenta_cobro:  cuentaEl ? cuentaEl.value||null : null,
+      referencia_pago: (document.getElementById('v-referencia')||{}).value||null
     };
 
     if(editVentaId){
@@ -2219,7 +2220,7 @@ async function guardarVenta(){
     // Recargar y cerrar
     cerrarModal('modal-venta');
     ventas   = await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
-    productos = await sbGet('productos','select=*&order=id.desc&limit=1000');
+    productos = await sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000');
     if(!Array.isArray(ventas))    ventas=[];
     if(!Array.isArray(productos)) productos=[];
     renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
