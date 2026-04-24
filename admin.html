@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777071337
+// v1777072759
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1182,7 +1182,9 @@ async function sbPatch(t,id,d){
   if(!r.ok){
     const e=await r.text();
     console.error('sbPatch ERROR',t,id,r.status,e);
-    toast('❌ Error al guardar ('+r.status+')',5000);
+    const ep = (() => { try { return JSON.parse(e).message||e; } catch(_){ return e; } })();
+    console.error('sbPatch detail', t, id, r.status, e);
+    toast('❌ Error al guardar ('+r.status+'): '+ep.slice(0,120), 6000);
   }
   return r;
 }
