@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777059619
+// v1777060174
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -3471,10 +3471,32 @@ function _vDel(i){
 }
 
 function agregarVarianteRow(){
-  _variantesModal.push({id:null,nombre:'',precio:null,stock:0,activo:true,_delete:false});
+  _variantesModal.push({id:null,nombre:'',precio:null,stock:0,activo:true,imagen:null,_delete:false});
   _renderVariantRows();
   var inputs = document.querySelectorAll('#variantes-lista .v-inp');
   if(inputs.length) inputs[inputs.length-3].focus();
+}
+function vSubirFoto(vi){
+  var inp = document.getElementById('v-foto-input');
+  if(!inp){ inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.id='v-foto-input'; inp.style.display='none'; document.body.appendChild(inp); }
+  inp.onchange = async function(){
+    var file = inp.files[0]; if(!file) return;
+    toast('⏳ Subiendo foto...');
+    var ext = file.name.split('.').pop()||'jpg';
+    var fname = 'variante_'+Date.now()+'.'+ext;
+    var res = await fetch('https://storage.bunnycdn.com/brillitos/productos/'+fname, {
+      method:'PUT', headers:{'AccessKey': BUNNY_KEY, 'Content-Type': file.type||'image/jpeg'},
+      body: file
+    });
+    if(res.ok){
+      var url = 'https://brillitos.b-cdn.net/productos/'+fname;
+      _variantesModal[vi].imagen = url;
+      _renderVariantRows();
+      toast('✅ Foto de variante subida');
+    } else { toast('❌ Error subiendo foto'); }
+    inp.value='';
+  };
+  inp.click();
 }
 
 async function guardarVariantesProducto(prodId){
@@ -3489,13 +3511,13 @@ async function guardarVariantesProducto(prodId){
       );
     } else if(!v._delete && !v.id && v.nombre && v.nombre.trim()){
       ops.push(
-        sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true})
+        sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true,imagen:v.imagen||null})
           .then(function(r){ if(r&&r.length>0) creadas++; else errores++; })
           .catch(function(e){ errores++; toast('❌ Error creando variante "'+v.nombre+'": '+e.message); })
       );
     } else if(!v._delete && v.id && v.nombre && v.nombre.trim()){
       ops.push(
-        sbPatch('producto_variantes', v.id, {nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true})
+        sbPatch('producto_variantes', v.id, {nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true,imagen:v.imagen||null})
           .then(function(r){ if(r&&r.ok) actualizadas++; else errores++; })
           .catch(function(e){ errores++; toast('❌ Error actualizando variante "'+v.nombre+'": '+e.message); })
       );
