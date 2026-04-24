@@ -1081,7 +1081,7 @@ async function sbPatch(t,id,d){
   if(!r.ok){
     const e=await r.text();
     console.error('sbPatch ERROR',t,id,r.status,e);
-    alert('❌ Error sbPatch ['+r.status+']:\n'+e);
+    toast('❌ Error al guardar ('+r.status+')',5000);
   }
   return r;
 }
@@ -2132,8 +2132,7 @@ async function guardarVenta(){
     subtotal:sub, costo_envio:env, descuento:desc, total,
     tasa_bcv_usada:tasa||0, monto_bs:parseFloat(monto_bs)||0,
     moneda_pago:esBs?'Bs':'USD',
-    cuenta_cobro:document.getElementById('v-cuenta')?document.getElementById('v-cuenta').value||null:null,
-    referencia_pago:document.getElementById('v-referencia')?document.getElementById('v-referencia').value.trim()||null:null
+    cuenta_cobro:document.getElementById('v-cuenta')?document.getElementById('v-cuenta').value||null:null
   };
   console.log('💾 guardarVenta data:', JSON.stringify(data));
   if(editVentaId){
