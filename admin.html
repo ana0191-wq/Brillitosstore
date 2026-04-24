@@ -110,7 +110,7 @@ tr:hover td{background:#fff8fc}
 .totales-box{background:var(--pink-light);border-radius:10px;padding:11px;margin-top:9px}
 .total-row{display:flex;justify-content:space-between;font-size:13px;padding:2px 0}
 .total-final{font-size:15px;font-weight:800;color:var(--pink-dark);padding-top:6px;border-top:1px solid var(--pink-mid)}
-.prod-search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:2px solid var(--pink);border-radius:14px;max-height:300px;overflow-y:auto;z-index:200;box-shadow:0 8px 24px rgba(233,30,99,.18)}
+.prod-search-results{position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:2px solid var(--pink);border-radius:14px;max-height:300px;overflow-y:auto;z-index:9999;box-shadow:0 8px 24px rgba(233,30,99,.18)}
 .prod-result{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
 .prod-result:active{background:var(--pink-light)}
 .prod-result-price{float:right;color:var(--pink);font-weight:700}
@@ -1703,7 +1703,7 @@ function cargarDashboard(){
   const conteo={};
   const conteoClientes={};
   vM.forEach(v=>(v.venta_items||[]).forEach(it=>{
-    const nombre=(it.producto_nombre||'').trim();
+    const nombre = it.producto_nombre==null ? '' : String(it.producto_nombre).trim();
     if(!nombre || nombre==='null' || nombre==='undefined') return; // ignorar items sin nombre
     conteo[nombre]=(conteo[nombre]||0)+parseInt(it.cantidad||1);
     if(!conteoClientes[nombre]) conteoClientes[nombre]=new Set();
@@ -3101,7 +3101,7 @@ async function guardarVariantesProducto(prodId){
 <a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
 </body>
 </html>function crearProdDesdeVenta(idx, nombreEnc, t){
-  var nombre = decodeURIComponent(nombreEnc).trim();
+  var nombre = (typeof nombreEnc==='string' ? nombreEnc : '').trim();
   if(!nombre){ toast('⚠️ Escribe un nombre'); return; }
   // Agregar producto básico al array de items con nombre y sin ID
   var arr = t==='v' ? ventaItems : aptItems;
