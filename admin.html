@@ -2028,7 +2028,7 @@ function poblarEventosSelect(){
 function renderItems(){
   document.getElementById('items-lista').innerHTML=ventaItems.map((it,i)=>
     '<div class="item-row">'
-    +'<div class="search-wrap"><input type="text" value="'+(it.producto_nombre||'')+'" placeholder="Buscar..." oninput="buscarProdItem(this,'+i+',\'v\')" autocomplete="off"><div class="prod-search-results" id="prod-res-'+i+'" style="display:none"></div></div>'
+    +'<div class="search-wrap"><input type="text" value="'+(it.producto_nombre||'')+'" placeholder="Buscar o escribir nombre..." oninput="actualizarItem('+i+',\'nombre\',this.value,\'v\');buscarProdItem(this,'+i+',\'v\')" autocomplete="off"><div class="prod-search-results" id="prod-res-'+i+'" style="display:none"></div></div>'
     +'<input type="number" value="'+(parseFloat(it.precio_unitario)||0)+'" min="0" step="0.5" oninput="actualizarItem('+i+',\'precio\',this.value,\'v\')">'
     +'<input type="number" value="'+(parseInt(it.cantidad)||1)+'" min="1" oninput="actualizarItem('+i+',\'cantidad\',this.value,\'v\')">'
     +'<span class="item-subtotal">$'+parseFloat(it.subtotal||0).toFixed(2)+'</span>'
@@ -2041,6 +2041,11 @@ function actualizarItem(i,campo,val,t){
   const arr=t==='v'?ventaItems:aptItems;
   if(campo==='precio') arr[i].precio_unitario=parseFloat(val)||0;
   if(campo==='cantidad') arr[i].cantidad=parseInt(val)||1;
+  if(campo==='nombre'){
+    arr[i].producto_nombre=val;
+    // Si el nombre se escribe a mano (sin seleccionar de lista), limpiar producto_id
+    if(!val.trim()) arr[i].producto_id=null;
+  }
   arr[i].subtotal=arr[i].precio_unitario*arr[i].cantidad;
   if(t==='v'){ const s=document.querySelectorAll('#items-lista .item-subtotal'); if(s[i]) s[i].textContent='$'+arr[i].subtotal.toFixed(2); calcularTotal(); }
   else{ const s=document.querySelectorAll('#apt-items-lista .item-subtotal'); if(s[i]) s[i].textContent='$'+arr[i].subtotal.toFixed(2); calcularTotalApt(); }
