@@ -3319,8 +3319,16 @@ function formatFecha(str){ if(!str)return'—'; try{return new Date(str).toLocal
 document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
 
 init();
-window.addEventListener('error',function(e){toast('❌ Error JS: '+(e.message||'desconocido')+(e.lineno?' (L'+e.lineno+')':''));});
-window.addEventListener('unhandledrejection',function(e){toast('❌ '+(e.reason&&e.reason.message?e.reason.message:String(e.reason)));});
+window.addEventListener('error',function(e){
+  // Solo mostrar si no es un error de recursos (imágenes rotas, etc)
+  if(e.message&&e.message!=='Script error.'&&!e.filename.includes('supabase')){
+    toast('❌ Error JS: '+(e.message||'desconocido')+(e.lineno?' (L'+e.lineno+')':''));
+  }
+});
+window.addEventListener('unhandledrejection',function(e){
+  var msg = e.reason&&e.reason.message ? e.reason.message : String(e.reason);
+  if(msg&&msg!=='undefined'&&msg!=='null') toast('❌ '+msg);
+});
 
 function abrirMobNav(){
   const nav=document.getElementById('mob-nav');
