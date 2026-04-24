@@ -625,7 +625,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 <div class="toast" id="toast"></div>
 
 <script>
-// v1777059836
+// v1777060174
 var CATALOG = [];
 var SUPABASE_URL = "https://xavqokyzdmqzguicjsrq.supabase.co";
 var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
@@ -662,7 +662,7 @@ async function cargarCatalogo() {
         precio:       parseFloat(p.precio) || 0,
         stock:        parseInt(p.stock) || 0,
         observaciones:p.observaciones || '',
-        variantes:    variantes,
+        variantes:    variantes.map(function(v){ return Object.assign({},v,{precio: v.precio&&parseFloat(v.precio)>0 ? parseFloat(v.precio) : null}); }),
         imagen:       p.imagen || '',
         imagenes:     p.imagenes || [],
         esNuevo:      p.es_nuevo || false
@@ -1730,12 +1730,12 @@ function openProductPage(p) {
     vhtml += '<div class="pp-variant-opts" style="display:flex;flex-wrap:wrap;gap:8px">';
     variantesReales.forEach(function(v, i){
       const sinStock = v.stock <= 0;
-      const precio = v.precio ? '$'+parseFloat(v.precio).toFixed(2) : '';
+      const precioV = (v.precio && parseFloat(v.precio) > 0) ? '$'+parseFloat(v.precio).toFixed(2) : '';
       vhtml += '<button class="pp-variant-btn'+(sinStock?' agotado':'')+'" data-vi="'+i+'" '
         +(sinStock?'disabled title="Agotado"':'onclick="ppSelectVariant(this,'+i+')"')
         +' style="border:2px solid '+(sinStock?'#ddd':'var(--pk)')+';background:'+(sinStock?'#f5f5f5':'#fff')
         +';color:'+(sinStock?'#aaa':'var(--pk)')+';border-radius:20px;padding:7px 16px;font-size:13px;font-weight:700;cursor:'+(sinStock?'not-allowed':'pointer')+';">'
-        +v.nombre+(precio?' · '+precio:'')+(sinStock?' 😢':'')
+        +v.nombre+(precioV?' · '+precioV:'')+(sinStock?' 😢':'')
         +'</button>';
     });
     vhtml += '</div>';
@@ -1823,8 +1823,21 @@ function ppSelectVariant(btn, vi){
   // Ocultar mensaje de error
   const msg = document.getElementById('m-variant-msg');
   if(msg) msg.style.display='none';
-  // Actualizar precio si la variante tiene precio propio
-  const precio = _ppVariant.precio ? parseFloat(_ppVariant.precio) : _ppProduct.precio;
+  // Cambiar foto si la variante tiene imagen propia
+  const mainImg = document.getElementById('pp-main-img');
+  if(mainImg){
+    if(_ppVariant.imagen){
+      mainImg.src = _ppVariant.imagen;
+      mainImg.style.opacity='0';
+      setTimeout(function(){ mainImg.style.opacity='1'; }, 50);
+    } else {
+      // Restaurar primera foto del producto
+      var imgs = ((_ppProduct.imagenes&&_ppProduct.imagenes.length>0)?_ppProduct.imagenes:[_ppProduct.imagen]).filter(function(u){return u&&u.startsWith('http');});
+      if(imgs[0]) mainImg.src = imgs[0];
+    }
+  }
+  // Actualizar precio — si variante no tiene precio usa el del producto
+  const precio = (_ppVariant.precio && parseFloat(_ppVariant.precio) > 0) ? parseFloat(_ppVariant.precio) : _ppProduct.precio;
   const el = document.getElementById('pp-price');
   if(el){
     const bsRate = window._bsRate||null;
