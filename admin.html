@@ -1074,7 +1074,7 @@ async function sbPost(t,d){
 async function sbPatch(t,id,d){
   const r=await fetch(SB+'/rest/v1/'+t+'?id=eq.'+id,{
     method:'PATCH',
-    headers:{...H,'Prefer':'return=minimal'},
+    headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},
     body:JSON.stringify(d)
   });
   if(!r.ok){ const e=await r.text(); console.error('sbPatch error',t,id,r.status,e); }
@@ -2145,7 +2145,14 @@ async function guardarVenta(){
     if(data.estado!=='Cancelado'){
       for(const it of ventaItems){if(it.producto_id){const p=productos.find(x=>x.id==it.producto_id);if(p){const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1));await sbPatch('productos',p.id,{stock:ns});p.stock=ns;}}}
     }
-    toast('✅ Venta actualizada');
+    toast('✅ Venta actualizada 🌸');
+    ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+    productos=await sbGet('productos','select=*&order=id.desc&limit=1000');
+    if(!Array.isArray(ventas)) ventas=[];
+    if(!Array.isArray(productos)) productos=[];
+    cerrarModal('modal-venta');
+    renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
+    return;
   } else {
     const cntV=await sbGet('ventas','select=id&limit=1&order=id.desc');
     const lastVId=(Array.isArray(cntV)&&cntV[0]&&cntV[0].id)||0;
@@ -2165,6 +2172,7 @@ async function guardarVenta(){
   if(!Array.isArray(ventas)) ventas=[];
   if(!Array.isArray(productos)) productos=[];
   renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
+  toast('✅ Venta registrada 🌸');
   } catch(err){ console.error('❌ Error guardarVenta:', err); toast('❌ Error: '+err.message); }
 }
 async function cancelarVenta(id){
