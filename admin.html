@@ -1081,7 +1081,7 @@ async function sbPatch(t,id,d){
   if(!r.ok){
     const e=await r.text();
     console.error('sbPatch ERROR',t,id,r.status,e);
-    toast('❌ Error al guardar ('+r.status+'): '+e.slice(0,80), 6000);
+    alert('❌ Error sbPatch ['+r.status+']:\n'+e);
   }
   return r;
 }
