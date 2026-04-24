@@ -242,7 +242,7 @@ tr:hover td{background:#fff8fc}
   <div class="nav-item" onclick="irA('productos');cerrarMobNav()"><span class="nav-icon">&#128230;</span> Productos</div>
   <div class="nav-item" onclick="irA('clientes');cerrarMobNav()"><span class="nav-icon">&#128101;</span> Clientes</div>
   <div class="nav-item" onclick="irA('eventos');cerrarMobNav()"><span class="nav-icon">&#127914;</span> Eventos</div>
-  <div class="nav-item" onclick="irA('gastos');cerrarMobNav()"><span class="nav-icon">&#128184;</span> Gastos</div>
+  <div class="nav-item" onclick="irA('gastos');cerrarMobNav()"><span class="nav-icon">📒</span> Contabilidad</div>
   <div class="nav-item" onclick="irA('entregas');cerrarMobNav()"><span class="nav-icon">&#128666;</span> Entregas</div>
   <div class="nav-item" onclick="irA('reportes');cerrarMobNav()"><span class="nav-icon">&#128200;</span> Reportes</div>
 </div>
@@ -259,7 +259,7 @@ tr:hover td{background:#fff8fc}
   <div class="nav-item" onclick="irA('productos')"><span class="nav-icon">📦</span> Productos</div>
   <div class="nav-item" onclick="irA('clientes')"><span class="nav-icon">👥</span> Clientes</div>
   <div class="nav-item" onclick="irA('eventos')"><span class="nav-icon">🎪</span> Eventos</div>
-  <div class="nav-item" onclick="irA('gastos')"><span class="nav-icon">💸</span> Gastos / Inversión</div>
+  <div class="nav-item" onclick="irA('gastos')"><span class="nav-icon">📒</span> Contabilidad</div>
   <div class="nav-item" onclick="irA('entregas')"><span class="nav-icon">🚚</span> Entregas</div>
   <div class="nav-item" onclick="irA('reportes')"><span class="nav-icon">📈</span> Reportes</div>
 </div>
@@ -452,7 +452,7 @@ tr:hover td{background:#fff8fc}
 <!-- GASTOS / INVERSIÓN -->
 <div class="page" id="page-gastos">
   <div class="page-header">
-    <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">💸 Gastos e Inversión</div>
+    <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">📒 Contabilidad</div>
     <div class="header-actions">
       <button class="btn btn-secondary" onclick="exportarGastosCSV()">📊 Excel</button>
       <button class="btn btn-success" onclick="abrirModalReposicion()" style="background:#2e7d32;border-color:#2e7d32;color:white">💚 Reposición</button>
@@ -963,6 +963,12 @@ tr:hover td{background:#fff8fc}
     <div class="form-group form-full" id="rp-detalle-wrap" style="display:none">
       <label id="rp-detalle-label">¿Qué pagaste? *</label>
       <input type="text" id="rp-detalle" placeholder="Ej: Stickers inversión evento mayo">
+    </div>
+    <div class="form-group form-full" id="rp-gasto-ajeno-wrap">
+      <label>¿Repone algún gasto ajeno registrado? <span style="color:#999;font-weight:normal">(opcional)</span></label>
+      <select id="rp-gasto-ajeno">
+        <option value="">— Sin vincular —</option>
+      </select>
     </div>
     <div class="form-group form-full">
       <label>Descripción *</label>
@@ -2957,12 +2963,16 @@ function renderGastosGlobal(){
   const totalBs=lista.filter(g=>g.moneda==='Bs'&&!g.es_ajeno&&g.tipo!=='Reposición').reduce((s,g)=>s+parseFloat(g.monto||0),0);
   const tasaRef=parseFloat(document.getElementById('inp-tasa')?document.getElementById('inp-tasa').value:0)||bcvHoy||0;
   const cntAjenos=lista.filter(g=>g.es_ajeno).length;
+  const pendientesReponer=lista.filter(g=>g.es_ajeno&&!g.reposicion_de).length;
   const cntRepos=lista.filter(g=>g.tipo==='Reposición').length;
   document.getElementById('gastos-stats').innerHTML=
-    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUSD.toFixed(2)+'</div><div class="stat-label">💸 Total USD (Brillitos)</div>'+(totalBs>0?'<div style="font-size:12px;color:#777;margin-top:2px">+ Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')+'</div>'
+    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUSD.toFixed(2)+'</div><div class="stat-label">💸 Total USD (Brillitos)</div></div>'
+    +(totalBs>0?'<div class="stat-card" style="border-left:4px solid #7b1fa2"><div class="stat-num" style="color:#7b1fa2;font-size:18px">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="stat-label">🇻🇪 Total Bs (Brillitos)</div></div>':'')
+    +'<div class="stat-card" style="display:none">x</div>'
     +'<div class="stat-card" style="border-left:4px solid #e91e8c">'+(tasaRef>0?'<div class="stat-num" style="color:#e91e8c">Bs. '+(totalUSD*tasaRef).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'<div class="stat-num" style="color:#e91e8c;font-size:16px">Sin tasa</div>')+'<div class="stat-label">🇻🇪 Equiv. Bs (tasa actual)</div></div>'
     +'<div class="stat-card" style="border-left:4px solid var(--orange)"><div class="stat-num" style="color:var(--orange)">'+lista.filter(g=>g.tipo==='Inversión').length+'</div><div class="stat-label">📈 Inversiones</div></div>'
-    +(cntAjenos>0?'<div class="stat-card" style="border-left:4px solid #fbc02d"><div class="stat-num" style="color:#f57f17">'+cntAjenos+'</div><div class="stat-label">🏠 Ajenos</div></div>':'')
+    +(pendientesReponer>0?'<div class="stat-card" style="border-left:4px solid #ff6f00;background:#fff8e1"><div class="stat-num" style="color:#e65100">'+pendientesReponer+'</div><div class="stat-label">🚨 Pendientes reponer</div></div>':'')
+    +(cntAjenos-pendientesReponer>0?'<div class="stat-card" style="border-left:4px solid #43a047"><div class="stat-num" style="color:#2e7d32">'+(cntAjenos-pendientesReponer)+'</div><div class="stat-label">✅ Ajenos repuestos</div></div>':'')
     +(cntRepos>0?'<div class="stat-card" style="border-left:4px solid #43a047"><div class="stat-num" style="color:#2e7d32">'+cntRepos+'</div><div class="stat-label">💚 Reposiciones</div></div>':'')
     +'<div class="stat-card" style="border-left:4px solid var(--purple)"><div class="stat-num" style="color:var(--purple);font-size:14px">'+(top[0]?top[0][0]:'—')+'</div><div class="stat-label">🏆 Mayor categoría</div></div>';
   const tipoMap={
@@ -2982,7 +2992,8 @@ function renderGastosGlobal(){
     if(g.es_ajeno) trStyle='opacity:0.75;background:#fffde7';
     else if(g.tipo==='Reposición') trStyle='background:#f1f8e9';
     var catBadge='';
-    if(g.es_ajeno) catBadge='<br><span style="font-size:10px;background:#fff8e1;color:#795548;padding:1px 6px;border-radius:6px;border:1px solid #ffe082">🏠 Ajeno</span>';
+    if(g.es_ajeno && !g.reposicion_de) catBadge='<br><span style="font-size:10px;background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:6px;border:1px solid #ffcc02;font-weight:700">🚨 Pendiente reponer</span>';
+    else if(g.es_ajeno && g.reposicion_de) catBadge='<br><span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:6px;border:1px solid #a5d6a7">✅ Repuesto</span>';
     else if(g.tipo==='Reposición') catBadge='<br><span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:6px;border:1px solid #a5d6a7">💚 Repos.</span>';
     var descExtra=g.reposicion_de?'<br><span style="font-size:11px;color:#666">\u21b3 '+g.reposicion_de+'</span>':'';
     var montoCell=g.moneda==='Bs'
@@ -3022,6 +3033,17 @@ function abrirModalReposicion(){
   document.getElementById('rp-fecha').value=new Date().toISOString().slice(0,10);
   document.getElementById('rp-detalle-wrap').style.display='none';
   document.getElementById('rp-monto-usd').value='';
+  // Poblar gastos ajenos pendientes
+  var sel=document.getElementById('rp-gasto-ajeno');
+  sel.innerHTML='<option value="">— Sin vincular —</option>';
+  var ajenos=gastosGlobales.filter(function(g){return g.es_ajeno && !g.reposicion_de;});
+  ajenos.forEach(function(g){
+    var opt=document.createElement('option');
+    opt.value=g.id;
+    opt.textContent='🚨 '+formatFecha(g.fecha)+' — '+(g.descripcion||g.notas||'Sin desc')+' ('+
+      (g.moneda==='Bs'?'Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2}):'$'+parseFloat(g.monto).toFixed(2))+')';
+    sel.appendChild(opt);
+  });
   abrirModal('modal-reposicion');
 }
 
@@ -3081,9 +3103,16 @@ async function guardarReposicion(){
   };
   const res=await sbPost('gastos_globales',data);
   if(res&&res[0]) gastosGlobales.unshift(res[0]);
+  // Si se vincula a un gasto ajeno, marcar ese gasto como repuesto
+  const ajenoId=document.getElementById('rp-gasto-ajeno').value;
+  if(ajenoId){
+    await sbPatch('gastos_globales',parseInt(ajenoId),{reposicion_de:'✅ Repuesto: '+reposicionDe});
+    const ga=gastosGlobales.find(function(g){return g.id==ajenoId;});
+    if(ga) ga.reposicion_de='✅ Repuesto: '+reposicionDe;
+  }
   cerrarModal('modal-reposicion');
   renderGastosGlobal(); poblarMesesFiltroGasto(); cargarDashboard();
-  toast('💚 Reposición registrada — '+reposicionDe);
+  toast('💚 Reposición registrada'+(ajenoId?' — gasto ajeno marcado como repuesto ✅':''));
 }
 
 function abrirModalGastoGlobal(){
