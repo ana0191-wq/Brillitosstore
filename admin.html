@@ -943,25 +943,60 @@ tr:hover td{background:#fff8fc}
 <!-- MODAL: GASTO GLOBAL -->
 <div class="modal-bg" id="modal-gasto-global" onclick="if(event.target===this)cerrarModal('modal-gasto-global')">
 <div class="modal">
-  <h2>💸 Registrar Gasto / Inversión</h2>
+  <h2 id="gg-modal-title">💸 Registrar Gasto / Inversión</h2>
   <div class="form-grid">
-    <div class="form-group">
+    <div class="form-group form-full">
       <label>Tipo</label>
-      <select id="gg-tipo">
+      <select id="gg-tipo" onchange="onGgTipoCambio()">
         <option value="Gasto operativo">🔄 Gasto operativo</option>
         <option value="Inversión">📈 Inversión (stock/equipo)</option>
         <option value="Gasto evento">🎪 Gasto de evento</option>
         <option value="Pago personal">👤 Pago personal</option>
+        <option value="Gasto ajeno">🏠 Gasto ajeno (no es de Brillitos)</option>
+        <option value="Reposición">💚 Reposición (devolución a Brillitos)</option>
       </select>
     </div>
+    <!-- Info gasto ajeno -->
+    <div class="form-group form-full" id="gg-ajeno-info" style="display:none">
+      <div style="background:#fff8e1;border:1.5px solid #ffe082;border-radius:10px;padding:10px 14px;font-size:13px;color:#795548">
+        💡 <strong>Gasto ajeno:</strong> salió de la cuenta de Brillitos pero <em>no es del negocio</em>. Se registra como salida de Bs pero no afecta las métricas de Brillitos.
+      </div>
+    </div>
+    <!-- Info reposición -->
+    <div class="form-group form-full" id="gg-repos-info" style="display:none">
+      <div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:10px;padding:10px 14px;font-size:13px;color:#2e7d32">
+        💚 <strong>Reposición:</strong> estás devolviendo dinero a Brillitos. Indica cómo lo repusiste.
+      </div>
+    </div>
+    <!-- Forma de reposición -->
+    <div class="form-group form-full" id="gg-repos-wrap" style="display:none">
+      <label>¿Cómo repusiste el dinero? *</label>
+      <select id="gg-repos-forma" onchange="onReposFormaCambio()">
+        <option value="">— Seleccionar —</option>
+        <option value="Efectivo">💵 Efectivo directo a la cuenta</option>
+        <option value="Comprando mercancía">📦 Comprando mercancía para Brillitos</option>
+        <option value="Pagando gasto">🧾 Pagando un gasto de Brillitos</option>
+        <option value="Pagando inversión">📈 Pagando una inversión de Brillitos</option>
+        <option value="Otro">✏️ Otro</option>
+      </select>
+    </div>
+    <!-- Descripción del gasto/inversión pagado con la reposición -->
+    <div class="form-group form-full" id="gg-repos-detalle-wrap" style="display:none">
+      <label id="gg-repos-detalle-label">Detalle de lo que pagaste *</label>
+      <input type="text" id="gg-repos-detalle" placeholder="Ej: Stickers inversión evento mayo">
+    </div>
     <div class="form-group">
-      <label>Categoría *</label>
+      <label>Categoría</label>
       <select id="gg-categoria">
         <option>Mercancía / Stock</option><option>Transporte</option><option>Stand / Evento</option>
         <option>Marketing / Publicidad</option><option>Empaque / Materiales</option>
         <option>Dominio / Web / Apps</option><option>Comida / Viáticos</option>
-        <option>Pago a Luisma</option><option>Servicios</option><option>Otro</option>
+        <option>Pago a Luisma</option><option>Servicios</option><option>Personal / Ajeno</option><option>Otro</option>
       </select>
+    </div>
+    <div class="form-group">
+      <label>Fecha</label>
+      <input type="date" id="gg-fecha">
     </div>
     <div class="form-group form-full"><label>Descripción *</label><input type="text" id="gg-descripcion" placeholder="Ej: Compra llaveros kawaii para evento abril"></div>
     <div class="form-group"><label>Monto *</label><input type="number" id="gg-monto" step="0.01" min="0" oninput="calcGastoGlobalUsd()"></div>
@@ -980,7 +1015,6 @@ tr:hover td{background:#fff8fc}
       <label>Equivalente USD</label>
       <input type="text" id="gg-monto-usd" readonly style="background:#f5f5f5;font-weight:700">
     </div>
-    <div class="form-group"><label>Fecha</label><input type="date" id="gg-fecha"></div>
     <div class="form-group">
       <label>Evento (opcional)</label>
       <select id="gg-evento"><option value="">-- Sin evento --</option></select>
@@ -989,7 +1023,7 @@ tr:hover td{background:#fff8fc}
   </div>
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-gasto-global')">Cancelar</button>
-    <button class="btn btn-warning" onclick="guardarGastoGlobal()">💾 Registrar</button>
+    <button class="btn btn-warning" id="gg-btn-guardar" onclick="guardarGastoGlobal()">💾 Registrar</button>
   </div>
 </div>
 </div>
@@ -2900,18 +2934,83 @@ function abrirModalGastoGlobal(){
 function toggleTasaGastoGlobal(){ const bs=document.getElementById('gg-moneda').value==='Bs'; document.getElementById('gg-tasa-wrap').style.display=bs?'block':'none'; document.getElementById('gg-usd-wrap').style.display=bs?'block':'none'; if(bs&&bcvHoy>0) document.getElementById('gg-tasa').value=bcvHoy.toFixed(2); calcGastoGlobalUsd(); }
 function calcGastoGlobalUsd(){ const m=parseFloat(document.getElementById('gg-monto').value)||0; const t=parseFloat(document.getElementById('gg-tasa').value)||0; if(document.getElementById('gg-moneda').value==='Bs'&&t>0) document.getElementById('gg-monto-usd').value='$'+(m/t).toFixed(2); }
 async function guardarGastoGlobal(){
-  const desc=document.getElementById('gg-descripcion').value.trim(); const monto=parseFloat(document.getElementById('gg-monto').value)||0;
+  const tipo=document.getElementById('gg-tipo').value;
+  const desc=document.getElementById('gg-descripcion').value.trim();
+  const monto=parseFloat(document.getElementById('gg-monto').value)||0;
   if(!desc||!monto){ toast('⚠️ Descripción y monto obligatorios'); return; }
-  const moneda=document.getElementById('gg-moneda').value; const tasa=parseFloat(document.getElementById('gg-tasa').value)||0;
+  const moneda=document.getElementById('gg-moneda').value;
+  const tasa=parseFloat(document.getElementById('gg-tasa').value)||0;
   const monto_usd=moneda==='Bs'&&tasa>0?monto/tasa:monto;
   const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
   const eventoId=document.getElementById('gg-evento').value||null;
-  const data={tipo:document.getElementById('gg-tipo').value,categoria:document.getElementById('gg-categoria').value,descripcion:desc,monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('gg-fecha').value,evento_id:eventoId?parseInt(eventoId):null,notas:document.getElementById('gg-notas').value};
+  const esAjeno=tipo==='Gasto ajeno';
+  const esRepos=tipo==='Reposición';
+  // Validar reposición
+  if(esRepos){
+    const forma=document.getElementById('gg-repos-forma').value;
+    if(!forma){ toast('⚠️ Indica cómo repusiste el dinero'); return; }
+    const detalle=document.getElementById('gg-repos-detalle').value.trim();
+    if(['Comprando mercancía','Pagando gasto','Pagando inversión'].includes(forma)&&!detalle){
+      toast('⚠️ Describe qué pagaste con la reposición'); return;
+    }
+  }
+  const reposForma=esRepos?(document.getElementById('gg-repos-forma').value||null):null;
+  const reposDetalle=esRepos?(document.getElementById('gg-repos-detalle').value.trim()||null):null;
+  const reposicionDe=reposForma?(reposForma+(reposDetalle?' — '+reposDetalle:'')):null;
+  const data={
+    tipo: esRepos?'Reposición':(esAjeno?'Gasto ajeno':tipo),
+    categoria: document.getElementById('gg-categoria').value,
+    descripcion: desc, monto, moneda,
+    tasa_bcv: tasa||null, monto_usd, monto_bs,
+    fecha: document.getElementById('gg-fecha').value,
+    evento_id: eventoId?parseInt(eventoId):null,
+    notas: document.getElementById('gg-notas').value,
+    es_ajeno: esAjeno,
+    reposicion_de: reposicionDe
+  };
   const res=await sbPost('gastos_globales',data);
   if(res[0]) gastosGlobales.unshift(res[0]);
-  cerrarModal('modal-gasto-global'); renderGastosGlobal(); poblarMesesFiltroGasto(); cargarDashboard(); if(data.moneda==='Bs') toast('✅ Gasto Bs registrado — descontado de BancaAmiga Luisma 🏦'); else toast('✅ Gasto registrado');
+  cerrarModal('modal-gasto-global'); renderGastosGlobal(); poblarMesesFiltroGasto(); cargarDashboard();
+  if(esRepos) toast('💚 Reposición registrada — '+reposForma);
+  else if(esAjeno) toast('🏠 Gasto ajeno registrado — no afecta métricas de Brillitos');
+  else if(data.moneda==='Bs') toast('✅ Gasto Bs registrado — descontado de BancaAmiga Luisma 🏦');
+  else toast('✅ Gasto registrado');
 }
 async function eliminarGastoGlobal(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('gastos_globales','id=eq.'+id); gastosGlobales=gastosGlobales.filter(g=>g.id!==id); renderGastosGlobal(); cargarDashboard(); toast('🗑️ Eliminado'); }
+function onGgTipoCambio(){
+  const tipo=document.getElementById('gg-tipo').value;
+  const esAjeno=tipo==='Gasto ajeno';
+  const esRepos=tipo==='Reposición';
+  document.getElementById('gg-ajeno-info').style.display=esAjeno?'block':'none';
+  document.getElementById('gg-repos-info').style.display=esRepos?'block':'none';
+  document.getElementById('gg-repos-wrap').style.display=esRepos?'block':'none';
+  document.getElementById('gg-repos-detalle-wrap').style.display='none';
+  // Cambiar título y botón
+  const titulo=document.getElementById('gg-modal-title');
+  const btn=document.getElementById('gg-btn-guardar');
+  if(esRepos){ titulo.textContent='💚 Registrar Reposición'; btn.textContent='💚 Registrar Reposición'; btn.style.background='#2e7d32'; }
+  else if(esAjeno){ titulo.textContent='🏠 Gasto Ajeno'; btn.textContent='💾 Registrar'; btn.style.background=''; }
+  else{ titulo.textContent='💸 Registrar Gasto / Inversión'; btn.textContent='💾 Registrar'; btn.style.background=''; }
+  // Auto-seleccionar categoría para ajeno
+  if(esAjeno){ document.getElementById('gg-categoria').value='Personal / Ajeno'; }
+}
+
+function onReposFormaCambio(){
+  const forma=document.getElementById('gg-repos-forma').value;
+  const detalleWrap=document.getElementById('gg-repos-detalle-wrap');
+  const detalleLabel=document.getElementById('gg-repos-detalle-label');
+  const necesitaDetalle=['Comprando mercancía','Pagando gasto','Pagando inversión'].includes(forma);
+  detalleWrap.style.display=necesitaDetalle?'block':'none';
+  if(forma==='Comprando mercancía'){ detalleLabel.textContent='¿Qué compraste?'; document.getElementById('gg-repos-detalle').placeholder='Ej: Stickers inversión evento mayo'; }
+  else if(forma==='Pagando gasto'){ detalleLabel.textContent='¿Qué gasto pagaste?'; document.getElementById('gg-repos-detalle').placeholder='Ej: Dominio web anual'; }
+  else if(forma==='Pagando inversión'){ detalleLabel.textContent='¿Qué inversión pagaste?'; document.getElementById('gg-repos-detalle').placeholder='Ej: Máquina corte estampilla'; }
+  // Actualizar categoría automáticamente
+  const cat=document.getElementById('gg-categoria');
+  if(forma==='Comprando mercancía') cat.value='Mercancía / Stock';
+  else if(forma==='Pagando gasto') cat.value='Servicios';
+  else if(forma==='Pagando inversión') cat.value='Mercancía / Stock';
+}
+
 function exportarGastosCSV(){
   let csv='Fecha,Tipo,Categoría,Descripción,Monto,Moneda,Tasa,Monto USD,Evento,Notas\n';
   gastosGlobales.forEach(g=>{ csv+=[g.fecha,g.tipo,g.categoria,g.descripcion,g.monto,g.moneda,g.tasa_bcv||'',g.monto_usd||g.monto,g.evento_id?(eventos.find(e=>e.id==g.evento_id)&&eventos.find(e=>e.id==g.evento_id).nombre||''):'',g.notas||''].map(x=>'"'+(x||'').toString().replace(/"/g,'""')+'"').join(',')+'\n'; });
