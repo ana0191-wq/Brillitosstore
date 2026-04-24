@@ -991,6 +991,10 @@ tr:hover td{background:#fff8fc}
       <input type="text" id="rp-monto-usd" readonly style="background:#f5f5f5;font-weight:700">
     </div>
     <div class="form-group"><label>Fecha</label><input type="date" id="rp-fecha"></div>
+    <div class="form-group">
+      <label>Evento <span style="color:#999;font-weight:normal">(opcional)</span></label>
+      <select id="rp-evento"><option value="">— Sin evento —</option></select>
+    </div>
     <div class="form-group form-full"><label>Notas</label><input type="text" id="rp-notas" placeholder="Opcional"></div>
   </div>
   <div class="modal-footer">
@@ -3044,6 +3048,14 @@ function abrirModalReposicion(){
       (g.moneda==='Bs'?'Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2}):'$'+parseFloat(g.monto).toFixed(2))+')';
     sel.appendChild(opt);
   });
+  // Poblar eventos
+  var selEv=document.getElementById('rp-evento');
+  selEv.innerHTML='<option value="">— Sin evento —</option>';
+  eventos.forEach(function(e){
+    var opt=document.createElement('option');
+    opt.value=e.id; opt.textContent=e.nombre;
+    selEv.appendChild(opt);
+  });
   abrirModal('modal-reposicion');
 }
 
@@ -3089,6 +3101,7 @@ async function guardarReposicion(){
   const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
   const reposicionDe=forma+(detalle?' — '+detalle:'');
   const catMap={'Comprando mercancía':'Mercancía / Stock','Pagando gasto':'Servicios','Pagando inversión':'Mercancía / Stock','Efectivo':'Otro','Otro':'Otro'};
+  const rpEventoId=document.getElementById('rp-evento').value||null;
   const data={
     tipo:'Reposición',
     categoria:catMap[forma]||'Otro',
@@ -3097,6 +3110,7 @@ async function guardarReposicion(){
     tasa_bcv:tasa||null,
     monto_usd, monto_bs,
     fecha:document.getElementById('rp-fecha').value,
+    evento_id:rpEventoId?parseInt(rpEventoId):null,
     notas:document.getElementById('rp-notas').value,
     es_ajeno:false,
     reposicion_de:reposicionDe
