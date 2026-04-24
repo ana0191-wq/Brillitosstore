@@ -36,7 +36,7 @@ body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-hei
 .nav-item:hover{background:rgba(214,58,138,.08);color:var(--pink)}
 .nav-item.active{background:rgba(214,58,138,.12);border-left-color:var(--pink);color:var(--pink);font-weight:700}
 .nav-icon{font-size:15px;width:20px;text-align:center}
-.main{flex:1;overflow-y:auto;overflow-x:hidden}
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
 .page-header{background:white;padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 .page-title{font-size:16px;font-weight:700}
 .header-actions{display:flex;gap:7px;flex-wrap:wrap}
@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777063733
+// v1777064006
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1658,23 +1658,32 @@ async function verificarApartadosVencidos(){
 // ===== NAVEGACIÓN =====
 function irA(p){
   irA_queEstoyEn = p;
+  // Cambio inmediato de página
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   const pg = document.getElementById('page-'+p);
-  if(pg) pg.classList.add('active');
+  if(pg){ pg.classList.add('active'); pg.scrollTop=0; }
+  // Reset scroll del contenedor principal
+  const mainEl = document.querySelector('.main');
+  if(mainEl) mainEl.scrollTop = 0;
+  window.scrollTo(0,0);
+  // Marcar nav activo
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.textContent.toLowerCase().includes(p.slice(0,4))) n.classList.add('active');
   });
+  // Cerrar menú móvil si está abierto
+  cerrarMobNav();
+  // Cargar contenido
   if(p==='dashboard') cargarDashboard();
-  if(p==='pos') renderPOS();
-  if(p==='ventas') renderVentas();
-  if(p==='apartados') renderApartados();
-  if(p==='productos') renderProductos();
-  if(p==='clientes') renderClientes();
-  if(p==='eventos') renderEventos();
-  if(p==='gastos') renderGastosGlobal();
-  if(p==='entregas') renderEntregas();
-  if(p==='reportes'){ document.getElementById('reporte-mes').value=new Date().toISOString().slice(0,7); cargarReporte(); }
+  else if(p==='pos') renderPOS();
+  else if(p==='ventas') renderVentas();
+  else if(p==='apartados') renderApartados();
+  else if(p==='productos') renderProductos();
+  else if(p==='clientes') renderClientes();
+  else if(p==='eventos') renderEventos();
+  else if(p==='gastos') renderGastosGlobal();
+  else if(p==='entregas') renderEntregas();
+  else if(p==='reportes'){ document.getElementById('reporte-mes').value=new Date().toISOString().slice(0,7); cargarReporte(); }
 }
 
 // ===== DASHBOARD =====
