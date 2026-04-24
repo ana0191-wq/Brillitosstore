@@ -455,6 +455,7 @@ tr:hover td{background:#fff8fc}
     <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">💸 Gastos e Inversión</div>
     <div class="header-actions">
       <button class="btn btn-secondary" onclick="exportarGastosCSV()">📊 Excel</button>
+      <button class="btn btn-success" onclick="abrirModalReposicion()" style="background:#2e7d32;border-color:#2e7d32;color:white">💚 Reposición</button>
       <button class="btn btn-warning" onclick="abrirModalGastoGlobal()">+ Gasto</button>
     </div>
   </div>
@@ -936,6 +937,59 @@ tr:hover td{background:#fff8fc}
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-gasto')">Cancelar</button>
     <button class="btn btn-warning" onclick="guardarGasto()">💾 Registrar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL: REPOSICIÓN -->
+<div class="modal-bg" id="modal-reposicion" onclick="if(event.target===this)cerrarModal('modal-reposicion')">
+<div class="modal">
+  <h2>💚 Registrar Reposición</h2>
+  <div style="background:#e8f5e9;border:1.5px solid #a5d6a7;border-radius:10px;padding:10px 14px;font-size:13px;color:#2e7d32;margin-bottom:14px">
+    💚 Estás devolviendo dinero a Brillitos. Puede ser en efectivo o pagando algo del negocio con ese dinero.
+  </div>
+  <div class="form-grid">
+    <div class="form-group form-full">
+      <label>¿Cómo repusiste el dinero? *</label>
+      <select id="rp-forma" onchange="onRpFormaCambio()">
+        <option value="">— Seleccionar —</option>
+        <option value="Efectivo">💵 Efectivo directo a la cuenta</option>
+        <option value="Comprando mercancía">📦 Comprando mercancía para Brillitos</option>
+        <option value="Pagando gasto">🧾 Pagando un gasto de Brillitos</option>
+        <option value="Pagando inversión">📈 Pagando una inversión de Brillitos</option>
+        <option value="Otro">✏️ Otro</option>
+      </select>
+    </div>
+    <div class="form-group form-full" id="rp-detalle-wrap" style="display:none">
+      <label id="rp-detalle-label">¿Qué pagaste? *</label>
+      <input type="text" id="rp-detalle" placeholder="Ej: Stickers inversión evento mayo">
+    </div>
+    <div class="form-group form-full">
+      <label>Descripción *</label>
+      <input type="text" id="rp-descripcion" placeholder="Ej: Reposición de gastos personales de semana santa">
+    </div>
+    <div class="form-group"><label>Monto *</label><input type="number" id="rp-monto" step="0.01" min="0" oninput="calcRpUsd()"></div>
+    <div class="form-group">
+      <label>Moneda</label>
+      <select id="rp-moneda" onchange="toggleTasaRp()">
+        <option value="Bs">Bolívares (Bs)</option>
+        <option value="USD">USD ($)</option>
+      </select>
+    </div>
+    <div class="form-group" id="rp-tasa-wrap">
+      <label>Tasa BCV</label>
+      <input type="number" id="rp-tasa" step="0.01" min="0" oninput="calcRpUsd()" placeholder="Automática">
+    </div>
+    <div class="form-group" id="rp-usd-wrap">
+      <label>Equivalente USD</label>
+      <input type="text" id="rp-monto-usd" readonly style="background:#f5f5f5;font-weight:700">
+    </div>
+    <div class="form-group"><label>Fecha</label><input type="date" id="rp-fecha"></div>
+    <div class="form-group form-full"><label>Notas</label><input type="text" id="rp-notas" placeholder="Opcional"></div>
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="cerrarModal('modal-reposicion')">Cancelar</button>
+    <button class="btn" onclick="guardarReposicion()" style="background:#2e7d32;border-color:#2e7d32;color:white">💚 Registrar Reposición</button>
   </div>
 </div>
 </div>
@@ -2956,6 +3010,82 @@ function renderGastosGlobal(){
   });
   document.getElementById('tbody-gastos').innerHTML=rows.join('');
 }
+
+function abrirModalReposicion(){
+  document.getElementById('rp-forma').value='';
+  document.getElementById('rp-detalle').value='';
+  document.getElementById('rp-descripcion').value='';
+  document.getElementById('rp-monto').value='';
+  document.getElementById('rp-moneda').value='Bs';
+  document.getElementById('rp-tasa').value=bcvHoy||'';
+  document.getElementById('rp-notas').value='';
+  document.getElementById('rp-fecha').value=new Date().toISOString().slice(0,10);
+  document.getElementById('rp-detalle-wrap').style.display='none';
+  document.getElementById('rp-monto-usd').value='';
+  abrirModal('modal-reposicion');
+}
+
+function onRpFormaCambio(){
+  const forma=document.getElementById('rp-forma').value;
+  const necesita=['Comprando mercancía','Pagando gasto','Pagando inversión','Otro'].includes(forma);
+  document.getElementById('rp-detalle-wrap').style.display=necesita?'block':'none';
+  const lbl=document.getElementById('rp-detalle-label');
+  if(forma==='Comprando mercancía'){lbl.textContent='¿Qué compraste? *';document.getElementById('rp-detalle').placeholder='Ej: Stickers para evento mayo';}
+  else if(forma==='Pagando gasto'){lbl.textContent='¿Qué gasto pagaste? *';document.getElementById('rp-detalle').placeholder='Ej: Dominio web anual';}
+  else if(forma==='Pagando inversión'){lbl.textContent='¿Qué inversión pagaste? *';document.getElementById('rp-detalle').placeholder='Ej: Máquina corte estampilla';}
+  else{lbl.textContent='¿Cómo fue? *';document.getElementById('rp-detalle').placeholder='Descríbelo';}
+}
+
+function toggleTasaRp(){
+  const esBs=document.getElementById('rp-moneda').value==='Bs';
+  document.getElementById('rp-tasa-wrap').style.display=esBs?'block':'none';
+  document.getElementById('rp-usd-wrap').style.display=esBs?'block':'none';
+  calcRpUsd();
+}
+
+function calcRpUsd(){
+  const monto=parseFloat(document.getElementById('rp-monto').value)||0;
+  const moneda=document.getElementById('rp-moneda').value;
+  const tasa=parseFloat(document.getElementById('rp-tasa').value)||bcvHoy||0;
+  const usd=moneda==='Bs'&&tasa>0?monto/tasa:monto;
+  document.getElementById('rp-monto-usd').value=usd>0?'$'+usd.toFixed(2):'';
+}
+
+async function guardarReposicion(){
+  const forma=document.getElementById('rp-forma').value;
+  if(!forma){toast('⚠️ Indica cómo repusiste el dinero');return;}
+  const desc=document.getElementById('rp-descripcion').value.trim();
+  if(!desc){toast('⚠️ Escribe una descripción');return;}
+  const monto=parseFloat(document.getElementById('rp-monto').value)||0;
+  if(!monto){toast('⚠️ Ingresa el monto');return;}
+  const detalle=document.getElementById('rp-detalle').value.trim();
+  const necesitaDetalle=['Comprando mercancía','Pagando gasto','Pagando inversión','Otro'].includes(forma);
+  if(necesitaDetalle&&!detalle){toast('⚠️ Describe qué pagaste');return;}
+  const moneda=document.getElementById('rp-moneda').value;
+  const tasa=parseFloat(document.getElementById('rp-tasa').value)||bcvHoy||0;
+  const monto_usd=moneda==='Bs'&&tasa>0?monto/tasa:monto;
+  const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
+  const reposicionDe=forma+(detalle?' — '+detalle:'');
+  const catMap={'Comprando mercancía':'Mercancía / Stock','Pagando gasto':'Servicios','Pagando inversión':'Mercancía / Stock','Efectivo':'Otro','Otro':'Otro'};
+  const data={
+    tipo:'Reposición',
+    categoria:catMap[forma]||'Otro',
+    descripcion:desc,
+    monto, moneda,
+    tasa_bcv:tasa||null,
+    monto_usd, monto_bs,
+    fecha:document.getElementById('rp-fecha').value,
+    notas:document.getElementById('rp-notas').value,
+    es_ajeno:false,
+    reposicion_de:reposicionDe
+  };
+  const res=await sbPost('gastos_globales',data);
+  if(res&&res[0]) gastosGlobales.unshift(res[0]);
+  cerrarModal('modal-reposicion');
+  renderGastosGlobal(); poblarMesesFiltroGasto(); cargarDashboard();
+  toast('💚 Reposición registrada — '+reposicionDe);
+}
+
 function abrirModalGastoGlobal(){
   document.getElementById('gg-monto').value=''; document.getElementById('gg-descripcion').value='';
   document.getElementById('gg-notas').value=''; document.getElementById('gg-moneda').value='USD';
