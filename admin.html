@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777064172
+// v1777067228
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -2580,13 +2580,10 @@ async function guardarApartado(){
     cliente_id:document.getElementById('apt-cliente-id').value||null,
     cliente_nombre:nombre,
     metodo_pago:metodoApt,
-    tipo_pago:tipoApt,
-    monto_bs:montoBS,
     abono:adelanto,
     saldo:total-adelanto,
     total,
     fecha_entrega:document.getElementById('apt-fecha-limite')?document.getElementById('apt-fecha-limite').value||null:null,
-    tipo_entrega:document.getElementById('apt-entrega')?document.getElementById('apt-entrega').value||null:null,
     canal:document.getElementById('apt-canal')?document.getElementById('apt-canal').value||'WhatsApp':'WhatsApp',
     notas:document.getElementById('apt-notas')?document.getElementById('apt-notas').value:'',
     estado:'Pendiente'
