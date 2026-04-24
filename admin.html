@@ -1113,7 +1113,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777074967
+// v1777075066
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1732,9 +1732,20 @@ function cargarDashboard(){
     });
     gan-=parseFloat(v.descuento||0);
   });
-  // Gastos del mes
-  const gastMes = gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes);
-  const totalGastMes = gastMes.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+  // Gastos del mes — solo gastos reales en USD (excluir ajenos, reposiciones y gastos en Bs que no tienen monto_usd)
+  const gastMes = gastosGlobales.filter(g=>
+    (g.fecha||'').slice(0,7)===mes
+    && g.tipo !== 'Gasto ajeno'
+    && g.tipo !== 'Reposición'
+  );
+  const totalGastMes = gastMes.reduce((s,g)=>{
+    // Si tiene monto_usd explícito usarlo; si es en USD usar monto; si es en Bs ignorar (no sabemos el USD exacto sin tasa)
+    const usd = parseFloat(g.monto_usd||0);
+    const monto = parseFloat(g.monto||0);
+    if(usd>0) return s+usd;
+    if((g.moneda||'USD')==='USD') return s+monto;
+    return s; // gasto en Bs sin conversión — no sumar para no distorsionar
+  },0);
   const gananciaNeta = totalMes-totalGastMes;
 
   document.getElementById('d-hoy').textContent = '$'+totalHoy.toFixed(2);
@@ -1923,82 +1934,6 @@ function cargarDashboard(){
   renderMovimientosBancaAmiga();
 }
 
-// ══════════════════════════════════════════
-// MOVIMIENTOS BANCAAMIGA
-// ══════════════════════════════════════════
-function renderMovimientosBancaAmiga(){
-  const el = document.getElementById('bancaamiga-movs');
-  const badge = document.getElementById('bancaamiga-saldo-badge');
-  if(!el) return;
-  const METODOS_BS = ['Pago Móvil','BCV','Efectivo Bs','Pago Movil'];
-  const movs = [];
-  // ENTRADAS — ventas en Bs
-  (ventas||[]).filter(v=>v.estado!=='Cancelado').forEach(v=>{
-    const esBs = METODOS_BS.includes(v.metodo_pago||'') || parseFloat(v.monto_bs||0)>0;
-    if(!esBs) return;
-    const bs = parseFloat(v.monto_bs||0);
-    if(!bs) return;
-    movs.push({
-      fecha: v.fecha_venta||v.creado_en||'',
-      tipo: 'entrada',
-      desc: (v.cliente_nombre||'Cliente')+' — '+(v.numero||''),
-      sub: v.metodo_pago||'Pago Bs',
-      monto: bs
-    });
-  });
-  // SALIDAS — gastos en Bs (no ajenos, no reposiciones-no-efectivo)
-  (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno').forEach(g=>{
-    const esRepos = g.tipo==='Reposición';
-    const reposEfectivo = esRepos && (g.reposicion_de||'').startsWith('Efectivo');
-    if(esRepos && !reposEfectivo) return;
-    movs.push({
-      fecha: g.fecha||g.creado_en||'',
-      tipo: esRepos ? 'entrada' : 'salida',
-      desc: g.descripcion||g.tipo,
-      sub: g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''),
-      monto: parseFloat(g.monto||0)
-    });
-  });
-  // Ordenar por fecha asc para calcular saldo corriente
-  movs.sort((a,b)=>{
-    const da=a.fecha?new Date(a.fecha):new Date(0);
-    const db=b.fecha?new Date(b.fecha):new Date(0);
-    return da-db;
-  });
-  let saldo=0;
-  movs.forEach(m=>{ m.saldoAcum = (saldo += m.tipo==='entrada' ? m.monto : -m.monto); });
-  // Mostrar desc
-  movs.reverse();
-  const saldoFinal = movs.length ? movs[0].saldoAcum : 0;
-  const saldoColor = saldoFinal>=0?'#3a7d52':'#c62828';
-  const saldoBg    = saldoFinal>=0?'#edf7f1':'#fdecea';
-  if(badge){
-    badge.textContent = 'Bs. '+saldoFinal.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
-    badge.style.color=saldoColor; badge.style.background=saldoBg;
-  }
-  if(!movs.length){
-    el.innerHTML='<div style="color:#999;font-size:13px;padding:16px;text-align:center">Sin movimientos 🌸</div>';
-    return;
-  }
-  el.innerHTML = movs.map(m=>{
-    const esEnt=m.tipo==='entrada';
-    const color=esEnt?'#3a7d52':'#c62828';
-    const bg=esEnt?'#edf7f1':'#fdecea';
-    const signo=esEnt?'+':'−';
-    const fecha=m.fecha?m.fecha.slice(0,10):'—';
-    const sc=m.saldoAcum>=0?'#3a7d52':'#c62828';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #f3f4f6">'
-      +'<div style="width:34px;height:34px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+(esEnt?'⬆️':'⬇️')+'</div>'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+m.desc+'</div>'
-      +'<div style="font-size:11px;color:#888">'+m.sub+' · '+fecha+'</div>'
-      +'</div>'
-      +'<div style="text-align:right;flex-shrink:0">'
-      +'<div style="font-size:14px;font-weight:700;color:'+color+'">'+signo+'Bs.'+m.monto.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
-      +'<div style="font-size:10px;color:'+sc+';font-weight:600">Saldo: Bs.'+m.saldoAcum.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
-      +'</div></div>';
-  }).join('');
-}
 
 // ===== POS =====
 function renderPOS(){
@@ -3440,6 +3375,84 @@ function exportarProductosCSV(){
 function descargarCSV(csv,nombre){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'})); a.download=nombre; a.click(); }
 
 // ===== UTILS =====
+// ══════════════════════════════════════════
+// MOVIMIENTOS BANCAAMIGA
+// ══════════════════════════════════════════
+function renderMovimientosBancaAmiga(){
+  const el = document.getElementById('bancaamiga-movs');
+  const badge = document.getElementById('bancaamiga-saldo-badge');
+  if(!el) return;
+  const METODOS_BS = ['Pago Móvil','BCV','Efectivo Bs','Pago Movil'];
+  const movs = [];
+  // ENTRADAS — ventas en Bs
+  (ventas||[]).filter(v=>v.estado!=='Cancelado').forEach(v=>{
+    const esBs = METODOS_BS.includes(v.metodo_pago||'') || parseFloat(v.monto_bs||0)>0;
+    if(!esBs) return;
+    const bs = parseFloat(v.monto_bs||0);
+    if(!bs) return;
+    movs.push({
+      fecha: v.fecha_venta||v.creado_en||'',
+      tipo: 'entrada',
+      desc: (v.cliente_nombre||'Cliente')+' — '+(v.numero||''),
+      sub: v.metodo_pago||'Pago Bs',
+      monto: bs
+    });
+  });
+  // SALIDAS — gastos en Bs (no ajenos, no reposiciones-no-efectivo)
+  (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno').forEach(g=>{
+    const esRepos = g.tipo==='Reposición';
+    const reposEfectivo = esRepos && (g.reposicion_de||'').startsWith('Efectivo');
+    if(esRepos && !reposEfectivo) return;
+    movs.push({
+      fecha: g.fecha||g.creado_en||'',
+      tipo: esRepos ? 'entrada' : 'salida',
+      desc: g.descripcion||g.tipo,
+      sub: g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''),
+      monto: parseFloat(g.monto||0)
+    });
+  });
+  // Ordenar por fecha asc para calcular saldo corriente
+  movs.sort((a,b)=>{
+    const da=a.fecha?new Date(a.fecha):new Date(0);
+    const db=b.fecha?new Date(b.fecha):new Date(0);
+    return da-db;
+  });
+  let saldo=0;
+  movs.forEach(m=>{ m.saldoAcum = (saldo += m.tipo==='entrada' ? m.monto : -m.monto); });
+  // Mostrar desc
+  movs.reverse();
+  const saldoFinal = movs.length ? movs[0].saldoAcum : 0;
+  const saldoColor = saldoFinal>=0?'#3a7d52':'#c62828';
+  const saldoBg    = saldoFinal>=0?'#edf7f1':'#fdecea';
+  if(badge){
+    badge.textContent = 'Bs. '+saldoFinal.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+    badge.style.color=saldoColor; badge.style.background=saldoBg;
+  }
+  if(!movs.length){
+    el.innerHTML='<div style="color:#999;font-size:13px;padding:16px;text-align:center">Sin movimientos 🌸</div>';
+    return;
+  }
+  el.innerHTML = movs.map(m=>{
+    const esEnt=m.tipo==='entrada';
+    const color=esEnt?'#3a7d52':'#c62828';
+    const bg=esEnt?'#edf7f1':'#fdecea';
+    const signo=esEnt?'+':'−';
+    const fecha=m.fecha?m.fecha.slice(0,10):'—';
+    const sc=m.saldoAcum>=0?'#3a7d52':'#c62828';
+    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #f3f4f6">'
+      +'<div style="width:34px;height:34px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+(esEnt?'⬆️':'⬇️')+'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+m.desc+'</div>'
+      +'<div style="font-size:11px;color:#888">'+m.sub+' · '+fecha+'</div>'
+      +'</div>'
+      +'<div style="text-align:right;flex-shrink:0">'
+      +'<div style="font-size:14px;font-weight:700;color:'+color+'">'+signo+'Bs.'+m.monto.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
+      +'<div style="font-size:10px;color:'+sc+';font-weight:600">Saldo: Bs.'+m.saldoAcum.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
+      +'</div></div>';
+  }).join('');
+}
+
+
 function cerrarModal(id){
   document.getElementById(id).classList.remove('open');
   if(history.state&&history.state.modal===id) history.back();
