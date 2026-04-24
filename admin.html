@@ -1113,7 +1113,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777074119
+// v1777074222
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1762,33 +1762,45 @@ function cargarDashboard(){
       'PayPal':       {emoji:'🅿️', label:'PayPal',        color:'#4a4aaa', bg:'#f0f0fa', esBs:false},
     };
     // Acumulado histórico — todas las ventas no canceladas
+    // Los métodos Bs (Pago Móvil, BCV, Efectivo Bs) siempre van a BancaAmiga Luisma
+    const METODOS_BS = ['Pago Móvil','BCV','Efectivo Bs','Pago Movil'];
     const porCuentaTodo = {};
     ventas.filter(v=>v.estado!=='Cancelado').forEach(v=>{
-      const key = v.cuenta_cobro || v.metodo_pago || 'Otro';
+      const metodo = v.metodo_pago || '';
+      const esBs = METODOS_BS.includes(metodo) || parseFloat(v.monto_bs||0) > 0;
+      // Si es pago en Bs → siempre va a bancaamiga_luisma
+      // Si tiene cuenta_cobro explícita y no es Bs → usar esa cuenta
+      let key;
+      if(esBs){
+        key = 'bancaamiga_luisma';
+      } else {
+        key = v.cuenta_cobro || metodo || 'Otro';
+      }
       if(!porCuentaTodo[key]) porCuentaTodo[key]={total:0,bs:0,count:0};
       porCuentaTodo[key].total += parseFloat(v.total||0);
       porCuentaTodo[key].bs    += parseFloat(v.monto_bs||0);
       porCuentaTodo[key].count++;
     });
-    // Restar gastos en Bs de BancaAmiga Luisma
-    // Solo gastos reales: excluir Reposiciones (son entradas) y gastos que no son de Brillitos
+    // Restar gastos Bs reales de BancaAmiga (excluir ajenos y reposiciones)
     const gastosBs = gastosGlobales
       .filter(g => g.moneda === 'Bs'
-        && g.tipo !== 'Reposición'           // las reposiciones SUMAN, no restan
-        && g.tipo !== 'Gasto ajeno'          // gastos ajenos no afectan el saldo de Brillitos
+        && g.tipo !== 'Reposición'
+        && g.tipo !== 'Gasto ajeno'
       )
       .reduce((s,g) => s + parseFloat(g.monto||0), 0);
-    // Las reposiciones en Bs SUMAN al saldo de BancaAmiga
+    // Las reposiciones en Bs SUMAN al saldo
     const reposicionesBs = gastosGlobales
       .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición')
       .reduce((s,g) => s + parseFloat(g.monto||0), 0);
     const saldoNeto = reposicionesBs - gastosBs;
-    if(porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'].bs += saldoNeto;
-    else if(saldoNeto !== 0) porCuentaTodo['bancaamiga_luisma'] = {total:0, bs:saldoNeto, count:0};
+    if(!porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'] = {total:0,bs:0,count:0};
+    porCuentaTodo['bancaamiga_luisma'].bs += saldoNeto;
     // Solo hoy — para badge
     const porCuentaHoy = {};
     vH.forEach(v=>{
-      const key = v.cuenta_cobro || v.metodo_pago || 'Otro';
+      const metodo = v.metodo_pago || '';
+      const esBs = METODOS_BS.includes(metodo) || parseFloat(v.monto_bs||0) > 0;
+      const key = esBs ? 'bancaamiga_luisma' : (v.cuenta_cobro || metodo || 'Otro');
       if(!porCuentaHoy[key]) porCuentaHoy[key]={total:0,bs:0,count:0};
       porCuentaHoy[key].total += parseFloat(v.total||0);
       porCuentaHoy[key].bs    += parseFloat(v.monto_bs||0);
