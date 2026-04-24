@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777061410
+// v1777062656
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -2585,7 +2585,8 @@ async function guardarApartado(){
   if(editAptId){
     await sbPatch('apartados',editAptId,data);
     await sbDelete('apartado_items','apartado_id=eq.'+editAptId);
-    for(const it of aptItems) await fetch(SB+'/rest/v1/apartado_items',{method:'POST',headers:H,body:JSON.stringify({apartado_id:editAptId,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
+    const HretE={...H,'Prefer':'return=minimal'};
+    for(const it of aptItems) await fetch(SB+'/rest/v1/apartado_items',{method:'POST',headers:HretE,body:JSON.stringify({apartado_id:editAptId,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
     toast('✅ Actualizado');
   } else {
     const cntApt=await sbGet('apartados','select=id&limit=1&order=id.desc');
@@ -2593,7 +2594,8 @@ async function guardarApartado(){
     data.numero='APT-'+new Date().getFullYear()+'-'+String(lastAptId+1).padStart(3,'0');
     const res=await sbPost('apartados',data); const aid=res[0]&&res[0].id;
     if(aid){
-      for(const it of aptItems) await fetch(SB+'/rest/v1/apartado_items',{method:'POST',headers:H,body:JSON.stringify({apartado_id:aid,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
+      const HretN={...H,'Prefer':'return=minimal'};
+      for(const it of aptItems) await fetch(SB+'/rest/v1/apartado_items',{method:'POST',headers:HretN,body:JSON.stringify({apartado_id:aid,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
       for(const it of aptItems) if(it.producto_id){ const p=productos.find(x=>x.id==it.producto_id); if(p){ await sbPatch('productos',p.id,{stock:Math.max(0,(p.stock||0)-it.cantidad)}); p.stock=Math.max(0,(p.stock||0)-it.cantidad); } }
     }
     toast('✅ Apartado creado — stock descontado');
