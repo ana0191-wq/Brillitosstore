@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777060272
+// v1777060366
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -3441,7 +3441,6 @@ function _renderVariantRows(){
   _variantesModal.forEach(function(v,i){
     if(v._delete) return;
     var nom = (v.nombre||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    var imgUrl = (v.imagen||'').replace(/"/g,'&quot;');
     var imgThumb = v.imagen ? '<img src="'+v.imagen+'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0">' : '<div style="width:36px;height:36px;border-radius:6px;border:1.5px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📷</div>';
     rows += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fdf2f8;border-radius:10px;padding:8px">'
       +'<div onclick="vSubirFoto('+i+')" style="cursor:pointer;flex-shrink:0" title="Toca para subir foto">'+imgThumb+'</div>'
@@ -3449,7 +3448,7 @@ function _renderVariantRows(){
       +'<input type="number" placeholder="Stock" value="'+(v.stock||0)+'" min="0" data-vi="'+i+'" data-campo="stock" class="v-inp" style="flex:1;min-width:60px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px">'
       +'<input type="number" placeholder="Precio (vacío=igual)" value="'+(v.precio&&v.precio>0?v.precio:'')+'" min="0" step="0.5" data-vi="'+i+'" data-campo="precio" class="v-inp" style="flex:1;min-width:90px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px">'
       +'<button type="button" data-vi="'+i+'" class="v-del" style="background:#ffe0f0;color:#e91e8c;border:none;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:16px;flex-shrink:0">??️</button>'
-      +'<input type="text" placeholder="O pega URL de foto aquí" value="'+imgUrl+'" data-vi="'+i+'" data-campo="imagen" class="v-inp" style="flex:3;min-width:160px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12px;color:#666">'
+
       +'</div>';
   });
   el.innerHTML = rows;
@@ -3481,26 +3480,34 @@ function agregarVarianteRow(){
   if(inputs.length) inputs[inputs.length-3].focus();
 }
 function vSubirFoto(vi){
-  var inp = document.getElementById('v-foto-input');
-  if(!inp){ inp=document.createElement('input'); inp.type='file'; inp.accept='image/*'; inp.id='v-foto-input'; inp.style.display='none'; document.body.appendChild(inp); }
-  inp.onchange = async function(){
-    var file = inp.files[0]; if(!file) return;
-    toast('⏳ Subiendo foto...');
-    var ext = file.name.split('.').pop()||'jpg';
-    var fname = 'variante_'+Date.now()+'.'+ext;
-    var res = await fetch('https://storage.bunnycdn.com/brillitos/productos/'+fname, {
-      method:'PUT', headers:{'AccessKey': BUNNY_KEY, 'Content-Type': file.type||'image/jpeg'},
-      body: file
-    });
-    if(res.ok){
-      var url = 'https://brillitos.b-cdn.net/productos/'+fname;
-      _variantesModal[vi].imagen = url;
-      _renderVariantRows();
-      toast('✅ Foto de variante subida');
-    } else { toast('❌ Error subiendo foto'); }
-    inp.value='';
-  };
-  inp.click();
+  var fotos = fotosSubidas || [];
+  var old = document.getElementById('v-foto-picker');
+  if(old) old.remove();
+  if(!fotos.length){ toast('\u26a0\ufe0f Primero sube fotos al producto'); return; }
+  var picker = document.createElement('div');
+  picker.id = 'v-foto-picker';
+  picker.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center';
+  var inner = '<div style="background:#fff;border-radius:16px;padding:20px;max-width:360px;width:90%">'
+    +'<div style="font-weight:700;font-size:15px;margin-bottom:12px;color:#e91e8c">\uD83D\uDCF7 Elige la foto de esta variante</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:10px;justify-content:center">';
+  fotos.forEach(function(url, fi){
+    inner += '<img src="'+url+'" data-url="'+url+'" style="width:80px;height:80px;object-fit:cover;border-radius:10px;border:3px solid transparent;cursor:pointer" onclick="vPickFoto('+vi+',this)">';
+  });
+  inner += '</div>'
+    +'<div style="margin-top:14px;text-align:center">'
+    +'<button onclick="var p=document.getElementById(\'v-foto-picker\');if(p)p.remove();" style="border:none;background:#f3f4f6;color:#666;border-radius:8px;padding:8px 20px;cursor:pointer;font-size:13px">Cancelar</button>'
+    +'</div></div>';
+  picker.innerHTML = inner;
+  picker.addEventListener('click', function(e){ if(e.target===picker) picker.remove(); });
+  document.body.appendChild(picker);
+}
+function vPickFoto(vi, img){
+  var url = img.dataset.url;
+  _variantesModal[vi].imagen = url;
+  _renderVariantRows();
+  var p = document.getElementById('v-foto-picker');
+  if(p) p.remove();
+  toast('\u2705 Foto asignada a la variante');
 }
 
 async function guardarVariantesProducto(prodId){
