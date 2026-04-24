@@ -1113,7 +1113,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777074933
+// v1777074967
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -2792,8 +2792,6 @@ function renderProductos(lista){
   // Nuevos primero, luego por id descendente (más reciente arriba)
   // Nuevos marcados primero, luego por id desc (más recientes arriba)
   const l=[...base].filter(p=>p.activo!==false).sort((a,b)=>{
-    if(a.es_nuevo&&!b.es_nuevo) return -1;
-    if(!a.es_nuevo&&b.es_nuevo) return 1;
     return parseInt(b.id||0)-parseInt(a.id||0);
   });
   const visible=l.slice(0,100);
