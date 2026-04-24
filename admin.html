@@ -2908,9 +2908,12 @@ function renderGastosGlobal(){
     +'<div class="stat-card" style="border-left:4px solid var(--orange)"><div class="stat-num" style="color:var(--orange)">'+lista.filter(g=>g.tipo==='Inversión').length+'</div><div class="stat-label">📈 Inversiones</div></div>'
     +'<div class="stat-card" style="border-left:4px solid var(--purple)"><div class="stat-num" style="color:var(--purple);font-size:14px">'+(top[0]?top[0][0]:'—')+'</div><div class="stat-label">🏆 Mayor categoría</div></div>';
   document.getElementById('tbody-gastos').innerHTML=lista.length?lista.map(g=>
-    '<tr><td>'+formatFecha(g.fecha)+'</td>'
-    +'<td><strong>'+(g.categoria||'—')+'</strong></td>'
-    +'<td>'+(g.descripcion||g.notas||'—')+'</td>'
+    '<tr style="'+(g.es_ajeno?'opacity:0.7;background:#fffde7':'')+(g.tipo==='Reposición'?'background:#f1f8e9':'')+'">'+'<td>'+formatFecha(g.fecha)+'</td>'
+    +'<td><strong>'+(g.categoria||'—')+'</strong>'
+    +(g.es_ajeno?'<br><span style="font-size:10px;background:#fff8e1;color:#795548;padding:1px 6px;border-radius:6px;border:1px solid #ffe082">🏠 Ajeno</span>':'')
+    +(g.tipo==='Reposición'?'<br><span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:6px;border:1px solid #a5d6a7">💚 Reposición</span>':'')
+    +'</td>'
+    +'<td>'+(g.descripcion||g.notas||'—')+(g.reposicion_de?'<br><span style="font-size:11px;color:#666">↳ '+g.reposicion_de+'</span>':'')+'</td>'
     +'<td>'+(g.moneda==='Bs'?'<span style="color:#7b1fa2;font-weight:600">Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'<strong>$'+parseFloat(g.monto).toFixed(2)+'</strong>')+'</td>'
     +'<td><strong style="color:var(--red)">$'+parseFloat(g.monto_usd||g.monto||0).toFixed(2)+'</strong></td>'
     +'<td style="color:#7b1fa2;font-weight:600">'+(()=>{
@@ -2928,7 +2931,16 @@ function abrirModalGastoGlobal(){
   document.getElementById('gg-notas').value=''; document.getElementById('gg-moneda').value='USD';
   document.getElementById('gg-tasa').value=''; document.getElementById('gg-fecha').value=new Date().toISOString().slice(0,10);
   document.getElementById('gg-tipo').value='Gasto operativo'; document.getElementById('gg-categoria').value='Mercancía / Stock';
-  document.getElementById('gg-evento').value=''; toggleTasaGastoGlobal();
+  document.getElementById('gg-evento').value='';
+  document.getElementById('gg-ajeno-info').style.display='none';
+  document.getElementById('gg-repos-info').style.display='none';
+  document.getElementById('gg-repos-wrap').style.display='none';
+  document.getElementById('gg-repos-detalle-wrap').style.display='none';
+  document.getElementById('gg-repos-forma').value='';
+  document.getElementById('gg-repos-detalle').value='';
+  document.getElementById('gg-modal-title').textContent='💸 Registrar Gasto / Inversión';
+  const btn=document.getElementById('gg-btn-guardar'); btn.textContent='💾 Registrar'; btn.style.background='';
+  toggleTasaGastoGlobal();
   abrirModal('modal-gasto-global');
 }
 function toggleTasaGastoGlobal(){ const bs=document.getElementById('gg-moneda').value==='Bs'; document.getElementById('gg-tasa-wrap').style.display=bs?'block':'none'; document.getElementById('gg-usd-wrap').style.display=bs?'block':'none'; if(bs&&bcvHoy>0) document.getElementById('gg-tasa').value=bcvHoy.toFixed(2); calcGastoGlobalUsd(); }
