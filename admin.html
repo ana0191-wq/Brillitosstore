@@ -1413,7 +1413,9 @@ function imprimirQRSingle(){
   win.document.write('<img src="'+imgSrc+'" style="width:200px;height:200px;display:block;margin:10px auto">');
   win.document.write('<p style="font-weight:800;font-size:16px;margin:8px 0">'+nombre+'</p>');
   win.document.write('<p style="font-family:monospace;font-size:11px;color:#666">'+codigo+'</p>');
-  win.document.write('</body></html>');
+  win.document.write('
+<a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap">🛍️ Tienda</a>
+</body></html>');
   win.document.close();
   setTimeout(()=>win.print(), 500);
 }
@@ -2051,53 +2053,30 @@ function actualizarItem(i,campo,val,t){
   else{ const s=document.querySelectorAll('#apt-items-lista .item-subtotal'); if(s[i]) s[i].textContent='$'+arr[i].subtotal.toFixed(2); calcularTotalApt(); }
 }
 function buscarProdItem(input,idx,t){
-  const q=input.value.toLowerCase();
-  const resId=t==='v'?'prod-res-'+idx:'apt-prod-res-'+idx;
-  const res=document.getElementById(resId);
-  if(!q){res.style.display='none';return;}
-  const m=productos.filter(p=>p.nombre&&p.nombre.toLowerCase().includes(q)).slice(0,8);
-  const qOrig=input.value;
-  const createHtml='<div class="prod-result prod-create" data-idx="'+idx+'" data-nombre="'+encodeURIComponent(qOrig)+'" data-t="'+t+'" style="gap:10px;align-items:center;border-top:1px dashed #fce4ec">'
-    +'<div style="width:46px;height:46px;border-radius:8px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">&#10133;</div>'
-    +'<div style="flex:1"><div style="font-weight:700;font-size:13px;color:#2e7d32">Crear: "'+qOrig+'"</div>'
-    +'<div style="font-size:11px;color:#888">No está en inventario — crear nuevo</div></div>'
-    +'</div>';
-  if(!m.length){
-    res.innerHTML=createHtml;
-    res.style.display='block';
-    res.querySelector('.prod-create').addEventListener('click',function(){
-      crearProdDesdeVenta(parseInt(this.dataset.idx),decodeURIComponent(this.dataset.nombre),this.dataset.t);
-    });
-    return;
-  }
-  res.innerHTML=m.map(p=>{
-    const foto=p.foto
-      ?'<img src="'+p.foto+'" style="width:46px;height:46px;object-fit:cover;border-radius:8px;flex-shrink:0">'
-      :'<div style="width:46px;height:46px;border-radius:8px;background:#fce4ec;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">\uD83C\uDF38</div>';
-    const st=p.stock>0
-      ?'<span style="font-size:11px;color:#2e7d32;background:#e8f5e9;padding:2px 7px;border-radius:8px;font-weight:600">'+p.stock+' disp.</span>'
-      :'<span style="font-size:11px;color:#e65100;background:#fff3e0;padding:2px 7px;border-radius:8px">Sin stock</span>';
-    return '<div class="prod-result" data-pid="'+p.id+'" data-nom="'+encodeURIComponent(p.nombre)+'" data-precio="'+p.precio+'" data-t="'+t+'" data-idx="'+idx+'">'
-      +foto
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="font-weight:700;font-size:14px;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.nombre+'</div>'
-      +'<div style="margin-top:3px">'+st+'</div>'
-      +'</div>'
-      +'<div style="font-size:17px;font-weight:800;color:var(--pink);flex-shrink:0">$'+parseFloat(p.precio||0).toFixed(2)+'</div>'
-      +'</div>';
-  }).join('')+createHtml;
-  res.style.display='block';
-  // Bind clicks con data-attributes
-  res.querySelectorAll('.prod-result[data-pid]').forEach(el=>{
-    el.addEventListener('click',function(){
-      selProdItem(parseInt(this.dataset.idx),decodeURIComponent(this.dataset.nom),parseFloat(this.dataset.precio),parseInt(this.dataset.pid),this.dataset.t);
-    });
+  var q=input.value.toLowerCase().trim();
+  var resId=t==="v"?"prod-res-"+idx:"apt-prod-res-"+idx;
+  var res=document.getElementById(resId);
+  if(!q){res.style.display="none";return;}
+  var matches=productos.filter(function(p){return p.nombre&&p.nombre.toLowerCase().includes(q);}).slice(0,8);
+  var rows="";
+  matches.forEach(function(p){
+    var foto=p.foto?"<img src=\""+p.foto+"\" style=\"width:42px;height:42px;object-fit:cover;border-radius:8px;flex-shrink:0\">":"<div style=\"width:42px;height:42px;border-radius:8px;background:#fce4ec;display:flex;align-items:center;justify-content:center;font-size:20px\">❤</div>";
+    var st=p.stock>0?"<span style=\"font-size:11px;color:#2e7d32;background:#e8f5e9;padding:2px 6px;border-radius:8px;font-weight:600\">"+p.stock+" disp.</span>":"<span style=\"font-size:11px;color:#e65100;background:#fff3e0;padding:2px 6px;border-radius:8px\">Sin stock</span>";
+    rows+="<div class=\"prod-result\" style=\"cursor:pointer\" onmousedown=\"event.preventDefault();_selItem("+idx+","+p.id+",'"+t+"')\">"+foto+"<div style=\"flex:1;min-width:0\"><div style=\"font-weight:700;font-size:13px;color:#1e293b;overflow:hidden;text-overflow:ellipsis;white-space:nowrap\">"+p.nombre+"</div><div style=\"margin-top:2px\">"+st+"</div></div>"+"<div style=\"font-size:15px;font-weight:800;color:var(--pink)\">$"+parseFloat(p.precio||0).toFixed(2)+"</div></div>";
+    _prodMap[p.id]=p;
   });
-  const createEl=res.querySelector('.prod-create');
-  if(createEl) createEl.addEventListener('click',function(){
-    crearProdDesdeVenta(parseInt(this.dataset.idx),decodeURIComponent(this.dataset.nombre),this.dataset.t);
-  });
+  rows+="<div class=\"prod-result\" style=\"cursor:pointer;border-top:1px dashed #fce4ec\" onmousedown=\"event.preventDefault();crearProdDesdeVenta("+idx+",'"+encodeURIComponent(input.value)+"','"+t+"')\"><div style=\"width:42px;height:42px;border-radius:8px;background:#e8f5e9;display:flex;align-items:center;justify-content:center;font-size:20px\">&#10133;</div><div style=\"flex:1\"><div style=\"font-weight:700;font-size:13px;color:#2e7d32\">Crear nuevo producto</div><div style=\"font-size:11px;color:#888\">Agregar al inventario</div></div></div>";
+  res.innerHTML=rows; res.style.display="block";
 }
+var _prodMap={};
+function _selItem(idx,pid,t){
+  var p=_prodMap[pid]||productos.find(function(x){return x.id===pid;});
+  if(p) selProdItem(idx,p.nombre,p.precio,p.id,t);
+  var resId=t==="v"?"prod-res-"+idx:"apt-prod-res-"+idx;
+  var el=document.getElementById(resId); if(el) el.style.display="none";
+}
+function _decURI(s){try{return decodeURIComponent(s);}catch(e){return s;}}
+
 function selProdItem(idx,nombre,precio,pid,t){
   const arr=t==='v'?ventaItems:aptItems;
   arr[idx]={...arr[idx],producto_id:pid,producto_nombre:nombre,precio_unitario:parseFloat(precio),subtotal:parseFloat(precio)*arr[idx].cantidad};
