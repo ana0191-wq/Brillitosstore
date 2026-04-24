@@ -2102,82 +2102,130 @@ function selCliente(id,n,t){
 }
 async function guardarVenta(){
   if(!ventaItems.length){ toast('⚠️ Agrega al menos un producto'); return; }
+  // Deshabilitar botón para evitar doble envío
+  const btnG = document.querySelector('#modal-venta .btn-primary, #modal-venta [onclick*="guardarVenta"]');
+  if(btnG){ btnG.disabled = true; btnG.textContent = '⏳ Guardando...'; }
+  const restoreBtn = ()=>{ if(btnG){ btnG.disabled=false; btnG.textContent='💾 Guardar'; } };
+
   try {
-  const nombre=document.getElementById('v-cliente-search').value.trim();
-  const sub=ventaItems.reduce((s,i)=>s+parseFloat(i.subtotal||0),0);
-  const env=parseFloat(document.getElementById('v-envio').value)||0;
-  const desc=parseFloat(document.getElementById('v-descuento').value)||0;
-  const total=sub+env-desc;
-  const metodo=document.getElementById('v-metodo').value;
-  const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(metodo);
-  const tasa=parseFloat(document.getElementById('v-tasa-bcv').value)||0;
-  const _bsInput = parseFloat(document.getElementById('v-total-bs').value)||0;
-  const _tasaFinal = tasa>0 ? tasa : (bcvHoy||0);
-  const monto_bs = esBs ? (_bsInput>0 ? _bsInput : (_tasaFinal>0 ? parseFloat((total*_tasaFinal).toFixed(2)) : 0)) : 0;
-  if(esBs && monto_bs>0 && _bsInput===0){
-    const bsEl=document.getElementById('v-total-bs');
-    if(bsEl) bsEl.value=monto_bs.toFixed(2);
-  }
-  const eventoId=document.getElementById('v-evento').value||null;
-  const data={
-    cliente_id:document.getElementById('v-cliente-id').value||null,
-    cliente_nombre:nombre||'Cliente',
-    canal:document.getElementById('v-canal').value,
-    evento_id:eventoId?parseInt(eventoId):null,
-    metodo_pago:metodo,
-    tipo_entrega:document.getElementById('v-entrega').value,
-    fecha_venta:document.getElementById('v-fecha-venta').value,
-    fecha_entrega:document.getElementById('v-fecha-entrega').value||null,
-    estado:document.getElementById('v-estado').value,
-    subtotal:sub, costo_envio:env, descuento:desc, total,
-    tasa_bcv_usada:tasa||0, monto_bs:parseFloat(monto_bs)||0,
-    moneda_pago:esBs?'Bs':'USD',
-    cuenta_cobro:document.getElementById('v-cuenta')?document.getElementById('v-cuenta').value||null:null
-  };
-  console.log('💾 guardarVenta data:', JSON.stringify(data));
-  if(editVentaId){
-    // Restaurar stock de items anteriores
-    const vAnterior=ventas.find(x=>x.id===editVentaId);
-    if(vAnterior&&vAnterior.estado!=='Cancelado'){
-      for(const it of (vAnterior.venta_items||[])){
-        if(it.producto_id){const p=productos.find(x=>x.id==it.producto_id);if(p){const ns=(p.stock||0)+parseInt(it.cantidad||1);await sbPatch('productos',p.id,{stock:ns});p.stock=ns;}}
+    const nombre = document.getElementById('v-cliente-search').value.trim();
+    const sub    = ventaItems.reduce((s,i)=>s+parseFloat(i.subtotal||0), 0);
+    const env    = parseFloat(document.getElementById('v-envio').value)||0;
+    const desc   = parseFloat(document.getElementById('v-descuento').value)||0;
+    const total  = sub + env - desc;
+    const metodo = document.getElementById('v-metodo').value;
+    const esBs   = ['Pago Móvil','BCV','Efectivo Bs'].includes(metodo);
+    const tasa   = parseFloat(document.getElementById('v-tasa-bcv').value)||0;
+    const _bsInput  = parseFloat(document.getElementById('v-total-bs').value)||0;
+    const _tasaFinal = tasa>0 ? tasa : (bcvHoy||0);
+    const monto_bs = esBs ? (_bsInput>0 ? _bsInput : (_tasaFinal>0 ? parseFloat((total*_tasaFinal).toFixed(2)) : 0)) : 0;
+    if(esBs && monto_bs>0 && _bsInput===0){
+      const bsEl = document.getElementById('v-total-bs');
+      if(bsEl) bsEl.value = monto_bs.toFixed(2);
+    }
+    const eventoId = document.getElementById('v-evento').value||null;
+    const cuentaEl = document.getElementById('v-cuenta');
+
+    const data = {
+      cliente_id:    document.getElementById('v-cliente-id').value||null,
+      cliente_nombre: nombre||'Cliente',
+      canal:         document.getElementById('v-canal').value,
+      evento_id:     eventoId ? parseInt(eventoId) : null,
+      metodo_pago:   metodo,
+      tipo_entrega:  document.getElementById('v-entrega').value,
+      fecha_venta:   document.getElementById('v-fecha-venta').value,
+      fecha_entrega: document.getElementById('v-fecha-entrega').value||null,
+      estado:        document.getElementById('v-estado').value,
+      subtotal:      sub,
+      costo_envio:   env,
+      descuento:     desc,
+      total,
+      tasa_bcv_usada: tasa||0,
+      monto_bs:      parseFloat(monto_bs)||0,
+      moneda_pago:   esBs ? 'Bs' : 'USD',
+      cuenta_cobro:  cuentaEl ? cuentaEl.value||null : null
+    };
+
+    if(editVentaId){
+      // ── EDITAR venta existente ──
+      // 1. Restaurar stock anterior
+      const vAnterior = ventas.find(x=>x.id===editVentaId);
+      if(vAnterior && vAnterior.estado!=='Cancelado'){
+        for(const it of (vAnterior.venta_items||[])){
+          if(it.producto_id){
+            const p = productos.find(x=>x.id==it.producto_id);
+            if(p){ const ns=(p.stock||0)+parseInt(it.cantidad||1); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
+          }
+        }
       }
-    }
-    await sbPatch('ventas',editVentaId,data);
-    await sbDelete('venta_items','venta_id=eq.'+editVentaId);
-    for(const it of ventaItems) await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,body:JSON.stringify({venta_id:editVentaId,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
-    if(data.estado!=='Cancelado'){
-      for(const it of ventaItems){if(it.producto_id){const p=productos.find(x=>x.id==it.producto_id);if(p){const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1));await sbPatch('productos',p.id,{stock:ns});p.stock=ns;}}}
-    }
-    toast('✅ Venta actualizada 🌸');
-    ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
-    productos=await sbGet('productos','select=*&order=id.desc&limit=1000');
-    if(!Array.isArray(ventas)) ventas=[];
-    if(!Array.isArray(productos)) productos=[];
-    cerrarModal('modal-venta');
-    renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
-    return;
-  } else {
-    const cntV=await sbGet('ventas','select=id&limit=1&order=id.desc');
-    const lastVId=(Array.isArray(cntV)&&cntV[0]&&cntV[0].id)||0;
-    data.numero='V-'+new Date().getFullYear()+'-'+String(lastVId+1).padStart(3,'0');
-    const res=await sbPost('ventas',data); const vid=res[0]&&res[0].id;
-    if(vid){
-      for(const it of ventaItems) await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,body:JSON.stringify({venta_id:vid,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
+      // 2. PATCH venta
+      const rPatch = await sbPatch('ventas', editVentaId, data);
+      if(!rPatch.ok){
+        restoreBtn();
+        return; // sbPatch ya muestra el error — no continuar
+      }
+      // 3. Reemplazar items
+      await sbDelete('venta_items','venta_id=eq.'+editVentaId);
+      for(const it of ventaItems){
+        await fetch(SB+'/rest/v1/venta_items',{
+          method:'POST', headers:H,
+          body:JSON.stringify({venta_id:editVentaId, producto_id:it.producto_id||null,
+            producto_nombre:it.producto_nombre, precio_unitario:it.precio_unitario,
+            cantidad:it.cantidad, subtotal:it.subtotal})
+        });
+      }
+      // 4. Descontar stock nuevo
       if(data.estado!=='Cancelado'){
-        for(const it of ventaItems){if(it.producto_id){const p=productos.find(x=>x.id==it.producto_id);if(p){const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1));await sbPatch('productos',p.id,{stock:ns});p.stock=ns;}}}
+        for(const it of ventaItems){
+          if(it.producto_id){
+            const p = productos.find(x=>x.id==it.producto_id);
+            if(p){ const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
+          }
+        }
       }
+      toast('✅ Venta actualizada 🌸');
+
+    } else {
+      // ── NUEVA venta ──
+      const cntV = await sbGet('ventas','select=id&limit=1&order=id.desc');
+      const lastVId = (Array.isArray(cntV)&&cntV[0]&&cntV[0].id)||0;
+      data.numero = 'V-'+new Date().getFullYear()+'-'+String(lastVId+1).padStart(3,'0');
+      const res = await sbPost('ventas', data);
+      const vid = res[0]&&res[0].id;
+      if(vid){
+        for(const it of ventaItems){
+          await fetch(SB+'/rest/v1/venta_items',{
+            method:'POST', headers:H,
+            body:JSON.stringify({venta_id:vid, producto_id:it.producto_id||null,
+              producto_nombre:it.producto_nombre, precio_unitario:it.precio_unitario,
+              cantidad:it.cantidad, subtotal:it.subtotal})
+          });
+        }
+        if(data.estado!=='Cancelado'){
+          for(const it of ventaItems){
+            if(it.producto_id){
+              const p = productos.find(x=>x.id==it.producto_id);
+              if(p){ const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
+            }
+          }
+        }
+      }
+      toast('✅ Venta registrada 🌸');
     }
-    toast('✅ Venta registrada 🌸');
+
+    // Recargar y cerrar
+    cerrarModal('modal-venta');
+    ventas   = await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+    productos = await sbGet('productos','select=*&order=id.desc&limit=1000');
+    if(!Array.isArray(ventas))    ventas=[];
+    if(!Array.isArray(productos)) productos=[];
+    renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
+
+  } catch(err){
+    console.error('❌ guardarVenta:', err);
+    toast('❌ Error: '+err.message, 6000);
+    restoreBtn();
   }
-  cerrarModal('modal-venta');
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
-  productos=await sbGet('productos','select=*&order=id.desc&limit=1000');
-  if(!Array.isArray(ventas)) ventas=[];
-  if(!Array.isArray(productos)) productos=[];
-  renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
-  toast('✅ Venta registrada 🌸');
-  } catch(err){ console.error('❌ Error guardarVenta:', err); toast('❌ Error: '+err.message); }
 }
 async function cancelarVenta(id){
   const v=ventas.find(x=>x.id===id); if(!v) return;
