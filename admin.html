@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777072759
+// v1777072780
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1169,7 +1169,13 @@ async function sbGet(t,q=''){
 }
 async function sbPost(t,d){
   const r=await fetch(SB+'/rest/v1/'+t,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(d)});
-  if(!r.ok){ const e=await r.text(); console.error('sbPost error',t,r.status,e); toast('❌ Error al crear en '+t+' ('+r.status+'): '+e.slice(0,80)); return []; }
+  if(!r.ok){
+    const e=await r.text();
+    const msg=(() => { try { return JSON.parse(e).message||e; } catch(_){ return e; } })();
+    console.error('sbPost error',t,r.status,e);
+    toast('❌ Error ('+r.status+'): '+msg.slice(0,150), 8000);
+    return [];
+  }
   return r.json();
 }
 async function sbPatch(t,id,d){
