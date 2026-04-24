@@ -1113,7 +1113,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777074447
+// v1777074671
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1918,6 +1918,9 @@ function cargarDashboard(){
   // Últimas ventas — incluye hoy
   document.getElementById('ultimas-ventas').innerHTML = ventas.slice(0,10)
     .map(v=>'<tr style="cursor:pointer" onclick="editVentaById('+v.id+')" title="Click para editar esta venta"><td><strong>'+(v.numero||'#'+v.id)+'</strong></td><td>'+(v.cliente_nombre||'—')+'</td><td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td><td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong>'+(v.monto_bs>0?'<br><small style="color:#2e7d32">Bs.'+parseFloat(v.monto_bs).toFixed(2)+'</small>':'')+'</td><td><span class="badge badge-'+(v.estado||'').toLowerCase()+'">'+(v.estado||'')+'</span></td><td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td><td style="font-size:11px;color:var(--gray)">✏️</td></tr>').join('');
+
+  // Movimientos BancaAmiga
+  renderMovimientosBancaAmiga();
 }
 
 // ===== POS =====
