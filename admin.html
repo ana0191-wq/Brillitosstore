@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777060366
+// v1777061133
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -2907,7 +2907,7 @@ async function renderEventos(){
       +'<div class="stat-card" style="padding:9px"><div class="stat-num" style="font-size:16px;color:var(--purple)">$'+(ganancia*0.4).toFixed(2)+'</div><div class="stat-label">Luisma (40%)</div></div></div>'
       +(ganancia>0?'<div class="luisma-box"><div style="font-weight:700;color:var(--purple)">👨‍💼 Luisma — a pagarle</div><div style="font-size:20px;font-weight:800;color:var(--purple);margin:4px 0">$'+luisma.toFixed(2)+'</div><div style="font-size:12px;color:#666">40% de $'+ganancia.toFixed(2)+'</div></div>':'')
       +(e.notas?'<div style="margin-top:7px;font-size:12px;color:var(--gray)">📝 '+e.notas+'</div>':'')
-      +'</div>';
+      +'</div></div>';
   }).join('');
 }
 function abrirModalEvento(id=null){
