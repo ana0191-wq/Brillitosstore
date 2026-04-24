@@ -1111,7 +1111,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777056884
+// v1777057050
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -2868,8 +2868,9 @@ async function renderEventos(){
     const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
     const totalV=vts.reduce((s,v)=>s+parseFloat(v.total||0),0);
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
-    const totalG=gastosE.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
-    const ganancia=totalV-totalG; const luisma=ganancia>0?ganancia*0.4:0;
+    const totalG=gastosE.filter(g=>g.tipo!=='Inversión').reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+    const totalInv=gastosE.filter(g=>g.tipo==='Inversión').reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+    const ganancia=totalV-totalG-totalInv; const luisma=ganancia>0?ganancia*0.4:0;
     return '<div class="card">'
       +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">'
       +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+(e.fecha||'')+' · '+(e.lugar||'')+'</div></div>'
