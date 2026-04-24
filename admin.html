@@ -1113,7 +1113,7 @@ tr:hover td{background:#fff8fc}
 
 <script>
 // ===== CONFIG =====
-// v1777074671
+// v1777074872
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -3776,8 +3776,9 @@ async function qpGuardarYAgregarPOS(){
   toast('✅ ' + prod.nombre + ' agregado al carrito 🛒');
 }
 
-</script>
 
+
+</script>
 <a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
 
 <div id="modal-cats" class="modal-overlay" style="display:none" onclick="if(event.target===this)cerrarModal('modal-cats')"><div class="modal-box" style="max-width:480px;max-height:85vh;overflow-y:auto"><div class="modal-title">&#9881; Categorias y Subcategorias</div><div style="margin-bottom:12px"><label style="font-size:12px;font-weight:700;color:#666;display:block;margin-bottom:6px">Nueva categoria</label><div style="display:flex;gap:8px"><input id="gc-nueva-cat" type="text" placeholder="Ej: Peluches" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px"><button onclick="gcAgregarCat()" style="background:var(--pink);color:white;border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer">+ Agregar</button></div></div><div style="margin-bottom:14px"><label style="font-size:12px;font-weight:700;color:#666;display:block;margin-bottom:6px">Nueva subcategoria</label><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="gc-cat-para-sub" style="flex:1;min-width:130px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:white"></select><input id="gc-nueva-sub" type="text" placeholder="Ej: Chiikawa" style="flex:2;min-width:110px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px"><button onclick="gcAgregarSub()" style="background:var(--pink);color:white;border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer">+ Agregar</button></div></div><div id="gc-lista" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div><div style="margin-top:16px;text-align:right"><button onclick="cerrarModal('modal-cats')" class="btn btn-secondary">Cerrar</button></div></div></div>
