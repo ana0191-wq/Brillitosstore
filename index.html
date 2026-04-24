@@ -187,8 +187,8 @@ input[type=range]{accent-color:var(--pk);width:120px}
 .pp-main{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px}
 @media(max-width:560px){.pp-main{grid-template-columns:1fr}}
 .pp-gallery{}
-.pp-img-wrap{position:relative;border-radius:16px;overflow:hidden;border:2px solid var(--pk-l);aspect-ratio:1;background:var(--pk-p);margin-bottom:8px}
-.pp-main-img{width:100%;height:100%;object-fit:cover}
+.pp-img-wrap{position:relative;border-radius:16px;overflow:hidden;border:2px solid var(--pk-l);background:var(--pk-p);margin-bottom:8px;min-height:260px;max-height:480px;display:flex;align-items:center;justify-content:center}
+.pp-main-img{width:100%;max-height:480px;object-fit:contain;display:block}
 .pp-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,.85);border:2px solid var(--pk-l);color:var(--pk);border-radius:50%;width:32px;height:32px;font-size:1.1rem;cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center}
 .pp-arrow-l{left:8px}
 .pp-arrow-r{right:8px}
@@ -625,7 +625,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 <div class="toast" id="toast"></div>
 
 <script>
-// v1777056884
+// v1777059090
 var CATALOG = [];
 var SUPABASE_URL = "https://xavqokyzdmqzguicjsrq.supabase.co";
 var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
