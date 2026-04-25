@@ -1400,27 +1400,6 @@ async function init(){
   verificarApartadosVencidos();
   iniciarVozReconocimiento();
   renderPOS();
-  // FIX-SACAPUNTAS-v1
-  (function(){
-    if(localStorage.getItem('brill_fix_sac_v1')) return;
-    var toFix = productos.filter(function(p){ return (p.nombre||'').toLowerCase().includes('sacapuntas') && !p.es_nuevo; });
-    var toDel  = productos.filter(function(p){ return (p.nombre||'').toLowerCase().includes('prueba') && p.activo !== false; });
-    if(!toFix.length && !toDel.length){ localStorage.setItem('brill_fix_sac_v1','done'); return; }
-    var msg = 'Fix automático detectado:
-';
-    if(toFix.length) msg += '\n✅ Marcar '+toFix.length+' sacapuntas como NUEVO';
-    if(toDel.length) msg += '\n🗑️ Desactivar '+toDel.length+' producto(s) llamado Prueba';
-    msg += '\n\n¿Aplicar ahora?';
-    if(!confirm(msg)){ localStorage.setItem('brill_fix_sac_v1','skip'); return; }
-    var ops = [];
-    toFix.forEach(function(p){ ops.push(sbPatch('productos', p.id, {es_nuevo:true})); });
-    toDel.forEach(function(p){ ops.push(sbPatch('productos', p.id, {activo:false})); });
-    Promise.all(ops).then(function(){
-      localStorage.setItem('brill_fix_sac_v1','done');
-      toast('✅ '+toFix.length+' sacapuntas marcados como nuevos 🌸');
-      setTimeout(function(){ init(); }, 1000);
-    }).catch(function(e){ toast('❌ Error en fix: '+e.message); });
-  })();
 }
 
 // ===== SCANNER QR / CÓDIGO DE BARRAS =====
