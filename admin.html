@@ -1114,7 +1114,7 @@ tr:hover td{background:#fff8fc}
 <script>
 
 // ===== CONFIG =====
-// v1777076825
+// v1777077054
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -2998,6 +2998,22 @@ async function guardarCliente(){
 async function eliminarCliente(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('clientes','id=eq.'+id); clientes=clientes.filter(c=>c.id!==id); renderClientes(); toast('🗑️ Eliminado'); }
 
 // ===== EVENTOS =====
+async 
+function fmtFechaEvento(fecha){
+  if(!fecha) return '<span style="color:#bbb;font-size:11px">Sin fecha</span>';
+  try{
+    var d=new Date(fecha+'T12:00:00');
+    var hoy=new Date(); hoy.setHours(0,0,0,0);
+    var diff=Math.round((d-hoy)/(1000*60*60*24));
+    var fmt=d.toLocaleDateString('es-VE',{day:'numeric',month:'short',year:'numeric'});
+    var badge='',bc='#888';
+    if(diff===0){badge='Hoy';bc='#d63a8a';}
+    else if(diff>0&&diff<=7){badge='En '+diff+'d';bc='#e67e22';}
+    else if(diff>7){badge='Proximo';bc='#3a7d52';}
+    else{badge='Realizado';bc='#888';}
+    return '&#128197; '+fmt+' <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;background:'+bc+'22;color:'+bc+'">'+badge+'</span>';
+  }catch(err){ return String(fecha); }
+}
 async function renderEventos(){
   const freshGastos=await sbGet('gastos_globales','select=*&order=fecha.desc');
   if(Array.isArray(freshGastos)) gastosEvento=freshGastos;
@@ -3013,7 +3029,7 @@ async function renderEventos(){
     const ganancia=totalV-totalG-totalInv; const luisma=ganancia>0?ganancia*0.4:0;
     return '<div class="card">'
       +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">'
-      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+(function(){if(!e.fecha)return'<span style="color:#bbb;font-size:11px">Sin fecha</span>';var d=new Date(e.fecha+'T12:00:00');var hoy=new Date();hoy.setHours(0,0,0,0);var diff=Math.round((d-hoy)/(1000*60*60*24));var fmt=d.toLocaleDateString('es-VE',{day:'numeric',month:'short',year:'numeric'});var badge='',bc='#888';if(diff===0){badge='Hoy 🎉';bc='#d63a8a';}else if(diff>0&&diff<=7){badge='En '+diff+'d';bc='#e67e22';}else if(diff>7){badge='Próximo';bc='#3a7d52';}else{badge='Realizado';bc='#888';}return'📅 '+fmt+' <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;background:'+bc+'22;color:'+bc+'">'+badge+'</span>';})()+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
+      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+fmtFechaEvento(e.fecha)()+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
       +'<div style="display:flex;gap:6px"><button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button><button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button><button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button></div></div>'
       +'<div style="background:#fafafa;border-radius:10px;padding:10px;margin-bottom:9px">'
       +'<div style="font-size:10px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase">Gastos del evento</div>'
