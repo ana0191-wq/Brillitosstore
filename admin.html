@@ -3069,6 +3069,23 @@ async function renderEventos(){
       +(totalG>0?'<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)"><span>💸 Gastos operativos</span><span style="color:var(--red);font-weight:600">−$'+totalG.toFixed(2)+'</span></div>':'')
       +(totalInv>0?'<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)"><span>📦 Inversiones</span><span style="color:#1976d2;font-weight:600">−$'+totalInv.toFixed(2)+'</span></div>':'')
       +'<div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;padding:8px 0 2px"><span>Ganancia neta</span><span style="color:'+(ganancia>=0?'var(--green)':'var(--red)')+'">' +'$'+ganancia.toFixed(2)+'</span></div>'
+      +(function(){
+        var costoTotal=totalG+totalInv;
+        var costoMerc=0;
+        vts.forEach(function(v){(v.venta_items||[]).forEach(function(it){var p=productos.find(function(x){return x.id==it.producto_id;});if(p&&p.precio_costo>0)costoMerc+=parseFloat(p.precio_costo||0)*parseInt(it.cantidad||1);});});
+        var margen=totalV>0?((totalV-costoMerc)/totalV):0.35;
+        if(margen<=0||margen>1)margen=0.35;
+        var minRec=costoTotal>0?(costoTotal/margen):0;
+        var falta=Math.max(0,minRec-totalV);
+        if(minRec<=0)return '';
+        return '<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:7px 0;margin-top:5px;border-top:2px dashed #f8bbd0">'
+          +'<span style="font-weight:700;color:#888">🎯 Mínimo para recuperar</span>'
+          +'<span style="font-weight:800;color:var(--orange);font-size:15px">$'+minRec.toFixed(2)+'</span>'
+          +'</div>'
+          +'<div style="text-align:right;font-size:12px;font-weight:700;color:'+(falta===0?'var(--green)':'var(--red)')+';">'
+          +(falta===0?'✅ Ya lo superaste':'⚠️ Faltan $'+falta.toFixed(2)+' para no perder')
+          +'</div>';
+      })()
       +'</div>'
       +'<div class="grid-2" style="margin-bottom:8px">'
       +'<div class="stat-card" style="padding:9px;border:2px solid var(--pink)"><div class="stat-num" style="font-size:16px;color:var(--pink)">$'+(ganancia*0.7).toFixed(2)+'</div><div class="stat-label">💰 Tu ganancia (70%)</div></div>'
