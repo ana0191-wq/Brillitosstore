@@ -610,7 +610,6 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
         <input id="search-inp" placeholder="Buscar producto..." oninput="filtrar()" autocomplete="off">
       </div>
       <div class="bcv-pill" id="bcv-badge" onclick="editarTasaManual()" style="cursor:pointer">💱 …</div>
-      <button id="btn-modo-evento" onclick="toggleModoEvento()" style="flex-shrink:0;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80;border-radius:10px;padding:5px 10px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap">🎪 Evento</button>
       <button class="scan-btn" onclick="abrirScanner()">📷 Escanear</button>
     </div>
     <button class="scan-fab-left" onclick="abrirScanner()">📷 Escanear</button>
@@ -634,7 +633,17 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <div id="view-prods" style="flex:1;min-height:0;display:flex;flex-direction:column;overflow:hidden">
       <div class="cats-row" id="cats-row"></div>
       <div class="prod-section"><div class="prod-section-title">Elige productos</div></div>
-      <div class="grid" id="prod-grid"></div>
+      <div style="padding:6px 12px 4px;display:flex;align-items:center;gap:8px">
+      <button id="btn-modo-evento" onclick="toggleModoEvento()" style="background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80;border-radius:10px;padding:7px 14px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">🎪 Modo Evento</button>
+      <div id="bcv-evento-label" style="display:none;font-size:12px;color:#e65100;font-weight:700"></div>
+    </div>
+    <!-- PANEL TASA EVENTO -->
+    <div id="panel-evento-tasa" style="display:none;background:#fff8f0;border-bottom:2px solid #ffcc80;padding:10px 14px;gap:10px;align-items:center;flex-wrap:wrap">
+      <span style="font-size:12px;font-weight:800;color:#e65100">🎪 Tasa fija del evento:</span>
+      <input id="evento-tasa" type="number" step="0.01" value="484.74" oninput="aplicarTasaEvento()" style="height:34px;border:2px solid #ffcc80;border-radius:8px;padding:0 10px;font-size:15px;font-weight:800;width:110px;outline:none;color:#e65100">
+      <span style="font-size:11px;color:#888">La API no cambia esta tasa</span>
+    </div>
+    <div class="grid" id="prod-grid"></div>
     </div>
 
     <!-- Vista Escanear -->
@@ -1693,25 +1702,30 @@ var _qpFotoUrlPos = '';
 let modoEvento=false;
 function toggleModoEvento(){
   modoEvento=!modoEvento;
-  const panel=$('panel-evento');
+  const panel=$('panel-evento-tasa');
   const btn=$('btn-modo-evento');
+  const lbl=$('bcv-evento-label');
   if(modoEvento){
-    panel.style.display='flex';
+    if(panel) panel.style.display='flex';
     btn.style.background='#e65100';btn.style.color='white';btn.style.borderColor='#e65100';
+    btn.textContent='🎪 Evento ON';
     aplicarTasaEvento();
   } else {
-    panel.style.display='none';
+    if(panel) panel.style.display='none';
     btn.style.background='#fff3e0';btn.style.color='#e65100';btn.style.borderColor='#ffcc80';
-    // Restaurar API
+    btn.textContent='🎪 Modo Evento';
+    if(lbl) lbl.style.display='none';
     cargarBCV();
   }
 }
 function aplicarTasaEvento(){
-  const t=parseFloat($('evento-tasa').value);
+  const t=parseFloat($('evento-tasa')&&$('evento-tasa').value)||484.74;
   if(!t||t<1) return;
   bcv=t;
   $('bcv-badge').textContent='🎪 Bs. '+bcv.toFixed(2);
   if($('inp-tasa')) $('inp-tasa').value=bcv.toFixed(2);
+  const lbl=$('bcv-evento-label');
+  if(lbl){lbl.style.display='block';lbl.textContent='Tasa: Bs. '+bcv.toFixed(2);}
   calcBs(); calcTotal(); renderProds();
 }
 // Sincronizar precio $ → Bs en form producto rápido
