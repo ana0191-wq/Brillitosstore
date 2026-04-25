@@ -1118,7 +1118,7 @@ tr:hover td{background:#fff8fc}
 
 // ===== CONFIG =====
 // v1777077054
-console.log('✅ Brillitos admin cargado v1777080833');
+console.log('✅ Brillitos admin cargado v1777080921');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
@@ -1389,7 +1389,7 @@ async function init(){
   if(!Array.isArray(apartados)) apartados=[];
   if(!Array.isArray(gastosGlobales)) gastosGlobales=[];
 
-  await mostrarBCVDash();
+  try{ await mostrarBCVDash(); }catch(e){ console.warn('BCV falló:',e); }
   renderProductos();
   renderVentas();
   renderClientes();
