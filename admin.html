@@ -1114,7 +1114,7 @@ tr:hover td{background:#fff8fc}
 <script>
 
 // ===== CONFIG =====
-// v1777078651
+// v1777077054
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -2863,7 +2863,7 @@ function abrirModalProducto(id=null){
   document.getElementById('p-observaciones').value=p?p.observaciones||'':'';
   var pvList=p?(p.producto_variantes||[]).filter(function(v){return v.activo!==false;}):[]; renderVariantesModal(pvList);
   document.getElementById('p-costo').value=p?p.precio_costo||'':'';
-  document.getElementById('p-nuevo').checked=p?p.es_nuevo||false:true;
+  document.getElementById('p-nuevo').checked=p?p.es_nuevo||false:false;
   document.getElementById('p-activo').checked=p?p.activo!==false:true;
   document.getElementById('margen-wrap').style.display='none';
   fotosSubidas=p&&p.imagenes&&p.imagenes.length?[...p.imagenes]:p&&p.imagen?[p.imagen]:[];
