@@ -1529,36 +1529,6 @@ function imprimirQRSingle(){
   win.document.write('<p style="font-weight:800;font-size:16px;margin:8px 0">'+nombre+'</p>');
   win.document.write('<p style="font-family:monospace;font-size:11px;color:#666">'+codigo+'</p>');
   win.document.write('
-<!-- FIX TEMPORAL -->
-<div id="fix-banner" style="position:fixed;bottom:0;left:0;right:0;background:#1e293b;color:#fff;padding:8px;text-align:center;z-index:99999;font-size:13px;">
-  🔧 <b>Fix:</b> Marcar sacapuntas como nuevos y desactivar "Prueba"
-  &nbsp;<button onclick="runFix()" style="background:#40c4d3;color:#fff;border:none;padding:6px 16px;border-radius:8px;font-weight:700;cursor:pointer;">✅ Aplicar</button>
-  &nbsp;<button onclick="document.getElementById('fix-banner').remove()" style="background:#475569;color:#fff;border:none;padding:6px 12px;border-radius:8px;cursor:pointer;">✕</button>
-</div>
-<script>
-async function runFix(){
-  var btn = event.target; btn.disabled=true; btn.textContent='Aplicando...';
-  try{
-    var H = {'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json'};
-    var r1 = await fetch(SB+'/rest/v1/productos?select=id,nombre&nombre=ilike.*sacapuntas*&limit=50',{headers:H});
-    var sacs = await r1.json();
-    var ok=0;
-    for(var p of sacs){
-      var r = await fetch(SB+'/rest/v1/productos?id=eq.'+p.id,{method:'PATCH',headers:H,body:JSON.stringify({es_nuevo:true})});
-      if(r.ok||r.status===204) ok++;
-    }
-    var r2 = await fetch(SB+'/rest/v1/productos?nombre=ilike.*prueba*&select=id',{headers:H});
-    var pruebas = await r2.json();
-    for(var p2 of pruebas){
-      await fetch(SB+'/rest/v1/productos?id=eq.'+p2.id,{method:'PATCH',headers:H,body:JSON.stringify({activo:false})});
-    }
-    document.getElementById('fix-banner').innerHTML='✅ '+ok+' sacapuntas marcados como nuevos + Prueba desactivado. Recarga la tienda!';
-  }catch(e){
-    btn.textContent='Error: '+e.message; btn.disabled=false;
-  }
-}
-</script>
-
 </body></html>');
   win.document.close();
   setTimeout(()=>win.print(), 500);
