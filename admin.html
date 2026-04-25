@@ -1528,8 +1528,7 @@ function imprimirQRSingle(){
   win.document.write('<img src="'+imgSrc+'" style="width:200px;height:200px;display:block;margin:10px auto">');
   win.document.write('<p style="font-weight:800;font-size:16px;margin:8px 0">'+nombre+'</p>');
   win.document.write('<p style="font-family:monospace;font-size:11px;color:#666">'+codigo+'</p>');
-  win.document.write('
-</body></html>');
+  win.document.write('</body></html>');
   win.document.close();
   setTimeout(()=>win.print(), 500);
 }
