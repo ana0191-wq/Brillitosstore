@@ -722,7 +722,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <div class="cart-cuenta" id="wrap-cuenta" style="display:none"><select id="sel-cuenta"></select></div>
     <div class="cart-bs" id="wrap-bs">
       <div class="bs-field"><label>Tasa BCV</label>
-        <input type="number" id="inp-tasa" step="0.01" placeholder="480" oninput="calcBs()">
+        <input type="number" id="inp-tasa" step="0.01" placeholder="484.74" oninput="calcBs()">
       </div>
       <div class="bs-field"><label>Monto Bs.</label>
         <input type="number" id="inp-bs" step="0.01" placeholder="Auto">
@@ -837,7 +837,7 @@ const CUENTAS=[
   {id:'efectivo_usd',label:'Efectivo $',tipo:'Efectivo $',tlf:'',cuenta:'',banco:''},
 ];
 
-let prods=[],carrito=[],bcv=0,metodo='Pago Móvil',cat='Todas';
+let prods=[],carrito=[],bcv=484.74,metodo='Pago Móvil',cat='Todas';
 let scanner=null,scanActivo=false,scanLock=false,lastCode=null,pendiente=null;
 
 const $=id=>document.getElementById(id);
