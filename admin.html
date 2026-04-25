@@ -2012,6 +2012,19 @@ function cargarDashboard(){
 
 
 // ===== POS =====
+function abrirModalProductoRapido(){
+  // Limpiar form de producto y abrir modal directamente
+  editProductoId=null;
+  document.getElementById('p-nombre').value='';
+  document.getElementById('p-precio').value='';
+  document.getElementById('p-costo').value='';
+  document.getElementById('p-stock').value='1';
+  try{document.getElementById('p-categoria').value='';}catch(e){}
+  try{document.getElementById('p-descripcion').value='';}catch(e){}
+  // Marcar que venimos del POS para regresar después
+  window._posQuickAdd=true;
+  abrirModal('modal-producto');
+}
 function renderPOS(){
   const activos = productos.filter(p=>p.activo!==false);
   const cats = ['Todas',...new Set(activos.map(p=>p.categoria).filter(Boolean)).values()].sort();
