@@ -360,7 +360,6 @@ input[type=range]{accent-color:var(--pk);width:120px}
     <input type="text" id="search-input" placeholder="Buscar productos kawaii... ✨" autocomplete="off">
   </div>
   <div class="header-btns">
-    <button class="hbtn" onclick="cargarCatalogo()" title="Actualizar productos" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;font-size:16px;padding:6px 10px;border-radius:10px;cursor:pointer">🔄</button>
     <button class="hbtn hbtn-order" onclick="window.location.href='pedidos.html'">🛍️ <span class="btn-text">Pedidos Online</span></button>
     <button class="hbtn hbtn-cart" onclick="openCart()">
       🛒 <span class="btn-text cart-text">Carrito</span>
@@ -635,7 +634,7 @@ async function cargarCatalogo() {
   try {
     // Query productos y variantes por separado para no depender del foreign key
     var [respProds, respVars] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=neq.false&order=es_nuevo.desc,id.desc&limit=1000', {
+      fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=eq.true&order=es_nuevo.desc,id.desc&limit=1000', {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
       }),
       fetch(SUPABASE_URL + '/rest/v1/producto_variantes?select=*&activo=eq.true&order=id.asc', {
@@ -652,7 +651,7 @@ async function cargarCatalogo() {
         varsByProd[v.producto_id].push(v);
       });
     }
-        CATALOG = data.map(function(p) {
+    CATALOG = data.map(function(p) {
       var variantes = (varsByProd[p.id] || []).filter(function(v){ return v.activo !== false; });
       return {
         id:           p.id,
@@ -670,11 +669,11 @@ async function cargarCatalogo() {
       };
     }).filter(function(p) {
       if(!p.nombre) return false;
-      // Productos con variantes: mostrar si tiene precio (aunque stock=0)
+      // Productos con variantes: mostrar si al menos una tiene stock o precio
       if(p.variantes && p.variantes.length > 0){
         return true;
       }
-      // Productos sin variantes: solo requieren precio > 0
+      // Productos sin variantes: solo necesitan precio > 0
       return p.precio > 0;
     });
     
