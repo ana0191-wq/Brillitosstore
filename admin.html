@@ -1239,7 +1239,19 @@ async function getBCV(fecha){
 
 async function mostrarBCVDash(){
   const tasa = await getBCV();
-  document.getElementById('bcv-rate-dash').textContent = 'Bs. '+parseFloat(tasa).toFixed(2);
+  const bcvEl=document.getElementById('bcv-rate-dash');
+  bcvEl.textContent='Bs. '+parseFloat(tasa).toFixed(2);
+  bcvEl.style.cursor='pointer';
+  bcvEl.title='Toca para editar manualmente';
+  bcvEl.onclick=function(){
+    const nueva=prompt('💱 Ingresa la tasa BCV de hoy:', bcvHoy.toFixed(2));
+    if(!nueva||isNaN(parseFloat(nueva)))return;
+    bcvHoy=parseFloat(nueva);
+    bcvEl.textContent='Bs. '+bcvHoy.toFixed(2);
+    const posEl=document.getElementById('pos-bcv-rate');
+    if(posEl) posEl.textContent='Bs. '+bcvHoy.toFixed(2);
+    toast('✅ Tasa actualizada a Bs. '+bcvHoy.toFixed(2));
+  };
   document.getElementById('bcv-fecha-dash').textContent = 'Tasa oficial BCV del día';
   const el = document.getElementById('pos-bcv-rate');
   if(el) el.textContent = 'Bs. '+parseFloat(tasa).toFixed(2);
