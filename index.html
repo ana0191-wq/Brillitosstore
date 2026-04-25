@@ -359,6 +359,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
     <span class="si">🔍</span>
     <input type="text" id="search-input" placeholder="Buscar productos kawaii... ✨" autocomplete="off">
   </div>
+  <div id="debug-info" style="display:none;position:fixed;top:0;left:0;right:0;background:#1e293b;color:#40c4d3;font-size:12px;font-weight:700;padding:6px 12px;z-index:99999;text-align:center"></div>
   <div class="header-btns">
     <button class="hbtn" onclick="cargarCatalogo()" title="Actualizar productos" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;font-size:16px;padding:6px 10px;border-radius:10px;cursor:pointer">🔄</button>
     <button class="hbtn hbtn-order" onclick="window.location.href='pedidos.html'">🛍️ <span class="btn-text">Pedidos Online</span></button>
@@ -651,6 +652,14 @@ async function cargarCatalogo() {
         if(!varsByProd[v.producto_id]) varsByProd[v.producto_id] = [];
         varsByProd[v.producto_id].push(v);
       });
+    }
+    // DEBUG temporal
+    var dbgEl = document.getElementById('debug-info');
+    if(dbgEl){
+      var noActivos = data.filter(function(p){ return p.activo !== true; });
+      dbgEl.innerHTML = 'Total BD: '+data.length+' | activo=true: '+data.filter(function(p){return p.activo===true;}).length+' | activo=null: '+data.filter(function(p){return p.activo===null||p.activo===undefined;}).length+' | activo=false: '+data.filter(function(p){return p.activo===false;}).length;
+      dbgEl.style.display='block';
+      setTimeout(function(){ dbgEl.style.display='none'; }, 15000);
     }
     CATALOG = data.map(function(p) {
       var variantes = (varsByProd[p.id] || []).filter(function(v){ return v.activo !== false; });
