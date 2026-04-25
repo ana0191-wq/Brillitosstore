@@ -717,15 +717,9 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M6.5 4h7a4 4 0 0 1 0 8H9l-1.5 8H5L6.5 4z" stroke="#003087" stroke-width="1.5"/><path d="M10 9h6a3 3 0 0 1 0 6H11" stroke="#009cde" stroke-width="1.5"/></svg>
           PayPal
         </button>
-        <button class="met-btn" onclick="selMet(this,'Zelle')">
-          <svg width="16" height="16" viewBox="0 0 24 24"><rect width="24" height="24" rx="12" fill="#6D1ED4"/><text x="12" y="17" font-size="11" font-weight="bold" fill="white" text-anchor="middle" font-family="sans-serif">Z</text></svg>
-          Zelle
-        </button>
       </div>
 
-    <div class="cart-cuenta" id="wrap-cuenta">
-      <select id="sel-cuenta"><option value="">— Cuenta —</option></select>
-    </div>
+    <div class="cart-cuenta" id="wrap-cuenta" style="display:none"><select id="sel-cuenta"></select></div>
     <div class="cart-bs" id="wrap-bs">
       <div class="bs-field"><label>Tasa BCV</label>
         <input type="number" id="inp-tasa" step="0.01" placeholder="480" oninput="calcBs()">
@@ -736,8 +730,10 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     </div>
 
     <div class="cart-footer">
-      <button class="apt-btn" onclick="abrirApartado()">📌 Guardar como apartado</button>
-      <button class="apt-btn" id="papelito-btn" onclick="mostrarPedido()" style="background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80" disabled>🧾 Ver pedido</button>
+      <div style="display:flex;gap:7px;margin-bottom:2px">
+        <button class="apt-btn" style="flex:1;font-size:11px" onclick="abrirApartado()">📌 Apartado</button>
+        <button class="apt-btn" id="papelito-btn" onclick="mostrarPedido()" style="flex:1;font-size:11px;background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80" disabled>🧾 Ver pedido</button>
+      </div>
       <button class="cobrar-btn" id="cobrar-btn" onclick="confirmar()" disabled>Cobrar $0.00</button>
     </div>
   </div>
@@ -771,7 +767,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <div class="modal-ico">💳</div>
     <div class="modal-tit" id="mc-tit">Confirmar cobro</div>
     <div class="modal-sub" id="mc-sub"></div>
-    <div class="modal-items" id="mc-items"></div>
+    <div class="modal-items" id="mc-items" style="max-height:180px;overflow-y:auto;text-align:left;padding:4px 0;margin:6px 0;width:100%"></div>
     <div id="mc-pago" style="margin-top:8px;width:100%"></div>
     <div class="modal-btns">
       <button class="mbtn sec" onclick="$('modal-confirm').classList.remove('open')">Cancelar</button>
@@ -1397,7 +1393,7 @@ function confirmar(){
   }
   $('mc-sub').innerHTML='<strong style="font-size:1.3rem">$'+total.toFixed(2)+'</strong>'+(esBs&&bs>0?'<br><span style="color:var(--green);font-size:1.1rem">Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2})+'</span>':'');
   if($('mc-pago')) $('mc-pago').innerHTML=cuentaInfo;
-  $('mc-items').innerHTML=carrito.map(it=>`<div class="m-row"><span>${it.nombre} ×${it.cantidad}</span><span>$${it.sub.toFixed(2)}</span></div>`).join('')
+  $('mc-items').innerHTML=carrito.map(it=>`<div style="display:flex;justify-content:space-between;padding:5px 2px;border-bottom:1px solid #f5e6f0;font-size:13px"><span style="color:#333">${it.cantidad}× ${it.nombre}</span><span style="font-weight:700;color:var(--pk)">$${it.sub.toFixed(2)}</span></div>`).join('')
     +(desc>0?`<div class="m-row"><span>Descuento</span><span style="color:var(--green)">−$${desc.toFixed(2)}</span></div>`:'')+
     `<div class="m-row"><span>TOTAL</span><span>$${total.toFixed(2)}</span></div>`;
   pendiente={total,sub,desc,esBs,tasa,bs,cliente,cuenta,metodo};
