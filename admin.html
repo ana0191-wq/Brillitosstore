@@ -1853,9 +1853,7 @@ function cargarDashboard(){
     // Solo las reposiciones en Efectivo entran a BancaAmiga
     // "Comprando mercancía", "Pagando gasto/inversión" = el dinero se usó directo, no entró a la cuenta
     const reposicionesBs = gastosGlobales
-      .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición'
-        && (g.reposicion_de||'').startsWith('Efectivo')
-      )
+      .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición')
       .reduce((s,g) => s + parseFloat(g.monto||0), 0);
     const saldoNeto = reposicionesBs - gastosBs;
     if(!porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'] = {total:0,bs:0,count:0};
