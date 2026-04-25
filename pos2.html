@@ -1323,6 +1323,36 @@ function agregar(pid){
   beep();renderCarrito();renderProds();
 }
 
+function editarPrecioCarrito(i){
+  const it=carrito[i]; if(!it) return;
+  const tasa=parseFloat($('inp-tasa').value)||bcv||0;
+  // Mostrar popup con precio actual en $ y Bs
+  const bsActual=tasa>0?(it.precio*tasa).toFixed(0):'';
+  const input=prompt(
+    `✏️ Precio de "${it.nombre}"
+💵 Ingresa el nuevo precio en $ (ej: 1.50)
+Tasa actual: Bs. ${tasa.toFixed(2)}${bsActual?' · equivale a Bs. '+bsActual:''}`,
+    it.precio.toFixed(2)
+  );
+  if(input===null) return; // canceló
+  // Acepta $ o Bs
+  let nuevoPrecio=parseFloat(input);
+  if(isNaN(nuevoPrecio)||nuevoPrecio<0){ toast('⚠️ Precio inválido'); return; }
+  // Si ingresó un número grande asume que es Bs
+  if(nuevoPrecio>200&&tasa>0){
+    const conf=confirm(`¿Ingresaste Bs. ${nuevoPrecio}?
+= $${(nuevoPrecio/tasa).toFixed(2)}
+
+OK = confirmar en Bs
+Cancelar = era en $`);
+    if(conf) nuevoPrecio=nuevoPrecio/tasa;
+  }
+  carrito[i].precio=nuevoPrecio;
+  carrito[i].sub=nuevoPrecio*carrito[i].cantidad;
+  renderCarrito();
+  calcTotal();
+  toast(`✅ Precio actualizado a $${nuevoPrecio.toFixed(2)}`);
+}
 function chgQty(i,d){
   if(!carrito[i])return;
   const p=prods.find(x=>x.id===carrito[i].id);
@@ -1359,8 +1389,12 @@ function renderCarrito(){
       ${imgEl}
       <div class="citem-info">
         <div class="citem-name">${it.nombre}</div>
-        <div class="citem-meta">$${it.precio.toFixed(2)} × ${it.cantidad}</div>
-        ${bsItem?`<div class="citem-bs">${bsItem}</div>`:''}
+        <div class="citem-meta">
+          <span onclick="editarPrecioCarrito(${i})" style="cursor:pointer;border-bottom:1px dashed #d63a8a;color:var(--pk-d);font-weight:700">$${it.precio.toFixed(2)}</span>
+          <span style="color:var(--sub)"> × ${it.cantidad}</span>
+          ${tasa>0?`<span style="color:#aaa;font-size:10px"> · Bs.${(it.precio*tasa).toFixed(0)}</span>`:''}
+        </div>
+
       </div>
       <div class="citem-ctrl">
         <button class="qty-btn" onclick="chgQty(${i},-1)">−</button>
