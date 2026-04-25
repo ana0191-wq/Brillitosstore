@@ -1213,11 +1213,12 @@ async function getBCV(fecha){
   const target = fecha || hoy;
   if(bcvCache[target]) return bcvCache[target];
   try {
-    const r = await fetch('https://ve.dolarapi.com/v1/dolares/oficial',{signal:AbortSignal.timeout(6000)});
-    const d = await r.json();
+    const timeout = new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, 3000); });
+    const fetchP = fetch('https://ve.dolarapi.com/v1/dolares/oficial').then(function(r){ return r.json(); });
+    const d = await Promise.race([fetchP, timeout]);
     const tasa = parseFloat(d.promedio||d.price||d.ventaBcv||0);
     if(tasa>0){ bcvHoy=tasa; bcvCache[hoy]=tasa; bcvCache[target]=tasa; return tasa; }
-  } catch(e){}
+  } catch(e){ console.warn('BCV timeout/error:', e.message); }
   bcvCache[target]=bcvHoy||48;
   return bcvCache[target];
 }
@@ -1386,7 +1387,7 @@ async function init(){
   if(!Array.isArray(apartados)) apartados=[];
   if(!Array.isArray(gastosGlobales)) gastosGlobales=[];
 
-  await mostrarBCVDash();
+  try{ await mostrarBCVDash(); }catch(e){ console.warn('BCV falló:',e); }
   renderProductos();
   renderVentas();
   renderClientes();
