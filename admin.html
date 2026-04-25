@@ -1118,7 +1118,7 @@ tr:hover td{background:#fff8fc}
 
 // ===== CONFIG =====
 // v1777077054
-console.log('✅ Brillitos admin cargado v1777080921');
+console.log('✅ Brillitos admin cargado v1777081134');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
@@ -3030,7 +3030,7 @@ async function renderEventos(){
     const ganancia=totalV-totalG-totalInv; const luisma=ganancia>0?ganancia*0.4:0;
     return '<div class="card">'
       +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">'
-      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+fmtFechaEvento(e.fecha)()+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
+      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+fmtFechaEvento(e.fecha)+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
       +'<div style="display:flex;gap:6px"><button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button><button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button><button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button></div></div>'
       +'<div style="background:#fafafa;border-radius:10px;padding:10px;margin-bottom:9px">'
       +'<div style="font-size:10px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase">Gastos del evento</div>'
