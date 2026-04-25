@@ -2929,6 +2929,22 @@ async function guardarProducto(){
   productos=await sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000');
   if(!Array.isArray(productos)) productos=[];
   cerrarModal('modal-producto'); renderProductos(); renderPOS();
+  if(window._posQuickAdd){ window._posQuickAdd=false; irA('pos'); toast('✅ Producto listo en POS 🌸'); }
+}
+function abrirModalProductoRapido(){
+  editProdId=null;
+  fotosSubidas=[];
+  document.getElementById('p-nombre').value='';
+  document.getElementById('p-precio').value='';
+  document.getElementById('p-costo').value='';
+  document.getElementById('p-stock').value='1';
+  try{document.getElementById('p-categoria').value='';}catch(e){}
+  try{document.getElementById('p-descripcion').value='';}catch(e){}
+  try{document.getElementById('p-observaciones').value='';}catch(e){}
+  try{document.getElementById('p-nuevo').checked=true;}catch(e){}
+  try{document.getElementById('p-activo').checked=true;}catch(e){}
+  window._posQuickAdd=true;
+  abrirModal('modal-producto');
 }
 async function eliminarProd(id){
   if(!confirm('¿Eliminar?')) return;
