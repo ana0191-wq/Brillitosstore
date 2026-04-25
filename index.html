@@ -163,6 +163,9 @@ input[type=range]{accent-color:var(--pk);width:120px}
 .cthumb.act{border-color:var(--pk)}
 .cbody{padding:8px;flex:1;display:flex;flex-direction:column}
 .cfoot{display:flex;align-items:center;justify-content:space-between;margin-top:auto;padding-top:6px}
+.cprice-bs{
+  display:block;font-size:11px;color:#888;font-weight:500;margin-top:1px;
+}
 .cprice{font-weight:900;font-size:.88rem;color:var(--tx)}
 .cprice.nop{font-size:.75rem;color:var(--ts)}
 .cname{font-size:.78rem;font-weight:800;color:var(--tx);line-height:1.2;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -1006,7 +1009,7 @@ function buildCard(p,idx){
     '<div class="cname">'+esc(p.nombre)+'</div>'+
     (p.descripcion?'<div class="cdesc">'+esc(p.descripcion)+'</div>':'')+
     '<div class="cfoot">'+
-    '<div class="cprice'+(hasP?'':' nop')+'">'+( hasP?'$'+p.precio.toFixed(2):'Consultar 💬' )+'</div>'+
+    '<div class="cprice'+(hasP?'':' nop')+'" data-usd="'+(hasP?p.precio:0)+'">'+(hasP?'$'+p.precio.toFixed(2)+(window._bcvUSD>0?' <span class="cprice-bs">Bs. '+(p.precio*window._bcvUSD).toFixed(0)+'</span>':''):'Consultar 💬')+'</div>'+
     (function(){var _v=parseVariants(p.observaciones||'');var _lbl=out?'😢 Agotado':(_v.length>0?'🎨 Elegir opción':'+ Carrito');return '<button class="cadd"'+(out?' disabled':'')+' onclick="event.stopPropagation();cardAddToCart('+p.id+')">'+_lbl+'</button>';})()+
     '</div>'+
     '</div>';
@@ -1562,6 +1565,15 @@ async function fetchBCVRates(forceRefresh = false) {
   }
 }
 
+function actualizarPreciosBs(tasa){
+  document.querySelectorAll('.cprice[data-usd]').forEach(function(el){
+    const usd=parseFloat(el.dataset.usd)||0;
+    if(!usd) return;
+    let bs=el.querySelector('.cprice-bs');
+    if(!bs){ bs=document.createElement('span'); bs.className='cprice-bs'; el.appendChild(bs); }
+    bs.textContent='Bs. '+(usd*tasa).toFixed(0);
+  });
+}
 function applyBCVRates(usd, eur, fecha, fromCache) {
   const btn    = document.getElementById('bs-refresh-btn');
   const noteEl = document.getElementById('bs-note-usd');
@@ -1581,10 +1593,13 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
   const esViernes = hoy.getDay() === 5;
 
   
+  window._bcvUSD = parseFloat(usd)||0;
   if (input) {
     input.value = parseFloat(usd).toFixed(2);
-    calcBS(); 
+    calcBS();
   }
+  // Actualizar precios Bs en todas las tarjetas
+  if(window._bcvUSD>0) actualizarPreciosBs(window._bcvUSD);
 
   
   if (noteEl) {
