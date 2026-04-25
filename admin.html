@@ -1114,7 +1114,7 @@ tr:hover td{background:#fff8fc}
 <script>
 
 // ===== CONFIG =====
-// v1777075872
+// v1777076136
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1883,7 +1883,10 @@ function cargarDashboard(){
         ? ' <span style="font-size:10px;background:white;border:1px solid '+c.color+';color:'+c.color+';padding:2px 7px;border-radius:8px;font-weight:700">+'
           +(c.esBs&&hoy.bs>0?'Bs.'+Math.round(hoy.bs).toLocaleString('es-VE'):'$'+hoy.total.toFixed(2))+' hoy</span>'
         : '';
-      const clickable = key==='bancaamiga_luisma' ? ' onclick="abrirMovimientosBancaAmiga()" style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer"' : ' style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05)"';
+      const isBa = key==='bancaamiga_luisma';
+      const clickable = isBa
+        ? ' id="tarjeta-bancaamiga" style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer"'
+        : ' style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05)"';
       const tapHint = key==='bancaamiga_luisma' ? '<div style="font-size:10px;color:'+c.color+';opacity:.5;margin-top:6px">📋 Ver movimientos</div>' : '';
       return '<div'+clickable+'>'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
@@ -1898,6 +1901,11 @@ function cargarDashboard(){
       ? '<div style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">💰 Saldo acumulado por cuenta</div>'
         +'<div style="display:flex;gap:10px;flex-wrap:wrap">'+tarjetas+'</div>'
       : '<div style="color:var(--gray);font-size:13px;padding:8px">Sin ventas registradas 🌸</div>';
+    // Bind click en tarjeta BancaAmiga
+    setTimeout(function(){
+      var t = document.getElementById('tarjeta-bancaamiga');
+      if(t) t.addEventListener('click', function(){ abrirMovimientosBancaAmiga(); });
+    }, 50);
   }
 
   // Resumen financiero
