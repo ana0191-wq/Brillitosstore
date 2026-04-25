@@ -1373,7 +1373,8 @@ async function testVenta(){
 // ===== INIT =====
 async function init(){
   toast('Cargando Brillitos... 🌸');
-  document.getElementById('v-fecha-venta').value = hoyVEN();
+  console.log('🌸 init() arrancó');
+  try{ const fv=document.getElementById('v-fecha-venta'); if(fv) fv.value=hoyVEN(); }catch(e){}
   const results = await Promise.allSettled([
     sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000'),
     sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500'),
@@ -1388,6 +1389,7 @@ async function init(){
   clientes  = results[2].status==='fulfilled'?results[2].value:[];
   eventos   = results[3].status==='fulfilled'?results[3].value:[];
   apartados = results[4].status==='fulfilled'?results[4].value:[];
+  console.log('📦 productos:',productos.length,'ventas:',ventas.length,'clientes:',clientes.length,'status0:',results[0].status,'status1:',results[1].status);
   gastosGlobales = results[5].status==='fulfilled'&&Array.isArray(results[5].value)?results[5].value:[];
   var catData=results[6]&&results[6].status==='fulfilled'?results[6].value:[];
   if(Array.isArray(catData)){dbCategorias=catData.filter(function(c){return c.tipo==='categoria';}).map(function(c){return c.nombre;});dbSubcategorias=catData.filter(function(c){return c.tipo==='subcategoria';}).map(function(c){return c.nombre;});dbSubcategorias.forEach(function(s){Object.keys(CAT_SUBCAT_MAP).forEach(function(cat){if(!CAT_SUBCAT_MAP[cat].includes(s))CAT_SUBCAT_MAP[cat].push(s);});});}
