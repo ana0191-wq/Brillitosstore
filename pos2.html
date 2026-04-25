@@ -1169,7 +1169,9 @@ async function init(){
       }
       if(!ok) bcv=484.74;
     }catch(e){bcv=484.74;}
-    $('bcv-badge').textContent='💱 Bs. '+bcv.toFixed(2);
+    $('bcv-badge').textContent='💱 Bs. '+bcv.toFixed(2)+' ✏️';
+    $('bcv-badge').style.cursor='pointer';
+    $('bcv-badge').onclick=function(){ editarTasaManual(); };
     if(bcv>0)$('inp-tasa').value=bcv.toFixed(2);
     renderCats();renderProds();poblarCuentas();
     selMet(document.querySelector('.met-btn.active'),'Pago Móvil');
@@ -1677,6 +1679,15 @@ const BUNNY_KEY_POS = 'd5221d2d-53eb-4513-a919885f03f0-5a1f-4857';
 const BUNNY_CDN_POS = 'https://Brillitos.b-cdn.net';
 var _qpFotoUrlPos = '';
 
+function editarTasaManual(){
+  const nueva=prompt('💱 Ingresa la tasa BCV de hoy (Bs por $):', bcv.toFixed(2));
+  if(!nueva||isNaN(parseFloat(nueva))) return;
+  bcv=parseFloat(nueva);
+  $('bcv-badge').textContent='💱 Bs. '+bcv.toFixed(2)+' ✏️';
+  if($('inp-tasa')) $('inp-tasa').value=bcv.toFixed(2);
+  calcBs(); calcTotal();
+  toast('✅ Tasa actualizada a Bs. '+bcv.toFixed(2));
+}
 function abrirProdRapidoPOS(){
   _qpFotoUrlPos='';
   ['qp2-nombre','qp2-precio','qp2-stock','qp2-costo','qp2-categoria'].forEach(function(id){
