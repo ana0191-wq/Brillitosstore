@@ -683,17 +683,15 @@ async function cargarCatalogo() {
     
     // DEBUG sacapuntas
     (function(){
-      // Buscar en data RAW (antes del map/filter)
       var raw = data.filter(function(p){ return (p.nombre||'').toLowerCase().includes('sacapuntas'); });
-      // Buscar en CATALOG (después del map/filter)
       var cat = CATALOG.filter(function(p){ return (p.nombre||'').toLowerCase().includes('sacapuntas'); });
       var dbg = document.createElement('div');
       dbg.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#1e293b;color:#40c4d3;font-size:11px;padding:6px 10px;z-index:99999;text-align:center;font-weight:700';
       if(raw.length){
         var info = raw.map(function(p){ return p.nombre+'→activo='+p.activo+',es_nuevo='+p.es_nuevo+',precio='+p.precio+',stock='+p.stock; }).join(' | ');
-        dbg.textContent = 'RAW('+raw.length+'): '+info+' || CATALOG('+cat.length+')';
+        dbg.textContent = 'RAW('+raw.length+'): '+info+' || CATALOG('+cat.length+') || Total BD='+data.length;
       } else {
-        dbg.textContent = 'Sacapuntas NO encontrado en RAW. Total raw='+data.length;
+        dbg.textContent = 'Sacapuntas NO en BD. Total raw='+data.length+' | CATALOG='+CATALOG.length;
       }
       document.body.appendChild(dbg);
       setTimeout(function(){ dbg.remove(); }, 30000);
