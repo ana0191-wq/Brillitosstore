@@ -3043,7 +3043,7 @@ async function renderEventos(){
     const ganancia=totalV-totalG-totalInv; const luisma=ganancia>0?ganancia*0.4:0;
     return '<div class="card">'
       +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">'
-      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+fmtFechaEvento(e.fecha)()+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
+      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+fmtFechaEvento(e.fecha)+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
       +'<div style="display:flex;gap:6px"><button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button><button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button><button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button></div></div>'
       +'<div style="background:#fafafa;border-radius:10px;padding:10px;margin-bottom:9px">'
       +'<div style="font-size:10px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase">Gastos del evento</div>'
