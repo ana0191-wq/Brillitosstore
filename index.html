@@ -670,12 +670,12 @@ async function cargarCatalogo() {
       };
     }).filter(function(p) {
       if(!p.nombre) return false;
-      // Productos con variantes: mostrar si al menos una variante tiene stock
+      // Productos con variantes: mostrar si tiene precio (aunque stock=0)
       if(p.variantes && p.variantes.length > 0){
-        return p.variantes.some(function(v){ return v.stock > 0; });
+        return true;
       }
-      // Productos sin variantes: requieren precio y stock
-      return p.precio > 0 && p.stock > 0;
+      // Productos sin variantes: solo requieren precio > 0
+      return p.precio > 0;
     });
     
     // Actualizar contador
