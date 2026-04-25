@@ -503,6 +503,7 @@ tr:hover td{background:#fff8fc}
       <input type="month" id="reporte-mes" style="padding:7px 11px;border:2px solid var(--border);border-radius:10px;font-size:13px;outline:none" onchange="cargarReporte()">
     </div>
     <div class="grid-4" id="reporte-stats"></div>
+    <div id="reporte-pe"></div>
     <div class="grid-2">
       <div class="card"><div class="card-title">📦 Top productos</div><div id="reporte-top-prods"></div></div>
       <div class="card"><div class="card-title">💰 Por método de pago</div><div id="reporte-pagos"></div></div>
@@ -3458,6 +3459,54 @@ async function cargarReporte(){
     +'<div class="stat-card"><div class="stat-num" style="color:'+(gananciaNeta>=0?'var(--green)':'var(--red)')+'">$'+gananciaNeta.toFixed(2)+'</div><div class="stat-label">📈 Ganancia neta</div></div>'
     +'<div class="stat-card"><div class="stat-num" style="font-size:16px">Bs.'+totalBs.toFixed(0)+'</div><div class="stat-label">💱 Total en Bs</div></div>'
     +'<div class="stat-card"><div class="stat-num">'+vM.length+'</div><div class="stat-label">🛍️ Nº de ventas</div></div>';
+
+  // ── Punto de equilibrio ──
+  var pagoPersonal=gastosGlobales.filter(function(g){return (g.fecha||'').slice(0,7)===mes&&g.tipo==='Pago personal';}).reduce(function(s,g){var usd=parseFloat(g.monto_usd||0);var monto=parseFloat(g.monto||0);if(usd>0)return s+usd;if((g.moneda||'USD')==='USD')return s+monto;return s;},0);
+  var gastosOp=totalGastMes; // ya excluye ajenos y reposiciones
+  var totalCostoMercancia=0;
+  vM.forEach(function(v){(v.venta_items||[]).forEach(function(it){var p=productos.find(function(x){return x.id==it.producto_id;});if(p&&p.precio_costo>0)totalCostoMercancia+=parseFloat(p.precio_costo||0)*parseInt(it.cantidad||1);});});
+  var margenPct=total>0?((total-totalCostoMercancia)/total):0.3;
+  if(margenPct<=0)margenPct=0.3;
+  // Cuánto vender para cubrir cada meta
+  var paraRecuperar=gastosOp>0?(gastosOp/margenPct):0;
+  var paraPersonal=pagoPersonal>0?((gastosOp+pagoPersonal)/margenPct):0;
+  var paraGanar=((gastosOp+pagoPersonal)/margenPct)*1.2; // 20% extra de utilidad
+  var diasMes=new Date(parseInt(mes.slice(0,4)),parseInt(mes.slice(5,7)),0).getDate();
+  var diaActual=mes===new Date().toISOString().slice(0,7)?new Date().getDate():diasMes;
+  var ventaDiaria=total>0?(total/diaActual):0;
+  var proyeccion=ventaDiaria*diasMes;
+  var peHtml='<div style="background:linear-gradient(135deg,#fdeef6,#fff0f8);border-radius:14px;padding:16px;margin-top:16px;border-left:4px solid var(--pink)">'
+    +'<div style="font-size:13px;font-weight:800;color:var(--pink-dark);margin-bottom:12px">🎯 Punto de equilibrio — ¿Cuánto necesitas vender este mes?</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">'
+    +'<div style="background:white;border-radius:10px;padding:12px;border-left:3px solid var(--orange)">'
+      +'<div style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:4px">💸 Para cubrir gastos</div>'
+      +'<div style="font-size:20px;font-weight:800;color:var(--orange)">$'+paraRecuperar.toFixed(2)+'</div>'
+      +'<div style="font-size:11px;color:var(--gray);margin-top:3px">Solo cubres costos, sin ganancia</div>'
+      +'<div style="font-size:12px;font-weight:600;color:'+(total>=paraRecuperar?'var(--green)':'var(--red)')+'">'+( total>=paraRecuperar?'✅ Ya lo alcanzaste':'⚠️ Faltan $'+(paraRecuperar-total).toFixed(2))+'</div>'
+    +'</div>'
+    +(pagoPersonal>0?'<div style="background:white;border-radius:10px;padding:12px;border-left:3px solid var(--purple)">'
+      +'<div style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:4px">👥 Para pagar personal</div>'
+      +'<div style="font-size:20px;font-weight:800;color:var(--purple)">$'+paraPersonal.toFixed(2)+'</div>'
+      +'<div style="font-size:11px;color:var(--gray);margin-top:3px">Gastos + pagos de personal ($'+pagoPersonal.toFixed(2)+')</div>'
+      +'<div style="font-size:12px;font-weight:600;color:'+(total>=paraPersonal?'var(--green)':'var(--red)')+'">'+( total>=paraPersonal?'✅ Ya lo alcanzaste':'⚠️ Faltan $'+(paraPersonal-total).toFixed(2))+'</div>'
+    +'</div>':'')
+    +'<div style="background:white;border-radius:10px;padding:12px;border-left:3px solid var(--green)">'
+      +'<div style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:4px">🏆 Para ganar (+20%)</div>'
+      +'<div style="font-size:20px;font-weight:800;color:var(--green)">$'+paraGanar.toFixed(2)+'</div>'
+      +'<div style="font-size:11px;color:var(--gray);margin-top:3px">Gastos cubiertos + utilidad real</div>'
+      +'<div style="font-size:12px;font-weight:600;color:'+(total>=paraGanar?'var(--green)':'var(--red)')+'">'+( total>=paraGanar?'✅ Ya lo alcanzaste':'⚠️ Faltan $'+(paraGanar-total).toFixed(2))+'</div>'
+    +'</div>'
+    +'<div style="background:white;border-radius:10px;padding:12px;border-left:3px solid var(--blue)">'
+      +'<div style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:4px">📅 Proyección del mes</div>'
+      +'<div style="font-size:20px;font-weight:800;color:var(--blue)">$'+proyeccion.toFixed(2)+'</div>'
+      +'<div style="font-size:11px;color:var(--gray);margin-top:3px">A ritmo actual ($'+ventaDiaria.toFixed(2)+'/día)</div>'
+      +'<div style="font-size:12px;font-weight:600;color:var(--gray)">Día '+diaActual+' de '+diasMes+'</div>'
+    +'</div>'
+    +'</div>'
+    +'<div style="font-size:11px;color:var(--gray);margin-top:10px">* Margen promedio este mes: '+(margenPct*100).toFixed(0)+'% · Gastos operativos: $'+gastosOp.toFixed(2)+(pagoPersonal>0?' · Personal: $'+pagoPersonal.toFixed(2):'')+'</div>'
+    +'</div>';
+  var peEl=document.getElementById('reporte-pe');
+  if(peEl) peEl.innerHTML=peHtml;
   const conteo={}; vM.forEach(v=>(v.venta_items||[]).forEach(it=>{conteo[it.producto_nombre||'?']=(conteo[it.producto_nombre||'?']||0)+parseInt(it.cantidad||1);}));
   document.getElementById('reporte-top-prods').innerHTML=Object.entries(conteo).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([n,c])=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px"><span>'+n+'</span><strong style="color:var(--pink)">'+c+'</strong></div>').join('');
   const pagos={}; vM.forEach(v=>{pagos[v.metodo_pago||'?']=(pagos[v.metodo_pago||'?']||0)+parseFloat(v.total||0);});
