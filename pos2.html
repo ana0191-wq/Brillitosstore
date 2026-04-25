@@ -1682,7 +1682,7 @@ function abrirProdRapidoPOS(){
   if(img){img.style.display='none';img.src='';}
   var icon=document.getElementById('qp2-foto-icon');if(icon)icon.style.display='';
   var lbl=document.getElementById('qp2-foto-label');if(lbl)lbl.style.display='';
-  var cats=[...new Set((productos||[]).map(function(p){return p.categoria;}).filter(Boolean))].sort();
+  var cats=[...new Set((prods||[]).map(function(p){return p.categoria;}).filter(Boolean))].sort();
   var dl=document.getElementById('qp2-cats-list');
   if(dl) dl.innerHTML=cats.map(function(c){return '<option value="'+c+'">';}).join('');
   var modal=document.getElementById('modal-prod-rapido-pos');
@@ -1747,7 +1747,7 @@ async function qp2Guardar(agregarCarrito){
   var arr=await res.json();
   var prod=Array.isArray(arr)?arr[0]:arr;
   if(!prod){toast('❌ Sin respuesta del servidor');return;}
-  productos.push(prod);
+  prods.push(prod);
   renderProds();
   cerrarProdRapidoPOS();
   if(agregarCarrito){agregarAlCarrito(prod.id);toast('✅ '+nombre+' agregado al carrito 🛒');}
