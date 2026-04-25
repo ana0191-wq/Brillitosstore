@@ -718,6 +718,7 @@ function hideHomeSections(){
   if(pg)pg.style.display='';
 }
 function renderHomeSections(){
+  try{
   var container=document.getElementById('home-sections');
   if(!container)return;
   container.innerHTML='';
@@ -819,6 +820,14 @@ function renderHomeSections(){
     });
     sec.appendChild(sgrid);
     container.appendChild(sec);
+  }
+
+  }catch(err){
+    var dbgErr=document.createElement('div');
+    dbgErr.style.cssText='position:fixed;top:0;left:0;right:0;background:#c62828;color:white;font-size:12px;font-weight:700;padding:8px;z-index:99999;text-align:center';
+    dbgErr.textContent='ERROR renderHome: '+err.message;
+    document.body.appendChild(dbgErr);
+    setTimeout(function(){dbgErr.remove();},30000);
   }
 }
 function jumpToCats(cats){
