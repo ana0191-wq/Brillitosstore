@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-<meta http-equiv="Pragma" content="no-cache">
-<meta http-equiv="Expires" content="0">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -232,31 +229,6 @@ tr:hover td{background:#fff8fc}
 </style>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<div id="diag-overlay" style="position:fixed;top:0;left:0;right:0;background:#1e293b;color:#40c4d3;font-size:13px;padding:10px;z-index:999999;font-family:monospace">
-  ⏳ Cargando script...
-</div>
-<script>
-window.onerror = function(msg, src, line, col, err){
-  var el = document.getElementById('diag-overlay');
-  if(el) el.innerHTML = '<b style="color:#ff6b6b">❌ ERROR JS:</b> ' + msg + ' (línea ' + line + ')' + (err&&err.stack?'<br><small>'+err.stack.split('\n').slice(0,3).join('<br>')+'</small>':'');
-  return false;
-};
-window.addEventListener('unhandledrejection', function(e){
-  var el = document.getElementById('diag-overlay');
-  if(el) el.innerHTML = '<b style="color:#ff6b6b">❌ PROMISE ERROR:</b> ' + (e.reason&&e.reason.message?e.reason.message:String(e.reason));
-});
-document.addEventListener('DOMContentLoaded', function(){
-  var el = document.getElementById('diag-overlay');
-  if(el) el.innerHTML = '✅ DOM listo — esperando init()...';
-  setTimeout(function(){
-    var prods = typeof productos !== 'undefined' ? productos.length : '??';
-    var el2 = document.getElementById('diag-overlay');
-    if(el2) el2.innerHTML = '✅ init terminó — productos:' + prods + ' | ventas:' + (typeof ventas!=='undefined'?ventas.length:'??') + ' | clientes:' + (typeof clientes!=='undefined'?clientes.length:'??');
-  }, 5000);
-});
-</script>
-
 </head>
 <body>
 
@@ -1143,7 +1115,7 @@ document.addEventListener('DOMContentLoaded', function(){
 
 // ===== CONFIG =====
 // v1777077054
-console.log('✅ Brillitos admin cargado v1777081539');
+console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
@@ -1387,7 +1359,6 @@ async function testVenta(){
 
 // ===== INIT =====
 async function init(){
-  try {
   toast('Cargando Brillitos... 🌸');
   document.getElementById('v-fecha-venta').value = hoyVEN();
   const results = await Promise.allSettled([
@@ -1415,7 +1386,7 @@ async function init(){
   if(!Array.isArray(apartados)) apartados=[];
   if(!Array.isArray(gastosGlobales)) gastosGlobales=[];
 
-  try{ await mostrarBCVDash(); }catch(e){ console.warn('BCV falló:',e); }
+  await mostrarBCVDash();
   renderProductos();
   renderVentas();
   renderClientes();
@@ -1429,13 +1400,6 @@ async function init(){
   verificarApartadosVencidos();
   iniciarVozReconocimiento();
   renderPOS();
-  } catch(err) {
-    var dbg = document.createElement('div');
-    dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);color:#fff;z-index:999999;padding:30px;font-family:monospace;font-size:14px;overflow:auto';
-    dbg.innerHTML = '<h2 style="color:#ff6b6b">❌ Error en init()</h2><pre>'+String(err)+'\n\n'+( err&&err.stack?err.stack:'(sin stack)')+'</pre><p style="margin-top:20px;color:#aaa">Comparte este error con Juma</p>';
-    document.body.appendChild(dbg);
-    console.error('INIT ERROR:', err);
-  }
 }
 
 // ===== SCANNER QR / CÓDIGO DE BARRAS =====
@@ -1889,7 +1853,9 @@ function cargarDashboard(){
     // Solo las reposiciones en Efectivo entran a BancaAmiga
     // "Comprando mercancía", "Pagando gasto/inversión" = el dinero se usó directo, no entró a la cuenta
     const reposicionesBs = gastosGlobales
-      .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición')
+      .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición'
+        && (g.reposicion_de||'').startsWith('Efectivo')
+      )
       .reduce((s,g) => s + parseFloat(g.monto||0), 0);
     const saldoNeto = reposicionesBs - gastosBs;
     if(!porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'] = {total:0,bs:0,count:0};
@@ -3063,7 +3029,7 @@ async function renderEventos(){
     const ganancia=totalV-totalG-totalInv; const luisma=ganancia>0?ganancia*0.4:0;
     return '<div class="card">'
       +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">'
-      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+fmtFechaEvento(e.fecha)+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
+      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+fmtFechaEvento(e.fecha)()+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
       +'<div style="display:flex;gap:6px"><button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button><button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button><button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button></div></div>'
       +'<div style="background:#fafafa;border-radius:10px;padding:10px;margin-bottom:9px">'
       +'<div style="font-size:10px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase">Gastos del evento</div>'
