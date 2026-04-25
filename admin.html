@@ -1114,7 +1114,7 @@ tr:hover td{background:#fff8fc}
 <script>
 
 // ===== CONFIG =====
-// v1777076136
+// v1777076806
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -3003,7 +3003,8 @@ async function renderEventos(){
   if(Array.isArray(freshGastos)) gastosEvento=freshGastos;
   const div=document.getElementById('lista-eventos');
   if(!eventos.length){ div.innerHTML='<div class="card" style="text-align:center;color:var(--gray)">No hay eventos</div>'; return; }
-  div.innerHTML=eventos.map(e=>{
+  const eventosOrdenados=[...eventos].sort((a,b)=>{var fa=a.fecha?new Date(a.fecha+'T12:00:00'):null;var fb=b.fecha?new Date(b.fecha+'T12:00:00'):null;if(!fa&&!fb)return 0;if(!fa)return 1;if(!fb)return -1;return fa-fb;});
+  div.innerHTML=eventosOrdenados.map(e=>{
     const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
     const totalV=vts.reduce((s,v)=>s+parseFloat(v.total||0),0);
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
