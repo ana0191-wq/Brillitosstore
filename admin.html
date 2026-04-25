@@ -232,6 +232,31 @@ tr:hover td{background:#fff8fc}
 </style>
 <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<div id="diag-overlay" style="position:fixed;top:0;left:0;right:0;background:#1e293b;color:#40c4d3;font-size:13px;padding:10px;z-index:999999;font-family:monospace">
+  ⏳ Cargando script...
+</div>
+<script>
+window.onerror = function(msg, src, line, col, err){
+  var el = document.getElementById('diag-overlay');
+  if(el) el.innerHTML = '<b style="color:#ff6b6b">❌ ERROR JS:</b> ' + msg + ' (línea ' + line + ')' + (err&&err.stack?'<br><small>'+err.stack.split('\n').slice(0,3).join('<br>')+'</small>':'');
+  return false;
+};
+window.addEventListener('unhandledrejection', function(e){
+  var el = document.getElementById('diag-overlay');
+  if(el) el.innerHTML = '<b style="color:#ff6b6b">❌ PROMISE ERROR:</b> ' + (e.reason&&e.reason.message?e.reason.message:String(e.reason));
+});
+document.addEventListener('DOMContentLoaded', function(){
+  var el = document.getElementById('diag-overlay');
+  if(el) el.innerHTML = '✅ DOM listo — esperando init()...';
+  setTimeout(function(){
+    var prods = typeof productos !== 'undefined' ? productos.length : '??';
+    var el2 = document.getElementById('diag-overlay');
+    if(el2) el2.innerHTML = '✅ init terminó — productos:' + prods + ' | ventas:' + (typeof ventas!=='undefined'?ventas.length:'??') + ' | clientes:' + (typeof clientes!=='undefined'?clientes.length:'??');
+  }, 5000);
+});
+</script>
+
 </head>
 <body>
 
