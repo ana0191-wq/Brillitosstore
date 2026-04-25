@@ -3440,11 +3440,24 @@ async function cargarReporte(){
   const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición');
   const totalGastMes=gastMes.reduce((s,g)=>{const usd=parseFloat(g.monto_usd||0);const monto=parseFloat(g.monto||0);if(usd>0)return s+usd;if((g.moneda||'USD')==='USD')return s+monto;return s;},0);
   const gananciaMes=total-totalGastMes;
+  // Ganancia bruta = precio venta - precio costo
+  let ganBruta=0;
+  vM.forEach(function(v){
+    (v.venta_items||[]).forEach(function(it){
+      var prod=productos.find(function(x){return x.id==it.producto_id;});
+      if(prod&&prod.precio_costo>0) ganBruta+=(parseFloat(it.precio_unitario||0)-parseFloat(prod.precio_costo||0))*parseInt(it.cantidad||1);
+      else ganBruta+=parseFloat(it.subtotal||0)*0.3;
+    });
+    ganBruta-=parseFloat(v.descuento||0);
+  });
+  var gananciaNeta=total-totalGastMes;
   document.getElementById('reporte-stats').innerHTML=
-    '<div class="stat-card"><div class="stat-num">$'+total.toFixed(2)+'</div><div class="stat-label">💰 Total ventas</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:var(--red)">$'+totalGastMes.toFixed(2)+'</div><div class="stat-label">💸 Total gastos</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:'+(gananciaMes>=0?'var(--green)':'var(--red)')+'">$'+gananciaMes.toFixed(2)+'</div><div class="stat-label">📈 Ganancia neta</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="font-size:16px">Bs.'+totalBs.toFixed(0)+'</div><div class="stat-label">💱 Total en Bs</div></div>';
+    '<div class="stat-card"><div class="stat-num">$'+total.toFixed(2)+'</div><div class="stat-label">💰 Ventas del mes</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">$'+ganBruta.toFixed(2)+'</div><div class="stat-label">📦 Ganancia bruta</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--red)">$'+totalGastMes.toFixed(2)+'</div><div class="stat-label">💸 Gastos del mes</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:'+(gananciaNeta>=0?'var(--green)':'var(--red)')+'">$'+gananciaNeta.toFixed(2)+'</div><div class="stat-label">📈 Ganancia neta</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="font-size:16px">Bs.'+totalBs.toFixed(0)+'</div><div class="stat-label">💱 Total en Bs</div></div>'
+    +'<div class="stat-card"><div class="stat-num">'+vM.length+'</div><div class="stat-label">🛍️ Nº de ventas</div></div>';
   const conteo={}; vM.forEach(v=>(v.venta_items||[]).forEach(it=>{conteo[it.producto_nombre||'?']=(conteo[it.producto_nombre||'?']||0)+parseInt(it.cantidad||1);}));
   document.getElementById('reporte-top-prods').innerHTML=Object.entries(conteo).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([n,c])=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px"><span>'+n+'</span><strong style="color:var(--pink)">'+c+'</strong></div>').join('');
   const pagos={}; vM.forEach(v=>{pagos[v.metodo_pago||'?']=(pagos[v.metodo_pago||'?']||0)+parseFloat(v.total||0);});
