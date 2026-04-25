@@ -676,12 +676,15 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
       </div>
       <div class="cart-cliente">
         <input id="inp-cliente" placeholder="👤 Cliente (opcional)" autocomplete="off">
-      <select id="inp-canal" style="width:100%;margin-top:6px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:#fff;color:#333;outline:none">
+      <select id="inp-canal" onchange="onCanalChange()" style="width:100%;margin-top:6px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:#fff;color:#333;outline:none">
         <option value="POS">🏪 POS (presencial)</option>
         <option value="WhatsApp">💬 WhatsApp</option>
         <option value="Instagram">📸 Instagram</option>
         <option value="Web">🌐 Web</option>
         <option value="Evento">🎪 Evento</option>
+      </select>
+      <select id="inp-evento" style="width:100%;margin-top:6px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:#fff;color:#333;outline:none;display:none">
+        <option value="">🎪 Sin evento asignado</option>
       </select>
       </div>
     </div>
@@ -1526,11 +1529,12 @@ async function ejecutarCobro(){
   }
   renderProds();
   if($('inp-canal')) $('inp-canal').value='POS';
+  if($('inp-evento')) {$('inp-evento').style.display='none'; $('inp-evento').value='';}
   btn.disabled=false; btn.textContent='✅ Confirmar';
 
   // ── Guardar en Supabase en background ──
   try{
-    const res=await POST('ventas',{cliente_nombre:cliente,canal:canalPOS,metodo_pago:met,estado:'Pagado',
+    const res=await POST('ventas',{cliente_nombre:cliente,canal:canalPOS,evento_id:getEventoSeleccionado(),metodo_pago:met,estado:'Pagado',
       subtotal:sub,costo_envio:0,descuento:desc,total,fecha_venta:hoy(),
       tasa_bcv_usada:esBs?tasa:0,monto_bs:esBs?bs:0,moneda_pago:esBs?'Bs':'USD',
       cuenta_cobro:cuenta||null,numero:'POS-'+Date.now()});
@@ -1779,6 +1783,8 @@ function toggleModoEvento(){
     btn.textContent='🎪 Evento ON';
     aplicarTasaEvento();
     if($('inp-canal')) $('inp-canal').value='Evento';
+    poblarSelectEventos();
+    if($('inp-evento')) $('inp-evento').style.display='block';
   } else {
     if(panel) panel.style.display='none';
     btn.style.background='#fff3e0';btn.style.color='#e65100';btn.style.borderColor='#ffcc80';
@@ -1855,6 +1861,40 @@ async function guardarEditProd(){
     toast('❌ Error al guardar');
     btn.textContent='💾 Guardar'; btn.disabled=false;
   }
+}
+function onCanalChange(){
+  const canal=$('inp-canal')&&$('inp-canal').value;
+  const sel=$('inp-evento');
+  if(!sel) return;
+  if(canal==='Evento'){
+    sel.style.display='block';
+    poblarSelectEventos();
+  } else {
+    sel.style.display='none';
+    sel.value='';
+  }
+}
+function getEventoSeleccionado(){
+  const sel=$('inp-evento');
+  if(!sel||!sel.value) return null;
+  return parseInt(sel.value)||null;
+}
+let _eventosCache=[];
+async function poblarSelectEventos(){
+  const sel=$('inp-evento'); if(!sel) return;
+  if(_eventosCache.length>0){_renderEventosSelect(sel);return;}
+  try{
+    const H={'apikey':KEY,'Authorization':'Bearer '+KEY};
+    const r=await fetch(SB+'/rest/v1/eventos?select=id,nombre,fecha&order=fecha.desc&limit=20',{headers:H});
+    _eventosCache=await r.json();
+    _renderEventosSelect(sel);
+  }catch(e){console.warn('eventos:',e);}
+}
+function _renderEventosSelect(sel){
+  const cur=sel.value;
+  sel.innerHTML='<option value="">🎪 Sin evento</option>'+
+    _eventosCache.map(e=>'<option value="'+e.id+'"'+(String(e.id)===cur?' selected':'')+'>🎪 '+e.nombre+(e.fecha?' ('+e.fecha.slice(0,10)+')':'')+'</option>').join('');
+  if(cur) sel.value=cur;
 }
 function editarTasaManual(){
   const nueva=prompt('💱 Ingresa la tasa BCV de hoy (Bs por $):', bcv.toFixed(2));
