@@ -713,7 +713,7 @@ function renderHomeSections(){
   container.innerHTML='';
   /* ── NUEVOS ── */
   (function(){
-    var nw=CATALOG.filter(function(p){return p.esNuevo&&p.stock>0;});
+    var nw=CATALOG.filter(function(p){return p.esNuevo;});
     if(!nw.length) return;
     var row=document.createElement('div');
     row.className='feat-row feat-row-nuevos';
