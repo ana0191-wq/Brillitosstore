@@ -1778,6 +1778,7 @@ function toggleModoEvento(){
     btn.style.background='#e65100';btn.style.color='white';btn.style.borderColor='#e65100';
     btn.textContent='🎪 Evento ON';
     aplicarTasaEvento();
+    if($('inp-canal')) $('inp-canal').value='Evento';
   } else {
     if(panel) panel.style.display='none';
     btn.style.background='#fff3e0';btn.style.color='#e65100';btn.style.borderColor='#ffcc80';
@@ -1849,6 +1850,7 @@ async function guardarEditProd(){
     cerrarEditProd();
     renderProds();
     toast('✅ Producto actualizado');
+    btn.textContent='💾 Guardar'; btn.disabled=false;
   }catch(e){
     toast('❌ Error al guardar');
     btn.textContent='💾 Guardar'; btn.disabled=false;
@@ -1883,6 +1885,15 @@ function abrirProdRapidoPOS(){
 function cerrarProdRapidoPOS(){
   var modal=document.getElementById('modal-prod-rapido-pos');
   if(modal) modal.style.display='none';
+  ['qp2-nombre','qp2-precio','qp2-costo','qp2-categoria','qp2-precio-bs'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+  var stock=document.getElementById('qp2-stock'); if(stock) stock.value='1';
+  _qpFotoUrlPos='';
+  var img=document.getElementById('qp2-foto-img'); if(img){img.style.display='none';img.src='';}
+  var icon=document.getElementById('qp2-foto-icon'); if(icon) icon.style.display='block';
+  var lbl=document.getElementById('qp2-foto-label'); if(lbl) lbl.style.display='block';
+  document.querySelectorAll('#modal-prod-rapido-pos button').forEach(function(b){b.disabled=false;});
 }
 
 async function qp2SubirFoto(input){
