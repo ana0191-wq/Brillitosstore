@@ -1118,7 +1118,7 @@ tr:hover td{background:#fff8fc}
 
 // ===== CONFIG =====
 // v1777077054
-console.log('✅ Brillitos admin cargado v1777081134');
+console.log('✅ Brillitos admin cargado v1777081539');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
 const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
@@ -1362,6 +1362,7 @@ async function testVenta(){
 
 // ===== INIT =====
 async function init(){
+  try {
   toast('Cargando Brillitos... 🌸');
   document.getElementById('v-fecha-venta').value = hoyVEN();
   const results = await Promise.allSettled([
@@ -1403,6 +1404,13 @@ async function init(){
   verificarApartadosVencidos();
   iniciarVozReconocimiento();
   renderPOS();
+  } catch(err) {
+    var dbg = document.createElement('div');
+    dbg.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.85);color:#fff;z-index:999999;padding:30px;font-family:monospace;font-size:14px;overflow:auto';
+    dbg.innerHTML = '<h2 style="color:#ff6b6b">❌ Error en init()</h2><pre>'+String(err)+'\n\n'+( err&&err.stack?err.stack:'(sin stack)')+'</pre><p style="margin-top:20px;color:#aaa">Comparte este error con Juma</p>';
+    document.body.appendChild(dbg);
+    console.error('INIT ERROR:', err);
+  }
 }
 
 // ===== SCANNER QR / CÓDIGO DE BARRAS =====
