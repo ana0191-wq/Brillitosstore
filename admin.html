@@ -36,7 +36,7 @@ body{font-family:Inter,sans-serif;background:var(--bg);color:var(--text);min-hei
 .nav-item:hover{background:rgba(214,58,138,.08);color:var(--pink)}
 .nav-item.active{background:rgba(214,58,138,.12);border-left-color:var(--pink);color:var(--pink);font-weight:700}
 .nav-icon{font-size:15px;width:20px;text-align:center}
-.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.main{flex:1;overflow-y:auto;overflow-x:hidden}
 .page-header{background:white;padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
 .page-title{font-size:16px;font-weight:700}
 .header-actions{display:flex;gap:7px;flex-wrap:wrap}
@@ -168,7 +168,7 @@ tr:hover td{background:#fff8fc}
 .voz-panel{position:fixed;bottom:94px;right:24px;background:white;border-radius:16px;padding:16px;width:300px;box-shadow:0 8px 32px rgba(0,0,0,0.15);z-index:500;display:none}
 .voz-panel.open{display:block}
 .voz-transcript{background:var(--pink-light);border-radius:10px;padding:10px;font-size:13px;min-height:50px;margin-bottom:10px}
-.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#2d1b35;color:white;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;display:none;white-space:normal;word-break:break-word;max-width:80vw;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#2d1b35;color:white;padding:10px 18px;border-radius:12px;font-size:13px;font-weight:600;z-index:9999;display:none;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,0.2)}
 .toast.show{display:block;animation:slideUp 0.3s ease}
 @keyframes slideUp{from{transform:translateX(-50%) translateY(10px);opacity:0}to{transform:translateX(-50%) translateY(0);opacity:1}}
 .page{display:none}.page.active{display:block}
@@ -322,7 +322,6 @@ tr:hover td{background:#fff8fc}
   <div class="pos-layout">
     <div class="pos-productos">
       <div style="display:flex;gap:8px;align-items:center;padding:0 6px 0 6px">
-        <button onclick="abrirProdRapido(true)" title="Agregar producto rápido" style="flex-shrink:0;background:var(--pink);color:white;border:none;border-radius:10px;padding:8px 12px;font-size:18px;cursor:pointer;line-height:1">⚡</button>
         <input class="pos-search" style="flex:1" placeholder="🔍 Buscar producto..." id="pos-search" oninput="filtrarPOS()">
         <button class="pos-scan-btn" onclick="abrirScanner()" title="Escanear código QR">📷 Scan</button>
       </div>
@@ -411,7 +410,6 @@ tr:hover td{background:#fff8fc}
     <div class="header-actions">
       <button class="btn btn-secondary" onclick="exportarProductosCSV()">📊 Excel</button>
       <button class="btn btn-secondary" onclick="abrirImprimirQR()" title="Ver e imprimir QR de todos los productos">🔲 QR</button>
-      <button class="btn btn-secondary" onclick="abrirProdRapido(false)" style="background:#fff0f6;color:var(--pink);border-color:var(--pink)">⚡ Rápido</button>
       <button class="btn btn-primary" onclick="abrirModalProducto()">+ Producto</button>
     </div>
   </div>
@@ -775,8 +773,8 @@ tr:hover td{background:#fff8fc}
       </div>
     </div>
     <div class="form-group"><label>Stock</label><input type="number" id="p-stock" min="0"></div>
-    <div class="form-group"><label style="display:flex;justify-content:space-between;align-items:center">Categoría <button type="button" onclick="abrirGestorCats()" style="background:none;border:none;color:var(--pink);font-size:12px;font-weight:700;cursor:pointer;padding:0">⚙️ Gestionar</button></label><select id="p-categoria" onchange="actualizarSubcats()" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;width:100%;background:white;color:#1e293b;cursor:pointer"><option value="">— Seleccionar —</option></select></div>
-    <div class="form-group"><label style="display:flex;justify-content:space-between;align-items:center">Subcategoría <button type="button" onclick="abrirGestorSubcats()" style="background:none;border:none;color:var(--pink);font-size:12px;font-weight:700;cursor:pointer;padding:0">⚙️ Gestionar</button></label><select id="p-subcategoria" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;width:100%;background:white;color:#1e293b;cursor:pointer"><option value="">— Opcional —</option></select></div>
+    <div class="form-group"><label>Categoría</label><select id="p-categoria" onchange="actualizarSubcats()" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;width:100%;background:white;color:#1e293b;cursor:pointer"><option value="">— Seleccionar —</option></select></div>
+    <div class="form-group"><label>Subcategoría</label><select id="p-subcategoria" style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:14px;width:100%;background:white;color:#1e293b;cursor:pointer"><option value="">— Opcional —</option></select></div>
     <div class="form-group form-full"><label>Descripción</label><textarea id="p-descripcion"></textarea></div>
     <div class="form-group form-full"><label>🎨 Variantes <span style="font-size:11px;color:#888;font-weight:400">(nombre, stock, precio por variante)</span></label><div id="variantes-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div><button type="button" onclick="agregarVarianteRow()" style="background:var(--pink-light);color:var(--pink);border:1.5px dashed var(--pink);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;width:100%">➕ Agregar variante</button><input type="hidden" id="p-observaciones" value=""></div>
   </div>
@@ -1112,9 +1110,8 @@ tr:hover td{background:#fff8fc}
 <div class="toast" id="toast"></div>
 
 <script>
-
 // ===== CONFIG =====
-// v1777077054
+// v1777057050
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1172,13 +1169,7 @@ async function sbGet(t,q=''){
 }
 async function sbPost(t,d){
   const r=await fetch(SB+'/rest/v1/'+t,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(d)});
-  if(!r.ok){
-    const e=await r.text();
-    const msg=(() => { try { return JSON.parse(e).message||e; } catch(_){ return e; } })();
-    console.error('sbPost error',t,r.status,e);
-    toast('❌ Error ('+r.status+'): '+msg.slice(0,150), 8000);
-    return [];
-  }
+  if(!r.ok){ const e=await r.text(); console.error('sbPost error',t,r.status,e); toast('❌ Error al crear en '+t+' ('+r.status+'): '+e.slice(0,80)); return []; }
   return r.json();
 }
 async function sbPatch(t,id,d){
@@ -1191,9 +1182,7 @@ async function sbPatch(t,id,d){
   if(!r.ok){
     const e=await r.text();
     console.error('sbPatch ERROR',t,id,r.status,e);
-    const ep = (() => { try { return JSON.parse(e).message||e; } catch(_){ return e; } })();
-    console.error('sbPatch detail', t, id, r.status, e);
-    toast('❌ Error al guardar ('+r.status+'): '+ep.slice(0,120), 6000);
+    toast('❌ Error al guardar ('+r.status+')',5000);
   }
   return r;
 }
@@ -1367,8 +1356,7 @@ async function init(){
     sbGet('clientes','select=*&order=nombre.asc'),
     sbGet('eventos','select=*&order=fecha.desc'),
     sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200'),
-    sbGet('gastos_globales','select=*&order=fecha.desc&limit=500'),
-    sbGet('categorias','select=*&activo=eq.true&order=nombre.asc')
+    sbGet('gastos_globales','select=*&order=fecha.desc&limit=500')
   ]);
   productos = results[0].status==='fulfilled'?results[0].value:[];
   ventas    = results[1].status==='fulfilled'?results[1].value:[];
@@ -1376,8 +1364,6 @@ async function init(){
   eventos   = results[3].status==='fulfilled'?results[3].value:[];
   apartados = results[4].status==='fulfilled'?results[4].value:[];
   gastosGlobales = results[5].status==='fulfilled'&&Array.isArray(results[5].value)?results[5].value:[];
-  var catData=results[6]&&results[6].status==='fulfilled'?results[6].value:[];
-  if(Array.isArray(catData)){dbCategorias=catData.filter(function(c){return c.tipo==='categoria';}).map(function(c){return c.nombre;});dbSubcategorias=catData.filter(function(c){return c.tipo==='subcategoria';}).map(function(c){return c.nombre;});dbSubcategorias.forEach(function(s){Object.keys(CAT_SUBCAT_MAP).forEach(function(cat){if(!CAT_SUBCAT_MAP[cat].includes(s))CAT_SUBCAT_MAP[cat].push(s);});});}
   // Limpiar errores de Supabase (respuestas con "code")
   if(!Array.isArray(productos)) productos=[];
   if(!Array.isArray(ventas)) ventas=[];
@@ -1669,85 +1655,26 @@ async function verificarApartadosVencidos(){
 // ===== NAVEGACIÓN =====
 function irA(p){
   irA_queEstoyEn = p;
-  // Cambio inmediato de página
   document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
   const pg = document.getElementById('page-'+p);
-  if(pg){ pg.classList.add('active'); pg.scrollTop=0; }
-  // Reset scroll del contenedor principal
-  const mainEl = document.querySelector('.main');
-  if(mainEl) mainEl.scrollTop = 0;
-  window.scrollTo(0,0);
-  // Marcar nav activo
+  if(pg) pg.classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n=>{
     if(n.textContent.toLowerCase().includes(p.slice(0,4))) n.classList.add('active');
   });
-  // Cerrar menú móvil si está abierto
-  cerrarMobNav();
-  // Cargar contenido
   if(p==='dashboard') cargarDashboard();
-  else if(p==='pos') renderPOS();
-  else if(p==='ventas') renderVentas();
-  else if(p==='apartados') renderApartados();
-  else if(p==='productos') renderProductos();
-  else if(p==='clientes') renderClientes();
-  else if(p==='eventos') renderEventos();
-  else if(p==='gastos') renderGastosGlobal();
-  else if(p==='entregas') renderEntregas();
-  else if(p==='reportes'){ document.getElementById('reporte-mes').value=new Date().toISOString().slice(0,7); cargarReporte(); }
+  if(p==='pos') renderPOS();
+  if(p==='ventas') renderVentas();
+  if(p==='apartados') renderApartados();
+  if(p==='productos') renderProductos();
+  if(p==='clientes') renderClientes();
+  if(p==='eventos') renderEventos();
+  if(p==='gastos') renderGastosGlobal();
+  if(p==='entregas') renderEntregas();
+  if(p==='reportes'){ document.getElementById('reporte-mes').value=new Date().toISOString().slice(0,7); cargarReporte(); }
 }
 
 // ===== DASHBOARD =====
-function abrirMovimientosBancaAmiga(){
-  abrirModal('modal-bancaamiga-movs');
-  // Reutilizar renderMovimientosBancaAmiga pero apuntando al modal
-  const METODOS_BS = ['Pago Móvil','BCV','Efectivo Bs','Pago Movil'];
-  const movs = [];
-  (ventas||[]).filter(v=>v.estado!=='Cancelado').forEach(v=>{
-    const esBs = METODOS_BS.includes(v.metodo_pago||'') || parseFloat(v.monto_bs||0)>0;
-    if(!esBs) return;
-    const bs = parseFloat(v.monto_bs||0);
-    if(!bs) return;
-    movs.push({ fecha:v.fecha_venta||v.creado_en||'', tipo:'entrada',
-      desc:(v.cliente_nombre||'Cliente')+' — '+(v.numero||''), sub:v.metodo_pago||'Pago Bs', monto:bs });
-  });
-  (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno').forEach(g=>{
-    const esRepos = g.tipo==='Reposición';
-    const reposEfectivo = esRepos && (g.reposicion_de||'').startsWith('Efectivo');
-    if(esRepos && !reposEfectivo) return;
-    movs.push({ fecha:g.fecha||g.creado_en||'', tipo:esRepos?'entrada':'salida',
-      desc:g.descripcion||g.tipo, sub:g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''), monto:parseFloat(g.monto||0) });
-  });
-  movs.sort((a,b)=>(a.fecha?new Date(a.fecha):new Date(0))-(b.fecha?new Date(b.fecha):new Date(0)));
-  let saldo=0;
-  movs.forEach(m=>{ m.saldoAcum=(saldo+=(m.tipo==='entrada'?m.monto:-m.monto)); });
-  movs.reverse();
-  const saldoFinal = movs.length ? movs[0].saldoAcum : 0;
-  const sc = saldoFinal>=0?'#3a7d52':'#c62828';
-  const sb = saldoFinal>=0?'#edf7f1':'#fdecea';
-  const badge = document.getElementById('modal-ba-saldo');
-  if(badge){ badge.textContent='Bs. '+saldoFinal.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}); badge.style.color=sc; badge.style.background=sb; }
-  const el = document.getElementById('modal-ba-movs');
-  if(!el) return;
-  if(!movs.length){ el.innerHTML='<div style="color:#999;font-size:13px;padding:24px;text-align:center">Sin movimientos 🌸</div>'; return; }
-  el.innerHTML = movs.map(m=>{
-    const esEnt=m.tipo==='entrada';
-    const color=esEnt?'#3a7d52':'#c62828'; const bg=esEnt?'#edf7f1':'#fdecea';
-    const signo=esEnt?'+':'−'; const fecha=m.fecha?m.fecha.slice(0,10):'—';
-    const sc2=m.saldoAcum>=0?'#3a7d52':'#c62828';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:11px 4px;border-bottom:1px solid #f3f4f6">'
-      +'<div style="width:36px;height:36px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0">'+(esEnt?'⬆️':'⬇️')+'</div>'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+m.desc+'</div>'
-      +'<div style="font-size:11px;color:#888">'+m.sub+' · '+fecha+'</div>'
-      +'</div>'
-      +'<div style="text-align:right;flex-shrink:0">'
-      +'<div style="font-size:14px;font-weight:700;color:'+color+'">'+signo+'Bs.'+m.monto.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
-      +'<div style="font-size:10px;color:'+sc2+';font-weight:600">Saldo: Bs.'+m.saldoAcum.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
-      +'</div></div>';
-  }).join('');
-}
-
 function cargarDashboard(){
   const hoy = hoyVEN();
   const mes = mesVEN();
@@ -1783,20 +1710,9 @@ function cargarDashboard(){
     });
     gan-=parseFloat(v.descuento||0);
   });
-  // Gastos del mes — solo gastos reales en USD (excluir ajenos, reposiciones y gastos en Bs que no tienen monto_usd)
-  const gastMes = gastosGlobales.filter(g=>
-    (g.fecha||'').slice(0,7)===mes
-    && g.tipo !== 'Gasto ajeno'
-    && g.tipo !== 'Reposición'
-  );
-  const totalGastMes = gastMes.reduce((s,g)=>{
-    // Si tiene monto_usd explícito usarlo; si es en USD usar monto; si es en Bs ignorar (no sabemos el USD exacto sin tasa)
-    const usd = parseFloat(g.monto_usd||0);
-    const monto = parseFloat(g.monto||0);
-    if(usd>0) return s+usd;
-    if((g.moneda||'USD')==='USD') return s+monto;
-    return s; // gasto en Bs sin conversión — no sumar para no distorsionar
-  },0);
+  // Gastos del mes
+  const gastMes = gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes);
+  const totalGastMes = gastMes.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
   const gananciaNeta = totalMes-totalGastMes;
 
   document.getElementById('d-hoy').textContent = '$'+totalHoy.toFixed(2);
@@ -1824,48 +1740,22 @@ function cargarDashboard(){
       'PayPal':       {emoji:'🅿️', label:'PayPal',        color:'#4a4aaa', bg:'#f0f0fa', esBs:false},
     };
     // Acumulado histórico — todas las ventas no canceladas
-    // Los métodos Bs (Pago Móvil, BCV, Efectivo Bs) siempre van a BancaAmiga Luisma
-    const METODOS_BS = ['Pago Móvil','BCV','Efectivo Bs','Pago Movil'];
     const porCuentaTodo = {};
     ventas.filter(v=>v.estado!=='Cancelado').forEach(v=>{
-      const metodo = v.metodo_pago || '';
-      const esBs = METODOS_BS.includes(metodo) || parseFloat(v.monto_bs||0) > 0;
-      // Si es pago en Bs → siempre va a bancaamiga_luisma
-      // Si tiene cuenta_cobro explícita y no es Bs → usar esa cuenta
-      let key;
-      if(esBs){
-        key = 'bancaamiga_luisma';
-      } else {
-        key = v.cuenta_cobro || metodo || 'Otro';
-      }
+      const key = v.cuenta_cobro || v.metodo_pago || 'Otro';
       if(!porCuentaTodo[key]) porCuentaTodo[key]={total:0,bs:0,count:0};
       porCuentaTodo[key].total += parseFloat(v.total||0);
       porCuentaTodo[key].bs    += parseFloat(v.monto_bs||0);
       porCuentaTodo[key].count++;
     });
-    // Restar gastos Bs reales de BancaAmiga (excluir ajenos y reposiciones)
-    const gastosBs = gastosGlobales
-      .filter(g => g.moneda === 'Bs'
-        && g.tipo !== 'Reposición'
-        && g.tipo !== 'Gasto ajeno'
-      )
-      .reduce((s,g) => s + parseFloat(g.monto||0), 0);
-    // Solo las reposiciones en Efectivo entran a BancaAmiga
-    // "Comprando mercancía", "Pagando gasto/inversión" = el dinero se usó directo, no entró a la cuenta
-    const reposicionesBs = gastosGlobales
-      .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición'
-        && (g.reposicion_de||'').startsWith('Efectivo')
-      )
-      .reduce((s,g) => s + parseFloat(g.monto||0), 0);
-    const saldoNeto = reposicionesBs - gastosBs;
-    if(!porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'] = {total:0,bs:0,count:0};
-    porCuentaTodo['bancaamiga_luisma'].bs += saldoNeto;
+    // Restar gastos en Bs de BancaAmiga Luisma
+    const gastosBs = gastosGlobales.filter(g=>g.moneda==='Bs').reduce((s,g)=>s+parseFloat(g.monto||0),0);
+    if(porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'].bs -= gastosBs;
+    else if(gastosBs>0) porCuentaTodo['bancaamiga_luisma']={total:0,bs:-gastosBs,count:0};
     // Solo hoy — para badge
     const porCuentaHoy = {};
     vH.forEach(v=>{
-      const metodo = v.metodo_pago || '';
-      const esBs = METODOS_BS.includes(metodo) || parseFloat(v.monto_bs||0) > 0;
-      const key = esBs ? 'bancaamiga_luisma' : (v.cuenta_cobro || metodo || 'Otro');
+      const key = v.cuenta_cobro || v.metodo_pago || 'Otro';
       if(!porCuentaHoy[key]) porCuentaHoy[key]={total:0,bs:0,count:0};
       porCuentaHoy[key].total += parseFloat(v.total||0);
       porCuentaHoy[key].bs    += parseFloat(v.monto_bs||0);
@@ -1883,29 +1773,18 @@ function cargarDashboard(){
         ? ' <span style="font-size:10px;background:white;border:1px solid '+c.color+';color:'+c.color+';padding:2px 7px;border-radius:8px;font-weight:700">+'
           +(c.esBs&&hoy.bs>0?'Bs.'+Math.round(hoy.bs).toLocaleString('es-VE'):'$'+hoy.total.toFixed(2))+' hoy</span>'
         : '';
-      const isBa = key==='bancaamiga_luisma';
-      const clickable = isBa
-        ? ' id="tarjeta-bancaamiga" style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer"'
-        : ' style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05)"';
-      const tapHint = key==='bancaamiga_luisma' ? '<div style="font-size:10px;color:'+c.color+';opacity:.5;margin-top:6px">📋 Ver movimientos</div>' : '';
-      return '<div'+clickable+'>'
+      return '<div style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05)">'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
         +'<div style="font-size:11px;font-weight:700;color:'+c.color+';text-transform:uppercase;letter-spacing:.5px">'+c.emoji+' '+c.label+'</div>'
         +badgeHoy+'</div>'
         +montoHtml
         +'<div style="font-size:11px;color:'+c.color+';opacity:.6;margin-top:4px">'+d.count+' venta'+(d.count!==1?'s':'')+' totales</div>'
-        +tapHint
         +'</div>';
     }).join('');
     dsgEl.innerHTML = Object.keys(porCuentaTodo).length
       ? '<div style="font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px">💰 Saldo acumulado por cuenta</div>'
         +'<div style="display:flex;gap:10px;flex-wrap:wrap">'+tarjetas+'</div>'
       : '<div style="color:var(--gray);font-size:13px;padding:8px">Sin ventas registradas 🌸</div>';
-    // Bind click en tarjeta BancaAmiga
-    setTimeout(function(){
-      var t = document.getElementById('tarjeta-bancaamiga');
-      if(t) t.addEventListener('click', function(){ abrirMovimientosBancaAmiga(); });
-    }, 50);
   }
 
   // Resumen financiero
@@ -1991,9 +1870,7 @@ function cargarDashboard(){
   // Últimas ventas — incluye hoy
   document.getElementById('ultimas-ventas').innerHTML = ventas.slice(0,10)
     .map(v=>'<tr style="cursor:pointer" onclick="editVentaById('+v.id+')" title="Click para editar esta venta"><td><strong>'+(v.numero||'#'+v.id)+'</strong></td><td>'+(v.cliente_nombre||'—')+'</td><td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td><td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong>'+(v.monto_bs>0?'<br><small style="color:#2e7d32">Bs.'+parseFloat(v.monto_bs).toFixed(2)+'</small>':'')+'</td><td><span class="badge badge-'+(v.estado||'').toLowerCase()+'">'+(v.estado||'')+'</span></td><td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td><td style="font-size:11px;color:var(--gray)">✏️</td></tr>').join('');
-
 }
-
 
 // ===== POS =====
 function renderPOS(){
@@ -2691,39 +2568,29 @@ async function guardarApartado(){
     cliente_id:document.getElementById('apt-cliente-id').value||null,
     cliente_nombre:nombre,
     metodo_pago:metodoApt,
+    tipo_pago:tipoApt,
+    monto_bs:montoBS,
     abono:adelanto,
     saldo:total-adelanto,
     total,
     fecha_entrega:document.getElementById('apt-fecha-limite')?document.getElementById('apt-fecha-limite').value||null:null,
+    tipo_entrega:document.getElementById('apt-entrega')?document.getElementById('apt-entrega').value||null:null,
     canal:document.getElementById('apt-canal')?document.getElementById('apt-canal').value||'WhatsApp':'WhatsApp',
     notas:document.getElementById('apt-notas')?document.getElementById('apt-notas').value:'',
     estado:'Pendiente'
   };
   if(editAptId){
-    // Devolver stock de los items ANTERIORES antes de borrarlos
-    const aptAnterior=apartados.find(x=>x.id===editAptId);
-    const itemsAnteriores=(aptAnterior&&aptAnterior.apartado_items)||[];
-    for(const it of itemsAnteriores){
-      if(it.producto_id){
-        const p=productos.find(x=>x.id==it.producto_id);
-        if(p){ await sbPatch('productos',p.id,{stock:(p.stock||0)+parseInt(it.cantidad||1)}); p.stock=(p.stock||0)+parseInt(it.cantidad||1); }
-      }
-    }
     await sbPatch('apartados',editAptId,data);
     await sbDelete('apartado_items','apartado_id=eq.'+editAptId);
-    const HretE={...H,'Prefer':'return=minimal'};
-    for(const it of aptItems) await fetch(SB+'/rest/v1/apartado_items',{method:'POST',headers:HretE,body:JSON.stringify({apartado_id:editAptId,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
-    // Descontar stock de los items NUEVOS
-    for(const it of aptItems) if(it.producto_id){ const p=productos.find(x=>x.id==it.producto_id); if(p){ await sbPatch('productos',p.id,{stock:Math.max(0,(p.stock||0)-parseInt(it.cantidad||1))}); p.stock=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); } }
-    toast('✅ Actualizado — stock ajustado');
+    for(const it of aptItems) await fetch(SB+'/rest/v1/apartado_items',{method:'POST',headers:H,body:JSON.stringify({apartado_id:editAptId,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
+    toast('✅ Actualizado');
   } else {
     const cntApt=await sbGet('apartados','select=id&limit=1&order=id.desc');
     const lastAptId=(Array.isArray(cntApt)&&cntApt[0]&&cntApt[0].id)||0;
     data.numero='APT-'+new Date().getFullYear()+'-'+String(lastAptId+1).padStart(3,'0');
     const res=await sbPost('apartados',data); const aid=res[0]&&res[0].id;
     if(aid){
-      const HretN={...H,'Prefer':'return=minimal'};
-      for(const it of aptItems) await fetch(SB+'/rest/v1/apartado_items',{method:'POST',headers:HretN,body:JSON.stringify({apartado_id:aid,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
+      for(const it of aptItems) await fetch(SB+'/rest/v1/apartado_items',{method:'POST',headers:H,body:JSON.stringify({apartado_id:aid,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
       for(const it of aptItems) if(it.producto_id){ const p=productos.find(x=>x.id==it.producto_id); if(p){ await sbPatch('productos',p.id,{stock:Math.max(0,(p.stock||0)-it.cantidad)}); p.stock=Math.max(0,(p.stock||0)-it.cantidad); } }
     }
     toast('✅ Apartado creado — stock descontado');
@@ -2756,19 +2623,11 @@ async function eliminarApartado(id){
   const a=apartados.find(x=>x.id===id);
   if(!a){ toast('No encontrado'); return; }
   if(!confirm('¿Eliminar permanentemente el apartado #'+(a.numero||id)+'? Esta acción no se puede deshacer.')) return;
-  // Devolver stock de los productos apartados
-  const items=(a.apartado_items)||[];
-  for(const it of items){
-    if(it.producto_id){
-      const p=productos.find(x=>x.id==it.producto_id);
-      if(p){ await sbPatch('productos',p.id,{stock:(p.stock||0)+parseInt(it.cantidad||1)}); p.stock=(p.stock||0)+parseInt(it.cantidad||1); }
-    }
-  }
   await sbDelete('apartado_items','apartado_id=eq.'+id);
   await sbDelete('apartados','id=eq.'+id);
   apartados=apartados.filter(x=>x.id!==id);
-  renderApartados(); renderProductos(); cargarDashboard();
-  toast('🗑️ Apartado eliminado — stock devuelto');
+  renderApartados(); cargarDashboard();
+  toast('🗑️ Apartado eliminado');
 }
 async function cancelarApartado(id){
   const a=apartados.find(x=>x.id===id); if(!a||!confirm('¿Cancelar apartado?')) return;
@@ -2787,6 +2646,8 @@ function renderProductos(lista){
   // Nuevos primero, luego por id descendente (más reciente arriba)
   // Nuevos marcados primero, luego por id desc (más recientes arriba)
   const l=[...base].filter(p=>p.activo!==false).sort((a,b)=>{
+    if(a.es_nuevo&&!b.es_nuevo) return -1;
+    if(!a.es_nuevo&&b.es_nuevo) return 1;
     return parseInt(b.id||0)-parseInt(a.id||0);
   });
   const visible=l.slice(0,100);
@@ -2827,7 +2688,7 @@ function calcularMargen(){
   else document.getElementById('margen-wrap').style.display='none';
 }
 // Catálogo de subcategorías por categoría (del catálogo Brillitos 2026)
-const CAT_SUBCAT_MAP = {"Accesorios": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Accesorios cabello": ["Accesorios cabello", "Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Collares", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Pulseras", "Sanrio", "Snoopy", "Stitch", "Zarcillos"], "Agendas": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Anime": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "Llaveros", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Bisutería": ["Accesorios cabello", "Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Collares", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Pulseras", "Sanrio", "Snoopy", "Stitch", "Zarcillos"], "Bolsos / Carteras": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Bolígrafo multitintas": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Borradores": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Carpetas": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Cartucheras": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Correctores": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Cuadernos": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Herramientas": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Juguetes": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Kpop": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "Llaveros", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Lapiceros": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Lapiceros Borrables": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Lapiceros Multitinta": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Libretas": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Libros": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Llaveros": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Marcapáginas": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Otro": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Otros": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Papelería": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Peluches": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Portaminas": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Post its": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Ropa": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Ropa", "Sanrio", "Snoopy", "Stitch"], "Sacapuntas": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Gatitos", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Stand / Evento": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Stickers": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Perritos", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch", "Zarcillos"], "Sticky Notes": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Gatitos", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"], "Washitape": ["Anime", "BT21", "Capibara", "Capybara", "Chiikawa", "Cinnamoroll", "Harry Potter", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "Labubu", "My Melody", "One Piece", "Pokémon", "Pompompurin", "Sanrio", "Snoopy", "Stitch"]};
+const CAT_SUBCAT_MAP = {"Accesorios": ["Capybara", "Cinnamoroll", "Hello Kitty", "Kawaii", "Kuromi", "My Melody", "Sanrio", "Snoopy"], "Accesorios cabello": ["Accesorios cabello", "Collares", "Kuromi", "Pulseras", "Zarcillos"], "Agendas": ["Cinnamoroll", "Kawaii", "Kuromi"], "Bisutería": ["Accesorios cabello", "Collares", "Pulseras", "Zarcillos"], "Bolígrafo multitintas": ["BT21"], "Borradores": ["Kuromi", "Sanrio"], "Carpetas": ["Capybara"], "Cartucheras": ["Capybara", "Kuromi", "My Melody"], "Correctores": ["Kawaii"], "Cuadernos": ["Kuromi", "Sanrio"], "Kpop": ["Llaveros"], "Lapiceros": ["Anime", "Capybara", "Kawaii", "Sanrio", "Snoopy", "Stitch"], "Lapiceros Borrables": ["Kawaii", "Kpop", "One Piece", "Pompompurin"], "Lapiceros Multitinta": ["Harry Potter"], "Libretas": ["Capybara", "Kawaii", "Labubu", "Stitch"], "Llaveros": ["Anime", "BT21", "Capybara", "Cinnamoroll", "Hello Kitty", "Kawaii", "Kpop", "Kuromi", "My Melody", "Pokémon", "Sanrio", "Snoopy", "Stitch"], "Marcapáginas": ["Capybara", "Kawaii", "Sanrio", "Stitch"], "Peluches": ["Kawaii"], "Portaminas": ["Capybara", "Sanrio"], "Post its": ["Kawaii"], "Ropa": ["Ropa"], "Sacapuntas": ["Gatitos", "Kawaii", "Stitch"], "Stickers": ["Capybara", "Kawaii", "Kuromi", "Perritos", "Sanrio", "Zarcillos"], "Sticky Notes": ["Capybara", "Gatitos", "Hello Kitty", "Kawaii", "Kuromi", "Labubu", "My Melody"], "Washitape": ["Capybara", "Kawaii", "Sanrio"], "Anime": ["Anime", "Llaveros", "One Piece", "Pokémon"], "Bolsos / Carteras": ["Capybara", "Kuromi"], "Papelería": ["Kawaii"], "Otros": ["Kawaii", "Pokémon", "Sanrio"]};
 
 function poblarCatsModal(catActual='', subActual=''){
   const selCat = document.getElementById('p-categoria');
@@ -2835,7 +2696,7 @@ function poblarCatsModal(catActual='', subActual=''){
   // Categorías de la BD + las del catálogo unificadas
   const bdCats = [...new Set(productos.map(p=>(p.categoria||'').trim()).filter(Boolean))];
   const mapCats = Object.keys(CAT_SUBCAT_MAP);
-  const todas = [...new Set([...bdCats, ...mapCats, ...dbCategorias])].sort();
+  const todas = [...new Set([...bdCats, ...mapCats])].sort();
   const catNorm = (catActual||'').trim();
   selCat.innerHTML = '<option value="">— Seleccionar —</option>' + todas.map(c=>'<option value="'+c+'"'+(c===catNorm?' selected':'')+'>'+c+'</option>').join('');
   // Subcats: combinar las del mapa + las que haya en BD para esa cat
@@ -2850,7 +2711,7 @@ function actualizarSubcats(){
   const selSub = document.getElementById('p-subcategoria');
   const mapSubs = CAT_SUBCAT_MAP[cat] || [];
   const bdSubs = [...new Set(productos.filter(p=>(p.categoria||'').trim()===cat).map(p=>(p.subcategoria||'').trim()).filter(Boolean))];
-  const subs = [...new Set([...mapSubs, ...bdSubs, ...dbSubcategorias])].sort();
+  const subs = [...new Set([...mapSubs, ...bdSubs])].sort();
   selSub.innerHTML = '<option value="">— Opcional —</option>' + subs.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
 }
 function abrirModalProducto(id=null){
@@ -2998,29 +2859,12 @@ async function guardarCliente(){
 async function eliminarCliente(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('clientes','id=eq.'+id); clientes=clientes.filter(c=>c.id!==id); renderClientes(); toast('🗑️ Eliminado'); }
 
 // ===== EVENTOS =====
-async 
-function fmtFechaEvento(fecha){
-  if(!fecha) return '<span style="color:#bbb;font-size:11px">Sin fecha</span>';
-  try{
-    var d=new Date(fecha+'T12:00:00');
-    var hoy=new Date(); hoy.setHours(0,0,0,0);
-    var diff=Math.round((d-hoy)/(1000*60*60*24));
-    var fmt=d.toLocaleDateString('es-VE',{day:'numeric',month:'short',year:'numeric'});
-    var badge='',bc='#888';
-    if(diff===0){badge='Hoy';bc='#d63a8a';}
-    else if(diff>0&&diff<=7){badge='En '+diff+'d';bc='#e67e22';}
-    else if(diff>7){badge='Proximo';bc='#3a7d52';}
-    else{badge='Realizado';bc='#888';}
-    return '&#128197; '+fmt+' <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:8px;background:'+bc+'22;color:'+bc+'">'+badge+'</span>';
-  }catch(err){ return String(fecha); }
-}
 async function renderEventos(){
   const freshGastos=await sbGet('gastos_globales','select=*&order=fecha.desc');
   if(Array.isArray(freshGastos)) gastosEvento=freshGastos;
   const div=document.getElementById('lista-eventos');
   if(!eventos.length){ div.innerHTML='<div class="card" style="text-align:center;color:var(--gray)">No hay eventos</div>'; return; }
-  const eventosOrdenados=[...eventos].sort((a,b)=>{var fa=a.fecha?new Date(a.fecha+'T12:00:00'):null;var fb=b.fecha?new Date(b.fecha+'T12:00:00'):null;if(!fa&&!fb)return 0;if(!fa)return 1;if(!fb)return -1;return fa-fb;});
-  div.innerHTML=eventosOrdenados.map(e=>{
+  div.innerHTML=eventos.map(e=>{
     const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
     const totalV=vts.reduce((s,v)=>s+parseFloat(v.total||0),0);
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
@@ -3029,7 +2873,7 @@ async function renderEventos(){
     const ganancia=totalV-totalG-totalInv; const luisma=ganancia>0?ganancia*0.4:0;
     return '<div class="card">'
       +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">'
-      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+fmtFechaEvento(e.fecha)()+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
+      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+(e.fecha||'')+' · '+(e.lugar||'')+'</div></div>'
       +'<div style="display:flex;gap:6px"><button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button><button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button><button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button></div></div>'
       +'<div style="background:#fafafa;border-radius:10px;padding:10px;margin-bottom:9px">'
       +'<div style="font-size:10px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase">Gastos del evento</div>'
@@ -3060,7 +2904,7 @@ async function renderEventos(){
       +'<div class="stat-card" style="padding:9px"><div class="stat-num" style="font-size:16px;color:var(--purple)">$'+(ganancia*0.4).toFixed(2)+'</div><div class="stat-label">Luisma (40%)</div></div></div>'
       +(ganancia>0?'<div class="luisma-box"><div style="font-weight:700;color:var(--purple)">👨‍💼 Luisma — a pagarle</div><div style="font-size:20px;font-weight:800;color:var(--purple);margin:4px 0">$'+luisma.toFixed(2)+'</div><div style="font-size:12px;color:#666">40% de $'+ganancia.toFixed(2)+'</div></div>':'')
       +(e.notas?'<div style="margin-top:7px;font-size:12px;color:var(--gray)">📝 '+e.notas+'</div>':'')
-      +'</div></div>';
+      +'</div>';
   }).join('');
 }
 function abrirModalEvento(id=null){
@@ -3452,11 +3296,6 @@ function exportarProductosCSV(){
 function descargarCSV(csv,nombre){ const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8;'})); a.download=nombre; a.click(); }
 
 // ===== UTILS =====
-// ══════════════════════════════════════════
-// MOVIMIENTOS BANCAAMIGA
-// ══════════════════════════════════════════
-
-
 function cerrarModal(id){
   document.getElementById(id).classList.remove('open');
   if(history.state&&history.state.modal===id) history.back();
@@ -3554,32 +3393,25 @@ function selectAllApt(){
 }
 async function bulkDeleteApt(){
   const ids = [...document.querySelectorAll('.apt-check:checked')].map(c => parseInt(c.dataset.id));
-  if(!ids.length){ toast('Selecciona al menos un apartado'); return; }
+  if(!ids.length){ showToast('Selecciona al menos un apartado'); return; }
   if(!confirm('¿Eliminar ' + ids.length + ' apartado(s)? Esta acción no se puede deshacer.')){ return; }
-  toast('Eliminando...');
+  showToast('Eliminando...');
   let ok = 0, err = 0;
   for(const id of ids){
     try{
-      // Devolver stock
-      const aptB=apartados.find(x=>x.id===id);
-      const itemsB=(aptB&&aptB.apartado_items)||[];
-      for(const it of itemsB){
-        if(it.producto_id){
-          const p=productos.find(x=>x.id==it.producto_id);
-          if(p){ await sbPatch('productos',p.id,{stock:(p.stock||0)+parseInt(it.cantidad||1)}); p.stock=(p.stock||0)+parseInt(it.cantidad||1); }
-        }
-      }
-      await fetch(SB+'/rest/v1/apartado_items?apartado_id=eq.'+id, {
+      // Eliminar items primero
+      await fetch(SUPABASE_URL+'/rest/v1/apartado_items?apartado_id=eq.'+id, {
         method:'DELETE', headers:{...H,'Prefer':'return=minimal'}
       });
-      const r = await fetch(SB+'/rest/v1/apartados?id=eq.'+id, {
+      // Eliminar apartado
+      const r = await fetch(SUPABASE_URL+'/rest/v1/apartados?id=eq.'+id, {
         method:'DELETE', headers:{...H,'Prefer':'return=minimal'}
       });
       if(r.ok){ ok++; apartados = apartados.filter(a => a.id !== id); }
       else { err++; }
     } catch(e){ err++; }
   }
-  toast(ok + ' apartado(s) eliminado(s) — stock devuelto' + (err ? ' · ' + err + ' error(es)' : '') + ' 🌸');
+  showToast(ok + ' apartado(s) eliminado(s)' + (err ? ' · ' + err + ' error(es)' : '') + ' 🌸');
   _aptSelectMode = false;
   const btn = document.getElementById('btn-select-apt');
   if(btn) btn.textContent = '☑️ Seleccionar';
@@ -3606,14 +3438,11 @@ function _renderVariantRows(){
   _variantesModal.forEach(function(v,i){
     if(v._delete) return;
     var nom = (v.nombre||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;');
-    var imgThumb = v.imagen ? '<img src="'+v.imagen+'" style="width:36px;height:36px;object-fit:cover;border-radius:6px;border:1.5px solid var(--border);flex-shrink:0">' : '<div style="width:36px;height:36px;border-radius:6px;border:1.5px dashed #ddd;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0">📷</div>';
     rows += '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fdf2f8;border-radius:10px;padding:8px">'
-      +'<div onclick="vSubirFoto('+i+')" style="cursor:pointer;flex-shrink:0" title="Toca para subir foto">'+imgThumb+'</div>'
       +'<input type="text" placeholder="Nombre (Rosa, Talla M...)" value="'+nom+'" data-vi="'+i+'" data-campo="nombre" class="v-inp" style="flex:2;min-width:100px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px">'
       +'<input type="number" placeholder="Stock" value="'+(v.stock||0)+'" min="0" data-vi="'+i+'" data-campo="stock" class="v-inp" style="flex:1;min-width:60px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px">'
-      +'<input type="number" placeholder="Precio (vacío=igual)" value="'+(v.precio&&v.precio>0?v.precio:'')+'" min="0" step="0.5" data-vi="'+i+'" data-campo="precio" class="v-inp" style="flex:1;min-width:90px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px">'
-      +'<button type="button" data-vi="'+i+'" class="v-del" style="background:#ffe0f0;color:#e91e8c;border:none;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:16px;flex-shrink:0">??️</button>'
-
+      +'<input type="number" placeholder="Precio $" value="'+(v.precio||'')+'" min="0" step="0.5" data-vi="'+i+'" data-campo="precio" class="v-inp" style="flex:1;min-width:70px;border:1.5px solid var(--border);border-radius:8px;padding:7px 10px;font-size:13px">'
+      +'<button type="button" data-vi="'+i+'" class="v-del" style="background:#ffe0f0;color:#e91e8c;border:none;border-radius:8px;padding:7px 10px;cursor:pointer;font-size:16px;flex-shrink:0">\uD83D\uDDD1\uFE0F</button>'
       +'</div>';
   });
   el.innerHTML = rows;
@@ -3639,40 +3468,10 @@ function _vDel(i){
 }
 
 function agregarVarianteRow(){
-  _variantesModal.push({id:null,nombre:'',precio:null,stock:0,activo:true,imagen:null,_delete:false});
+  _variantesModal.push({id:null,nombre:'',precio:null,stock:0,activo:true,_delete:false});
   _renderVariantRows();
   var inputs = document.querySelectorAll('#variantes-lista .v-inp');
   if(inputs.length) inputs[inputs.length-3].focus();
-}
-function vSubirFoto(vi){
-  var fotos = fotosSubidas || [];
-  var old = document.getElementById('v-foto-picker');
-  if(old) old.remove();
-  if(!fotos.length){ toast('\u26a0\ufe0f Primero sube fotos al producto'); return; }
-  var picker = document.createElement('div');
-  picker.id = 'v-foto-picker';
-  picker.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;background:rgba(0,0,0,0.65);z-index:99999;display:flex;align-items:center;justify-content:center;-webkit-overflow-scrolling:touch';
-  var inner = '<div style="background:#fff;border-radius:20px;padding:22px;max-width:420px;width:92%;max-height:80vh;overflow-y:auto;-webkit-overflow-scrolling:touch">'
-    +'<div style="font-weight:800;font-size:16px;margin-bottom:14px;color:#e91e8c;text-align:center">\uD83D\uDCF7 Elige la foto para esta variante</div>'
-    +'<div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center">';
-  fotos.forEach(function(url, fi){
-    inner += '<img src="'+url+'" data-url="'+url+'" style="width:120px;height:120px;object-fit:cover;border-radius:12px;border:3px solid #eee;cursor:pointer;flex-shrink:0" onclick="vPickFoto('+vi+',this)">';
-  });
-  inner += '</div>'
-    +'<div style="margin-top:18px;text-align:center">'
-    +'<button onclick="var p=document.getElementById(\'v-foto-picker\');if(p)p.remove();" style="border:none;background:#f3f4f6;color:#666;border-radius:10px;padding:10px 28px;cursor:pointer;font-size:14px;font-weight:600">Cancelar</button>'
-    +'</div></div>';
-  picker.innerHTML = inner;
-  picker.addEventListener('click', function(e){ if(e.target===picker) picker.remove(); });
-  document.body.appendChild(picker);
-}
-function vPickFoto(vi, img){
-  var url = img.dataset.url;
-  _variantesModal[vi].imagen = url;
-  _renderVariantRows();
-  var p = document.getElementById('v-foto-picker');
-  if(p) p.remove();
-  toast('\u2705 Foto asignada a la variante');
 }
 
 async function guardarVariantesProducto(prodId){
@@ -3687,13 +3486,13 @@ async function guardarVariantesProducto(prodId){
       );
     } else if(!v._delete && !v.id && v.nombre && v.nombre.trim()){
       ops.push(
-        sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true,imagen:v.imagen||null})
+        sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:parseFloat(v.precio)||null,stock:parseInt(v.stock)||0,activo:true})
           .then(function(r){ if(r&&r.length>0) creadas++; else errores++; })
           .catch(function(e){ errores++; toast('❌ Error creando variante "'+v.nombre+'": '+e.message); })
       );
     } else if(!v._delete && v.id && v.nombre && v.nombre.trim()){
       ops.push(
-        sbPatch('producto_variantes', v.id, {nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true,imagen:v.imagen||null})
+        sbPatch('producto_variantes', v.id, {nombre:v.nombre.trim(),precio:parseFloat(v.precio)||null,stock:parseInt(v.stock)||0,activo:true})
           .then(function(r){ if(r&&r.ok) actualizadas++; else errores++; })
           .catch(function(e){ errores++; toast('❌ Error actualizando variante "'+v.nombre+'": '+e.message); })
       );
@@ -3711,24 +3510,11 @@ async function guardarVariantesProducto(prodId){
 }
 // ── FIN VARIANTES ADMIN ──────────────────────────
 
+</script>
 
-// ═══════════════════════════════
-// GESTOR DE CATEGORÍAS Y SUBCATS
-// ═══════════════════════════════
-
-function abrirGestorCats(){gcRL();gcPS();abrirModal('modal-cats');}
-function abrirGestorSubcats(){gcRL();gcPS();abrirModal('modal-cats');setTimeout(function(){var e=document.getElementById('gc-cat-para-sub');if(e)e.focus();},300);}
-function gcTodasCats(){return[...new Set([...dbCategorias,...Object.keys(CAT_SUBCAT_MAP),...productos.map(function(p){return(p.categoria||'').trim();}).filter(Boolean)])].sort();}
-function gcTodasSubs(){return[...new Set([...dbSubcategorias,...[].concat.apply([],Object.values(CAT_SUBCAT_MAP)),...productos.map(function(p){return(p.subcategoria||'').trim();}).filter(Boolean)])].sort();}
-function gcPS(){var sel=document.getElementById('gc-cat-para-sub');if(!sel)return;sel.innerHTML='<option value="">- Categoria -</option>'+gcTodasCats().map(function(c){return'<option value="'+c+'">'+c+'</option>';}).join('');}
-function gcRL(){var el=document.getElementById('gc-lista');if(!el)return;el.innerHTML=gcTodasCats().map(function(cat){var subs=[...new Set([...(CAT_SUBCAT_MAP[cat]||[]),...dbSubcategorias,...productos.filter(function(p){return(p.categoria||'').trim()===cat;}).map(function(p){return(p.subcategoria||'').trim();}).filter(Boolean)])].sort();return'<div style="background:#fdf2f8;border-radius:10px;padding:10px 12px;margin-bottom:4px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><span style="font-weight:700;font-size:13px;color:var(--pink)">'+cat+'</span><button data-cat="'+encodeURIComponent(cat)+'" onclick="gcDelCat(this)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:11px;padding:2px 6px;border:1px solid #ddd;border-radius:6px">x Eliminar</button></div><div style="display:flex;flex-wrap:wrap;gap:5px">'+subs.map(function(s){return'<span style="background:white;border:1.5px solid var(--border);border-radius:20px;padding:3px 10px;font-size:12px;display:inline-flex;align-items:center;gap:5px">'+s+'<button data-cat="'+encodeURIComponent(cat)+'" data-sub="'+encodeURIComponent(s)+'" onclick="gcDel(this)" style="background:none;border:none;color:#aaa;cursor:pointer;font-size:13px;padding:0">&times;</button></span>';}).join('')+(subs.length===0?'<span style="color:#aaa;font-size:12px">Sin subcategorias</span>':'')+'</div></div>';}).join('');}
-async function gcAgregarCat(){var inp=document.getElementById('gc-nueva-cat'),cat=(inp.value||'').trim();if(!cat){toast('⚠️ Escribe una categoria');return;}var res=await sbPost('categorias',{nombre:cat,tipo:'categoria',activo:true});if(res&&res.length>0){if(!dbCategorias.includes(cat)){dbCategorias.push(cat);dbCategorias.sort();}if(!CAT_SUBCAT_MAP[cat])CAT_SUBCAT_MAP[cat]=[];inp.value='';gcRL();gcPS();poblarCatsModal(document.getElementById('p-categoria').value||'',document.getElementById('p-subcategoria').value||'');toast('✅ Categoria "'+cat+'" guardada');}else{toast('❌ Error al guardar');}}
-async function gcAgregarSub(){var cat=document.getElementById('gc-cat-para-sub').value,inp=document.getElementById('gc-nueva-sub'),sub=(inp.value||'').trim();if(!cat){toast('⚠️ Selecciona una categoria');return;}if(!sub){toast('⚠️ Escribe una subcategoria');return;}var res=await sbPost('categorias',{nombre:sub,tipo:'subcategoria',activo:true});if(res&&res.length>0){if(!dbSubcategorias.includes(sub))dbSubcategorias.push(sub);if(!CAT_SUBCAT_MAP[cat])CAT_SUBCAT_MAP[cat]=[];if(!CAT_SUBCAT_MAP[cat].includes(sub)){CAT_SUBCAT_MAP[cat].push(sub);CAT_SUBCAT_MAP[cat].sort();}inp.value='';gcRL();gcPS();poblarCatsModal(document.getElementById('p-categoria').value||'',document.getElementById('p-subcategoria').value||'');toast('✅ "'+sub+'" guardada');}else{toast('❌ Error al guardar');}}
-async function gcDel(btn){var cat=decodeURIComponent(btn.dataset.cat),sub=decodeURIComponent(btn.dataset.sub);if(!confirm('Eliminar "'+sub+'"?'))return;var rows=await sbGet('categorias','select=id&nombre=eq.'+encodeURIComponent(sub)+'&tipo=eq.subcategoria');if(rows&&rows[0])await sbPatch('categorias',rows[0].id,{activo:false});dbSubcategorias=dbSubcategorias.filter(function(s){return s!==sub;});if(CAT_SUBCAT_MAP[cat])CAT_SUBCAT_MAP[cat]=CAT_SUBCAT_MAP[cat].filter(function(s){return s!==sub;});gcRL();poblarCatsModal(document.getElementById('p-categoria').value||'',document.getElementById('p-subcategoria').value||'');toast('??️ "'+sub+'" eliminada');}
-async function gcDelCat(btn){var cat=decodeURIComponent(btn.dataset.cat);if(!confirm('Eliminar categoria "'+cat+'"?'))return;var rows=await sbGet('categorias','select=id&nombre=eq.'+encodeURIComponent(cat)+'&tipo=eq.categoria');if(rows&&rows[0])await sbPatch('categorias',rows[0].id,{activo:false});dbCategorias=dbCategorias.filter(function(c){return c!==cat;});delete CAT_SUBCAT_MAP[cat];gcRL();gcPS();poblarCatsModal('','');toast('??️ Categoria "'+cat+'" eliminada');}
-
-
-function crearProdDesdeVenta(idx, nombreEnc, t){
+<a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
+</body>
+</html>function crearProdDesdeVenta(idx, nombreEnc, t){
   var nombre = (typeof nombreEnc==='string' ? nombreEnc : '').trim();
   if(!nombre){ toast('⚠️ Escribe un nombre'); return; }
   // Agregar producto básico al array de items con nombre y sin ID
@@ -3746,288 +3532,3 @@ function crearProdDesdeVenta(idx, nombreEnc, t){
   if(t==='v') renderItems(); else renderAptItems();
   toast('✏️ Producto "'+nombre+'" agregado — ajusta el precio', 3000);
 }
-
-// ══════════════════════════════════════════
-// PRODUCTO RÁPIDO
-// ══════════════════════════════════════════
-var _qpDesdePos = false;
-var _qpFotoUrl = '';
-
-function abrirProdRapido(desdePos){
-  _qpDesdePos = desdePos;
-  _qpFotoUrl = '';
-  document.getElementById('qp-nombre').value = '';
-  document.getElementById('qp-precio').value = '';
-  document.getElementById('qp-stock').value = '1';
-  document.getElementById('qp-costo').value = '';
-  document.getElementById('qp-categoria').value = '';
-  // Foto
-  var img = document.getElementById('qp-foto-img');
-  var icon = document.getElementById('qp-foto-icon');
-  var lbl = document.getElementById('qp-foto-label');
-  img.style.display = 'none';
-  icon.style.display = '';
-  lbl.style.display = '';
-  // Botón POS
-  document.getElementById('qp-btn-pos').style.display = desdePos ? 'block' : 'none';
-  // Llenar categorías
-  var dl = document.getElementById('qp-cats-list');
-  dl.innerHTML = '';
-  var cats = [...new Set((productos||[]).map(function(p){ return p.categoria; }).filter(Boolean))].sort();
-  cats.forEach(function(c){ var o = document.createElement('option'); o.value = c; dl.appendChild(o); });
-  abrirModal('modal-prod-rapido');
-  setTimeout(function(){ document.getElementById('qp-nombre').focus(); }, 300);
-}
-
-function qpActualizarBtnPOS(){
-  var btn = document.getElementById('qp-btn-pos');
-  if(!_qpDesdePos) return;
-  var nombre = document.getElementById('qp-nombre').value.trim();
-  var precio = parseFloat(document.getElementById('qp-precio').value);
-  btn.disabled = !nombre || isNaN(precio) || precio <= 0;
-  btn.style.opacity = btn.disabled ? '0.5' : '1';
-}
-
-async function qpSubirFoto(input){
-  if(!input.files || !input.files[0]) return;
-  var file = input.files[0];
-  var loader = document.getElementById('qp-foto-loader');
-  var icon = document.getElementById('qp-foto-icon');
-  var lbl = document.getElementById('qp-foto-label');
-  loader.style.display = 'flex';
-  icon.style.display = 'none';
-  lbl.style.display = 'none';
-  try {
-    var ext = file.name.split('.').pop().toLowerCase() || 'jpg';
-    var nombre = 'productos/' + Date.now() + '_' + Math.random().toString(36).slice(2) + '.' + ext;
-    var r = await fetch(BUNNY_STORAGE + '/' + nombre, {
-      method: 'PUT',
-      headers: { 'AccessKey': BUNNY_KEY, 'Content-Type': file.type || 'image/jpeg' },
-      body: file
-    });
-    if(r.ok || r.status === 201){
-      _qpFotoUrl = BUNNY_CDN + '/' + nombre;
-      var img = document.getElementById('qp-foto-img');
-      img.src = _qpFotoUrl;
-      img.style.display = 'block';
-      toast('✅ Foto lista');
-    } else {
-      toast('❌ Error subiendo foto (' + r.status + ')');
-      icon.style.display = '';
-      lbl.style.display = '';
-    }
-  } catch(e) {
-    toast('❌ Error: ' + e.message);
-    icon.style.display = '';
-    lbl.style.display = '';
-  }
-  loader.style.display = 'none';
-  input.value = '';
-}
-
-async function qpGuardar(agregarPOS){
-  var nombre = document.getElementById('qp-nombre').value.trim();
-  var precio = parseFloat(document.getElementById('qp-precio').value);
-  if(!nombre){ toast('⚠️ El nombre es obligatorio'); document.getElementById('qp-nombre').focus(); return null; }
-  if(isNaN(precio) || precio <= 0){ toast('⚠️ El precio es obligatorio'); document.getElementById('qp-precio').focus(); return null; }
-  var data = {
-    nombre: nombre,
-    precio: precio,
-    precio_costo: parseFloat(document.getElementById('qp-costo').value) || 0,
-    stock: parseInt(document.getElementById('qp-stock').value) || 0,
-    categoria: document.getElementById('qp-categoria').value.trim() || 'Otro',
-    imagen: _qpFotoUrl || '',
-    imagenes: _qpFotoUrl ? [_qpFotoUrl] : [],
-    activo: true,
-    es_nuevo: true
-  };
-  var res = await sbPost('productos', data);
-  if(!res || !res[0]){ toast('❌ Error guardando producto'); return null; }
-  var prod = res[0];
-  productos.unshift(prod);
-  renderProductos();
-  renderPOS();
-  if(!agregarPOS){
-    cerrarModal('modal-prod-rapido');
-    toast('✅ ' + nombre + ' agregado al catálogo 🌸');
-  }
-  return prod;
-}
-
-async function qpGuardarYAgregarPOS(){
-  var prod = await qpGuardar(true);
-  if(!prod) return;
-  // Agregar al carrito del POS
-  posAgregarProducto(prod);
-  cerrarModal('modal-prod-rapido');
-  toast('✅ ' + prod.nombre + ' agregado al carrito 🛒');
-}
-
-function renderMovimientosBancaAmiga(){
-  const el = document.getElementById('bancaamiga-movs');
-  const badge = document.getElementById('bancaamiga-saldo-badge');
-  if(!el) return;
-  const METODOS_BS = ['Pago Móvil','BCV','Efectivo Bs','Pago Movil'];
-  const movs = [];
-  // ENTRADAS — ventas en Bs
-  (ventas||[]).filter(v=>v.estado!=='Cancelado').forEach(v=>{
-    const esBs = METODOS_BS.includes(v.metodo_pago||'') || parseFloat(v.monto_bs||0)>0;
-    if(!esBs) return;
-    const bs = parseFloat(v.monto_bs||0);
-    if(!bs) return;
-    movs.push({
-      fecha: v.fecha_venta||v.creado_en||'',
-      tipo: 'entrada',
-      desc: (v.cliente_nombre||'Cliente')+' — '+(v.numero||''),
-      sub: v.metodo_pago||'Pago Bs',
-      monto: bs
-    });
-  });
-  // SALIDAS — gastos en Bs (no ajenos, no reposiciones-no-efectivo)
-  (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno').forEach(g=>{
-    const esRepos = g.tipo==='Reposición';
-    const reposEfectivo = esRepos && (g.reposicion_de||'').startsWith('Efectivo');
-    if(esRepos && !reposEfectivo) return;
-    movs.push({
-      fecha: g.fecha||g.creado_en||'',
-      tipo: esRepos ? 'entrada' : 'salida',
-      desc: g.descripcion||g.tipo,
-      sub: g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''),
-      monto: parseFloat(g.monto||0)
-    });
-  });
-  // Ordenar por fecha asc para calcular saldo corriente
-  movs.sort((a,b)=>{
-    const da=a.fecha?new Date(a.fecha):new Date(0);
-    const db=b.fecha?new Date(b.fecha):new Date(0);
-    return da-db;
-  });
-  let saldo=0;
-  movs.forEach(m=>{ m.saldoAcum = (saldo += m.tipo==='entrada' ? m.monto : -m.monto); });
-  // Mostrar desc
-  movs.reverse();
-  const saldoFinal = movs.length ? movs[0].saldoAcum : 0;
-  const saldoColor = saldoFinal>=0?'#3a7d52':'#c62828';
-  const saldoBg    = saldoFinal>=0?'#edf7f1':'#fdecea';
-  if(badge){
-    badge.textContent = 'Bs. '+saldoFinal.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
-    badge.style.color=saldoColor; badge.style.background=saldoBg;
-  }
-  if(!movs.length){
-    el.innerHTML='<div style="color:#999;font-size:13px;padding:16px;text-align:center">Sin movimientos 🌸</div>';
-    return;
-  }
-  el.innerHTML = movs.map(m=>{
-    const esEnt=m.tipo==='entrada';
-    const color=esEnt?'#3a7d52':'#c62828';
-    const bg=esEnt?'#edf7f1':'#fdecea';
-    const signo=esEnt?'+':'−';
-    const fecha=m.fecha?m.fecha.slice(0,10):'—';
-    const sc=m.saldoAcum>=0?'#3a7d52':'#c62828';
-    return '<div style="display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #f3f4f6">'
-      +'<div style="width:34px;height:34px;border-radius:50%;background:'+bg+';display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0">'+(esEnt?'⬆️':'⬇️')+'</div>'
-      +'<div style="flex:1;min-width:0">'
-      +'<div style="font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+m.desc+'</div>'
-      +'<div style="font-size:11px;color:#888">'+m.sub+' · '+fecha+'</div>'
-      +'</div>'
-      +'<div style="text-align:right;flex-shrink:0">'
-      +'<div style="font-size:14px;font-weight:700;color:'+color+'">'+signo+'Bs.'+m.monto.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
-      +'<div style="font-size:10px;color:'+sc+';font-weight:600">Saldo: Bs.'+m.saldoAcum.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
-      +'</div></div>';
-  }).join('');
-}
-</script>
-
-<a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
-
-<div id="modal-cats" class="modal-overlay" style="display:none" onclick="if(event.target===this)cerrarModal('modal-cats')"><div class="modal-box" style="max-width:480px;max-height:85vh;overflow-y:auto"><div class="modal-title">&#9881; Categorias y Subcategorias</div><div style="margin-bottom:12px"><label style="font-size:12px;font-weight:700;color:#666;display:block;margin-bottom:6px">Nueva categoria</label><div style="display:flex;gap:8px"><input id="gc-nueva-cat" type="text" placeholder="Ej: Peluches" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px"><button onclick="gcAgregarCat()" style="background:var(--pink);color:white;border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer">+ Agregar</button></div></div><div style="margin-bottom:14px"><label style="font-size:12px;font-weight:700;color:#666;display:block;margin-bottom:6px">Nueva subcategoria</label><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="gc-cat-para-sub" style="flex:1;min-width:130px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:white"></select><input id="gc-nueva-sub" type="text" placeholder="Ej: Chiikawa" style="flex:2;min-width:110px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px"><button onclick="gcAgregarSub()" style="background:var(--pink);color:white;border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer">+ Agregar</button></div></div><div id="gc-lista" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div><div style="margin-top:16px;text-align:right"><button onclick="cerrarModal('modal-cats')" class="btn btn-secondary">Cerrar</button></div></div></div>
-
-<!-- MODAL: PRODUCTO RÁPIDO -->
-<div class="modal-bg" id="modal-prod-rapido" onclick="if(event.target===this)cerrarModal('modal-prod-rapido')">
-<div class="modal" style="max-width:420px">
-  <div class="modal-title">⚡ Producto Rápido</div>
-
-  <!-- Foto -->
-  <div style="display:flex;justify-content:center;margin-bottom:16px">
-    <div id="qp-foto-preview" onclick="document.getElementById('qp-camara').click()"
-      style="width:120px;height:120px;border-radius:14px;border:2.5px dashed var(--pink);
-             display:flex;flex-direction:column;align-items:center;justify-content:center;
-             cursor:pointer;background:#fff5f8;overflow:hidden;flex-shrink:0;position:relative">
-      <span id="qp-foto-icon" style="font-size:36px">📷</span>
-      <span id="qp-foto-label" style="font-size:11px;color:#999;margin-top:4px">Toca para foto</span>
-      <img id="qp-foto-img" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
-      <div id="qp-foto-loader" style="display:none;position:absolute;inset:0;background:rgba(255,255,255,.8);
-           display:none;align-items:center;justify-content:center;font-size:13px;color:var(--pink)">⏫ Subiendo...</div>
-    </div>
-    <input type="file" id="qp-camara" accept="image/*" capture="environment" style="display:none" onchange="qpSubirFoto(this)">
-  </div>
-
-  <div class="form-grid">
-    <!-- Nombre -->
-    <div class="form-group form-full">
-      <label>Nombre <span style="color:var(--pink)">*</span></label>
-      <input type="text" id="qp-nombre" placeholder="Ej: Llavero Cinnamoroll" autocomplete="off"
-             style="font-size:16px" oninput="qpActualizarBtnPOS()">
-    </div>
-    <!-- Precio -->
-    <div class="form-group">
-      <label>Precio $ <span style="color:var(--pink)">*</span></label>
-      <input type="number" id="qp-precio" placeholder="0.00" step="0.01" min="0"
-             style="font-size:16px" oninput="qpActualizarBtnPOS()">
-    </div>
-    <!-- Stock -->
-    <div class="form-group">
-      <label>Stock inicial</label>
-      <input type="number" id="qp-stock" placeholder="0" min="0" value="1">
-    </div>
-    <!-- Categoría -->
-    <div class="form-group form-full">
-      <label>Categoría</label>
-      <input type="text" id="qp-categoria" placeholder="Ej: Llaveros" list="qp-cats-list" autocomplete="off">
-      <datalist id="qp-cats-list"></datalist>
-    </div>
-    <!-- Precio costo -->
-    <div class="form-group form-full">
-      <label>Precio costo $ <span style="color:#aaa;font-weight:400;font-size:12px">(opcional)</span></label>
-      <input type="number" id="qp-costo" placeholder="0.00" step="0.01" min="0">
-    </div>
-  </div>
-
-  <div class="modal-footer" style="flex-direction:column;gap:8px">
-    <!-- Guardar y agregar al POS (si viene del POS) -->
-    <button id="qp-btn-pos" onclick="qpGuardarYAgregarPOS()"
-      style="display:none;width:100%;background:var(--pink);color:white;border:none;
-             border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer">
-      🛒 Guardar y agregar al carrito
-    </button>
-    <!-- Solo guardar -->
-    <button onclick="qpGuardar(false)"
-      style="width:100%;background:#f3f4f6;color:#1e293b;border:none;
-             border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer">
-      💾 Solo guardar en catálogo
-    </button>
-    <button onclick="cerrarModal('modal-prod-rapido')"
-      style="background:none;border:none;color:#999;font-size:13px;cursor:pointer;padding:4px">
-      Cancelar
-    </button>
-  </div>
-</div>
-</div>
-
-<!-- MODAL: MOVIMIENTOS BANCAAMIGA -->
-<div class="modal-bg" id="modal-bancaamiga-movs" onclick="if(event.target===this)cerrarModal('modal-bancaamiga-movs')">
-<div class="modal" style="max-width:480px;max-height:85vh;display:flex;flex-direction:column">
-  <div class="modal-title" style="display:flex;align-items:center;justify-content:space-between">
-    <span>🏦 BancaAmiga Luisma</span>
-    <span id="modal-ba-saldo" style="font-size:15px;font-weight:800;padding:4px 14px;border-radius:20px;background:#edf7f1;color:#3a7d52"></span>
-  </div>
-  <div id="modal-ba-movs" style="overflow-y:auto;flex:1;padding:0 2px"></div>
-  <div class="modal-footer">
-    <button class="btn btn-secondary" onclick="cerrarModal('modal-bancaamiga-movs')">Cerrar</button>
-  </div>
-</div>
-</div>
-
-</body>
-</html>
-
