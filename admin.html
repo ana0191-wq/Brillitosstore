@@ -3437,8 +3437,8 @@ async function cargarReporte(){
   const vM=ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
   const total=vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
   const totalBs=vM.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
-  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes);
-  const totalGastMes=gastMes.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición');
+  const totalGastMes=gastMes.reduce((s,g)=>{const usd=parseFloat(g.monto_usd||0);const monto=parseFloat(g.monto||0);if(usd>0)return s+usd;if((g.moneda||'USD')==='USD')return s+monto;return s;},0);
   const gananciaMes=total-totalGastMes;
   document.getElementById('reporte-stats').innerHTML=
     '<div class="stat-card"><div class="stat-num">$'+total.toFixed(2)+'</div><div class="stat-label">💰 Total ventas</div></div>'
