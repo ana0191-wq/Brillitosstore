@@ -214,6 +214,12 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 }
 .pcard-foot{display:flex;align-items:center;justify-content:space-between}
 .pcard-price{font-size:16px;font-weight:800;color:var(--pk)}
+.pcard-edit-btn{
+  background:none;border:none;font-size:13px;cursor:pointer;
+  padding:2px 4px;border-radius:6px;opacity:0.6;flex-shrink:0;
+  transition:opacity .15s;
+}
+.pcard-edit-btn:hover{opacity:1;background:rgba(214,58,138,.1);}
 .pcard-add-btn{
   width:32px;height:32px;border-radius:10px;
   background:var(--pk-l);color:var(--pk);font-size:20px;font-weight:700;
@@ -795,6 +801,33 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   </div>
 </div>
 
+<!-- MODAL EDITAR PRODUCTO -->
+<div class="modal-ov" id="modal-edit-prod" onclick="if(event.target===this)cerrarEditProd()" style="display:none;align-items:center;justify-content:center">
+  <div class="modal-box" style="max-width:340px;padding:20px 18px;border-radius:20px" onclick="event.stopPropagation()">
+    <div style="font-size:15px;font-weight:800;color:var(--pk-d);margin-bottom:14px">✏️ Editar producto</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <div><label style="font-size:11px;font-weight:700;color:var(--sub)">NOMBRE</label>
+        <input id="ep-nombre" style="width:100%;height:36px;border:1.5px solid var(--border);border-radius:9px;padding:0 10px;font-size:13px;margin-top:3px;box-sizing:border-box;outline:none"></div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1"><label style="font-size:11px;font-weight:700;color:var(--sub)">PRECIO $</label>
+          <input id="ep-precio" type="number" step="0.01" oninput="epSyncBs()" style="width:100%;height:36px;border:1.5px solid var(--border);border-radius:9px;padding:0 10px;font-size:13px;margin-top:3px;box-sizing:border-box;outline:none"></div>
+        <div style="flex:1"><label style="font-size:11px;font-weight:700;color:var(--sub)">PRECIO Bs</label>
+          <input id="ep-precio-bs" type="number" step="1" oninput="epSyncUsd()" style="width:100%;height:36px;border:1.5px solid #ffcc80;border-radius:9px;padding:0 10px;font-size:13px;margin-top:3px;box-sizing:border-box;outline:none"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <div style="flex:1"><label style="font-size:11px;font-weight:700;color:var(--sub)">COSTO $</label>
+          <input id="ep-costo" type="number" step="0.01" style="width:100%;height:36px;border:1.5px solid var(--border);border-radius:9px;padding:0 10px;font-size:13px;margin-top:3px;box-sizing:border-box;outline:none"></div>
+        <div style="flex:1"><label style="font-size:11px;font-weight:700;color:var(--sub)">STOCK</label>
+          <input id="ep-stock" type="number" style="width:100%;height:36px;border:1.5px solid var(--border);border-radius:9px;padding:0 10px;font-size:13px;margin-top:3px;box-sizing:border-box;outline:none"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button onclick="cerrarEditProd()" style="flex:1;height:40px;border:1.5px solid var(--border);background:white;border-radius:10px;font-size:14px;cursor:pointer;color:var(--sub)">Cancelar</button>
+        <button onclick="guardarEditProd()" style="flex:2;height:40px;background:var(--pk);color:white;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL PEDIDO CLIENTE -->
 <div class="modal-ov" id="modal-pedido" onclick="if(event.target===this)cerrarPedido()">
   <div class="modal-box" style="max-width:340px;padding:0;overflow:hidden;border-radius:22px" onclick="event.stopPropagation()">
@@ -1261,6 +1294,7 @@ function renderProds(){
       <div class="pcard-body">
         <div class="pcard-name">${p.nombre||''}</div>
         <div class="pcard-foot">
+          <button class="pcard-edit-btn" onclick="event.stopPropagation();abrirEditProd(${p.id})" title="Editar">✏️</button>
           <div style="flex:1"></div>
           ${ctrl}
         </div>
@@ -1741,6 +1775,50 @@ function qpSyncPrecioFromBs(){
   const usd_inp=$('qp2-precio');
   if(usd_inp&&bs>0&&bcv>0) usd_inp.value=(bs/bcv).toFixed(2);
   qpActualizarBtnPOS2&&qpActualizarBtnPOS2();
+}
+// ── EDITAR PRODUCTO DESDE POS ──
+let _editProdId=null;
+function abrirEditProd(pid){
+  const p=prods.find(x=>x.id===pid); if(!p) return;
+  _editProdId=pid;
+  $('ep-nombre').value=p.nombre||'';
+  $('ep-precio').value=parseFloat(p.precio||0).toFixed(2);
+  $('ep-precio-bs').value=bcv>0?(parseFloat(p.precio||0)*bcv).toFixed(0):'';
+  $('ep-costo').value=parseFloat(p.precio_costo||0).toFixed(2);
+  $('ep-stock').value=parseInt(p.stock||0);
+  $('modal-edit-prod').style.display='flex';
+}
+function cerrarEditProd(){
+  $('modal-edit-prod').style.display='none';
+  _editProdId=null;
+}
+function epSyncBs(){
+  const usd=parseFloat($('ep-precio').value)||0;
+  if(usd>0&&bcv>0) $('ep-precio-bs').value=(usd*bcv).toFixed(0);
+}
+function epSyncUsd(){
+  const bs=parseFloat($('ep-precio-bs').value)||0;
+  if(bs>0&&bcv>0) $('ep-precio').value=(bs/bcv).toFixed(2);
+}
+async function guardarEditProd(){
+  if(!_editProdId) return;
+  const nombre=$('ep-nombre').value.trim();
+  const precio=parseFloat($('ep-precio').value);
+  const costo=parseFloat($('ep-costo').value)||0;
+  const stock=parseInt($('ep-stock').value)||0;
+  if(!nombre||isNaN(precio)){toast('⚠️ Nombre y precio obligatorios');return;}
+  const btn=event.target; btn.textContent='Guardando...'; btn.disabled=true;
+  try{
+    await PATCH('productos',_editProdId,{nombre,precio,precio_costo:costo,stock});
+    const i=prods.findIndex(x=>x.id===_editProdId);
+    if(i>=0) prods[i]={...prods[i],nombre,precio,precio_costo:costo,stock};
+    cerrarEditProd();
+    renderProds();
+    toast('✅ Producto actualizado');
+  }catch(e){
+    toast('❌ Error al guardar');
+    btn.textContent='💾 Guardar'; btn.disabled=false;
+  }
 }
 function editarTasaManual(){
   const nueva=prompt('💱 Ingresa la tasa BCV de hoy (Bs por $):', bcv.toFixed(2));
