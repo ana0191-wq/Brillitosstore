@@ -1157,22 +1157,11 @@ async function init(){
     const data=await GET('productos','select=*&order=id.desc&limit=500');
     prods=Array.isArray(data)?data.filter(p=>p.activo!==false):[];
     $('loading-sub').textContent='Cargando tasa BCV...';
-    try{
-      let ok=false;
-      for(const url of ['https://ve.dolarapi.com/v1/dolares/oficial','https://pydolarve.org/api/v1/dollar?page=bcv']){
-        try{
-          const r=await fetch(url,{signal:AbortSignal.timeout(5000)});
-          const j=await r.json();
-          const v=parseFloat(j.promedio||j.price||0);
-          if(v>100){bcv=v;ok=true;break;}
-        }catch(e){}
-      }
-      if(!ok) bcv=484.74;
-    }catch(e){bcv=484.74;}
+    bcv=484.74; // tasa manual — editar aquí cuando cambie
     $('bcv-badge').textContent='💱 Bs. '+bcv.toFixed(2)+' ✏️';
     $('bcv-badge').style.cursor='pointer';
     $('bcv-badge').onclick=function(){ editarTasaManual(); };
-    if(bcv>0)$('inp-tasa').value=bcv.toFixed(2);
+    $('inp-tasa').value=bcv.toFixed(2);
     renderCats();renderProds();poblarCuentas();
     selMet(document.querySelector('.met-btn.active'),'Pago Móvil');
     $('loading').style.display='none';
