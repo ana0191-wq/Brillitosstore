@@ -360,6 +360,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
     <input type="text" id="search-input" placeholder="Buscar productos kawaii... ✨" autocomplete="off">
   </div>
   <div class="header-btns">
+    <button class="hbtn" onclick="cargarCatalogo()" title="Actualizar productos" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:white;font-size:16px;padding:6px 10px;border-radius:10px;cursor:pointer">🔄</button>
     <button class="hbtn hbtn-order" onclick="window.location.href='pedidos.html'">🛍️ <span class="btn-text">Pedidos Online</span></button>
     <button class="hbtn hbtn-cart" onclick="openCart()">
       🛒 <span class="btn-text cart-text">Carrito</span>
@@ -634,8 +635,8 @@ async function cargarCatalogo() {
   try {
     // Query productos y variantes por separado para no depender del foreign key
     var [respProds, respVars] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=eq.true&order=es_nuevo.desc,id.desc&limit=1000', {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+      fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=eq.true&order=es_nuevo.desc,id.desc&limit=1000&_t=' + Date.now(), {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Cache-Control': 'no-cache' }
       }),
       fetch(SUPABASE_URL + '/rest/v1/producto_variantes?select=*&activo=eq.true&order=id.asc', {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
@@ -1441,6 +1442,7 @@ document.getElementById('cat-pills').addEventListener('click',e=>{const p=e.targ
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeModal();closeCart();closeOrders();}});
 
 cargarCatalogo();
+setInterval(function(){ cargarCatalogo(); }, 5 * 60 * 1000);
 
 
 
