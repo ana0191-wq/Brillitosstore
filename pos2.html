@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="es">
-<head><!-- v1777051117 -->
+<head><!-- v1777076526 -->
 <meta charset="UTF-8">
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
 <meta http-equiv="Pragma" content="no-cache">
@@ -604,6 +604,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     <!-- Topbar -->
     <div class="topbar">
       <div class="topbar-title">Productos <span id="prod-count"></span></div>
+      <button onclick="abrirProdRapidoPOS()" title="Producto rápido" style="background:linear-gradient(135deg,#d63a8a,#ff6eb4);color:white;border:none;border-radius:10px;padding:8px 13px;font-size:18px;cursor:pointer;line-height:1;flex-shrink:0">⚡</button>
       <div class="topbar-search">
         <span class="topbar-search-ico">🔍</span>
         <input id="search-inp" placeholder="Buscar producto..." oninput="filtrar()" autocomplete="off">
@@ -827,6 +828,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 <div class="toast" id="toast"></div>
 
 <script>
+
 const SB  = 'https://xavqokyzdmqzguicjsrq.supabase.co';
 const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU';
 const H   = {apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'};
@@ -1621,12 +1623,9 @@ document.addEventListener('click',e=>{
 });
 
 init();
-</script>
 
 
-<a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap">🛍️ Tienda</a>
-</body>
-</htmlfunction mostrarModalVariantePOS(p, variantes){
+function mostrarModalVariantePOS(p, variantes){
   var existing=document.getElementById('modal-var-pos');
   if(existing) existing.remove();
   var m=document.createElement('div');
@@ -1664,4 +1663,124 @@ init();
   cancel.addEventListener('click',function(){ document.getElementById('modal-var-pos').remove(); });
   wrap.appendChild(title); wrap.appendChild(sub); wrap.appendChild(opts); wrap.appendChild(cancel);
   m.appendChild(wrap); document.body.appendChild(m);
-}>
+}
+
+// ══════════════════════════════════════════
+// PRODUCTO RÁPIDO
+// ══════════════════════════════════════════
+const BUNNY_STORAGE_POS = 'https://storage.bunnycdn.com/brillitos';
+const BUNNY_KEY_POS = 'd5221d2d-53eb-4513-a919885f03f0-5a1f-4857';
+const BUNNY_CDN_POS = 'https://Brillitos.b-cdn.net';
+var _qpFotoUrlPos = '';
+
+function abrirProdRapidoPOS(){
+  _qpFotoUrlPos='';
+  ['qp2-nombre','qp2-precio','qp2-stock','qp2-costo','qp2-categoria'].forEach(function(id){
+    var el=document.getElementById(id);if(el) el.value=(id==='qp2-stock'?'1':'');
+  });
+  var img=document.getElementById('qp2-foto-img');
+  if(img){img.style.display='none';img.src='';}
+  var icon=document.getElementById('qp2-foto-icon');if(icon)icon.style.display='';
+  var lbl=document.getElementById('qp2-foto-label');if(lbl)lbl.style.display='';
+  var cats=[...new Set((productos||[]).map(function(p){return p.categoria;}).filter(Boolean))].sort();
+  var dl=document.getElementById('qp2-cats-list');
+  if(dl) dl.innerHTML=cats.map(function(c){return '<option value="'+c+'">';}).join('');
+  var modal=document.getElementById('modal-prod-rapido-pos');
+  if(modal) modal.style.display='flex';
+  setTimeout(function(){var el=document.getElementById('qp2-nombre');if(el)el.focus();},300);
+}
+
+function cerrarProdRapidoPOS(){
+  var modal=document.getElementById('modal-prod-rapido-pos');
+  if(modal) modal.style.display='none';
+}
+
+async function qp2SubirFoto(input){
+  if(!input.files||!input.files[0]) return;
+  var file=input.files[0];
+  var loader=document.getElementById('qp2-foto-loader');
+  var icon=document.getElementById('qp2-foto-icon');
+  var lbl=document.getElementById('qp2-foto-label');
+  if(loader) loader.style.display='flex';
+  if(icon) icon.style.display='none';
+  if(lbl) lbl.style.display='none';
+  try{
+    var ext=file.name.split('.').pop().toLowerCase()||'jpg';
+    var nombre='productos/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
+    var r=await fetch(BUNNY_STORAGE_POS+'/'+nombre,{method:'PUT',headers:{'AccessKey':BUNNY_KEY_POS,'Content-Type':file.type||'image/jpeg'},body:file});
+    if(r.ok||r.status===201){
+      _qpFotoUrlPos=BUNNY_CDN_POS+'/'+nombre;
+      var img=document.getElementById('qp2-foto-img');
+      if(img){img.src=_qpFotoUrlPos;img.style.display='block';}
+      toast('✅ Foto lista');
+    } else {
+      toast('❌ Error foto ('+r.status+')');
+      if(icon) icon.style.display='';
+      if(lbl) lbl.style.display='';
+    }
+  } catch(e){
+    toast('❌ '+e.message);
+    if(icon) icon.style.display='';
+    if(lbl) lbl.style.display='';
+  }
+  if(loader) loader.style.display='none';
+  input.value='';
+}
+
+async function qp2Guardar(agregarCarrito){
+  var nombre=(document.getElementById('qp2-nombre').value||'').trim();
+  var precio=parseFloat(document.getElementById('qp2-precio').value||0);
+  if(!nombre){toast('⚠️ Nombre obligatorio');document.getElementById('qp2-nombre').focus();return;}
+  if(!precio||precio<=0){toast('⚠️ Precio obligatorio');document.getElementById('qp2-precio').focus();return;}
+  var data={
+    nombre:nombre, precio:precio,
+    precio_costo:parseFloat(document.getElementById('qp2-costo').value||0)||0,
+    stock:parseInt(document.getElementById('qp2-stock').value||1)||1,
+    categoria:(document.getElementById('qp2-categoria').value||'').trim()||'Otro',
+    imagen:_qpFotoUrlPos||'',
+    imagenes:_qpFotoUrlPos?[_qpFotoUrlPos]:[],
+    activo:true, es_nuevo:true
+  };
+  var H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+  var res=await fetch(SB+'/rest/v1/productos',{method:'POST',headers:H,body:JSON.stringify(data)});
+  if(!res.ok){toast('❌ Error al guardar ('+res.status+')');return;}
+  var arr=await res.json();
+  var prod=Array.isArray(arr)?arr[0]:arr;
+  if(!prod){toast('❌ Sin respuesta del servidor');return;}
+  productos.push(prod);
+  renderProds();
+  cerrarProdRapidoPOS();
+  if(agregarCarrito){agregarAlCarrito(prod.id);toast('✅ '+nombre+' agregado al carrito 🛒');}
+  else{toast('✅ '+nombre+' guardado en catálogo 🌸');}
+}
+
+</script>
+
+<!-- MODAL PRODUCTO RÁPIDO POS -->
+<div id="modal-prod-rapido-pos" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9999;align-items:center;justify-content:center;padding:16px">
+  <div style="background:white;border-radius:20px;padding:20px;width:100%;max-width:420px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="font-size:18px;font-weight:800;color:#1e293b;margin-bottom:16px;text-align:center">⚡ Producto Rápido</div>
+    <div style="display:flex;justify-content:center;margin-bottom:16px">
+      <div onclick="document.getElementById('qp2-camara').click()" style="width:110px;height:110px;border-radius:14px;border:2.5px dashed #d63a8a;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;background:#fff5f8;overflow:hidden;flex-shrink:0;position:relative">
+        <span id="qp2-foto-icon" style="font-size:34px">📷</span>
+        <span id="qp2-foto-label" style="font-size:11px;color:#999;margin-top:4px">Toca para foto</span>
+        <img id="qp2-foto-img" style="display:none;width:100%;height:100%;object-fit:cover;position:absolute;inset:0">
+        <div id="qp2-foto-loader" style="display:none;position:absolute;inset:0;background:rgba(255,255,255,.85);align-items:center;justify-content:center;font-size:13px;color:#d63a8a">⏫</div>
+      </div>
+      <input type="file" id="qp2-camara" accept="image/*" capture="environment" style="display:none" onchange="qp2SubirFoto(this)">
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+      <div style="grid-column:1/-1"><label style="font-size:12px;font-weight:600;color:#475569">Nombre *</label><input id="qp2-nombre" type="text" placeholder="Ej: Llavero Cinnamoroll" autocomplete="off" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+      <div><label style="font-size:12px;font-weight:600;color:#475569">Precio $ *</label><input id="qp2-precio" type="number" placeholder="0.00" step="0.01" min="0" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+      <div><label style="font-size:12px;font-weight:600;color:#475569">Stock</label><input id="qp2-stock" type="number" placeholder="1" value="1" min="0" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+      <div style="grid-column:1/-1"><label style="font-size:12px;font-weight:600;color:#475569">Categoría</label><input id="qp2-categoria" type="text" placeholder="Ej: Llaveros" list="qp2-cats-list" autocomplete="off" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;box-sizing:border-box;margin-top:4px"><datalist id="qp2-cats-list"></datalist></div>
+      <div style="grid-column:1/-1"><label style="font-size:12px;font-weight:600;color:#475569">Costo $ <span style="font-weight:400;color:#aaa">(opcional)</span></label><input id="qp2-costo" type="number" placeholder="0.00" step="0.01" min="0" style="width:100%;padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:10px;font-size:15px;box-sizing:border-box;margin-top:4px"></div>
+    </div>
+    <button onclick="qp2Guardar(true)" style="width:100%;background:linear-gradient(135deg,#d63a8a,#ff6eb4);color:white;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">🛒 Guardar y agregar al carrito</button>
+    <button onclick="qp2Guardar(false)" style="width:100%;background:#f3f4f6;color:#1e293b;border:none;border-radius:12px;padding:13px;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:8px">💾 Solo guardar en catálogo</button>
+    <button onclick="cerrarProdRapidoPOS()" style="width:100%;background:none;border:none;color:#999;font-size:13px;cursor:pointer;padding:4px">Cancelar</button>
+  </div>
+</div>
+
+</body>
+</html>
