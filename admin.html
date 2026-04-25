@@ -1233,7 +1233,7 @@ async function getBCV(fecha){
     const tasa = parseFloat(d.promedio||d.price||d.ventaBcv||0);
     if(tasa>0){ bcvHoy=tasa; bcvCache[hoy]=tasa; bcvCache[target]=tasa; return tasa; }
   } catch(e){ console.warn('BCV timeout/error:', e.message); }
-  bcvCache[target]=484.74; bcvHoy=bcvHoy||484.74; return bcvCache[target];
+  bcvHoy=bcvHoy||484.74; bcvCache[target]=bcvHoy; return bcvHoy;
   return bcvCache[target];
 }
 
