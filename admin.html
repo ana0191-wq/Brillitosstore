@@ -364,7 +364,7 @@ tr:hover td{background:#fff8fc}
     <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">🛒 Ventas</div>
     <div class="header-actions">
       <button class="btn btn-secondary" onclick="exportarVentasCSV()">📊 Excel</button>
-      <button class="btn" style="background:#ede7f6;color:#4527a0;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer" onclick="cambiarCanalMasivoHoy()">🎪 Canal hoy</button>
+      <button class="btn" style="background:#ede7f6;color:#4527a0;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer" onclick="asignarEventoMasivoHoy()">🎪 Asignar evento</button>
       <button class="btn btn-primary" onclick="abrirModalVenta()">+ Nueva Venta</button>
     </div>
   </div>
@@ -3625,6 +3625,27 @@ async function cargarReporte(){
 }
 
 // ===== EXPORTS =====
+async function asignarEventoMasivoHoy(){
+  try{
+    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+    const r=await fetch(SB+'/rest/v1/eventos?select=id,nombre,fecha&order=fecha.desc&limit=20',{headers:H});
+    const evs=await r.json();
+    if(!evs||!evs.length){toast('No hay eventos registrados');return;}
+    const input=prompt('Asignar ventas de HOY a cual evento? Escribe el numero (1='+evs[0].nombre+', 2='+( evs[1]?evs[1].nombre:'...')+', etc)','1');
+    const lista=evs.map((e,i)=>(i+1)+'. '+e.nombre).join(', ');
+    if(!input) return;
+    const idx=parseInt(input)-1;
+    if(isNaN(idx)||idx<0||idx>=evs.length){toast('Número inválido');return;}
+    const ev=evs[idx];
+    const hoy=new Date().toISOString().slice(0,10);
+    if(!confirm('Asignar todas las ventas de '+hoy+' al evento "'+ev.nombre+'"?')) return;
+    const res=await fetch(SB+'/rest/v1/ventas?created_at=gte.'+hoy+'T00:00:00&created_at=lte.'+hoy+'T23:59:59',
+      {method:'PATCH',headers:H,body:JSON.stringify({evento_id:ev.id,canal:'Evento'})});
+    if(!res.ok){toast('Error '+res.status);return;}
+    toast('Ventas de hoy asignadas a "'+ev.nombre+'" y canal actualizado a Evento');
+    setTimeout(()=>location.reload(),1500);
+  }catch(e){toast('Error: '+e.message);}
+}
 async function cambiarCanalMasivoHoy(){
   const canales=['POS','Evento','WhatsApp','Instagram','Web','TikTok'];
   const nuevo=prompt('Canal para ventas de hoy (POS, Evento, WhatsApp, Instagram, Web, TikTok):','Evento');
