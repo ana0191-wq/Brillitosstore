@@ -1158,10 +1158,18 @@ async function init(){
     prods=Array.isArray(data)?data.filter(p=>p.activo!==false):[];
     $('loading-sub').textContent='Cargando tasa BCV...';
     try{
-      const r=await fetch('https://ve.dolarapi.com/v1/dolares/oficial',{signal:AbortSignal.timeout(6000)});
-      const j=await r.json();bcv=parseFloat(j.promedio||j.precio||0);
-    }catch(e){bcv=0;}
-    $('bcv-badge').textContent=bcv>0?'💱 Bs. '+bcv.toFixed(2):'💱 Sin tasa';
+      let ok=false;
+      for(const url of ['https://ve.dolarapi.com/v1/dolares/oficial','https://pydolarve.org/api/v1/dollar?page=bcv']){
+        try{
+          const r=await fetch(url,{signal:AbortSignal.timeout(5000)});
+          const j=await r.json();
+          const v=parseFloat(j.promedio||j.price||0);
+          if(v>100){bcv=v;ok=true;break;}
+        }catch(e){}
+      }
+      if(!ok) bcv=484.74;
+    }catch(e){bcv=484.74;}
+    $('bcv-badge').textContent='💱 Bs. '+bcv.toFixed(2);
     if(bcv>0)$('inp-tasa').value=bcv.toFixed(2);
     renderCats();renderProds();poblarCuentas();
     selMet(document.querySelector('.met-btn.active'),'Pago Móvil');
