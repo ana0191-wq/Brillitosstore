@@ -3075,6 +3075,46 @@ async function renderEventos(){
       +'<div class="stat-card" style="padding:9px"><div class="stat-num" style="font-size:16px;color:var(--purple)">$'+(ganancia*0.4).toFixed(2)+'</div><div class="stat-label">Luisma (40%)</div></div></div>'
       +(ganancia>0?'<div class="luisma-box"><div style="font-weight:700;color:var(--purple)">👨‍💼 Luisma — a pagarle</div><div style="font-size:20px;font-weight:800;color:var(--purple);margin:4px 0">$'+luisma.toFixed(2)+'</div><div style="font-size:12px;color:#666">40% de $'+ganancia.toFixed(2)+'</div></div>':'')
       +(e.notas?'<div style="margin-top:7px;font-size:12px;color:var(--gray)">📝 '+e.notas+'</div>':'')
+      +(function(){
+        // Punto de equilibrio del evento
+        var costoTotal=totalG+totalInv;
+        if(costoTotal<=0) return '';
+        // Margen promedio de los productos vendidos en este evento
+        var costoMerc=0; vts.forEach(function(v){(v.venta_items||[]).forEach(function(it){var p=productos.find(function(x){return x.id==it.producto_id;});if(p&&p.precio_costo>0)costoMerc+=parseFloat(p.precio_costo||0)*parseInt(it.cantidad||1);});});
+        var margen=totalV>0?((totalV-costoMerc)/totalV):0.35; if(margen<=0||margen>1)margen=0.35;
+        // Para recuperar inversión+gastos (sin considerar la división 60/40)
+        var paraRecuperar=costoTotal/margen;
+        // Para que después de gastos quede algo para Luisma y para ti
+        // Necesitas: costoTotal + X, donde X*0.4 = pago Luisma y X*0.6 = tu ganancia
+        // Para al menos pagar a Luisma: costoTotal / 0.6 (el 40% restante cubre su pago del excedente)
+        var paraLuisma=costoTotal/0.6;
+        // Para ganar tú algo (+20% sobre costos): 
+        var paraGanar=(costoTotal*1.2)/0.6;
+        var faltaRecuperar=Math.max(0,paraRecuperar-totalV);
+        var faltaLuisma=Math.max(0,paraLuisma-totalV);
+        var faltaGanar=Math.max(0,paraGanar-totalV);
+        return '<div style="background:linear-gradient(135deg,#fdeef6,#fff5fb);border-radius:12px;padding:13px;margin-top:10px;border-left:4px solid var(--pink)">'
+          +'<div style="font-size:12px;font-weight:800;color:var(--pink-dark);margin-bottom:10px">🎯 ¿Cuánto necesitas vender?</div>'
+          +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
+          +'<div style="background:white;border-radius:9px;padding:10px;text-align:center">'
+            +'<div style="font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:3px">💸 Recuperar</div>'
+            +'<div style="font-size:17px;font-weight:800;color:var(--orange)">$'+paraRecuperar.toFixed(2)+'</div>'
+            +'<div style="font-size:11px;font-weight:600;margin-top:3px;color:'+(faltaRecuperar===0?'var(--green)':'var(--red)')+'">'+( faltaRecuperar===0?'✅ Cubierto':'Faltan $'+faltaRecuperar.toFixed(2))+'</div>'
+          +'</div>'
+          +'<div style="background:white;border-radius:9px;padding:10px;text-align:center">'
+            +'<div style="font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:3px">👨‍💼 Pagar Luisma</div>'
+            +'<div style="font-size:17px;font-weight:800;color:var(--purple)">$'+paraLuisma.toFixed(2)+'</div>'
+            +'<div style="font-size:11px;font-weight:600;margin-top:3px;color:'+(faltaLuisma===0?'var(--green)':'var(--red)')+'">'+( faltaLuisma===0?'✅ Cubierto':'Faltan $'+faltaLuisma.toFixed(2))+'</div>'
+          +'</div>'
+          +'<div style="background:white;border-radius:9px;padding:10px;text-align:center">'
+            +'<div style="font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:3px">🏆 Ganar (+20%)</div>'
+            +'<div style="font-size:17px;font-weight:800;color:var(--green)">$'+paraGanar.toFixed(2)+'</div>'
+            +'<div style="font-size:11px;font-weight:600;margin-top:3px;color:'+(faltaGanar===0?'var(--green)':'var(--red)')+'">'+( faltaGanar===0?'✅ Cubierto':'Faltan $'+faltaGanar.toFixed(2))+'</div>'
+          +'</div>'
+          +'</div>'
+          +'<div style="font-size:10px;color:var(--gray);margin-top:8px">Margen promedio: '+(margen*100).toFixed(0)+'% · Inversión+Gastos: $'+costoTotal.toFixed(2)+'</div>'
+          +'</div>';
+      })()
       +'</div></div>';
   }).join('');
 }
