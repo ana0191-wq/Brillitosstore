@@ -1166,9 +1166,18 @@ let reconocimiento=null, vozTranscript='', vozVentaDetectada=null;
 
 // ===== API SUPABASE =====
 async function sbGet(t,q=''){
-  const r=await fetch(SB+'/rest/v1/'+t+'?'+q,{headers:H});
-  if(!r.ok){ const e=await r.text(); console.error('sbGet error',t,r.status,e); toast('❌ Error al cargar '+t+' ('+r.status+')'); return []; }
-  return r.json();
+  try{
+    const ctrl = new AbortController();
+    const tid = setTimeout(()=>ctrl.abort(), 10000);
+    const r = await fetch(SB+'/rest/v1/'+t+'?'+q, {headers:H, signal:ctrl.signal});
+    clearTimeout(tid);
+    if(!r.ok){ const e=await r.text(); console.error('sbGet error',t,r.status,e); return []; }
+    const data = await r.json();
+    return Array.isArray(data) ? data : [];
+  }catch(e){
+    console.error('sbGet falló',t,e.message);
+    return [];
+  }
 }
 async function sbPost(t,d){
   const r=await fetch(SB+'/rest/v1/'+t,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(d)});
@@ -3485,7 +3494,7 @@ function toast(msg,duracion){
 function formatFecha(str){ if(!str)return'—'; try{return new Date(str).toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return str;} }
 document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
 
-init();
+document.addEventListener('DOMContentLoaded', function(){ init(); });
 window.addEventListener('error',function(e){
   // Solo mostrar si no es un error de recursos (imágenes rotas, etc)
   if(e.message&&e.message!=='Script error.'&&!e.filename.includes('supabase')){
