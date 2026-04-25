@@ -681,6 +681,16 @@ async function cargarCatalogo() {
     var statEl = document.getElementById('stat-prods');
     if(statEl) statEl.textContent = CATALOG.length;
     
+    // Debug temporal — desaparece en 20s
+    (function(){
+      var dbg=document.getElementById('debug-info2');
+      if(!dbg){ dbg=document.createElement('div'); dbg.id='debug-info2';
+        dbg.style.cssText='position:fixed;bottom:0;left:0;right:0;background:#1e293b;color:#40c4d3;font-size:11px;font-weight:700;padding:6px 10px;z-index:99999;text-align:center';
+        document.body.appendChild(dbg); }
+      var ultimos5 = CATALOG.slice(0,5).map(function(p){ return p.nombre.slice(0,15)+'(esNuevo='+p.esNuevo+',stock='+p.stock+')'; }).join(' | ');
+      dbg.textContent = 'CATALOG total:'+CATALOG.length+' | esNuevo:'+CATALOG.filter(function(p){return p.esNuevo;}).length+' || Primeros: '+ultimos5;
+      setTimeout(function(){ dbg.remove(); }, 20000);
+    })();
     // Re-inicializar
     init();
   } catch(e) {
