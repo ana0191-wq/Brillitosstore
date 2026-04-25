@@ -3625,6 +3625,21 @@ async function cargarReporte(){
 }
 
 // ===== EXPORTS =====
+async function cambiarCanalMasivoHoy(){
+  const canales=['POS','Evento','WhatsApp','Instagram','Web','TikTok'];
+  const nuevo=prompt('Canal para ventas de hoy (POS, Evento, WhatsApp, Instagram, Web, TikTok):','Evento');
+  if(!nuevo||!canales.includes(nuevo)){toast('⚠️ Canal inválido');return;}
+  const hoy=new Date().toISOString().slice(0,10);
+  if(!confirm('Cambiar canal de todas las ventas de '+hoy+' a "'+nuevo+'"?')) return;
+  try{
+    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+    const res=await fetch(SB+'/rest/v1/ventas?created_at=gte.'+hoy+'T00:00:00&created_at=lte.'+hoy+'T23:59:59',
+      {method:'PATCH',headers:H,body:JSON.stringify({canal:nuevo})});
+    if(!res.ok){toast('❌ Error '+res.status);return;}
+    toast('✅ Ventas de hoy actualizadas a canal: '+nuevo+' ??');
+    setTimeout(()=>location.reload(),1500);
+  }catch(e){toast('❌ '+e.message);}
+}
 function exportarVentasCSV(){
   let csv='Número,Fecha Venta,Cliente,Canal,Productos,Total $,Bs,Tasa BCV,Método,Entrega,Estado\n';
   ventas.forEach(v=>{ const prods=(v.venta_items||[]).map(i=>(i.producto_nombre||'')+'(x'+i.cantidad+')').join(' | '); csv+=[v.numero||v.id,v.fecha_venta||formatFecha(v.creado_en),v.cliente_nombre,v.canal,prods,v.total,v.monto_bs||0,v.tasa_bcv_usada||0,v.metodo_pago,v.tipo_entrega,v.estado].map(x=>'"'+(x||'').toString().replace(/"/g,'""')+'"').join(',')+'\n'; });
