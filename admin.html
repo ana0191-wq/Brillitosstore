@@ -3317,6 +3317,24 @@ async function renderEventos(){
     const tuParte=ganancia>0?ganancia*0.7:0;
     const luismaParte=ganancia>0?ganancia*0.3:0;
 
+    // ── Deuda a Mamá ──
+    // Por cada item de producto de mamá: le debo (precio_venta - costo - 0.50) por unidad
+    var deudaMama=0;
+    var itemsMama=[];
+    vts.forEach(function(v){
+      (v.venta_items||[]).forEach(function(it){
+        var p=productos.find(function(x){return x.id==it.producto_id;});
+        if(!p||p.propietario!=='Mamá') return;
+        var cant=parseInt(it.cantidad||1);
+        var precioVenta=parseFloat(it.precio_unitario||p.precio||0);
+        var costo=parseFloat(p.precio_costo||0);
+        var porUnidad=precioVenta-costo-0.50;
+        var subtotal=porUnidad*cant;
+        deudaMama+=subtotal;
+        itemsMama.push({nombre:p.nombre,cant:cant,precioVenta:precioVenta,costo:costo,subtotal:subtotal});
+      });
+    });
+
     // ── Estado del evento ──
     const hoy=new Date(); hoy.setHours(0,0,0,0);
     const fechaEv=e.fecha?new Date(e.fecha+'T12:00:00'):null;
@@ -3451,6 +3469,27 @@ async function renderEventos(){
         :'')
 
       +'</div>'
+
+      // ── DEUDA MAMÁ ──
+      +(deudaMama>0
+        ?(function(){
+          var filasMama=itemsMama.map(function(it){
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #fce4ec">'
+              +'<span style="color:#555">'+it.nombre+(it.cant>1?' ×'+it.cant:'')+'</span>'
+              +'<span style="font-weight:700;color:#c2185b">$'+it.subtotal.toFixed(2)+'</span>'
+              +'</div>';
+          }).join('');
+          return '<div style="background:#fff0f4;border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid #f48fb1">'
+            +'<div style="font-size:11px;font-weight:800;color:#c2185b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">👩‍👧 Le debes a Mamá</div>'
+            +filasMama
+            +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 0;margin-top:4px;border-top:2px solid #f48fb1">'
+            +'<span style="font-size:13px;font-weight:800">Total a pagarle</span>'
+            +'<span style="font-size:18px;font-weight:900;color:#c2185b">$'+deudaMama.toFixed(2)+'</span>'
+            +'</div>'
+            +'<div style="font-size:11px;color:#888;margin-top:6px">precio venta − costo − $0.50 por producto</div>'
+            +'</div>';
+        })()
+        :'')
 
       // ── GASTOS DETALLE (colapsable) ──
       +'<div style="margin-bottom:14px">'
