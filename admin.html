@@ -1876,14 +1876,14 @@ function abrirMovimientosBancaAmiga(){
 function cargarDashboard(){
   const hoy = hoyVEN();
   const mes = mesVEN();
-  const vH = ventas.filter(v=>{
-    const fv=(v.fecha_venta||'').slice(0,10);
-    const fc=(v.creado_en||'').slice(0,10);
-    // creado_en viene en UTC, ajustar a Venezuela
-    const fcVen = v.creado_en ? new Date(new Date(v.creado_en).getTime()-4*60*60*1000).toISOString().slice(0,10) : '';
-    return (fv===hoy||fc===hoy||fcVen===hoy)&&v.estado!=='Cancelado';
-  });
-  const vM = ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
+  // Fecha efectiva: si tiene fecha_venta la respetamos, si no usamos creado_en ajustado a Venezuela
+  const fechaEfectiva=v=>{
+    if(v.fecha_venta) return v.fecha_venta.slice(0,10);
+    if(v.creado_en) return new Date(new Date(v.creado_en).getTime()-4*60*60*1000).toISOString().slice(0,10);
+    return '';
+  };
+  const vH = ventas.filter(v=>fechaEfectiva(v)===hoy&&v.estado!=='Cancelado');
+  const vM = ventas.filter(v=>fechaEfectiva(v).slice(0,7)===mes&&v.estado!=='Cancelado');
   const aptActivos = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
   const totalHoy = vH.reduce((s,v)=>s+parseFloat(v.total||0),0);
   const totalMes = vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
