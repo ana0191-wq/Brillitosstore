@@ -3347,6 +3347,20 @@ async function renderEventos(){
     const totalGastoLuisma=gastosLuismaDescuento.reduce((s,g)=>s+gastoUsd(g),0);
     const totalInv=gastosInv.reduce((s,g)=>s+gastoUsd(g),0);
     const ganancia=totalV-totalG;
+    // Detectar IDs de gastos duplicados (mismo concepto, monto ±2%)
+    const dupIds=new Set();
+    gastosOp.forEach(function(a,ai){
+      gastosOp.forEach(function(b,bi){
+        if(ai>=bi) return;
+        var dA=(a.descripcion||'').toLowerCase().trim();
+        var dB=(b.descripcion||'').toLowerCase().trim();
+        var mA=parseFloat(a.monto_usd||0)||parseFloat(a.monto_bs||0)||parseFloat(a.monto||0);
+        var mB=parseFloat(b.monto_usd||0)||parseFloat(b.monto_bs||0)||parseFloat(b.monto||0);
+        if(dA===dB && dA!=='' && mA>0 && Math.abs(mA-mB)/mA<=0.02){
+          dupIds.add(a.id); dupIds.add(b.id);
+        }
+      });
+    });
     const luismaMinimo=30;
     const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
     const luismaBase=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
@@ -3473,30 +3487,14 @@ async function renderEventos(){
         +'<span style="font-size:13px;color:#555">Gastos operativos ('+gastosOp.length+')</span>'
         +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+totalG.toFixed(2)+'</span>'
         +'</div>'
-        +(function(){
-          // Detectar duplicados: mismo concepto + monto muy cercano (±2%)
-          var dupIds=new Set();
-          gastosOp.forEach(function(a,ai){
-            gastosOp.forEach(function(b,bi){
-              if(ai>=bi) return;
-              var descA=(a.descripcion||a.concepto||'').toLowerCase();
-              var descB=(b.descripcion||b.concepto||'').toLowerCase();
-              var mA=parseFloat(a.monto_usd||0)||parseFloat(a.monto_bs||0)||parseFloat(a.monto||0);
-              var mB=parseFloat(b.monto_usd||0)||parseFloat(b.monto_bs||0)||parseFloat(b.monto||0);
-              var diff=mA>0?Math.abs(mA-mB)/mA:0;
-              if(descA===descB && diff<=0.02){ dupIds.add(a.id); dupIds.add(b.id); }
-            });
-          });
-          return gastosOp.map(function(g){
-            var isDup=dupIds.has(g.id);
-            var bg=isDup?'background:#fff8e1;border-radius:4px;':'';
-            var montoStr=parseFloat(g.monto_usd||0)>0?'$'+parseFloat(g.monto_usd).toFixed(2):(g.moneda==='Bs'?'Bs '+parseFloat(g.monto_bs||g.monto||0).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2));
-            return '<div style="display:flex;justify-content:space-between;padding:2px 4px 2px 12px;font-size:11px;color:#888;'+bg+'">'
-              +'<span>'+(isDup?'⚠️ ':' • ')+(g.descripcion||g.concepto||'Gasto')+(g.moneda==='Bs'?' 🇻🇪':'')+(isDup?' <span style="color:#e65100;font-weight:700">posible duplicado</span>':'')+'</span>'
-              +'<span>'+montoStr+'</span>'
-              +'</div>';
-          }).join('');
-        })()
+        +gastosOp.map(function(g){
+          var isDup=dupIds.has(g.id);
+          var montoStr=parseFloat(g.monto_usd||0)>0?'$'+parseFloat(g.monto_usd).toFixed(2):(g.moneda==='Bs'?'Bs '+parseFloat(g.monto_bs||g.monto||0).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2));
+          return '<div style="display:flex;justify-content:space-between;padding:2px 4px 2px 12px;font-size:11px;'+(isDup?'background:#fff8e1;border-radius:4px;color:#e65100':'color:#888')+'">'
+            +'<span>'+(isDup?'⚠️ ':'• ')+(g.descripcion||g.concepto||'Gasto')+(g.moneda==='Bs'?' 🇻🇪':'')+(isDup?' (duplicado?)':'')+'</span>'
+            +'<span>'+montoStr+'</span>'
+            +'</div>';
+        }).join('')
         +(gastosLuismaCubiertos.length>0
           ? gastosLuismaCubiertos.map(function(g){
               return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 12px;font-size:11px;color:#888">'
