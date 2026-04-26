@@ -392,19 +392,55 @@ tr:hover td{background:#fff8fc}
         <option value="">Todos los canales</option><option>WhatsApp</option><option>Instagram</option><option>Evento</option><option>Web</option><option>POS</option>
       </select>
     </div>
-    <!-- Barra de acciones masivas (aparece al seleccionar) -->
-    <div id="barra-masiva" style="display:none;background:#f0e8f8;border:2px solid #c084fc;border-radius:14px;padding:10px 14px;margin-bottom:10px;display:none;align-items:center;gap:10px;flex-wrap:wrap">
-      <span id="masiva-count" style="font-size:13px;font-weight:700;color:#7c3aed">0 seleccionadas</span>
-      <button onclick="selectAllVisible()" style="background:white;border:1.5px solid #c084fc;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;color:#7c3aed">☑️ Todas</button>
-      <button onclick="deselectAll()" style="background:white;border:1.5px solid #ddd;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;color:#888">Ninguna</button>
-      <select id="masiva-canal" style="padding:6px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none">
-        <option value="">Cambiar canal a...</option>
-        <option>POS</option><option>Evento</option><option>WhatsApp</option><option>Instagram</option><option>Web</option>
-      </select>
-      <select id="masiva-evento" style="padding:6px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none">
-        <option value="">Asignar evento...</option>
-      </select>
-      <button onclick="aplicarCambioMasivo()" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer">✅ Aplicar</button>
+    <!-- Barra de acciones masivas -->
+    <div id="barra-masiva" style="display:none;background:#f5f0ff;border:2px solid #c084fc;border-radius:14px;padding:12px 14px;margin-bottom:10px;flex-direction:column;gap:10px">
+      <!-- Fila 1: contador y selección -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
+        <span id="masiva-count" style="font-size:13px;font-weight:800;color:#7c3aed;min-width:120px">0 seleccionadas</span>
+        <button onclick="selectAllVisible()" style="background:white;border:1.5px solid #c084fc;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;color:#7c3aed">☑️ Todas las visibles</button>
+        <button onclick="deselectAll()" style="background:white;border:1.5px solid #ddd;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;color:#888">✖ Ninguna</button>
+        <button onclick="aplicarCambioMasivo()" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:white;border:none;border-radius:8px;padding:6px 16px;font-size:13px;font-weight:700;cursor:pointer;margin-left:auto">✅ Aplicar cambios</button>
+      </div>
+      <!-- Fila 2: campos a cambiar -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px">
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase">Canal</label>
+          <select id="masiva-canal" style="width:100%;padding:7px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none;margin-top:3px">
+            <option value="">— sin cambio —</option>
+            <option>POS</option><option>Evento</option><option>WhatsApp</option><option>Instagram</option><option>Web</option><option>TikTok</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase">Evento</label>
+          <select id="masiva-evento" style="width:100%;padding:7px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none;margin-top:3px">
+            <option value="">— sin cambio —</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase">Método de pago</label>
+          <select id="masiva-metodo" style="width:100%;padding:7px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none;margin-top:3px">
+            <option value="">— sin cambio —</option>
+            <option>Pago Móvil</option><option>BCV</option><option>Efectivo Bs</option><option>Efectivo $</option><option>Binance/USDT</option><option>PayPal</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase">Cuenta cobro</label>
+          <select id="masiva-cuenta" style="width:100%;padding:7px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none;margin-top:3px">
+            <option value="">— sin cambio —</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase">Estado</label>
+          <select id="masiva-estado" style="width:100%;padding:7px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none;margin-top:3px">
+            <option value="">— sin cambio —</option>
+            <option>Pendiente</option><option>Pagado</option><option>Entregado</option><option>Cancelado</option>
+          </select>
+        </div>
+        <div>
+          <label style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase">Fecha venta</label>
+          <input type="date" id="masiva-fecha" style="width:100%;padding:7px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none;margin-top:3px;box-sizing:border-box">
+        </div>
+      </div>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap">
       <table id="tabla-ventas"><thead><tr><th style="width:32px"><input type="checkbox" id="chk-all-ventas" onchange="toggleAllVentas(this)" title="Seleccionar todas"></th><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
@@ -2298,23 +2334,41 @@ async function aplicarCambioMasivo(){
   if(!ventasSeleccionadas.size){toast('Selecciona al menos una venta');return;}
   const canal=document.getElementById('masiva-canal').value;
   const eventoId=document.getElementById('masiva-evento').value;
-  if(!canal&&!eventoId){toast('Elige canal o evento a asignar');return;}
+  const metodo=document.getElementById('masiva-metodo').value;
+  const cuenta=document.getElementById('masiva-cuenta').value;
+  const estado=document.getElementById('masiva-estado').value;
+  const fecha=document.getElementById('masiva-fecha').value;
   const cambios={};
   if(canal) cambios.canal=canal;
   if(eventoId) cambios.evento_id=parseInt(eventoId);
+  if(metodo) cambios.metodo_pago=metodo;
+  if(cuenta) cambios.cuenta_cobro=cuenta;
+  if(estado) cambios.estado=estado;
+  if(fecha) cambios.fecha_venta=fecha;
+  if(!Object.keys(cambios).length){toast('Elige al menos un campo a cambiar');return;}
   const ids=[...ventasSeleccionadas];
-  if(!confirm('Aplicar cambios a '+ids.length+' venta(s)?')) return;
+  const resumen=Object.entries(cambios).map(([k,v])=>k+': '+v).join(', ');
+  if(!confirm('Aplicar a '+ids.length+' venta(s): '+resumen)) return;
   try{
     const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
-    const idsStr=ids.join(',');
-    const res=await fetch(SB+'/rest/v1/ventas?id=in.('+idsStr+')',
+    const res=await fetch(SB+'/rest/v1/ventas?id=in.('+ids.join(',')+')',
       {method:'PATCH',headers:H,body:JSON.stringify(cambios)});
-    if(!res.ok){toast('Error '+res.status);return;}
-    // Actualizar local
+    if(!res.ok){const t=await res.text();toast('Error '+res.status+': '+t.slice(0,60));return;}
     ids.forEach(id=>{
       const v=ventas.find(x=>x.id===id);
-      if(v){if(canal)v.canal=canal; if(eventoId)v.evento_id=parseInt(eventoId);}
+      if(!v) return;
+      if(canal) v.canal=canal;
+      if(eventoId) v.evento_id=parseInt(eventoId);
+      if(metodo) v.metodo_pago=metodo;
+      if(cuenta) v.cuenta_cobro=cuenta;
+      if(estado) v.estado=estado;
+      if(fecha) v.fecha_venta=fecha;
     });
+    // Reset selectores masivos
+    ['masiva-canal','masiva-evento','masiva-metodo','masiva-cuenta','masiva-estado'].forEach(id=>{
+      const el=document.getElementById(id); if(el) el.value='';
+    });
+    const mf=document.getElementById('masiva-fecha'); if(mf) mf.value='';
     deselectAll();
     filtrarVentas();
     toast('Cambios aplicados a '+ids.length+' venta(s)');
@@ -2339,14 +2393,22 @@ function setRangoFecha(rango){
 
 // Cargar eventos en el select masivo
 async function poblarEventosMasivo(){
-  const sel=document.getElementById('masiva-evento'); if(!sel) return;
-  if(sel.options.length>1) return;
-  try{
-    const H={'apikey':KEY,'Authorization':'Bearer '+KEY};
-    const r=await fetch(SB+'/rest/v1/eventos?select=id,nombre&order=fecha.desc&limit=20',{headers:H});
-    const evs=await r.json();
-    evs.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent='🎪 '+e.nombre;sel.appendChild(o);});
-  }catch(e){}
+  const sel=document.getElementById('masiva-evento');
+  if(sel&&sel.options.length<=1){
+    try{
+      const H={'apikey':KEY,'Authorization':'Bearer '+KEY};
+      const r=await fetch(SB+'/rest/v1/eventos?select=id,nombre&order=fecha.desc&limit=20',{headers:H});
+      const evs=await r.json();
+      evs.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent='🎪 '+e.nombre;sel.appendChild(o);});
+    }catch(e){}
+  }
+  // Poblar cuentas
+  const sc=document.getElementById('masiva-cuenta');
+  if(sc&&sc.options.length<=1){
+    (typeof CUENTAS!=='undefined'?CUENTAS:[]).forEach(c=>{
+      const o=document.createElement('option');o.value=c.id;o.textContent=c.emoji+' '+c.nombre+' ('+c.tipo+')';sc.appendChild(o);
+    });
+  }
 }
 
 function filtrarVentas(){
