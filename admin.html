@@ -3059,7 +3059,7 @@ function renderProductos(lista){
       +'<td><input type="number" value="'+(p.stock||0)+'" min="0" style="width:52px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px" onchange="actualizarStockProd('+p.id+',this.value)"></td>'
       +'<td><button onclick="verQRProducto('+p.id+')" style="background:none;border:none;cursor:pointer;font-size:18px;padding:2px" title="Ver QR">🔲</button></td>'
       +'<td>'+(aptStock>0?'<span class="badge badge-pendiente">📌'+aptStock+'</span>':'—')+'</td>'
-      +'<td style="white-space:nowrap"><button class="btn btn-warning btn-sm" onclick="abrirModalProducto('+p.id+')">✏️</button> <button class="btn btn-danger btn-sm" onclick="eliminarProd('+p.id+')">🗑️</button></td>'
+      +'<td style="white-space:nowrap;display:flex;gap:4px;align-items:center">'+"<button class='btn btn-sm' style='font-size:10px;padding:2px 7px;background:"+(p.propietario==='Mamá'?'#fce4ec;color:#c2185b;border-color:#f48fb1':'#f5f5f5;color:#555;border-color:#ddd')+";border:1.5px solid;border-radius:8px;font-weight:700' onclick='togglePropietario("+p.id+")'title='Cambiar propietario'>"+(p.propietario==='Mamá'?'Mamá':'Mío')+"</button>"+"<button class='btn btn-warning btn-sm' onclick='abrirModalProducto("+p.id+")'>✏️</button>"+"<button class='btn btn-danger btn-sm' onclick='eliminarProd("+p.id+")'>🗑️</button>"+'</td>'
       +'</tr>';
   }).join('');
   if(l.length>100){const tr=document.createElement('tr');tr.innerHTML='<td colspan="10" style="text-align:center;padding:8px;color:#aaa;font-size:12px">Mostrando 100 de '+l.length+' — usa el buscador 🔍</td>';tbody.appendChild(tr);}
@@ -3073,6 +3073,14 @@ function filtrarProds(){
   const propEl=document.getElementById('filtro-propietario-prod');
   const prop=propEl?propEl.value:'';
   renderProductos(productos.filter(p=>{ if(q&&!(p.nombre||'').toLowerCase().includes(q))return false; if(cat&&p.categoria!==cat)return false; if(prop){var _pp=p.propietario||'Ana'; if(_pp!==prop)return false;} return true; }));
+}
+async function togglePropietario(id){
+  const p=productos.find(x=>x.id===id); if(!p) return;
+  const nuevo=p.propietario==='Mamá'?'Ana':'Mamá';
+  await sbPatch('productos',id,{propietario:nuevo});
+  p.propietario=nuevo;
+  filtrarProds();
+  toast(nuevo==='Mamá'?'Marcado como de Mamá 🌸':'Marcado como tuyo ✅');
 }
 async function actualizarStockProd(id,val){
   const stock=parseInt(val)||0; await sbPatch('productos',id,{stock}); const p=productos.find(x=>x.id===id); if(p) p.stock=stock; toast('✅ Stock actualizado');
