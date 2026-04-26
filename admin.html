@@ -393,7 +393,7 @@ tr:hover td{background:#fff8fc}
       </select>
     </div>
     <!-- Barra de acciones masivas -->
-    <div id="barra-masiva" style="display:none;background:#f5f0ff;border:2px solid #c084fc;border-radius:14px;padding:12px 14px;margin-bottom:10px;flex-direction:column;gap:10px">
+    <div id="barra-masiva" style="display:none;background:#f5f0ff;border:2px solid #c084fc;border-radius:14px;padding:12px 14px;margin-bottom:10px;gap:10px;flex-direction:column">
       <!-- Fila 1: contador y selección -->
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <span id="masiva-count" style="font-size:13px;font-weight:800;color:#7c3aed;min-width:120px">0 seleccionadas</span>
@@ -2327,8 +2327,14 @@ function actualizarBarraMasiva(){
   const barra=document.getElementById('barra-masiva');
   const cnt=document.getElementById('masiva-count');
   if(!barra) return;
-  if(n>0){barra.style.display='flex';if(cnt) cnt.textContent=n+' seleccionada'+(n===1?'':'s');}
-  else barra.style.display='none';
+  if(n>0){
+    barra.style.display='flex';
+    barra.style.flexDirection='column';
+    if(cnt) cnt.textContent=n+' seleccionada'+(n===1?'':'s');
+    poblarEventosMasivo();
+  } else {
+    barra.style.display='none';
+  }
 }
 async function aplicarCambioMasivo(){
   if(!ventasSeleccionadas.size){toast('Selecciona al menos una venta');return;}
