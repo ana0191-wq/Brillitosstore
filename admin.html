@@ -3072,7 +3072,7 @@ function filtrarProds(){
   const cat=document.getElementById('filtro-cat-prod').value;
   const propEl=document.getElementById('filtro-propietario-prod');
   const prop=propEl?propEl.value:'';
-  renderProductos(productos.filter(p=>{ if(q&&!(p.nombre||'').toLowerCase().includes(q))return false; if(cat&&p.categoria!==cat)return false; if(prop&&(p.propietario||'Ana')!==prop)return false; return true; }));
+  renderProductos(productos.filter(p=>{ if(q&&!(p.nombre||'').toLowerCase().includes(q))return false; if(cat&&p.categoria!==cat)return false; if(prop){var _pp=p.propietario||'Ana'; if(_pp!==prop)return false;} return true; }));
 }
 async function actualizarStockProd(id,val){
   const stock=parseInt(val)||0; await sbPatch('productos',id,{stock}); const p=productos.find(x=>x.id===id); if(p) p.stock=stock; toast('✅ Stock actualizado');
