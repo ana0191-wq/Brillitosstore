@@ -3741,6 +3741,20 @@ function ejecutarConciliacion(){
     +'</div>';
 
   document.getElementById('conc-resultado').innerHTML=html;
+  // Event delegation — botones toggle y guardar
+  document.getElementById('conc-resultado').addEventListener('click', function(e){
+    var t=e.target;
+    if(t.classList.contains('conc-toggle-btn')){
+      var el=document.getElementById(t.dataset.uid);
+      if(el) el.style.display=el.style.display==='none'?'block':'none';
+    }
+    if(t.classList.contains('conc-save-venta-btn')){
+      registrarVentaBanco(parseInt(t.dataset.eid),parseFloat(t.dataset.monto),t.dataset.uid);
+    }
+    if(t.classList.contains('conc-save-gasto-btn')){
+      registrarGastoBanco(parseInt(t.dataset.eid),parseFloat(t.dataset.monto),t.dataset.uid);
+    }
+  },{once:true});
 }
 
 function agregarVentaBanco(eid, montoBs){
@@ -4915,4 +4929,47 @@ function renderMovimientosBancaAmiga(){
 
 </body>
 </html>
-
+    if(gnok.length){
+      html+='<div style="margin-bottom:8px">';
+      gnok.forEach(function(r,ri){
+        var uid2='conc-gnok-'+eid+'-'+ri;
+        html+='<div style="background:#fff8e1;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px" id="wrap-'+uid2+'">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+          +'<span>⚠️ <strong>Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+'</strong> — gasto sin registrar</span>'
+          +'<button class="btn btn-sm conc-toggle-btn" data-uid="'+uid2+'" style="background:#fff3cd;color:#e65100;border:none;font-size:11px">+ Registrar</button>'
+          +'</div>'
+          +'<div id="'+uid2+'" style="display:none;background:#fffde7;border-radius:6px;padding:8px;margin-top:4px">'
+          +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end">'
+          +'<div><label style="font-size:11px;font-weight:700;display:block;margin-bottom:2px">Concepto</label>'
+          +'<select id="'+uid2+'-concepto" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px">'
+          +'<option>Stand / Puesto</option><option>Transporte</option><option>Comida / Viáticos</option>'
+          +'<option>Gasto de Luisma</option><option>Mercancía llevada</option><option>Otro</option>'
+          +'</select></div>'
+          +'<button class="btn btn-warning btn-sm conc-save-gasto-btn" data-eid="'+eid+'" data-monto="'+r.banco+'" data-uid="'+uid2+'" style="font-size:12px">💾 Guardar</button>'
+          +'</div></div></div>';
+      });
+      html+='</div>';
+    }  if(nok.length){
+    html+='<div style="margin-bottom:8px">';
+    nok.forEach(function(r,ri){
+      var uid='conc-nok-'+eid+'-'+ri;
+      html+='<div style="background:#fff8e1;border-radius:8px;padding:8px 10px;margin-bottom:6px;font-size:13px" id="wrap-'+uid+'">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
+        +'<span>⚠️ <strong>Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+'</strong> — sin venta registrada</span>'
+        +'<button class="btn btn-sm conc-toggle-btn" data-uid="'+uid+'" style="background:#fff3cd;color:#e65100;border:none;font-size:11px">+ Registrar</button>'
+        +'</div>'
+        +'<div id="'+uid+'" style="display:none;background:#fffde7;border-radius:6px;padding:8px;margin-top:4px">'
+        +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end">'
+        +'<div><label style="font-size:11px;font-weight:700;display:block;margin-bottom:2px">Método</label>'
+        +'<select id="'+uid+'-metodo" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px">'
+        +'<option value="BancaMiga">BancaMiga</option>'
+        +'<option value="Pago Móvil">Pago Móvil</option>'
+        +'<option value="Efectivo Bs">Efectivo Bs</option>'
+        +'</select></div>'
+        +'<div><label style="font-size:11px;font-weight:700;display:block;margin-bottom:2px">Referencia</label>'
+        +'<input id="'+uid+'-ref" type="text" placeholder="opcional" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px;width:110px"></div>'
+        +'<button class="btn btn-success btn-sm conc-save-venta-btn" data-eid="'+eid+'" data-monto="'+r.banco+'" data-uid="'+uid+'" style="font-size:12px">💾 Guardar</button>'
+        +'</div></div></div>';
+    });
+    html+='</div>';
+  }
