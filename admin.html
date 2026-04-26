@@ -3386,53 +3386,64 @@ async function renderEventos(){
       })()
       // ── SECCIÓN VENTAS DEL EVENTO ──
       +(function(){
-        if(!vts.length) return '<div style="margin-top:12px;padding:10px;background:#fafafa;border-radius:10px;font-size:13px;color:#aaa;text-align:center">Sin ventas asignadas. Usa "Asignar evento" en Ventas 🌸</div>';
-        // Resumen por método de pago
+        if(!vts.length) return '<div style="margin-top:12px;padding:10px;background:#fafafa;border-radius:10px;font-size:13px;color:#aaa;text-align:center">Sin ventas asignadas aún 🌸</div>';
+        // ── Resumen por método de pago
         var metodos={};
         vts.forEach(function(v){var m=v.metodo_pago||'Otro';metodos[m]=(metodos[m]||0)+parseFloat(v.total||0);});
-        var resMet=Object.entries(metodos).map(function(kv){
-          return '<span style="background:#f3f4f6;border-radius:7px;padding:4px 9px;font-size:11px;font-weight:700">'+kv[0]+': <span style="color:#2e7d32">$'+kv[1].toFixed(2)+'</span></span>';
+        var resMet=Object.entries(metodos).sort(function(a,b){return b[1]-a[1];}).map(function(kv){
+          return '<div style="background:#f3f4f6;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;display:inline-flex;gap:4px;align-items:center">'
+            +'<span style="color:#555">'+kv[0]+'</span>'
+            +'<span style="color:#2e7d32">$'+kv[1].toFixed(2)+'</span>'
+            +'</div>';
         }).join('');
-        // Filas de la tabla
-        var filas=vts.map(function(v){
-          var items=(v.venta_items||[]).map(function(it){return (it.cantidad>1?it.cantidad+'\xd7 ':'')+it.nombre_producto;}).join(', ')||'\u2014';
-          var ec={Pagado:'#2e7d32',Pendiente:'#e65100',Cancelado:'#c62828',Entregado:'#1565c0'}[v.estado]||'#666';
-          return '<tr style="border-bottom:1px solid #f5f5f5">'
-            +'<td style="padding:5px 8px;font-weight:700;color:var(--pink);white-space:nowrap">'+(v.numero||'#'+v.id)+'</td>'
-            +'<td style="padding:5px 8px">'+(v.cliente_nombre||'\u2014')+'</td>'
-            +'<td style="padding:5px 8px;color:#555;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+items+'">'+items+'</td>'
-            +'<td style="padding:5px 8px;text-align:right;font-weight:700;color:#2e7d32">$'+parseFloat(v.total||0).toFixed(2)+'</td>'
-            +'<td style="padding:5px 8px;text-align:right;font-size:11px;color:#7c3aed">'+(parseFloat(v.monto_bs||0)>0?'Bs.'+parseFloat(v.monto_bs).toFixed(0):'\u2014')+'</td>'
-            +'<td style="padding:5px 8px;font-size:11px">'+(v.metodo_pago||'\u2014')+'</td>'
-            +'<td style="padding:5px 8px"><span style="font-size:11px;font-weight:700;color:'+ec+'">'+(v.estado||'\u2014')+'</span></td>'
-            +'<td style="padding:5px 8px;font-size:10px;color:#aaa">'+formatFecha(v.fecha_venta||v.creado_en)+'</td>'
-            +'<td style="padding:5px 8px"><button onclick="abrirModalVenta(ventas.find(function(x){return x.id==='+v.id+';}))" class="btn btn-secondary btn-sm" style="font-size:10px;padding:2px 6px">\u270f\ufe0f</button></td>'
-            +'</tr>';
+        // ── Cards de cada venta (diseño móvil)
+        var cards=vts.map(function(v){
+          // Campo correcto: producto_nombre (así se guarda en venta_items)
+          var items=(v.venta_items||[]).map(function(it){
+            var nom=it.producto_nombre||it.nombre_producto||'Producto';
+            return (parseInt(it.cantidad||1)>1?it.cantidad+'× ':'')+nom;
+          }).join(' · ')||'—';
+          var ec={Pagado:'#2e7d32',Pendiente:'#e65100',Cancelado:'#c62828',Entregado:'#1565c0'}[v.estado]||'#888';
+          var ebg={Pagado:'#f0fdf4',Pendiente:'#fff7ed',Cancelado:'#fff5f5',Entregado:'#eff6ff'}[v.estado]||'#f9f9f9';
+          var bsStr=parseFloat(v.monto_bs||0)>0?' · Bs.'+parseFloat(v.monto_bs).toFixed(0):'';
+          return '<div style="border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;margin-bottom:8px;background:white">'
+            // Línea 1: número + total + estado
+            +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
+            +'<span style="font-weight:800;color:var(--pink);font-size:13px">'+(v.numero||'#'+v.id)+'</span>'
+            +'<div style="display:flex;gap:6px;align-items:center">'
+            +'<span style="font-weight:800;color:#2e7d32;font-size:14px">$'+parseFloat(v.total||0).toFixed(2)+'</span>'
+            +'<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+ebg+';color:'+ec+'">'+(v.estado||'—')+'</span>'
+            +'</div></div>'
+            // Línea 2: productos
+            +'<div style="font-size:12px;color:#444;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🛍️ '+items+'</div>'
+            // Línea 3: cliente + fecha + método
+            +'<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:#888;align-items:center">'
+            +(v.cliente_nombre?'<span>👤 '+v.cliente_nombre+'</span>':'')
+            +'<span>📅 '+formatFecha(v.fecha_venta||v.creado_en)+'</span>'
+            +'<span>💳 '+(v.metodo_pago||'—')+(bsStr?'<span style="color:var(--purple)">'+bsStr+'</span>':'')+'</span>'
+            +(v.canal&&v.canal!=='POS'?'<span>📡 '+v.canal+'</span>':'')
+            +'</div>'
+            // Línea 4: botón editar
+            +'<div style="margin-top:7px;text-align:right">'
+            +'<button onclick="abrirModalVenta(ventas.find(function(x){return x.id==='+v.id+';}))" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 10px">✏️ Editar</button>'
+            +'</div>'
+            +'</div>';
         }).join('');
-        return '<div style="margin-top:14px">'
-          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-          +'<span style="font-size:11px;font-weight:800;color:#666;text-transform:uppercase">\ud83d\uded2 Ventas ('+vts.length+')</span>'
-          +'<button onclick="toggleVentasEvento('+e.id+')" class="btn btn-secondary btn-sm">Ver detalle</button>'
+        // ── Total pie
+        var pie='<div style="display:flex;justify-content:space-between;padding:10px 4px 2px;font-weight:800;font-size:13px;border-top:2px solid #ede9fe;margin-top:4px">'
+          +'<span style="color:#666">'+vts.length+' ventas en total</span>'
+          +'<span style="color:#2e7d32">$'+totalV.toFixed(2)+'</span>'
+          +'</div>';
+        return '<div style="margin-top:16px">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+          +'<span style="font-size:12px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px">🛒 Ventas ('+vts.length+')</span>'
+          +'<button onclick="toggleVentasEvento('+e.id+')" class="btn btn-secondary btn-sm" style="font-size:11px">Ver / ocultar</button>'
           +'</div>'
-          +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">'+resMet+'</div>'
-          +'<div id="ventas-evento-'+e.id+'" style="display:none;overflow-x:auto">'
-          +'<table style="width:100%;border-collapse:collapse;font-size:12px">'
-          +'<thead><tr style="background:#f8f0ff;font-size:11px">'
-          +'<th style="padding:5px 8px;text-align:left">#</th>'
-          +'<th style="padding:5px 8px;text-align:left">Cliente</th>'
-          +'<th style="padding:5px 8px;text-align:left">Productos</th>'
-          +'<th style="padding:5px 8px;text-align:right">Total $</th>'
-          +'<th style="padding:5px 8px;text-align:right">Bs.</th>'
-          +'<th style="padding:5px 8px;text-align:left">M\xe9todo</th>'
-          +'<th style="padding:5px 8px;text-align:left">Estado</th>'
-          +'<th style="padding:5px 8px;text-align:left">Fecha</th>'
-          +'<th></th>'
-          +'</tr></thead><tbody>'+filas+'</tbody>'
-          +'<tfoot><tr style="background:#f0fdf4;font-weight:800">'
-          +'<td colspan="3" style="padding:7px 8px">TOTAL '+vts.length+' ventas</td>'
-          +'<td style="padding:7px 8px;text-align:right;color:#2e7d32">$'+totalV.toFixed(2)+'</td>'
-          +'<td colspan="5"></td></tr></tfoot>'
-          +'</table></div></div>';
+          // Resumen por método siempre visible
+          +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+resMet+'</div>'
+          // Cards colapsables
+          +'<div id="ventas-evento-'+e.id+'" style="display:none">'+cards+pie+'</div>'
+          +'</div>';
       })()
       +'</div></div>';
   }).join('');
