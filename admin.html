@@ -3426,72 +3426,84 @@ async function renderEventos(){
       +'</div></div></div>'
 
       // ── RESUMEN FINANCIERO (una sola vez, claro) ──
-      +'<div style="background:linear-gradient(135deg,#fdf4ff,#fff);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid #ede9fe">'
-      +'<div style="font-size:11px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">💰 Resumen financiero</div>'
+      +'<div style="background:linear-gradient(135deg,#fdf4ff,#fff);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid #ede9fe">'
 
-      // Fila: Ingresos
+      // Ventas
       +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
       +'<span style="font-size:13px;color:#555">Ventas ('+vts.length+')</span>'
-      +'<span style="font-size:14px;font-weight:800;color:#2e7d32">+$'+totalV.toFixed(2)+'</span>'
+      +'<span style="font-size:15px;font-weight:800;color:#2e7d32">$'+totalV.toFixed(2)+'</span>'
       +'</div>'
 
-      // Fila: Gastos operativos (solo si hay)
+      // Gastos operativos
       +(totalG>0
         ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
         +'<span style="font-size:13px;color:#555">Gastos operativos</span>'
         +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+totalG.toFixed(2)+'</span>'
         +'</div>':'')
 
-      // Fila: Inversión (solo si hay)
+      // Inversión
       +(totalInv>0
         ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
         +'<span style="font-size:13px;color:#555">Inversión / Stock</span>'
         +'<span style="font-size:14px;font-weight:700;color:#1565c0">−$'+totalInv.toFixed(2)+'</span>'
         +'</div>':'')
 
-      // Línea gruesa: Ganancia neta
-      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 8px;margin-top:2px;border-top:2px solid #ede9fe">'
+      // Ganancia neta — línea gruesa
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 12px;border-bottom:2px solid #ede9fe">'
       +'<span style="font-size:14px;font-weight:800">Ganancia neta</span>'
-      +'<span style="font-size:18px;font-weight:900;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+'</span>'
+      +'<span style="font-size:22px;font-weight:900;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+'</span>'
       +'</div>'
 
-      // División interactiva Luisma
-      +(ganancia>0
-        ?'<div style="margin-top:10px">'
-        // Cards resultado
-        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
-        +'<div style="background:#f0fdf4;border-radius:10px;padding:10px;text-align:center">'
-        +'<div style="font-size:10px;font-weight:700;color:#2e7d32;text-transform:uppercase;margin-bottom:3px">Tu parte</div>'
-        +'<div id="tu-parte-'+e.id+'" style="font-size:20px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
-        +'<div id="tu-pct-'+e.id+'" style="font-size:11px;color:#2e7d32;opacity:.7">'+(ganancia>0?Math.round((ganancia-luismaParte)/ganancia*100)+'%':'—')+'</div>'
-        +'</div>'
-        +'<div style="background:#f5f0ff;border-radius:10px;padding:10px;text-align:center">'
-        +'<div style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;margin-bottom:3px">Luisma</div>'
-        +'<div id="luisma-parte-'+e.id+'" style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</div>'
-        +'<div id="luisma-pct-'+e.id+'" style="font-size:11px;color:#7c3aed;opacity:.7">'+(luismaParte===luismaMinimo&&luismaPorcentaje<luismaMinimo?'mín. $30':Math.round(luismaParte/ganancia*100)+'%')+'</div>'
-        +'</div>'
-        +'</div>'
-        // Slider
-        +'<div style="background:#f8f8f8;border-radius:10px;padding:10px">'
-        +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#888;margin-bottom:6px">'
-        +'<span>% de Luisma <small style="color:#aaa">(mín. $30)</small></span>'
-        +'<span id="luisma-slider-val-'+e.id+'">30%</span>'
-        +'</div>'
-        +'<input type="range" min="0" max="60" step="5" value="30"'
-        +' style="width:100%;accent-color:#7c3aed;cursor:pointer"'
-        +' oninput="recalcLuisma('+e.id+','+ganancia.toFixed(2)+',this.value)">'
-        +'<div style="display:flex;justify-content:space-between;font-size:10px;color:#bbb;margin-top:2px"><span>0%</span><span>30%</span><span>60%</span></div>'
-        +'<div id="luisma-nota-'+e.id+'" style="font-size:11px;color:#888;margin-top:6px;text-align:center"></div>'
-        +'</div>'
-        +'</div>'
-        :'')
+      // División — solo si hay ganancia
+      +(ganancia>0?(function(){
+        var luismaLabel=luismaParte===luismaMinimo&&luismaPorcentaje<luismaMinimo
+          ?'Luisma (mín. $30)'
+          :'Luisma ('+Math.round(luismaParte/ganancia*100)+'%)';
+        return '<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">'
 
-      // Pérdida aviso
+          // Luisma
+          +'<div style="display:flex;justify-content:space-between;align-items:center;background:#f5f0ff;border-radius:10px;padding:10px 14px">'
+          +'<span style="font-size:13px;font-weight:700;color:#7c3aed">'+luismaLabel+'</span>'
+          +'<span style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</span>'
+          +'</div>'
+
+          // Tuyo
+          +'<div style="display:flex;justify-content:space-between;align-items:center;background:#f0fdf4;border-radius:10px;padding:10px 14px">'
+          +'<span style="font-size:13px;font-weight:700;color:#2e7d32">Tuyo</span>'
+          +'<span style="font-size:20px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</span>'
+          +'</div>'
+
+          // Slider explorar
+          +'<div style="background:#f8f8f8;border-radius:10px;padding:10px;margin-top:2px">'
+          +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#aaa;margin-bottom:5px">'
+          +'<span>¿Y si le doy más a Luisma? <small>(mín. $30)</small></span>'
+          +'<span id="luisma-slider-val-'+e.id+'">'+Math.round(luismaParte/ganancia*100)+'%</span>'
+          +'</div>'
+          +'<input type="range" min="0" max="60" step="5" value="'+Math.round(luismaParte/ganancia*100)+'"'
+          +' style="width:100%;accent-color:#7c3aed;cursor:pointer"'
+          +' oninput="recalcLuisma('+e.id+','+ganancia.toFixed(2)+',this.value)">'
+          +'<div id="luisma-nota-'+e.id+'" style="font-size:11px;color:#888;margin-top:5px;text-align:center">👆 Mueve para explorar</div>'
+          +'<div id="luisma-preview-'+e.id+'" style="display:none;margin-top:8px;display:flex;gap:6px">'
+          +'<div style="flex:1;background:#f5f0ff;border-radius:8px;padding:8px;text-align:center">'
+          +'<div style="font-size:10px;color:#7c3aed;font-weight:700">Luisma</div>'
+          +'<div id="luisma-parte-'+e.id+'" style="font-size:16px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</div>'
+          +'</div>'
+          +'<div style="flex:1;background:#f0fdf4;border-radius:8px;padding:8px;text-align:center">'
+          +'<div style="font-size:10px;color:#2e7d32;font-weight:700">Tuyo</div>'
+          +'<div id="tu-parte-'+e.id+'" style="font-size:16px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
+          +'</div>'
+          +'</div>'
+          +'</div>'
+
+          +'</div>';
+      })():'')
+
+      // Pérdida
       +(ganancia<0
-        ?'<div style="margin-top:8px;padding:8px 10px;background:#fff5f5;border-radius:8px;font-size:13px;font-weight:700;color:#c62828;text-align:center">⚠️ Pérdida de $'+Math.abs(ganancia).toFixed(2)+' — los gastos superan las ventas</div>'
+        ?'<div style="margin-top:8px;padding:8px 10px;background:#fff5f5;border-radius:8px;font-size:13px;font-weight:700;color:#c62828;text-align:center">⚠️ Pérdida de $'+Math.abs(ganancia).toFixed(2)+'</div>'
         :'')
 
-      +'</div>'
+      +'</div>'      +'</div>'
 
       // ── DEUDA MAMÁ ──
       +(deudaMama>0
@@ -3549,25 +3561,22 @@ async function renderEventos(){
 
 function recalcLuisma(eid, ganancia, pct){
   pct = parseInt(pct);
-  var luisma = ganancia * (pct/100);
+  var luisma = Math.max(30, ganancia * (pct/100));
   var tuParte = ganancia - luisma;
-  var tuPct = 100 - pct;
   var elTuyo = document.getElementById('tu-parte-'+eid);
   var elLuisma = document.getElementById('luisma-parte-'+eid);
-  var elTuPct = document.getElementById('tu-pct-'+eid);
-  var elLuismaPct = document.getElementById('luisma-pct-'+eid);
   var elVal = document.getElementById('luisma-slider-val-'+eid);
   var elNota = document.getElementById('luisma-nota-'+eid);
+  var elPreview = document.getElementById('luisma-preview-'+eid);
   if(elTuyo) elTuyo.textContent = '$'+tuParte.toFixed(2);
   if(elLuisma) elLuisma.textContent = '$'+luisma.toFixed(2);
-  if(elTuPct) elTuPct.textContent = tuPct+'%';
-  if(elLuismaPct) elLuismaPct.textContent = pct+'%';
   if(elVal) elVal.textContent = pct+'%';
+  if(elPreview) elPreview.style.display='flex';
+  var base = Math.max(30, ganancia*0.3);
   if(elNota){
-    var base=Math.max(30,ganancia*0.3);
-    if(Math.abs(luisma-base)<0.01) elNota.textContent='✅ Igual al acuerdo actual';
-    else if(luisma>base) elNota.textContent='⚠️ Le darías $'+(luisma-base).toFixed(2)+' más de lo acordado';
-    else elNota.textContent='💡 Le darías $'+(base-luisma).toFixed(2)+' menos de lo acordado';
+    if(Math.abs(luisma-base)<0.01) elNota.textContent='✅ Acuerdo actual';
+    else if(luisma>base) elNota.textContent='⚠️ Le darías $'+(luisma-base).toFixed(2)+' más — te quedarías $'+(tuParte-(ganancia-base)).toFixed(2)+' menos';
+    else elNota.textContent='💡 Le darías $'+(base-luisma).toFixed(2)+' menos — te quedarías $'+((ganancia-base)-tuParte).toFixed(2)+' más';
   }
 }
 function toggleGastosEvento(eid){
