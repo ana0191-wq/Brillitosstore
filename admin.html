@@ -972,6 +972,7 @@ tr:hover td{background:#fff8fc}
     <div class="form-group"><label>Fecha</label><input type="date" id="e-fecha"></div>
     <div class="form-group"><label>Lugar</label><input type="text" id="e-lugar"></div>
     <div class="form-group form-full"><label>Notas</label><textarea id="e-notas"></textarea></div>
+    <div class="form-group"><label>Gastos de Luisma ($) <span style="font-weight:400;color:#aaa;font-size:11px">se restan del total</span></label><input type="number" id="e-gastos-luisma" step="0.01" min="0" placeholder="0.00"></div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-evento')">Cancelar</button>
@@ -3346,7 +3347,9 @@ async function renderEventos(){
                +gastosLuismaCubiertos.reduce((s,g)=>s+gastoUsd(g),0);
     const totalGastoLuisma=gastosLuismaDescuento.reduce((s,g)=>s+gastoUsd(g),0);
     const totalInv=gastosInv.reduce((s,g)=>s+gastoUsd(g),0);
-    const ganancia=totalV-totalG;
+    const gastosLuismaEvento=parseFloat(e.gastos_luisma||0);
+    const totalGConLuisma=totalG+gastosLuismaEvento;
+    const ganancia=totalV-totalGConLuisma;
     const luismaMinimo=30;
     const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
     const luismaBase=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
@@ -3489,6 +3492,13 @@ async function renderEventos(){
           : '')
         +'</div>'
         :'<div style="padding:6px 0;border-bottom:1px solid #f3e8ff;font-size:12px;color:#aaa">Sin gastos registrados para este evento</div>')
+
+      // Gastos Luisma del evento
+      +(gastosLuismaEvento>0
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
+        +'<span style="font-size:13px;color:#555">🧑 Gastos de Luisma</span>'
+        +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+gastosLuismaEvento.toFixed(2)+'</span>'
+        +'</div>':'')
 
       // Inversión recuperada — dato informativo
       +(totalInv>0
@@ -3652,11 +3662,12 @@ function abrirModalEvento(id=null){
   document.getElementById('e-fecha').value=e?e.fecha||'':'';
   document.getElementById('e-lugar').value=e?e.lugar||'':'';
   document.getElementById('e-notas').value=e?e.notas||'':'';
+  document.getElementById('e-gastos-luisma').value=e&&e.gastos_luisma?e.gastos_luisma:'';
   abrirModal('modal-evento');
 }
 async function guardarEvento(){
   const nombre=document.getElementById('e-nombre').value.trim(); if(!nombre){ toast('⚠️ Nombre obligatorio'); return; }
-  const data={nombre,fecha:document.getElementById('e-fecha').value||null,lugar:document.getElementById('e-lugar').value.trim(),notas:document.getElementById('e-notas').value.trim()};
+  const data={nombre,fecha:document.getElementById('e-fecha').value||null,lugar:document.getElementById('e-lugar').value.trim(),notas:document.getElementById('e-notas').value.trim(),gastos_luisma:parseFloat(document.getElementById('e-gastos-luisma').value)||0};
   if(editEventoId){ await sbPatch('eventos',editEventoId,data); const i=eventos.findIndex(e=>e.id===editEventoId); if(i>=0) eventos[i]={...eventos[i],...data}; }
   else{ const res=await sbPost('eventos',data); if(res[0]) eventos.push(res[0]); poblarEventosSelect(); poblarEventosGastoGlobal(); }
   cerrarModal('modal-evento'); renderEventos(); toast('✅ Guardado');
