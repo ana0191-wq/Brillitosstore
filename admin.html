@@ -3607,8 +3607,19 @@ function abrirConciliacion(eid){
 }
 
 function parsearMontos(texto){
-  return texto.split(/[\n,;]+/)
-    .map(function(s){ return parseFloat(s.replace(',','.')); })
+  // Divide solo por saltos de línea o punto y coma — respeta coma como decimal
+  return texto.split(/[\n;]+/)
+    .map(function(s){
+      s = s.trim();
+      // Si tiene coma y no tiene punto → coma es decimal (ej: 2423,70)
+      // Si tiene coma y punto → punto es decimal, ignorar coma de miles (ej: 1,234.56)
+      if(s.indexOf('.')>=0){
+        s = s.replace(/,/g,''); // quitar comas de miles
+      } else {
+        s = s.replace(',','.'); // coma como decimal
+      }
+      return parseFloat(s);
+    })
     .filter(function(n){ return !isNaN(n) && n>0; });
 }
 
