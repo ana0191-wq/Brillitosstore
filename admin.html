@@ -81,6 +81,8 @@ tr:hover td{background:#fff8fc}
 .badge-instagram{background:#fce4ec;color:#880e4f}
 .badge-evento{background:#ede7f6;color:#4527a0}
 .badge-pos{background:#e3f2fd;color:#1565c0}
+.rango-btn{padding:5px 11px;border:2px solid var(--border);border-radius:20px;font-size:12px;font-weight:600;background:white;color:var(--sub);cursor:pointer;transition:all .15s}
+.rango-btn.active,.rango-btn:hover{background:var(--pink);color:white;border-color:var(--pink)}
 .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:1000;align-items:center;justify-content:center;padding:14px}
 .modal-bg.open{display:flex}
 .modal{background:white;border-radius:16px;width:100%;max-width:680px;max-height:93vh;overflow-y:auto;padding:20px}
@@ -369,17 +371,43 @@ tr:hover td{background:#fff8fc}
     </div>
   </div>
   <div class="content">
-    <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
+    <!-- Filtros rápidos de fecha -->
+    <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
+      <span style="font-size:12px;font-weight:700;color:var(--sub)">Fecha:</span>
+      <button onclick="setRangoFecha('hoy')" class="rango-btn" id="rb-hoy">Hoy</button>
+      <button onclick="setRangoFecha('ayer')" class="rango-btn" id="rb-ayer">Ayer</button>
+      <button onclick="setRangoFecha('semana')" class="rango-btn" id="rb-semana">Esta semana</button>
+      <button onclick="setRangoFecha('mes')" class="rango-btn" id="rb-mes">Este mes</button>
+      <button onclick="setRangoFecha('todo')" class="rango-btn active" id="rb-todo">Todas</button>
+      <input type="date" id="filtro-fecha-desde" onchange="filtrarVentas()" style="padding:6px 10px;border:2px solid var(--border);border-radius:20px;font-size:12px;outline:none">
+      <span style="font-size:12px;color:var(--sub)">—</span>
+      <input type="date" id="filtro-fecha-hasta" onchange="filtrarVentas()" style="padding:6px 10px;border:2px solid var(--border);border-radius:20px;font-size:12px;outline:none">
+    </div>
+    <div style="display:flex;gap:7px;margin-bottom:8px;flex-wrap:wrap">
       <input style="flex:1;min-width:150px;padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Buscar..." id="search-ventas" oninput="filtrarVentas()">
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-estado-venta" onchange="filtrarVentas()">
-        <option value="">Todos</option><option value="Pendiente">Pendiente</option><option value="Pagado">Pagado</option><option value="Entregado">Entregado</option><option value="Cancelado">Cancelado</option>
+        <option value="">Todos los estados</option><option value="Pendiente">Pendiente</option><option value="Pagado">Pagado</option><option value="Entregado">Entregado</option><option value="Cancelado">Cancelado</option>
       </select>
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-canal-venta" onchange="filtrarVentas()">
         <option value="">Todos los canales</option><option>WhatsApp</option><option>Instagram</option><option>Evento</option><option>Web</option><option>POS</option>
       </select>
     </div>
+    <!-- Barra de acciones masivas (aparece al seleccionar) -->
+    <div id="barra-masiva" style="display:none;background:#f0e8f8;border:2px solid #c084fc;border-radius:14px;padding:10px 14px;margin-bottom:10px;display:none;align-items:center;gap:10px;flex-wrap:wrap">
+      <span id="masiva-count" style="font-size:13px;font-weight:700;color:#7c3aed">0 seleccionadas</span>
+      <button onclick="selectAllVisible()" style="background:white;border:1.5px solid #c084fc;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:600;cursor:pointer;color:#7c3aed">☑️ Todas</button>
+      <button onclick="deselectAll()" style="background:white;border:1.5px solid #ddd;border-radius:8px;padding:5px 10px;font-size:12px;cursor:pointer;color:#888">Ninguna</button>
+      <select id="masiva-canal" style="padding:6px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none">
+        <option value="">Cambiar canal a...</option>
+        <option>POS</option><option>Evento</option><option>WhatsApp</option><option>Instagram</option><option>Web</option>
+      </select>
+      <select id="masiva-evento" style="padding:6px 10px;border:1.5px solid #c084fc;border-radius:8px;font-size:12px;background:white;outline:none">
+        <option value="">Asignar evento...</option>
+      </select>
+      <button onclick="aplicarCambioMasivo()" style="background:linear-gradient(135deg,#7c3aed,#a855f7);color:white;border:none;border-radius:8px;padding:6px 14px;font-size:13px;font-weight:700;cursor:pointer">✅ Aplicar</button>
+    </div>
     <div class="card" style="padding:0"><div class="table-wrap">
-      <table><thead><tr><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Total $</th><th>Bs.</th><th>Tasa</th><th>Pago</th><th>Cuenta</th><th>Estado</th><th></th></tr></thead>
+      <table id="tabla-ventas"><thead><tr><th style="width:32px"><input type="checkbox" id="chk-all-ventas" onchange="toggleAllVentas(this)" title="Seleccionar todas"></th><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
       <tbody id="tbody-ventas"></tbody></table>
     </div></div>
   </div>
@@ -2208,15 +2236,18 @@ async function cambiarEstadoVenta(id, nuevoEstado){
   toast('✅ Estado actualizado a '+nuevoEstado);
 }
 function renderVentas(lista){
-  const l=lista||ventas;
+  ventasFiltradas=lista||ventas;
+  const l=ventasFiltradas;
+  actualizarBarraMasiva();
   document.getElementById('tbody-ventas').innerHTML=l.map(v=>
-    '<tr><td><strong>'+(v.numero||'#'+v.id)+'</strong></td>'
+    '<tr data-id="'+v.id+'">'
+    +'<td><input type="checkbox" class="chk-venta" data-id="'+v.id+'" onchange="onChkVenta()" '+(ventasSeleccionadas.has(v.id)?'checked':'')+' style="width:16px;height:16px;cursor:pointer"></td>'
+    +'<td><strong>'+(v.numero||'#'+v.id)+'</strong></td>'
     +'<td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td>'
     +'<td>'+(v.cliente_nombre||'—')+'</td>'
     +'<td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td>'
     +'<td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong></td>'
     +'<td style="color:#2e7d32">'+(parseFloat(v.monto_bs||0)>0?'Bs.'+parseFloat(v.monto_bs).toFixed(2):'—')+'</td>'
-    +'<td style="font-size:11px">'+(v.tasa_bcv_usada>0?parseFloat(v.tasa_bcv_usada).toFixed(2):'—')+'</td>'
     +'<td style="font-size:12px">'+(v.metodo_pago||'')+'</td>'
     +'<td style="font-size:11px">'+cuentaNombre(v.cuenta_cobro)+'</td>'
     +(()=>{const colores={Pagado:'background:#e8f5e9;color:#2e7d32',Pendiente:'background:#fff3e0;color:#e65100',Cancelado:'background:#ffebee;color:#c62828',Entregado:'background:#e3f2fd;color:#1565c0'};const cur=v.estado||'Pendiente';const st=colores[cur]||'background:#f5f5f5;color:#333';return '<td><select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarEstadoVenta('+v.id+',this.value)">'+['Pagado','Pendiente','Cancelado','Entregado'].map(s=>'<option value="'+s+'"'+(cur===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td>';})()
@@ -2226,14 +2257,114 @@ function renderVentas(lista){
     +'<button class="btn btn-warning btn-sm" style="font-size:11px" onclick="cancelarVenta('+v.id+')">↩️</button> <button class="btn btn-danger btn-sm" onclick="eliminarVenta('+v.id+')">🗑️</button>'
     +'</td></tr>').join('');
 }
+// ── SELECCIÓN Y EDICIÓN MASIVA ──
+let ventasSeleccionadas=new Set();
+let ventasFiltradas=[];
+
+function onChkVenta(){
+  ventasSeleccionadas.clear();
+  document.querySelectorAll('.chk-venta:checked').forEach(c=>ventasSeleccionadas.add(parseInt(c.dataset.id)));
+  actualizarBarraMasiva();
+}
+function toggleAllVentas(chk){
+  document.querySelectorAll('.chk-venta').forEach(c=>{
+    c.checked=chk.checked;
+    const id=parseInt(c.dataset.id);
+    if(chk.checked) ventasSeleccionadas.add(id); else ventasSeleccionadas.delete(id);
+  });
+  actualizarBarraMasiva();
+}
+function selectAllVisible(){
+  ventasFiltradas.forEach(v=>ventasSeleccionadas.add(v.id));
+  document.querySelectorAll('.chk-venta').forEach(c=>{c.checked=true;});
+  const ca=document.getElementById('chk-all-ventas'); if(ca) ca.checked=true;
+  actualizarBarraMasiva();
+}
+function deselectAll(){
+  ventasSeleccionadas.clear();
+  document.querySelectorAll('.chk-venta').forEach(c=>{c.checked=false;});
+  const ca=document.getElementById('chk-all-ventas'); if(ca) ca.checked=false;
+  actualizarBarraMasiva();
+}
+function actualizarBarraMasiva(){
+  const n=ventasSeleccionadas.size;
+  const barra=document.getElementById('barra-masiva');
+  const cnt=document.getElementById('masiva-count');
+  if(!barra) return;
+  if(n>0){barra.style.display='flex';if(cnt) cnt.textContent=n+' seleccionada'+(n===1?'':'s');}
+  else barra.style.display='none';
+}
+async function aplicarCambioMasivo(){
+  if(!ventasSeleccionadas.size){toast('Selecciona al menos una venta');return;}
+  const canal=document.getElementById('masiva-canal').value;
+  const eventoId=document.getElementById('masiva-evento').value;
+  if(!canal&&!eventoId){toast('Elige canal o evento a asignar');return;}
+  const cambios={};
+  if(canal) cambios.canal=canal;
+  if(eventoId) cambios.evento_id=parseInt(eventoId);
+  const ids=[...ventasSeleccionadas];
+  if(!confirm('Aplicar cambios a '+ids.length+' venta(s)?')) return;
+  try{
+    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+    const idsStr=ids.join(',');
+    const res=await fetch(SB+'/rest/v1/ventas?id=in.('+idsStr+')',
+      {method:'PATCH',headers:H,body:JSON.stringify(cambios)});
+    if(!res.ok){toast('Error '+res.status);return;}
+    // Actualizar local
+    ids.forEach(id=>{
+      const v=ventas.find(x=>x.id===id);
+      if(v){if(canal)v.canal=canal; if(eventoId)v.evento_id=parseInt(eventoId);}
+    });
+    deselectAll();
+    filtrarVentas();
+    toast('Cambios aplicados a '+ids.length+' venta(s)');
+  }catch(e){toast('Error: '+e.message);}
+}
+
+// ── RANGOS DE FECHA ──
+function setRangoFecha(rango){
+  const hoy=new Date();
+  const fmt=d=>d.toISOString().slice(0,10);
+  let desde='',hasta='';
+  if(rango==='hoy'){desde=hasta=fmt(hoy);}
+  else if(rango==='ayer'){const a=new Date(hoy);a.setDate(a.getDate()-1);desde=hasta=fmt(a);}
+  else if(rango==='semana'){const l=new Date(hoy);l.setDate(hoy.getDate()-hoy.getDay());desde=fmt(l);hasta=fmt(hoy);}
+  else if(rango==='mes'){desde=hoy.getFullYear()+'-'+String(hoy.getMonth()+1).padStart(2,'0')+'-01';hasta=fmt(hoy);}
+  document.getElementById('filtro-fecha-desde').value=desde;
+  document.getElementById('filtro-fecha-hasta').value=hasta;
+  document.querySelectorAll('.rango-btn').forEach(b=>b.classList.remove('active'));
+  const rb=document.getElementById('rb-'+rango); if(rb) rb.classList.add('active');
+  filtrarVentas();
+}
+
+// Cargar eventos en el select masivo
+async function poblarEventosMasivo(){
+  const sel=document.getElementById('masiva-evento'); if(!sel) return;
+  if(sel.options.length>1) return;
+  try{
+    const H={'apikey':KEY,'Authorization':'Bearer '+KEY};
+    const r=await fetch(SB+'/rest/v1/eventos?select=id,nombre&order=fecha.desc&limit=20',{headers:H});
+    const evs=await r.json();
+    evs.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent='🎪 '+e.nombre;sel.appendChild(o);});
+  }catch(e){}
+}
+
 function filtrarVentas(){
   const q=document.getElementById('search-ventas').value.toLowerCase();
   const est=document.getElementById('filtro-estado-venta').value;
   const canal=document.getElementById('filtro-canal-venta').value;
+  const desde=document.getElementById('filtro-fecha-desde')&&document.getElementById('filtro-fecha-desde').value;
+  const hasta=document.getElementById('filtro-fecha-hasta')&&document.getElementById('filtro-fecha-hasta').value;
+  poblarEventosMasivo();
   renderVentas(ventas.filter(v=>{
     if(q&&!(v.cliente_nombre||'').toLowerCase().includes(q)&&!(v.numero||'').toLowerCase().includes(q)) return false;
     if(est&&v.estado!==est) return false;
     if(canal&&v.canal!==canal) return false;
+    if(desde||hasta){
+      const fv=(v.fecha_venta||v.creado_en||'').slice(0,10);
+      if(desde&&fv<desde) return false;
+      if(hasta&&fv>hasta) return false;
+    }
     return true;
   }));
 }
