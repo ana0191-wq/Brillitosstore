@@ -3453,17 +3453,35 @@ async function renderEventos(){
       +'<span style="font-size:18px;font-weight:900;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+'</span>'
       +'</div>'
 
-      // División 70/30 — solo si hay ganancia
+      // División interactiva Luisma
       +(ganancia>0
-        ?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">'
+        ?'<div style="margin-top:10px">'
+        // Cards resultado
+        +'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">'
         +'<div style="background:#f0fdf4;border-radius:10px;padding:10px;text-align:center">'
-        +'<div style="font-size:10px;font-weight:700;color:#2e7d32;text-transform:uppercase;margin-bottom:3px">Tu parte (70%)</div>'
-        +'<div style="font-size:20px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
+        +'<div style="font-size:10px;font-weight:700;color:#2e7d32;text-transform:uppercase;margin-bottom:3px">Tu parte</div>'
+        +'<div id="tu-parte-'+e.id+'" style="font-size:20px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
+        +'<div id="tu-pct-'+e.id+'" style="font-size:11px;color:#2e7d32;opacity:.7">70%</div>'
         +'</div>'
         +'<div style="background:#f5f0ff;border-radius:10px;padding:10px;text-align:center">'
-        +'<div style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;margin-bottom:3px">Luisma (30%)</div>'
-        +'<div style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</div>'
-        +'</div></div>'
+        +'<div style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;margin-bottom:3px">Luisma</div>'
+        +'<div id="luisma-parte-'+e.id+'" style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</div>'
+        +'<div id="luisma-pct-'+e.id+'" style="font-size:11px;color:#7c3aed;opacity:.7">30%</div>'
+        +'</div>'
+        +'</div>'
+        // Slider
+        +'<div style="background:#f8f8f8;border-radius:10px;padding:10px">'
+        +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#888;margin-bottom:6px">'
+        +'<span>% de Luisma</span>'
+        +'<span id="luisma-slider-val-'+e.id+'">30%</span>'
+        +'</div>'
+        +'<input type="range" min="0" max="60" step="5" value="30"'
+        +' style="width:100%;accent-color:#7c3aed;cursor:pointer"'
+        +' oninput="recalcLuisma('+e.id+','+ganancia.toFixed(2)+',this.value)">'
+        +'<div style="display:flex;justify-content:space-between;font-size:10px;color:#bbb;margin-top:2px"><span>0%</span><span>30%</span><span>60%</span></div>'
+        +'<div id="luisma-nota-'+e.id+'" style="font-size:11px;color:#888;margin-top:6px;text-align:center"></div>'
+        +'</div>'
+        +'</div>'
         :'')
 
       // Pérdida aviso
@@ -3527,6 +3545,28 @@ async function renderEventos(){
   }).join('');
 }
 
+function recalcLuisma(eid, ganancia, pct){
+  pct = parseInt(pct);
+  var luisma = ganancia * (pct/100);
+  var tuParte = ganancia - luisma;
+  var tuPct = 100 - pct;
+  var elTuyo = document.getElementById('tu-parte-'+eid);
+  var elLuisma = document.getElementById('luisma-parte-'+eid);
+  var elTuPct = document.getElementById('tu-pct-'+eid);
+  var elLuismaPct = document.getElementById('luisma-pct-'+eid);
+  var elVal = document.getElementById('luisma-slider-val-'+eid);
+  var elNota = document.getElementById('luisma-nota-'+eid);
+  if(elTuyo) elTuyo.textContent = '$'+tuParte.toFixed(2);
+  if(elLuisma) elLuisma.textContent = '$'+luisma.toFixed(2);
+  if(elTuPct) elTuPct.textContent = tuPct+'%';
+  if(elLuismaPct) elLuismaPct.textContent = pct+'%';
+  if(elVal) elVal.textContent = pct+'%';
+  if(elNota){
+    if(pct===30) elNota.textContent = '✅ Acuerdo actual (30/70)';
+    else if(pct>30) elNota.textContent = '⚠️ Le darías $'+(luisma - ganancia*0.3).toFixed(2)+' más de lo usual';
+    else elNota.textContent = '💡 Le darías $'+(ganancia*0.3 - luisma).toFixed(2)+' menos de lo usual';
+  }
+}
 function toggleGastosEvento(eid){
   var el=document.getElementById('gastos-evento-'+eid);
   if(!el) return;
