@@ -984,6 +984,7 @@ tr:hover td{background:#fff8fc}
 <div class="modal-bg" id="modal-gasto" onclick="if(event.target===this)cerrarModal('modal-gasto')">
 <div class="modal">
   <h2>💸 Gasto del Evento</h2>
+  <div id="g-evento-label" style="background:#f3e8ff;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;color:#7c3aed;margin-bottom:10px;display:none"></div>
   <input type="hidden" id="g-evento-id">
   <div class="form-grid">
     <div class="form-group form-full">
@@ -3646,6 +3647,12 @@ async function guardarEvento(){
 async function eliminarEvento(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('eventos','id=eq.'+id); eventos=eventos.filter(e=>e.id!==id); renderEventos(); toast('🗑️ Eliminado'); }
 function abrirModalGasto(eventoId){
   document.getElementById('g-evento-id').value=eventoId;
+  const evLabel=document.getElementById('g-evento-label');
+  if(evLabel){
+    const ev=eventos.find(function(x){return x.id==eventoId;});
+    if(ev){ evLabel.textContent='📍 Evento: '+ev.nombre; evLabel.style.display='block'; }
+    else { evLabel.style.display='none'; }
+  }
   document.getElementById('g-monto').value=''; document.getElementById('g-moneda').value='USD';
   document.getElementById('g-tasa').value=''; document.getElementById('g-notas').value='';
   document.getElementById('g-fecha').value=new Date().toISOString().slice(0,10);
