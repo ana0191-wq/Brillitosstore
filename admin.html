@@ -3473,20 +3473,10 @@ async function renderEventos(){
         +'<span style="font-size:13px;color:#555">Gastos operativos ('+gastosOp.length+')</span>'
         +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+totalG.toFixed(2)+'</span>'
         +'</div>'
-        +gastosOp.map(function(g,gi){
-          // duplicado: mismo concepto y monto ±2% que otro gasto
-          var gDesc=(g.descripcion||'').toLowerCase().trim();
-          var gMonto=parseFloat(g.monto_usd||0)||parseFloat(g.monto_bs||0)||parseFloat(g.monto||0);
-          var isDup=gastosOp.some(function(h,hi){
-            if(hi===gi) return false;
-            var hDesc=(h.descripcion||'').toLowerCase().trim();
-            var hMonto=parseFloat(h.monto_usd||0)||parseFloat(h.monto_bs||0)||parseFloat(h.monto||0);
-            return gDesc===hDesc && gDesc!=='' && gMonto>0 && Math.abs(gMonto-hMonto)/gMonto<=0.02;
-          });
-          var montoStr=parseFloat(g.monto_usd||0)>0?'$'+parseFloat(g.monto_usd).toFixed(2):(g.moneda==='Bs'?'Bs '+parseFloat(g.monto_bs||g.monto||0).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2));
-          return '<div style="display:flex;justify-content:space-between;padding:2px 4px 2px 12px;font-size:11px;'+(isDup?'background:#fff8e1;color:#e65100;border-radius:4px':'color:#888')+'">'
-            +'<span>'+(isDup?'⚠️ ':'• ')+(g.descripcion||g.concepto||'Gasto')+(g.moneda==='Bs'?' 🇻🇪':'')+(isDup?' (duplicado?)':'')+'</span>'
-            +'<span>'+montoStr+'</span>'
+        +gastosOp.map(function(g){
+          return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 12px;font-size:11px;color:#888">'
+            +'<span>• '+(g.descripcion||g.concepto||'Gasto')+(g.moneda==='Bs'?' 🇻🇪':'')+'</span>'
+            +'<span>'+( (parseFloat(g.monto_usd||0)>0) ? '$'+parseFloat(g.monto_usd).toFixed(2) : (g.moneda==='Bs'?'Bs '+parseFloat(g.monto_bs||g.monto||0).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2)) )+'</span>'
             +'</div>';
         }).join('')
         +(gastosLuismaCubiertos.length>0
