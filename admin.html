@@ -371,6 +371,7 @@ tr:hover td{background:#fff8fc}
     </div>
   </div>
   <div class="content">
+    <div id="deuda-mama-ventas" style="margin-bottom:12px"></div>
     <!-- Filtros rápidos de fecha -->
     <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
       <span style="font-size:12px;font-weight:700;color:var(--sub)">Fecha:</span>
@@ -543,6 +544,7 @@ tr:hover td{background:#fff8fc}
         <option value="">Todos los meses</option>
       </select>
     </div>
+    <div id="deuda-mama-cont" style="margin-bottom:14px"></div>
     <div class="card" style="padding:0"><div class="table-wrap">
       <table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>En USD</th><th>Bs.</th><th>Tipo</th><th>Evento</th><th></th></tr></thead>
       <tbody id="tbody-gastos"></tbody></table>
@@ -2288,6 +2290,7 @@ function renderVentas(lista){
   ventasFiltradas=lista||ventas;
   const l=ventasFiltradas;
   actualizarBarraMasiva();
+  renderDeudaMama('deuda-mama-ventas');
   document.getElementById('tbody-ventas').innerHTML=l.map(v=>
     '<tr data-id="'+v.id+'">'
     +'<td><input type="checkbox" class="chk-venta" data-id="'+v.id+'" onchange="onChkVenta()" '+(ventasSeleccionadas.has(v.id)?'checked':'')+' style="width:16px;height:16px;cursor:pointer"></td>'
@@ -3588,6 +3591,50 @@ async function cambiarTipoGasto(id, nuevoTipo){
   renderGastosGlobal();
   toast('✅ Tipo actualizado');
 }
+function calcularDeudaMama(){
+  var total=0, detalle=[];
+  ventas.filter(function(v){return v.estado!=='Cancelado';}).forEach(function(v){
+    var esEvento=!!(v.evento_id);
+    (v.venta_items||[]).forEach(function(it){
+      var p=productos.find(function(x){return x.id==it.producto_id;});
+      if(!p||p.propietario!=='Mamá') return;
+      var cant=parseInt(it.cantidad||1);
+      var precioVenta=parseFloat(it.precio_unitario||p.precio||0);
+      var costo=parseFloat(p.precio_costo||0);
+      var subtotal=(precioVenta-costo-(esEvento?0.50:0))*cant;
+      total+=subtotal;
+      detalle.push({nombre:p.nombre,cant:cant,venta:v.numero||'#'+v.id,esEvento:esEvento,subtotal:subtotal});
+    });
+  });
+  return {total:total,detalle:detalle};
+}
+function toggleDeudaDetalle(cid){
+  var d=document.getElementById('deuda-det-'+cid);
+  if(d) d.style.display=d.style.display==='none'?'block':'none';
+}
+function renderDeudaMama(cid){
+  var el=document.getElementById(cid); if(!el) return;
+  var dm=calcularDeudaMama();
+  if(dm.total<=0){
+    el.innerHTML='<div style="color:#aaa;font-size:13px;padding:8px 0">Sin deuda pendiente con Mamá 🌸</div>';
+    return;
+  }
+  var filas=dm.detalle.map(function(d){
+    return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #fce4ec;font-size:12px">'
+      +'<div><span>'+d.nombre+(d.cant>1?' ×'+d.cant:'')+'</span>'
+      +' <small style="color:#aaa">'+d.venta+(d.esEvento?' · evento':'')+'</small></div>'
+      +'<strong style="color:#c2185b">$'+d.subtotal.toFixed(2)+'</strong></div>';
+  }).join('');
+  el.innerHTML='<div style="background:#fff0f4;border-radius:12px;padding:14px;border:1px solid #f48fb1">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
+    +'<span style="font-size:11px;font-weight:800;color:#c2185b;text-transform:uppercase;letter-spacing:.5px">👩‍👧 Deuda con Mamá</span>'
+    +'<span style="font-size:20px;font-weight:900;color:#c2185b">$'+dm.total.toFixed(2)+'</span>'
+    +'</div>'
+    +'<div id="deuda-det-'+cid+'" style="display:none">'+filas+'</div>'
+    +'<button onclick="toggleDeudaDetalle('+JSON.stringify(cid)+')" class="btn btn-secondary btn-sm" style="font-size:11px;width:100%;margin-top:8px">Ver detalle ('+dm.detalle.length+')</button>'
+    +'<div style="font-size:10px;color:#aaa;margin-top:6px">Evento: precio−costo−$0.50 · Fuera de evento: precio−costo</div>'
+    +'</div>';
+}
 function renderGastosGlobal(){
   const cat=document.getElementById('filtro-cat-gasto')?document.getElementById('filtro-cat-gasto').value:'';
   const mes=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
@@ -3659,6 +3706,7 @@ function renderGastosGlobal(){
       +'</tr>';
   });
   document.getElementById('tbody-gastos').innerHTML=rows.join('');
+  renderDeudaMama('deuda-mama-cont');
 }
 
 function abrirModalReposicion(){
