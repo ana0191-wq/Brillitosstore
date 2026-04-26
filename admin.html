@@ -3445,20 +3445,32 @@ async function renderEventos(){
 
     return '<div class="card" style="padding:16px">'
 
-      // ── CABECERA ──
-      +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:14px">'
+      // ── CABECERA (siempre visible, clickeable para expandir) ──
+      +'<div style="display:flex;justify-content:space-between;align-items:start;cursor:pointer" onclick="toggleDetalleEvento('+e.id+',event)">'
       +'<div>'
       +'<div style="font-size:16px;font-weight:800;margin-bottom:3px">🎪 '+e.nombre+'</div>'
       +'<div style="font-size:12px;color:#888">'+fmtFechaEvento(e.fecha)+(e.lugar?' · 📍'+e.lugar:'')+'</div>'
       +'<span style="display:inline-block;margin-top:5px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+'">'+badgeLabel+'</span>'
       +'</div>'
       +'<div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end">'
-      +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button>'
-      +'<button class="btn btn-secondary btn-sm" style="background:#e8f5e9;color:#2e7d32;border:none" onclick="abrirConciliacion('+e.id+')">🏦 Conciliar</button>'
-      +'<div style="display:flex;gap:5px">'
-      +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button>'
-      +'</div></div></div>'
+      // Mini resumen siempre visible
+      +'<div style="text-align:right">'
+      +'<div style="font-size:13px;font-weight:800;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+' ganancia</div>'
+      +'<div style="font-size:11px;color:#888">'+vts.length+' ventas · '+gastosE.length+' gastos</div>'
+      +'</div>'
+      +'<div style="font-size:18px;color:#aaa;line-height:1" id="chevron-'+e.id+'">▸</div>'
+      +'</div></div>'
+
+      // ── DETALLE COLAPSABLE ──
+      +'<div id="detalle-evento-'+e.id+'" style="display:none">'
+
+      // Botones de acción
+      +'<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">'
+      +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+');event.stopPropagation()">+ Gasto</button>'
+      +'<button class="btn btn-secondary btn-sm" style="background:#e8f5e9;color:#2e7d32;border:none" onclick="abrirConciliacion('+e.id+');event.stopPropagation()">🏦 Conciliar</button>'
+      +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+');event.stopPropagation()">✏️ Editar</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+');event.stopPropagation()">🗑️ Eliminar</button>'
+      +'</div>'
 
       // ── RESUMEN FINANCIERO (una sola vez, claro) ──
       +'<div style="background:linear-gradient(135deg,#fdf4ff,#fff);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid #ede9fe">'
@@ -3617,8 +3629,19 @@ async function renderEventos(){
       // Notas
       +(e.notas?'<div style="margin-top:12px;padding:8px 10px;background:#fafafa;border-radius:8px;font-size:12px;color:#666">📝 '+e.notas+'</div>':'')
 
+      +'</div>' // cierre detalle colapsable
       +'</div>';
   }).join('');
+}
+
+function toggleDetalleEvento(eid, event){
+  if(event && event.target && (event.target.tagName==='BUTTON'||event.target.closest('button'))) return;
+  var det=document.getElementById('detalle-evento-'+eid);
+  var chev=document.getElementById('chevron-'+eid);
+  if(!det) return;
+  var abierto=det.style.display!=='none';
+  det.style.display=abierto?'none':'block';
+  if(chev) chev.textContent=abierto?'▸':'▾';
 }
 
 function recalcLuisma(eid, ganancia, pct){
