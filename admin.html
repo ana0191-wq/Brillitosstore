@@ -3435,6 +3435,7 @@ async function renderEventos(){
       +'</div>'
       +'<div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end">'
       +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button>'
+      +'<button class="btn btn-secondary btn-sm" style="background:#e8f5e9;color:#2e7d32;border:none" onclick="abrirConciliacion('+e.id+')">🏦 Conciliar</button>'
       +'<div style="display:flex;gap:5px">'
       +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button>'
       +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button>'
@@ -3597,6 +3598,165 @@ function recalcLuisma(eid, ganancia, pct){
     else elNota.textContent='💡 Le darías $'+(base-luisma).toFixed(2)+' menos — te quedarías $'+((ganancia-base)-tuParte).toFixed(2)+' más';
   }
 }
+function abrirConciliacion(eid){
+  document.getElementById('conc-evento-id').value=eid;
+  document.getElementById('conc-entradas').value='';
+  document.getElementById('conc-gastos').value='';
+  document.getElementById('conc-resultado').innerHTML='';
+  abrirModal('modal-conciliacion');
+}
+
+function parsearMontos(texto){
+  return texto.split(/[\n,;]+/)
+    .map(function(s){ return parseFloat(s.replace(',','.')); })
+    .filter(function(n){ return !isNaN(n) && n>0; });
+}
+
+function ejecutarConciliacion(){
+  var eid=parseInt(document.getElementById('conc-evento-id').value);
+  var entradasBanco=parsearMontos(document.getElementById('conc-entradas').value);
+  var gastosBanco=parsearMontos(document.getElementById('conc-gastos').value);
+  var tolerance=0.02; // 2% tolerancia
+
+  // Ventas del evento en Bs
+  var ventasEvento=ventas.filter(function(v){ return v.evento_id==eid && v.estado!=='Cancelado'; });
+  var montosVentas=ventasEvento.map(function(v){
+    var bs=parseFloat(v.total_bs||0);
+    if(!bs){
+      var tasa=parseFloat(v.tasa_bcv_usada||v.tasa_bcv||0);
+      bs=parseFloat(v.total||0)*(tasa||1);
+    }
+    return {id:v.id, numero:v.numero||'#'+v.id, monto:bs, conciliado:false};
+  });
+
+  // Match entradas
+  var entradasResult=entradasBanco.map(function(eb){
+    var match=null;
+    for(var i=0;i<montosVentas.length;i++){
+      if(montosVentas[i].conciliado) continue;
+      var diff=Math.abs(montosVentas[i].monto-eb)/(eb||1);
+      if(diff<=tolerance){ match=montosVentas[i]; montosVentas[i].conciliado=true; break; }
+    }
+    return {banco:eb, venta:match};
+  });
+
+  // Gastos del evento en Bs
+  var gastosEvt=gastosEvento.filter(function(g){ return g.evento_id==eid; });
+  var montosGastos=gastosEvt.map(function(g){
+    var bs=parseFloat(g.monto_bs||0)||parseFloat(g.monto||0);
+    return {id:g.id, desc:g.descripcion||'Gasto', monto:bs, conciliado:false};
+  });
+
+  var gastosResult=gastosBanco.map(function(gb){
+    var match=null;
+    for(var i=0;i<montosGastos.length;i++){
+      if(montosGastos[i].conciliado) continue;
+      var diff=Math.abs(montosGastos[i].monto-gb)/(gb||1);
+      if(diff<=tolerance){ match=montosGastos[i]; montosGastos[i].conciliado=true; break; }
+    }
+    return {banco:gb, gasto:match};
+  });
+
+  // Render resultado
+  var html='';
+
+  // Entradas
+  var ok=entradasResult.filter(function(r){return r.venta;});
+  var nok=entradasResult.filter(function(r){return !r.venta;});
+  var totalBanco=entradasBanco.reduce(function(s,n){return s+n;},0);
+  var totalSistema=ok.reduce(function(s,r){return s+r.banco;},0);
+
+  html+='<div style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;margin-bottom:8px">'
+    +'Entradas — '+entradasBanco.length+' del banco · '+ok.length+' conciliadas · '+nok.length+' sin par</div>';
+
+  if(ok.length){
+    html+='<div style="margin-bottom:8px">';
+    ok.forEach(function(r){
+      html+='<div style="display:flex;justify-content:space-between;padding:5px 8px;background:#f0fdf4;border-radius:6px;margin-bottom:3px;font-size:13px">'
+        +'<span>✅ Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+' — '+r.venta.numero+'</span>'
+        +'<span style="color:#2e7d32;font-weight:700">coincide</span></div>';
+    });
+    html+='</div>';
+  }
+
+  if(nok.length){
+    html+='<div style="margin-bottom:12px">';
+    nok.forEach(function(r){
+      html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:#fff8e1;border-radius:6px;margin-bottom:3px;font-size:13px">'
+        +'<span>⚠️ Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+' — sin venta registrada</span>'
+        +'<button class="btn btn-sm" style="background:#fff3cd;color:#e65100;border:none;font-size:11px" '
+        +'onclick="agregarVentaBanco('+eid+','+r.banco+')">+ Agregar</button>'
+        +'</div>';
+    });
+    html+='</div>';
+  }
+
+  // Gastos
+  if(gastosBanco.length){
+    var gok=gastosResult.filter(function(r){return r.gasto;});
+    var gnok=gastosResult.filter(function(r){return !r.gasto;});
+    html+='<div style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;margin:12px 0 8px">'
+      +'Gastos — '+gastosBanco.length+' del banco · '+gok.length+' conciliados · '+gnok.length+' sin par</div>';
+    if(gok.length){
+      html+='<div style="margin-bottom:8px">';
+      gok.forEach(function(r){
+        html+='<div style="display:flex;justify-content:space-between;padding:5px 8px;background:#f0fdf4;border-radius:6px;margin-bottom:3px;font-size:13px">'
+          +'<span>✅ Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+' — '+r.gasto.desc+'</span>'
+          +'<span style="color:#2e7d32;font-weight:700">coincide</span></div>';
+      });
+      html+='</div>';
+    }
+    if(gnok.length){
+      html+='<div style="margin-bottom:8px">';
+      gnok.forEach(function(r){
+        html+='<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 8px;background:#fff8e1;border-radius:6px;margin-bottom:3px;font-size:13px">'
+          +'<span>⚠️ Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+' — gasto sin registrar</span>'
+          +'<button class="btn btn-sm" style="background:#fff3cd;color:#e65100;border:none;font-size:11px" '
+          +'onclick="abrirModalGastoConMonto('+eid+','+r.banco+')">+ Agregar</button>'
+          +'</div>';
+      });
+      html+='</div>';
+    }
+  }
+
+  // Resumen
+  html+='<div style="background:#f3e8ff;border-radius:10px;padding:12px;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap">'
+    +'<div><div style="font-size:10px;color:#7c3aed;font-weight:700">Banco (entradas)</div>'
+    +'<div style="font-size:16px;font-weight:900">Bs. '+totalBanco.toLocaleString('es-VE',{minimumFractionDigits:2})+'</div></div>'
+    +'<div><div style="font-size:10px;color:#2e7d32;font-weight:700">Sistema (conciliado)</div>'
+    +'<div style="font-size:16px;font-weight:900;color:#2e7d32">Bs. '+totalSistema.toLocaleString('es-VE',{minimumFractionDigits:2})+'</div></div>'
+    +'<div><div style="font-size:10px;color:#c62828;font-weight:700">Diferencia</div>'
+    +'<div style="font-size:16px;font-weight:900;color:#c62828">Bs. '+(totalBanco-totalSistema).toLocaleString('es-VE',{minimumFractionDigits:2})+'</div></div>'
+    +'</div>';
+
+  document.getElementById('conc-resultado').innerHTML=html;
+}
+
+function agregarVentaBanco(eid, montoBs){
+  cerrarModal('modal-conciliacion');
+  abrirModalVenta();
+  setTimeout(function(){
+    // Pre-llenar evento y monto aproximado
+    var selEv=document.getElementById('v-evento');
+    if(selEv) selEv.value=eid;
+    var inpBs=document.getElementById('v-monto-bs')||document.getElementById('v-total');
+    // Nota al usuario
+    toast('Registra la venta de Bs. '+montoBs.toLocaleString('es-VE',{minimumFractionDigits:2})+' y asigna el evento');
+  },400);
+}
+
+function abrirModalGastoConMonto(eid, montoBs){
+  cerrarModal('modal-conciliacion');
+  abrirModalGasto(eid);
+  setTimeout(function(){
+    var inp=document.getElementById('g-monto');
+    var sel=document.getElementById('g-moneda');
+    if(inp) inp.value=montoBs;
+    if(sel){ sel.value='Bs'; toggleTasaGasto && toggleTasaGasto(); }
+    toast('Gasto de Bs. '+montoBs.toLocaleString('es-VE',{minimumFractionDigits:2})+' pre-cargado');
+  },400);
+}
+
 function toggleGastoLuisma(){
   var v=document.getElementById('g-concepto').value;
   var w=document.getElementById('g-luisma-cobertura-wrap');
@@ -4716,6 +4876,29 @@ function renderMovimientosBancaAmiga(){
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-bancaamiga-movs')">Cerrar</button>
   </div>
+</div>
+</div>
+
+<!-- MODAL: CONCILIACIÓN BANCARIA -->
+<div class="modal-bg" id="modal-conciliacion" onclick="if(event.target===this)cerrarModal('modal-conciliacion')">
+<div class="modal" style="max-width:680px;width:95%">
+  <h2>🏦 Conciliación Bancaria</h2>
+  <input type="hidden" id="conc-evento-id">
+  <p style="font-size:13px;color:#666;margin:0 0 14px">Pega los montos del banco (uno por línea). Los comparo contra las ventas registradas del evento.</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px">
+      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px">Entradas del banco (Bs)</label>
+      <textarea id="conc-entradas" rows="10" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:13px;font-family:monospace;box-sizing:border-box" placeholder="2423.70&#10;2966.07&#10;550&#10;..."></textarea>
+      <div style="font-size:11px;color:#aaa;margin-top:4px">Un monto por línea. Usa punto o coma decimal.</div>
+    </div>
+    <div style="flex:1;min-width:200px">
+      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px">Gastos del banco (Bs) — opcional</label>
+      <textarea id="conc-gastos" rows="10" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:13px;font-family:monospace;box-sizing:border-box" placeholder="1212&#10;725&#10;..."></textarea>
+      <div style="font-size:11px;color:#aaa;margin-top:4px">Solo los que quieras comparar.</div>
+    </div>
+  </div>
+  <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="ejecutarConciliacion()">🔍 Comparar</button>
+  <div id="conc-resultado" style="margin-top:16px"></div>
 </div>
 </div>
 
