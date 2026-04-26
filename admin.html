@@ -985,9 +985,9 @@ tr:hover td{background:#fff8fc}
   <div class="form-grid">
     <div class="form-group form-full">
       <label>Concepto *</label>
-      <select id="g-concepto">
+      <select id="g-concepto" onchange="toggleGastoLuisma()">
         <option>Stand / Puesto</option><option>Transporte</option><option>Mercancía llevada</option>
-        <option>Comida / Viáticos</option><option>Pago a Luisma</option><option>Decoración</option>
+        <option>Comida / Viáticos</option><option>Pago a Luisma</option><option>Gasto de Luisma</option><option>Decoración</option>
         <option>Bolsas / Empaques</option><option>Otro</option>
       </select>
     </div>
@@ -1016,6 +1016,17 @@ tr:hover td{background:#fff8fc}
     <div class="form-group" id="g-usd-wrap" style="display:none">
       <label>Equivalente USD</label>
       <input type="text" id="g-monto-usd" readonly style="background:#f5f5f5;font-weight:700">
+    </div>
+    <div class="form-group form-full" id="g-luisma-cobertura-wrap" style="display:none">
+      <label>¿Quién cubre este gasto?</label>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:normal">
+          <input type="radio" name="g-cubierto" value="Luisma" checked> Se descuenta a Luisma
+        </label>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-weight:normal">
+          <input type="radio" name="g-cubierto" value="Yo"> Lo cubro yo
+        </label>
+      </div>
     </div>
     <div class="form-group"><label>Fecha</label><input type="date" id="g-fecha"></div>
     <div class="form-group form-full"><label>Notas</label><input type="text" id="g-notas"></div>
@@ -3312,15 +3323,21 @@ async function renderEventos(){
     const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
     const totalV=vts.reduce((s,v)=>s+parseFloat(v.total||0),0);
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
-    const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión');
+    const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión'&&g.descripcion!=='Gasto de Luisma');
     const gastosInv=gastosE.filter(g=>g.tipo==='Inversión');
-    const totalG=gastosOp.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+    const gastosLuismaList=gastosE.filter(g=>g.descripcion==='Gasto de Luisma');
+    const gastosLuismaDescuento=gastosLuismaList.filter(g=>!g.cubierto_por||g.cubierto_por==='Luisma');
+    const gastosLuismaCubiertos=gastosLuismaList.filter(g=>g.cubierto_por==='Yo');
+    const totalG=gastosOp.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0)
+               +gastosLuismaCubiertos.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+    const totalGastoLuisma=gastosLuismaDescuento.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
     const totalInv=gastosInv.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
-    const ganancia=totalV-totalG-totalInv;
+    const ganancia=totalV-totalG;
     const luismaMinimo=30;
     const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
-    const luismaParte=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
-    const tuParte=ganancia>0?ganancia-luismaParte:0;
+    const luismaBase=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
+    const luismaParte=Math.max(0,luismaBase-totalGastoLuisma);
+    const tuParte=ganancia>0?ganancia-luismaBase:0;
 
     // ── Deuda a Mamá ──
     // Por cada item de producto de mamá: le debo (precio_venta - costo - 0.50) por unidad
@@ -3441,11 +3458,11 @@ async function renderEventos(){
         +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+totalG.toFixed(2)+'</span>'
         +'</div>':'')
 
-      // Inversión
+      // Inversión recuperada — dato informativo
       +(totalInv>0
         ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
-        +'<span style="font-size:13px;color:#555">Inversión / Stock</span>'
-        +'<span style="font-size:14px;font-weight:700;color:#1565c0">−$'+totalInv.toFixed(2)+'</span>'
+        +'<span style="font-size:13px;color:#1565c0">💼 Inversión recuperada</span>'
+        +'<span style="font-size:14px;font-weight:700;color:#1565c0">+$'+totalInv.toFixed(2)+'</span>'
         +'</div>':'')
 
       // Ganancia neta — línea gruesa
@@ -3462,9 +3479,12 @@ async function renderEventos(){
         return '<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">'
 
           // Luisma
-          +'<div style="display:flex;justify-content:space-between;align-items:center;background:#f5f0ff;border-radius:10px;padding:10px 14px">'
+          +'<div style="background:#f5f0ff;border-radius:10px;padding:10px 14px">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center">'
           +'<span style="font-size:13px;font-weight:700;color:#7c3aed">'+luismaLabel+'</span>'
           +'<span style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</span>'
+          +'</div>'
+          +(totalGastoLuisma>0?'<div style="font-size:11px;color:#9c6fe4;margin-top:4px">−$'+totalGastoLuisma.toFixed(2)+' gastos descontados · base $'+luismaBase.toFixed(2)+'</div>':'')
           +'</div>'
 
           // Tuyo
@@ -3579,6 +3599,11 @@ function recalcLuisma(eid, ganancia, pct){
     else elNota.textContent='💡 Le darías $'+(base-luisma).toFixed(2)+' menos — te quedarías $'+((ganancia-base)-tuParte).toFixed(2)+' más';
   }
 }
+function toggleGastoLuisma(){
+  var v=document.getElementById('g-concepto').value;
+  var w=document.getElementById('g-luisma-cobertura-wrap');
+  if(w) w.style.display=v==='Gasto de Luisma'?'block':'none';
+}
 function toggleGastosEvento(eid){
   var el=document.getElementById('gastos-evento-'+eid);
   if(!el) return;
@@ -3622,7 +3647,7 @@ async function guardarGasto(){
   const monto_usd=moneda==='Bs'&&tasa>0?monto/tasa:monto;
   const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
   const tipo_gasto=document.querySelector('input[name="g-tipo"]:checked')?.value||'Gasto';
-  await sbPost('gastos_globales',{evento_id:parseInt(document.getElementById('g-evento-id').value),descripcion:concepto,categoria:'Stand / Evento',monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value,tipo:tipo_gasto});
+  await sbPost('gastos_globales',{evento_id:parseInt(document.getElementById('g-evento-id').value),descripcion:concepto,categoria:'Stand / Evento',monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value,tipo:tipo_gasto,cubierto_por:concepto==='Gasto de Luisma'?(document.querySelector('input[name="g-cubierto"]:checked')?.value||'Luisma'):null});
   cerrarModal('modal-gasto'); renderEventos(); gastosGlobales=await sbGet('gastos_globales','select=*&order=creado_en.desc'); toast('✅ Gasto registrado — descontado de BancaAmiga Luisma');
 }
 async function eliminarGasto(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('gastos_globales','id=eq.'+id); gastosGlobales=gastosGlobales.filter(g=>g.id!==id); renderGastosGlobal(); cargarDashboard(); toast('🗑️ Eliminado'); }
