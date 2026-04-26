@@ -3281,172 +3281,186 @@ async function renderEventos(){
     const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
     const totalV=vts.reduce((s,v)=>s+parseFloat(v.total||0),0);
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
-    const totalG=gastosE.filter(g=>g.tipo!=='Inversión').reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
-    const totalInv=gastosE.filter(g=>g.tipo==='Inversión').reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
-    const ganancia=totalV-totalG-totalInv; const luisma=ganancia>0?ganancia*0.3:0;
-    return '<div class="card">'
-      +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:10px">'
-      +'<div><div style="font-size:15px;font-weight:800">🎪 '+e.nombre+'</div><div style="font-size:12px;color:var(--gray)">'+fmtFechaEvento(e.fecha)+((e.lugar?' · 📍'+e.lugar:''))+'</div></div>'
-      +'<div style="display:flex;gap:6px"><button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button><button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button><button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button></div></div>'
-      +'<div style="background:#fafafa;border-radius:10px;padding:10px;margin-bottom:9px">'
-      +'<div style="font-size:10px;font-weight:700;color:var(--gray);margin-bottom:6px;text-transform:uppercase">Gastos del evento</div>'
-      +(gastosE.length?gastosE.map(g=>{
-        const usd=parseFloat(g.monto_usd||0);
-        const bs=parseFloat(g.monto||0);
-        const tasa=parseFloat(g.tasa_bcv||0);
-        const usdStr='$'+usd.toFixed(2);
-        const bsStr=g.moneda==='Bs'?('Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})):'';
-        const tasaStr=g.moneda==='Bs'&&tasa>0?' <small style="color:#aaa">· tasa '+tasa.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</small>':'';
-        return '<div class="gasto-row"><span>'+g.concepto+' <small style="color:#aaa">'+(g.fecha||'')+'</small></span>'
-          +'<span style="text-align:right"><strong style="color:var(--pink)">'+usdStr+'</strong>'
-          +(bsStr?'<br><small style="color:var(--purple)">'+bsStr+'</small>'+tasaStr:'')
-          +'<br><small style="color:'+(g.tipo==='Inversión'?'#1976d2':'var(--red)')+'">'+((g.tipo||'Gasto'))+'</small>'
-          +'<button class="btn btn-danger btn-sm" style="padding:1px 5px;font-size:10px;margin-left:8px" onclick="eliminarGasto('+g.id+')">✕</button></span></div>';
-      }).join(''):'<div style="color:var(--gray);font-size:13px">Sin gastos aún</div>')
-      +'<div style="display:flex;justify-content:space-between;padding-top:7px;margin-top:3px;border-top:2px solid var(--border);font-weight:700;font-size:13px"><span>Total gastos</span><span style="color:var(--red)">$'+totalG.toFixed(2)+'</span></div></div>'
-      +'<div class="grid-3" style="margin-bottom:8px">'
-      +'<div style="background:#fafafa;border-radius:10px;padding:11px;margin-bottom:9px">'
-      +'<div style="font-size:10px;font-weight:700;color:var(--gray);margin-bottom:8px;text-transform:uppercase">📊 Desglose</div>'
-      +'<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)"><span>💰 Ventas ('+vts.length+')</span><span style="color:var(--green);font-weight:700">+$'+totalV.toFixed(2)+'</span></div>'
-      +(totalG>0?'<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)"><span>💸 Gastos operativos</span><span style="color:var(--red);font-weight:600">−$'+totalG.toFixed(2)+'</span></div>':'')
-      +(totalInv>0?'<div style="display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px solid var(--border)"><span>📦 Inversiones</span><span style="color:#1976d2;font-weight:600">−$'+totalInv.toFixed(2)+'</span></div>':'')
-      +'<div style="display:flex;justify-content:space-between;font-size:15px;font-weight:800;padding:8px 0 2px"><span>Ganancia neta</span><span style="color:'+(ganancia>=0?'var(--green)':'var(--red)')+'">' +'$'+ganancia.toFixed(2)+'</span></div>'
-      +(function(){
-        var costoTotal=totalG+totalInv;
-        var costoMerc=0;
-        vts.forEach(function(v){(v.venta_items||[]).forEach(function(it){var p=productos.find(function(x){return x.id==it.producto_id;});if(p&&p.precio_costo>0)costoMerc+=parseFloat(p.precio_costo||0)*parseInt(it.cantidad||1);});});
-        var margen=totalV>0?((totalV-costoMerc)/totalV):0.35;
-        if(margen<=0||margen>1)margen=0.35;
-        // Mínimo para cubrir gastos solos
-        var soloGastos=costoTotal>0?(costoTotal/margen):0;
-        // Mínimo para que tu 70% cubra los gastos (te quedas sin perder)
-        var paraTu70=costoTotal>0?(costoTotal/(margen*0.7)):0;
-        var faltaGastos=Math.max(0,soloGastos-totalV);
-        var falta70=Math.max(0,paraTu70-totalV);
-        if(costoTotal<=0)return '';
-        return '<div style="border-top:2px dashed #f8bbd0;margin-top:5px;padding-top:8px">'
-          +'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:4px 0">'
-            +'<span style="font-weight:700;color:#888">⚡ Para cubrir gastos</span>'
-            +'<span style="font-weight:800;color:var(--orange);font-size:14px">$'+soloGastos.toFixed(2)+'</span>'
-          +'</div>'
-          +'<div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;padding:4px 0">'
-            +'<span style="font-weight:700;color:#888">🎯 Para que te quede tu 70%</span>'
-            +'<span style="font-weight:800;color:var(--pink);font-size:14px">$'+paraTu70.toFixed(2)+'</span>'
-          +'</div>'
-          +'<div style="text-align:right;font-size:12px;font-weight:700;margin-top:3px;color:'+(falta70===0?'var(--green)':'var(--red)')+';">'
-          +(falta70===0?'✅ Ya cubriste tu parte':'⚠️ Faltan $'+falta70.toFixed(2)+' para recuperar tu 70%')
-          +'</div>'
-          +'</div>';
-      })()
-      +'</div>'
-      +'<div class="grid-2" style="margin-bottom:8px">'
-      +'<div class="stat-card" style="padding:9px;border:2px solid var(--pink)"><div class="stat-num" style="font-size:16px;color:var(--pink)">$'+(ganancia*0.7).toFixed(2)+'</div><div class="stat-label">💰 Tu ganancia (70%)</div></div>'
-      +'<div class="stat-card" style="padding:9px"><div class="stat-num" style="font-size:16px;color:var(--purple)">$'+(ganancia*0.3).toFixed(2)+'</div><div class="stat-label">Luisma (30%)</div></div></div>'
-      +(ganancia>0?'<div class="luisma-box"><div style="font-weight:700;color:var(--purple)">👨‍💼 Luisma — a pagarle</div><div style="font-size:20px;font-weight:800;color:var(--purple);margin:4px 0">$'+luisma.toFixed(2)+'</div><div style="font-size:12px;color:#666">30% de $'+ganancia.toFixed(2)+'</div></div>':'')
-      +(e.notas?'<div style="margin-top:7px;font-size:12px;color:var(--gray)">📝 '+e.notas+'</div>':'')
-      +(function(){
-        // Punto de equilibrio del evento
-        var costoTotal=totalG+totalInv;
-        if(costoTotal<=0) return '';
-        // Margen promedio de los productos vendidos en este evento
-        var costoMerc=0; vts.forEach(function(v){(v.venta_items||[]).forEach(function(it){var p=productos.find(function(x){return x.id==it.producto_id;});if(p&&p.precio_costo>0)costoMerc+=parseFloat(p.precio_costo||0)*parseInt(it.cantidad||1);});});
-        var margen=totalV>0?((totalV-costoMerc)/totalV):0.35; if(margen<=0||margen>1)margen=0.35;
-        // Para recuperar inversión+gastos (sin considerar la división 60/40)
-        var paraRecuperar=costoTotal/margen;
-        // Para que después de gastos quede algo para Luisma y para ti
-        // Necesitas: costoTotal + X, donde X*0.4 = pago Luisma y X*0.6 = tu ganancia
-        // Para al menos pagar a Luisma: costoTotal / 0.6 (el 40% restante cubre su pago del excedente)
-        var paraLuisma=costoTotal/0.7;
-        // Para ganar tú algo (+20% sobre costos): 
-        var paraGanar=(costoTotal*1.2)/0.7;
-        var faltaRecuperar=Math.max(0,paraRecuperar-totalV);
-        var faltaLuisma=Math.max(0,paraLuisma-totalV);
-        var faltaGanar=Math.max(0,paraGanar-totalV);
-        return '<div style="background:linear-gradient(135deg,#fdeef6,#fff5fb);border-radius:12px;padding:13px;margin-top:10px;border-left:4px solid var(--pink)">'
-          +'<div style="font-size:12px;font-weight:800;color:var(--pink-dark);margin-bottom:10px">🎯 ¿Cuánto necesitas vender?</div>'
-          +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">'
-          +'<div style="background:white;border-radius:9px;padding:10px;text-align:center">'
-            +'<div style="font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:3px">💸 Recuperar</div>'
-            +'<div style="font-size:17px;font-weight:800;color:var(--orange)">$'+paraRecuperar.toFixed(2)+'</div>'
-            +'<div style="font-size:11px;font-weight:600;margin-top:3px;color:'+(faltaRecuperar===0?'var(--green)':'var(--red)')+'">'+( faltaRecuperar===0?'✅ Cubierto':'Faltan $'+faltaRecuperar.toFixed(2))+'</div>'
-          +'</div>'
-          +'<div style="background:white;border-radius:9px;padding:10px;text-align:center">'
-            +'<div style="font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:3px">👨‍💼 Pagar Luisma</div>'
-            +'<div style="font-size:17px;font-weight:800;color:var(--purple)">$'+paraLuisma.toFixed(2)+'</div>'
-            +'<div style="font-size:11px;font-weight:600;margin-top:3px;color:'+(faltaLuisma===0?'var(--green)':'var(--red)')+'">'+( faltaLuisma===0?'✅ Cubierto':'Faltan $'+faltaLuisma.toFixed(2))+'</div>'
-          +'</div>'
-          +'<div style="background:white;border-radius:9px;padding:10px;text-align:center">'
-            +'<div style="font-size:10px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:3px">🏆 Ganar (+20%)</div>'
-            +'<div style="font-size:17px;font-weight:800;color:var(--green)">$'+paraGanar.toFixed(2)+'</div>'
-            +'<div style="font-size:11px;font-weight:600;margin-top:3px;color:'+(faltaGanar===0?'var(--green)':'var(--red)')+'">'+( faltaGanar===0?'✅ Cubierto':'Faltan $'+faltaGanar.toFixed(2))+'</div>'
-          +'</div>'
-          +'</div>'
-          +'<div style="font-size:10px;color:var(--gray);margin-top:8px">Margen promedio: '+(margen*100).toFixed(0)+'% · Inversión+Gastos: $'+costoTotal.toFixed(2)+'</div>'
-          +'</div>';
-      })()
-      // ── SECCIÓN VENTAS DEL EVENTO ──
-      +(function(){
-        if(!vts.length) return '<div style="margin-top:12px;padding:10px;background:#fafafa;border-radius:10px;font-size:13px;color:#aaa;text-align:center">Sin ventas asignadas aún 🌸</div>';
-        // ── Resumen por método de pago
-        var metodos={};
-        vts.forEach(function(v){var m=v.metodo_pago||'Otro';metodos[m]=(metodos[m]||0)+parseFloat(v.total||0);});
-        var resMet=Object.entries(metodos).sort(function(a,b){return b[1]-a[1];}).map(function(kv){
-          return '<div style="background:#f3f4f6;border-radius:8px;padding:6px 10px;font-size:12px;font-weight:700;display:inline-flex;gap:4px;align-items:center">'
-            +'<span style="color:#555">'+kv[0]+'</span>'
-            +'<span style="color:#2e7d32">$'+kv[1].toFixed(2)+'</span>'
-            +'</div>';
-        }).join('');
-        // ── Cards de cada venta (diseño móvil)
-        var cards=vts.map(function(v){
-          // Campo correcto: producto_nombre (así se guarda en venta_items)
-          var items=(v.venta_items||[]).map(function(it){
-            var nom=it.producto_nombre||it.nombre_producto||'Producto';
-            return (parseInt(it.cantidad||1)>1?it.cantidad+'× ':'')+nom;
-          }).join(' · ')||'—';
-          var ec={Pagado:'#2e7d32',Pendiente:'#e65100',Cancelado:'#c62828',Entregado:'#1565c0'}[v.estado]||'#888';
-          var ebg={Pagado:'#f0fdf4',Pendiente:'#fff7ed',Cancelado:'#fff5f5',Entregado:'#eff6ff'}[v.estado]||'#f9f9f9';
-          var bsStr=parseFloat(v.monto_bs||0)>0?' · Bs.'+parseFloat(v.monto_bs).toFixed(0):'';
-          return '<div style="border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;margin-bottom:8px;background:white">'
-            // Línea 1: número + total + estado
-            +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
-            +'<span style="font-weight:800;color:var(--pink);font-size:13px">'+(v.numero||'#'+v.id)+'</span>'
-            +'<div style="display:flex;gap:6px;align-items:center">'
-            +'<span style="font-weight:800;color:#2e7d32;font-size:14px">$'+parseFloat(v.total||0).toFixed(2)+'</span>'
-            +'<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+ebg+';color:'+ec+'">'+(v.estado||'—')+'</span>'
+    const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión');
+    const gastosInv=gastosE.filter(g=>g.tipo==='Inversión');
+    const totalG=gastosOp.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+    const totalInv=gastosInv.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+    const ganancia=totalV-totalG-totalInv;
+    const tuParte=ganancia>0?ganancia*0.7:0;
+    const luismaParte=ganancia>0?ganancia*0.3:0;
+
+    // ── Estado del evento ──
+    const hoy=new Date(); hoy.setHours(0,0,0,0);
+    const fechaEv=e.fecha?new Date(e.fecha+'T12:00:00'):null;
+    const esPasado=fechaEv&&fechaEv<hoy;
+    const esHoy=fechaEv&&fechaEv.toDateString()===hoy.toDateString();
+    const badgeColor=esHoy?'#e65100':esPasado?'#555':'#2e7d32';
+    const badgeBg=esHoy?'#fff3e0':esPasado?'#f5f5f5':'#f0fdf4';
+    const badgeLabel=esHoy?'🔴 Hoy':esPasado?'✓ Realizado':'📅 Próximo';
+
+    // ── Filas de gastos ──
+    const filasGastos=gastosE.length
+      ? gastosE.map(g=>{
+          const concepto=g.concepto||g.descripcion||'Sin descripción';
+          const usd=parseFloat(g.monto_usd||0);
+          const bs=parseFloat(g.monto||0);
+          const tasa=parseFloat(g.tasa_bcv||0);
+          const montoStr='$'+usd.toFixed(2)+(g.moneda==='Bs'&&bs>0?' <small style="color:#aaa">· Bs.'+bs.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:0})+(tasa>0?' ('+tasa.toFixed(0)+')':"")+'</small>':"");
+          const tipoColor=g.tipo==='Inversión'?'#1565c0':'#c62828';
+          const tipoBg=g.tipo==='Inversión'?'#e3f2fd':'#fff5f5';
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid #f0f0f0;gap:8px">'
+            +'<div style="flex:1;min-width:0">'
+            +'<div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+concepto+'</div>'
+            +(g.fecha?'<div style="font-size:11px;color:#aaa">'+g.fecha+'</div>':'')
+            +'</div>'
+            +'<div style="text-align:right;flex-shrink:0">'
+            +'<div style="font-weight:700;color:#c62828">'+montoStr+'</div>'
+            +'<div style="display:inline-flex;align-items:center;gap:5px;margin-top:2px">'
+            +'<span style="font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;background:'+tipoBg+';color:'+tipoColor+'">'+(g.tipo||'Gasto')+'</span>'
+            +'<button class="btn btn-danger btn-sm" style="padding:1px 5px;font-size:10px" onclick="eliminarGasto('+g.id+')">✕</button>'
             +'</div></div>'
-            // Línea 2: productos
-            +'<div style="font-size:12px;color:#444;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🛍️ '+items+'</div>'
-            // Línea 3: cliente + fecha + método
-            +'<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:#888;align-items:center">'
-            +(v.cliente_nombre?'<span>👤 '+v.cliente_nombre+'</span>':'')
-            +'<span>📅 '+formatFecha(v.fecha_venta||v.creado_en)+'</span>'
-            +'<span>💳 '+(v.metodo_pago||'—')+(bsStr?'<span style="color:var(--purple)">'+bsStr+'</span>':'')+'</span>'
-            +(v.canal&&v.canal!=='POS'?'<span>📡 '+v.canal+'</span>':'')
-            +'</div>'
-            // Línea 4: botón editar
-            +'<div style="margin-top:7px;text-align:right">'
-            +'<button onclick="abrirModalVenta(ventas.find(function(x){return x.id==='+v.id+';}))" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 10px">✏️ Editar</button>'
-            +'</div>'
             +'</div>';
-        }).join('');
-        // ── Total pie
-        var pie='<div style="display:flex;justify-content:space-between;padding:10px 4px 2px;font-weight:800;font-size:13px;border-top:2px solid #ede9fe;margin-top:4px">'
-          +'<span style="color:#666">'+vts.length+' ventas en total</span>'
-          +'<span style="color:#2e7d32">$'+totalV.toFixed(2)+'</span>'
-          +'</div>';
-        return '<div style="margin-top:16px">'
-          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'
-          +'<span style="font-size:12px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px">🛒 Ventas ('+vts.length+')</span>'
-          +'<button onclick="toggleVentasEvento('+e.id+')" class="btn btn-secondary btn-sm" style="font-size:11px">Ver / ocultar</button>'
-          +'</div>'
-          // Resumen por método siempre visible
-          +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px">'+resMet+'</div>'
-          // Cards colapsables
-          +'<div id="ventas-evento-'+e.id+'" style="display:none">'+cards+pie+'</div>'
-          +'</div>';
-      })()
-      +'</div></div>';
+        }).join('')
+      : '<div style="color:#aaa;font-size:13px;padding:6px 0">Sin gastos registrados</div>';
+
+    // ── Cards de ventas ──
+    const cardsVentas=vts.map(function(v){
+      var items=(v.venta_items||[]).map(function(it){
+        var nom=it.producto_nombre||it.nombre_producto||'Producto';
+        return (parseInt(it.cantidad||1)>1?it.cantidad+'× ':'')+nom;
+      }).join(' · ')||'—';
+      var ec={Pagado:'#2e7d32',Pendiente:'#e65100',Cancelado:'#c62828',Entregado:'#1565c0'}[v.estado]||'#888';
+      var ebg={Pagado:'#f0fdf4',Pendiente:'#fff7ed',Cancelado:'#fff5f5',Entregado:'#eff6ff'}[v.estado]||'#f9f9f9';
+      var bsStr=parseFloat(v.monto_bs||0)>0?' · Bs.'+parseFloat(v.monto_bs).toFixed(0):'';
+      return '<div style="border:1px solid #ede9fe;border-radius:10px;padding:10px 12px;margin-bottom:8px;background:white">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">'
+        +'<span style="font-weight:800;color:var(--pink);font-size:13px">'+(v.numero||'#'+v.id)+'</span>'
+        +'<div style="display:flex;gap:6px;align-items:center">'
+        +'<span style="font-weight:800;color:#2e7d32;font-size:14px">$'+parseFloat(v.total||0).toFixed(2)+'</span>'
+        +'<span style="font-size:11px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+ebg+';color:'+ec+'">'+(v.estado||'—')+'</span>'
+        +'</div></div>'
+        +'<div style="font-size:12px;color:#444;margin-bottom:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">🛍️ '+items+'</div>'
+        +'<div style="display:flex;gap:8px;flex-wrap:wrap;font-size:11px;color:#888;align-items:center">'
+        +(v.cliente_nombre?'<span>👤 '+v.cliente_nombre+'</span>':'')
+        +'<span>📅 '+formatFecha(v.fecha_venta||v.creado_en)+'</span>'
+        +'<span>💳 '+(v.metodo_pago||'—')+(bsStr?'<span style="color:var(--purple)">'+bsStr+'</span>':'')+'</span>'
+        +'</div>'
+        +'<div style="margin-top:7px;text-align:right">'
+        +'<button onclick="abrirModalVenta(ventas.find(function(x){return x.id==='+v.id+';}))" class="btn btn-secondary btn-sm" style="font-size:11px;padding:3px 10px">✏️ Editar</button>'
+        +'</div></div>';
+    }).join('');
+
+    // ── Resumen por método de pago ──
+    var metodos={};
+    vts.forEach(function(v){var m=v.metodo_pago||'Otro';metodos[m]=(metodos[m]||0)+parseFloat(v.total||0);});
+    var resMet=Object.entries(metodos).sort(function(a,b){return b[1]-a[1];}).map(function(kv){
+      return '<div style="background:#f3f4f6;border-radius:8px;padding:5px 10px;font-size:12px;font-weight:700;display:inline-flex;gap:4px;align-items:center">'
+        +'<span style="color:#555">'+kv[0]+'</span><span style="color:#2e7d32">$'+kv[1].toFixed(2)+'</span></div>';
+    }).join('');
+
+    return '<div class="card" style="padding:16px">'
+
+      // ── CABECERA ──
+      +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:14px">'
+      +'<div>'
+      +'<div style="font-size:16px;font-weight:800;margin-bottom:3px">🎪 '+e.nombre+'</div>'
+      +'<div style="font-size:12px;color:#888">'+fmtFechaEvento(e.fecha)+(e.lugar?' · 📍'+e.lugar:'')+'</div>'
+      +'<span style="display:inline-block;margin-top:5px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+'">'+badgeLabel+'</span>'
+      +'</div>'
+      +'<div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end">'
+      +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button>'
+      +'<div style="display:flex;gap:5px">'
+      +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button>'
+      +'</div></div></div>'
+
+      // ── RESUMEN FINANCIERO (una sola vez, claro) ──
+      +'<div style="background:linear-gradient(135deg,#fdf4ff,#fff);border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid #ede9fe">'
+      +'<div style="font-size:11px;font-weight:800;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">💰 Resumen financiero</div>'
+
+      // Fila: Ingresos
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
+      +'<span style="font-size:13px;color:#555">Ventas ('+vts.length+')</span>'
+      +'<span style="font-size:14px;font-weight:800;color:#2e7d32">+$'+totalV.toFixed(2)+'</span>'
+      +'</div>'
+
+      // Fila: Gastos operativos (solo si hay)
+      +(totalG>0
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
+        +'<span style="font-size:13px;color:#555">Gastos operativos</span>'
+        +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+totalG.toFixed(2)+'</span>'
+        +'</div>':'')
+
+      // Fila: Inversión (solo si hay)
+      +(totalInv>0
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
+        +'<span style="font-size:13px;color:#555">Inversión / Stock</span>'
+        +'<span style="font-size:14px;font-weight:700;color:#1565c0">−$'+totalInv.toFixed(2)+'</span>'
+        +'</div>':'')
+
+      // Línea gruesa: Ganancia neta
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 8px;margin-top:2px;border-top:2px solid #ede9fe">'
+      +'<span style="font-size:14px;font-weight:800">Ganancia neta</span>'
+      +'<span style="font-size:18px;font-weight:900;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+'</span>'
+      +'</div>'
+
+      // División 70/30 — solo si hay ganancia
+      +(ganancia>0
+        ?'<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px">'
+        +'<div style="background:#f0fdf4;border-radius:10px;padding:10px;text-align:center">'
+        +'<div style="font-size:10px;font-weight:700;color:#2e7d32;text-transform:uppercase;margin-bottom:3px">Tu parte (70%)</div>'
+        +'<div style="font-size:20px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
+        +'</div>'
+        +'<div style="background:#f5f0ff;border-radius:10px;padding:10px;text-align:center">'
+        +'<div style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;margin-bottom:3px">Luisma (30%)</div>'
+        +'<div style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</div>'
+        +'</div></div>'
+        :'')
+
+      // Pérdida aviso
+      +(ganancia<0
+        ?'<div style="margin-top:8px;padding:8px 10px;background:#fff5f5;border-radius:8px;font-size:13px;font-weight:700;color:#c62828;text-align:center">⚠️ Pérdida de $'+Math.abs(ganancia).toFixed(2)+' — los gastos superan las ventas</div>'
+        :'')
+
+      +'</div>'
+
+      // ── GASTOS DETALLE (colapsable) ──
+      +'<div style="margin-bottom:14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<span style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">📋 Gastos registrados</span>'
+      +(gastosE.length?'<span style="font-size:12px;font-weight:700;color:#c62828">Total: $'+(totalG+totalInv).toFixed(2)+'</span>':'')
+      +'</div>'
+      +'<div id="gastos-evento-'+e.id+'" style="display:none">'+filasGastos+'</div>'
+      +'<button onclick="toggleGastosEvento('+e.id+')" class="btn btn-secondary btn-sm" style="font-size:11px;width:100%;margin-top:4px">'
+      +(gastosE.length?'Ver '+gastosE.length+' gasto'+(gastosE.length>1?'s':''):'Sin gastos — agregar')+'</button>'
+      +'</div>'
+
+      // ── VENTAS DETALLE (colapsable) ──
+      +'<div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<span style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">🛒 Ventas del evento</span>'
+      +'<span style="font-size:12px;font-weight:700;color:#2e7d32">$'+totalV.toFixed(2)+' · '+vts.length+' ventas</span>'
+      +'</div>'
+      // Métodos de pago siempre visibles
+      +(vts.length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+resMet+'</div>':'')
+      +'<div id="ventas-evento-'+e.id+'" style="display:none">'
+      +(vts.length?cardsVentas:'<div style="color:#aaa;font-size:13px;padding:8px 0">Sin ventas asignadas aún</div>')
+      +'</div>'
+      +'<button onclick="toggleVentasEvento('+e.id+')" class="btn btn-secondary btn-sm" style="font-size:11px;width:100%;margin-top:4px">'
+      +(vts.length?'Ver '+vts.length+' venta'+(vts.length>1?'s':''):'Sin ventas aún')+'</button>'
+      +'</div>'
+
+      // Notas
+      +(e.notas?'<div style="margin-top:12px;padding:8px 10px;background:#fafafa;border-radius:8px;font-size:12px;color:#666">📝 '+e.notas+'</div>':'')
+
+      +'</div>';
   }).join('');
+}
+
+function toggleGastosEvento(eid){
+  var el=document.getElementById('gastos-evento-'+eid);
+  if(!el) return;
+  el.style.display=el.style.display==='none'?'block':'none';
 }
 function toggleVentasEvento(eid){
   var el=document.getElementById('ventas-evento-'+eid);
