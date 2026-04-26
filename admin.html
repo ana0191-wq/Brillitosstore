@@ -371,7 +371,6 @@ tr:hover td{background:#fff8fc}
     </div>
   </div>
   <div class="content">
-    <div id="deuda-mama-ventas" style="margin-bottom:12px"></div>
     <!-- Filtros rápidos de fecha -->
     <div style="display:flex;gap:6px;margin-bottom:8px;flex-wrap:wrap;align-items:center">
       <span style="font-size:12px;font-weight:700;color:var(--sub)">Fecha:</span>
@@ -2301,7 +2300,6 @@ function renderVentas(lista){
   ventasFiltradas=lista||ventas;
   const l=ventasFiltradas;
   actualizarBarraMasiva();
-  renderDeudaMama('deuda-mama-ventas');
   document.getElementById('tbody-ventas').innerHTML=l.map(v=>
     '<tr data-id="'+v.id+'">'
     +'<td><input type="checkbox" class="chk-venta" data-id="'+v.id+'" onchange="onChkVenta()" '+(ventasSeleccionadas.has(v.id)?'checked':'')+' style="width:16px;height:16px;cursor:pointer"></td>'
