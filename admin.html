@@ -3317,8 +3317,10 @@ async function renderEventos(){
     const totalG=gastosOp.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
     const totalInv=gastosInv.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
     const ganancia=totalV-totalG-totalInv;
-    const tuParte=ganancia>0?ganancia*0.7:0;
-    const luismaParte=ganancia>0?ganancia*0.3:0;
+    const luismaMinimo=30;
+    const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
+    const luismaParte=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
+    const tuParte=ganancia>0?ganancia-luismaParte:0;
 
     // ── Deuda a Mamá ──
     // Por cada item de producto de mamá: le debo (precio_venta - costo - 0.50) por unidad
@@ -3461,18 +3463,18 @@ async function renderEventos(){
         +'<div style="background:#f0fdf4;border-radius:10px;padding:10px;text-align:center">'
         +'<div style="font-size:10px;font-weight:700;color:#2e7d32;text-transform:uppercase;margin-bottom:3px">Tu parte</div>'
         +'<div id="tu-parte-'+e.id+'" style="font-size:20px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
-        +'<div id="tu-pct-'+e.id+'" style="font-size:11px;color:#2e7d32;opacity:.7">70%</div>'
+        +'<div id="tu-pct-'+e.id+'" style="font-size:11px;color:#2e7d32;opacity:.7">'+(ganancia>0?Math.round((ganancia-luismaParte)/ganancia*100)+'%':'—')+'</div>'
         +'</div>'
         +'<div style="background:#f5f0ff;border-radius:10px;padding:10px;text-align:center">'
         +'<div style="font-size:10px;font-weight:700;color:#7c3aed;text-transform:uppercase;margin-bottom:3px">Luisma</div>'
         +'<div id="luisma-parte-'+e.id+'" style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</div>'
-        +'<div id="luisma-pct-'+e.id+'" style="font-size:11px;color:#7c3aed;opacity:.7">30%</div>'
+        +'<div id="luisma-pct-'+e.id+'" style="font-size:11px;color:#7c3aed;opacity:.7">'+(luismaParte===luismaMinimo&&luismaPorcentaje<luismaMinimo?'mín. $30':Math.round(luismaParte/ganancia*100)+'%')+'</div>'
         +'</div>'
         +'</div>'
         // Slider
         +'<div style="background:#f8f8f8;border-radius:10px;padding:10px">'
         +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#888;margin-bottom:6px">'
-        +'<span>% de Luisma</span>'
+        +'<span>% de Luisma <small style="color:#aaa">(mín. $30)</small></span>'
         +'<span id="luisma-slider-val-'+e.id+'">30%</span>'
         +'</div>'
         +'<input type="range" min="0" max="60" step="5" value="30"'
@@ -3562,9 +3564,10 @@ function recalcLuisma(eid, ganancia, pct){
   if(elLuismaPct) elLuismaPct.textContent = pct+'%';
   if(elVal) elVal.textContent = pct+'%';
   if(elNota){
-    if(pct===30) elNota.textContent = '✅ Acuerdo actual (30/70)';
-    else if(pct>30) elNota.textContent = '⚠️ Le darías $'+(luisma - ganancia*0.3).toFixed(2)+' más de lo usual';
-    else elNota.textContent = '💡 Le darías $'+(ganancia*0.3 - luisma).toFixed(2)+' menos de lo usual';
+    var base=Math.max(30,ganancia*0.3);
+    if(Math.abs(luisma-base)<0.01) elNota.textContent='✅ Igual al acuerdo actual';
+    else if(luisma>base) elNota.textContent='⚠️ Le darías $'+(luisma-base).toFixed(2)+' más de lo acordado';
+    else elNota.textContent='💡 Le darías $'+(base-luisma).toFixed(2)+' menos de lo acordado';
   }
 }
 function toggleGastosEvento(eid){
