@@ -1961,13 +1961,16 @@ function cargarDashboard(){
       porCuenta[key].bs+=parseFloat(v.monto_bs||0);
       porCuenta[key].count++;
     });
-    // BancaAmiga = ventas en Bs - gastos en Bs (excluir saldo real y reposiciones)
+    // BancaAmiga = ventas Bs - gastos Bs + reposiciones en Bs
     var totalVentasBs=ventas.filter(function(v){return v.estado!=='Cancelado';})
       .reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
     var totalGastosBs=gastosGlobales.filter(function(g){
       return !esSaldoReal(g)&&g.tipo!=='Reposición'&&g.tipo!=='Gasto ajeno';
     }).reduce(function(s,g){return s+gBs(g);},0);
-    var saldoBancaAmiga=totalVentasBs-totalGastosBs;
+    var totalReposBs=gastosGlobales.filter(function(g){
+      return g.tipo==='Reposición'&&g.moneda==='Bs';
+    }).reduce(function(s,g){return s+parseFloat(g.monto_bs||g.monto||0);},0);
+    var saldoBancaAmiga=totalVentasBs-totalGastosBs+totalReposBs;
     porCuenta['bancaamiga_luisma']={total:porCuenta['bancaamiga_luisma']?porCuenta['bancaamiga_luisma'].total:0, bs:saldoBancaAmiga, count:porCuenta['bancaamiga_luisma']?porCuenta['bancaamiga_luisma'].count:0};
 
     var porCuentaHoy={};
