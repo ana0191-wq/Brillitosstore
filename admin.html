@@ -1925,7 +1925,14 @@ function cargarDashboard(){
   const vM = ventas.filter(v=>fechaEfectiva(v).slice(0,7)===mes&&v.estado!=='Cancelado');
   const aptActivos = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
   const totalHoy = vH.reduce((s,v)=>s+parseFloat(v.total||0),0);
-  const totalMes = vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
+  // Ventas del mes: sumar $ directo + Bs convertidos para ventas sin total$
+  const _tasa0 = typeof bcvHoy!=='undefined'&&bcvHoy>0 ? bcvHoy : 484.74;
+  const totalMes = vM.reduce((s,v)=>{
+    const usd=parseFloat(v.total||0), bs=parseFloat(v.monto_bs||0);
+    if(usd>0) return s+usd;
+    if(bs>0)  return s+(bs/_tasa0);
+    return s;
+  },0);
 
   // ── Separar hoy por moneda ──
   // Ventas en Bs (moneda_pago Bs o monto_bs > 0)
@@ -3489,7 +3496,14 @@ async function renderEventos(){
 
     // ── GANANCIA NETA ──
     // Usar USD si hay ventas en USD, si no usar Bs÷tasa
-    const ventasUSD = totalV > 0 ? totalV : totalVBs / tasaEvento;
+    // Cada venta: si tiene total$ usarlo, si solo tiene Bs convertir
+    const ventasUSD = vts.reduce((s,v)=>{
+      const usd = parseFloat(v.total||0);
+      const bs  = parseFloat(v.monto_bs||0);
+      if(usd>0) return s+usd;
+      if(bs>0)  return s+(bs/tasaEvento);
+      return s;
+    }, 0);
     const ganancia  = ventasUSD - totalG;
 
     // ── INVERSIÓN recuperada ──
@@ -3728,7 +3742,12 @@ function abrirResumenEvento(eid,event){
 
     var totalV   = vts.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
     var totalVBs = vts.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
-    var ventasUSD = totalV>0 ? totalV : totalVBs/tasa;
+    var ventasUSD = vts.reduce(function(s,v){
+      var usd=parseFloat(v.total||0), bs=parseFloat(v.monto_bs||0);
+      if(usd>0) return s+usd;
+      if(bs>0)  return s+(bs/tasa);
+      return s;
+    },0);
 
     var totalG   = gastosOp.reduce(function(s,g){return s+gUSD(g);},0);
     var totalInv = gastosInv.reduce(function(s,g){return s+gUSD(g);},0);
