@@ -3296,6 +3296,7 @@ async function renderEventos(){
     // ── Luisma: mínimo $30 siempre ──
     const luismaMinimo=30;
     const luismaParte=ganancia>0?Math.max(luismaMinimo,ganancia*0.3):0;
+    const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
 
     const tuParte=ganancia>0?ganancia-luismaParte:0;
 
