@@ -3460,6 +3460,7 @@ async function renderEventos(){
     const totalVBs=vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
     const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión');
+    const gastosLuismaCubiertos=[];
 
     // Todo en Bs — convertir gastos USD a Bs, usar monto_bs si existe
     const gastoBs=g=>{
@@ -3632,14 +3633,7 @@ async function renderEventos(){
             +'<span>'+( (parseFloat(g.monto_usd||0)>0) ? '$'+parseFloat(g.monto_usd).toFixed(2) : (g.moneda==='Bs'?'Bs '+parseFloat(g.monto_bs||g.monto||0).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2)) )+'</span>'
             +'</div>';
         }).join('')
-        +(gastosLuismaCubiertos.length>0
-          ? gastosLuismaCubiertos.map(function(g){
-              return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 12px;font-size:11px;color:#888">'
-                +'<span>• '+(g.descripcion||'Gasto Luisma')+' (yo cubrí)</span>'
-                +'<span>'+( parseFloat(g.monto_usd||0)>0?'$'+parseFloat(g.monto_usd).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2) )+'</span>'
-                +'</div>';
-            }).join('')
-          : '')
+        +''
         +'</div>'
         :'<div style="padding:6px 0;border-bottom:1px solid #f3e8ff;font-size:12px;color:#aaa">Sin gastos registrados para este evento</div>')
 
