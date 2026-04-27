@@ -687,8 +687,8 @@ tr:hover td{background:#fff8fc}
         <option value="WhatsApp">WhatsApp</option><option value="Instagram">Instagram</option><option value="Evento">Evento</option><option value="Web">Web</option><option value="POS">POS</option>
       </select>
     </div>
-    <div class="form-group" id="v-evento-wrap" style="display:none">
-      <label>Evento</label>
+    <div class="form-group" id="v-evento-wrap">
+      <label>Evento <span style="font-size:11px;color:#aaa">(opcional)</span></label>
       <select id="v-evento"><option value="">-- Seleccionar --</option></select>
     </div>
     <div class="form-group">
@@ -2467,7 +2467,7 @@ function abrirModalVenta(v=null){
   abrirModal('modal-venta');
 }
 function editarVenta(id){ const v=ventas.find(x=>x.id===id); if(v) abrirModalVenta(v); }
-function toggleEventoWrap(){ document.getElementById('v-evento-wrap').style.display=document.getElementById('v-canal').value==='Evento'?'block':'none'; }
+function toggleEventoWrap(){ poblarEventosSelect(); }
 function poblarEventosSelect(){
   const sel=document.getElementById('v-evento');
   sel.innerHTML='<option value="">-- Seleccionar --</option>'+eventos.map(e=>'<option value="'+e.id+'">'+e.nombre+(e.fecha?' ('+e.fecha+')':'')+'</option>').join('');
