@@ -3279,12 +3279,14 @@ async function renderEventos(){
     const ventasBs=vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
     const totalV=ventasBs/tasa;
 
-    // ── Gastos del evento ──
-    const gastosE=gastosEvento.filter(g=>g.evento_id==e.id&&!esSaldoReal(g));
-    const gastosEvDia=gastosE.filter(g=>g.tipo==='Gasto evento');
-    const gastosInv=gastosE.filter(g=>g.tipo==='Inversión');
-    const gastosBs=gastosEvDia.reduce((s,g)=>s+gBs(g),0);
-    const totalG=gastosBs/tasa;
+    // ── Gastos del evento — todos los tipos reales, sin repetidos por evento_id ──
+    const TIPOS_EXCLUIR=['Pago personal','Reposición','Gasto ajeno'];
+    const gastosE=gastosEvento.filter(g=>g.evento_id==e.id&&!esSaldoReal(g)&&!TIPOS_EXCLUIR.includes(g.tipo));
+    // Deduplicar por id por seguridad
+    const gastosEUnicos=[...new Map(gastosE.map(g=>[g.id,g])).values()];
+    const totalGUsd=gastosEUnicos.reduce((s,g)=>s+gUsd(g),0);
+    const totalG=totalGUsd;
+    const gastosInv=gastosEUnicos.filter(g=>g.tipo==='Inversión');
     const totalInv=gastosInv.reduce((s,g)=>s+gUsd(g),0);
 
     // ── Ganancia neta en $ ──
