@@ -3823,7 +3823,7 @@ function renderGastosGlobal(){
       +'<td>'+estadoStr+'</td>'
       +'<td style="white-space:nowrap">'
       +(g.tipo==='Pago personal'&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">&#128154;</button> ':'')
-      +'<button class="btn btn-secondary btn-sm" style="font-size:10px;margin-right:3px" onclick="abrirEditarGasto('+g.id+')">&#9999;</button>'
+      +'<button class="btn btn-secondary btn-sm" style="font-size:10px;margin-right:3px" onclick="abrirEditarGasto('+g.id+')">&#9999;&#65039;</button>'
       +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">&#128465;</button>'
       +'</td>'
       +'</tr>';
@@ -3894,7 +3894,8 @@ async function guardarEditarGasto(){
   const monto_usd = moneda==='Bs' ? monto/tasa : monto;
   const monto_bs  = moneda==='Bs' ? monto : monto*tasa;
   const eventoVal = document.getElementById('eg-evento').value;
-  const reposicionDe = document.getElementById('eg-reposicion-de').value.trim()||null;
+  const rawReposicion = document.getElementById('eg-reposicion-de').value.trim();
+  const reposicionDe = rawReposicion !== '' ? rawReposicion : null;
   const data = {
     descripcion:   desc,
     tipo:          document.getElementById('eg-tipo').value,
