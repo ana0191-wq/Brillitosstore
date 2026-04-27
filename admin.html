@@ -4585,62 +4585,6 @@ function descargarCSV(csv,nombre){ const a=document.createElement('a'); a.href=U
 // ===== UTILS =====
 // ══════════════════════════════════════════
 // MODAL RESUMEN EVENTO
-</script>
-<!-- RESUMEN EVENTO -->
-<div class="modal-bg" id="modal-resumen-evento" onclick="if(event.target===this)cerrarModal('modal-resumen-evento')" style="z-index:1100">
-<div class="modal" style="max-width:440px;padding:0;overflow:hidden;border-radius:16px">
-  <div id="mre-header" style="background:linear-gradient(135deg,#7c3aed,#c2185b);padding:20px 20px 16px;color:white">
-    <div style="display:flex;justify-content:space-between;align-items:start">
-      <div>
-        <div id="mre-nombre" style="font-size:19px;font-weight:900;margin-bottom:3px"></div>
-        <div id="mre-fecha" style="font-size:12px;opacity:.8"></div>
-        <div id="mre-lugar" style="font-size:11px;opacity:.7;margin-top:1px"></div>
-      </div>
-      <button onclick="cerrarModal('modal-resumen-evento')" style="background:rgba(255,255,255,.2);border:none;color:white;font-size:20px;border-radius:50%;width:32px;height:32px;cursor:pointer">×</button>
-    </div>
-  </div>
-  <div style="padding:4px 20px 0">
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff;cursor:pointer" onclick="mreToggle('mre-ventas-det')">
-      <span style="font-size:14px;color:#555;font-weight:600">🛍️ Ventas <small style="color:#aaa;font-weight:400" id="mre-ventas-cnt"></small></span>
-      <div style="text-align:right">
-        <div id="mre-ventas" style="font-size:17px;font-weight:900;color:#2e7d32"></div>
-        <div id="mre-ventas-bs" style="font-size:11px;color:#3a7d52"></div>
-      </div>
-    </div>
-    <div id="mre-ventas-det" style="display:none;background:#f9fafb;border-radius:8px;padding:8px 10px;margin:4px 0;max-height:180px;overflow-y:auto;font-size:12px;color:#555"></div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff;cursor:pointer" onclick="mreToggle('mre-gastos-det')">
-      <span style="font-size:14px;color:#555;font-weight:600">💸 Gastos / Inversión <small style="color:#aaa;font-weight:400" id="mre-gastos-cnt"></small></span>
-      <div style="text-align:right">
-        <div id="mre-gastos" style="font-size:17px;font-weight:900;color:#c62828"></div>
-        <div id="mre-gastos-bs" style="font-size:11px;color:#e57373"></div>
-      </div>
-    </div>
-    <div id="mre-gastos-det" style="display:none;background:#f9fafb;border-radius:8px;padding:8px 10px;margin:4px 0;max-height:180px;overflow-y:auto;font-size:12px;color:#555"></div>
-
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
-      <span style="font-size:14px;color:#555;font-weight:600">📈 Ganancia neta</span>
-      <div id="mre-ganancia" style="font-size:17px;font-weight:900"></div>
-    </div>
-    <div id="mre-rec-row" style="display:none;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
-      <span style="font-size:14px;color:#1565c0;font-weight:600">💼 Recuperación inversión</span>
-      <div id="mre-recuperacion" style="font-size:17px;font-weight:900;color:#1565c0"></div>
-    </div>
-    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
-      <span style="font-size:14px;color:#7c3aed;font-weight:600">💜 Pagar a Luisma</span>
-      <div id="mre-luisma" style="font-size:17px;font-weight:900;color:#7c3aed"></div>
-    </div>
-    <div id="mre-mama-row" style="display:none;justify-content:space-between;align-items:center;padding:12px 0">
-      <span style="font-size:14px;color:#c2185b;font-weight:600">💕 Pagar a Mamá</span>
-      <div id="mre-mama" style="font-size:17px;font-weight:900;color:#c2185b"></div>
-    </div>
-  </div>
-  <div style="padding:12px 20px 20px;border-top:1px solid #f3e8ff">
-    <button onclick="descargarPDFEvento()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#c2185b);color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">📄 Descargar PDF</button>
-  </div>
-</div>
-</div>
-<script>
 // MOVIMIENTOS BANCAAMIGA
 // ══════════════════════════════════════════
 
@@ -5680,5 +5624,57 @@ async function guardarInversion(){
 </div>
 </div>
 
+<!-- MODAL RESUMEN EVENTO -->
+<div class="modal-bg" id="modal-resumen-evento" onclick="if(event.target===this)cerrarModal('modal-resumen-evento')" style="z-index:1100">
+  <div class="modal" style="max-width:440px;padding:0;overflow:hidden;border-radius:16px">
+    <div style="background:linear-gradient(135deg,#7c3aed,#c2185b);padding:20px 20px 16px;color:white">
+      <div style="display:flex;justify-content:space-between;align-items:start">
+        <div>
+          <div id="mre-nombre" style="font-size:19px;font-weight:900;margin-bottom:3px"></div>
+          <div id="mre-fecha" style="font-size:12px;opacity:.8"></div>
+          <div id="mre-lugar" style="font-size:11px;opacity:.7;margin-top:1px"></div>
+        </div>
+        <button onclick="cerrarModal('modal-resumen-evento')" style="background:rgba(255,255,255,.2);border:none;color:white;font-size:22px;border-radius:50%;width:34px;height:34px;cursor:pointer;line-height:1">x</button>
+      </div>
+    </div>
+    <div style="padding:4px 20px 0">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff;cursor:pointer" onclick="mreToggle('mre-ventas-det')">
+        <span style="font-size:14px;color:#555;font-weight:600">Ventas <small id="mre-ventas-cnt" style="color:#aaa;font-weight:400"></small></span>
+        <div style="text-align:right">
+          <div id="mre-ventas" style="font-size:17px;font-weight:900;color:#2e7d32"></div>
+          <div id="mre-ventas-bs" style="font-size:11px;color:#3a7d52"></div>
+        </div>
+      </div>
+      <div id="mre-ventas-det" style="display:none;background:#f9fafb;border-radius:8px;padding:8px 10px;margin:4px 0;max-height:180px;overflow-y:auto;font-size:12px;color:#555"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff;cursor:pointer" onclick="mreToggle('mre-gastos-det')">
+        <span style="font-size:14px;color:#555;font-weight:600">Gastos / Inversion <small id="mre-gastos-cnt" style="color:#aaa;font-weight:400"></small></span>
+        <div style="text-align:right">
+          <div id="mre-gastos" style="font-size:17px;font-weight:900;color:#c62828"></div>
+          <div id="mre-gastos-bs" style="font-size:11px;color:#e57373"></div>
+        </div>
+      </div>
+      <div id="mre-gastos-det" style="display:none;background:#f9fafb;border-radius:8px;padding:8px 10px;margin:4px 0;max-height:180px;overflow-y:auto;font-size:12px;color:#555"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
+        <span style="font-size:14px;color:#555;font-weight:600">Ganancia neta</span>
+        <div id="mre-ganancia" style="font-size:17px;font-weight:900"></div>
+      </div>
+      <div id="mre-rec-row" style="display:none;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
+        <span style="font-size:14px;color:#1565c0;font-weight:600">Recuperacion inversion</span>
+        <div id="mre-recuperacion" style="font-size:17px;font-weight:900;color:#1565c0"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
+        <span style="font-size:14px;color:#7c3aed;font-weight:600">Pagar a Luisma</span>
+        <div id="mre-luisma" style="font-size:17px;font-weight:900;color:#7c3aed"></div>
+      </div>
+      <div id="mre-mama-row" style="display:none;justify-content:space-between;align-items:center;padding:12px 0">
+        <span style="font-size:14px;color:#c2185b;font-weight:600">Pagar a Mama</span>
+        <div id="mre-mama" style="font-size:17px;font-weight:900;color:#c2185b"></div>
+      </div>
+    </div>
+    <div style="padding:12px 20px 20px;border-top:1px solid #f3e8ff">
+      <button onclick="descargarPDFEvento()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#c2185b);color:white;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">Descargar PDF</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
