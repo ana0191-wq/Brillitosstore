@@ -1266,7 +1266,7 @@ function cuentaNombre(id){
 
 // ===== TIMEZONE VENEZUELA (UTC-4) =====
 function hoyVEN(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240); return d.toISOString().slice(0,10); }
-function mesVEN(){  const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240); return d.toISOString().slice(0,7); }
+async function mesVEN(){  const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240); return d.toISOString().slice(0,7); }
 
 let posCarrito=[], posMetodoActual='Pago Móvil';
 let mbsCallback=null;
@@ -1437,7 +1437,7 @@ function abrirModalBs(totalUsd, callback){
 function calcMbs(){
   const usd = parseFloat((document.getElementById('mbs-usd').value||'0').replace('$',''))||0;
   const tasa = parseFloat(document.getElementById('mbs-tasa').value)||0;
-  document.getElementById('mbs-bs').value = tasa>0?'Bs. '+(usd*tasa).toFixed(2):'Bs. —';
+  document.getElementById('mbs-bs').value = tasa>0?'Bs. '+(usd*tasa).toFixed(2):'Bs. async —';
 }
 function confirmarMbs(){
   const tasa = parseFloat(document.getElementById('mbs-tasa').value)||0;
