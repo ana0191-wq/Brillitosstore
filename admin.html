@@ -1956,11 +1956,11 @@ function cargarDashboard(){
     gan-=parseFloat(v.descuento||0);
   });
   // Gastos del mes — solo gastos reales en USD (excluir ajenos, reposiciones y gastos en Bs que no tienen monto_usd)
+  const TIPOS_GASTO_REAL = ['Gasto evento','Gasto operativo','Inversión','Gasto'];
   const gastMes = gastosGlobales.filter(g=>
     !esSaldoReal(g)
     && (g.fecha||'').slice(0,7)===mes
-    && g.tipo !== 'Gasto ajeno'
-    && g.tipo !== 'Reposición'
+    && TIPOS_GASTO_REAL.includes(g.tipo)
   );
   const totalGastMes = gastMes.reduce((s,g)=>s+gUsd(g),0);
   const gananciaNeta = totalMes-totalGastMes;
@@ -3917,8 +3917,9 @@ function renderGastosGlobal(){
       +'<td style="font-size:11px;color:var(--gray)">'+evNom+'</td>'
       +'<td>'+estadoStr+'</td>'
       +'<td style="white-space:nowrap">'
-      +(g.tipo==='Pago personal'&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">💚</button> ':'')
-      +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">🗑️</button>'
+      +(g.tipo==='Pago personal'&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">&#128154;</button> ':'')
+      +'<button class="btn btn-secondary btn-sm" style="font-size:10px;margin-right:3px" onclick="abrirEditarGasto('+g.id+')">&#9999;</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">&#128465;</button>'
       +'</td>'
       +'</tr>';
   });
@@ -3926,6 +3927,73 @@ function renderGastosGlobal(){
   renderDeudaMama('deuda-mama-cont');
 }
 
+
+
+function abrirEditarGasto(id){
+  const g = gastosGlobales.find(x=>x.id==id);
+  if(!g){ toast('Gasto no encontrado'); return; }
+  document.getElementById('eg-id').value = g.id;
+  document.getElementById('eg-descripcion').value = g.descripcion||g.concepto||g.notas||'';
+  document.getElementById('eg-tipo').value = g.tipo||'Gasto operativo';
+  document.getElementById('eg-categoria').value = g.categoria||'';
+  const moneda = g.moneda||'Bs';
+  document.getElementById('eg-moneda').value = moneda;
+  const monto = moneda==='Bs' ? parseFloat(g.monto_bs||g.monto||0) : parseFloat(g.monto_usd||g.monto||0);
+  document.getElementById('eg-monto').value = monto>0?monto:'';
+  document.getElementById('eg-tasa').value = g.tasa_bcv||bcvHoy||'';
+  document.getElementById('eg-fecha').value = g.fecha||'';
+  document.getElementById('eg-notas').value = g.notas||'';
+  const sel = document.getElementById('eg-evento');
+  sel.innerHTML = '<option value="">Sin evento</option>';
+  eventos.forEach(function(ev){
+    const opt = document.createElement('option');
+    opt.value = ev.id; opt.textContent = ev.nombre;
+    if(ev.id == g.evento_id) opt.selected = true;
+    sel.appendChild(opt);
+  });
+  calcEgUsd();
+  document.getElementById('modal-editar-gasto').classList.add('open');
+}
+function calcEgUsd(){
+  const moneda = document.getElementById('eg-moneda').value;
+  const monto = parseFloat(document.getElementById('eg-monto').value)||0;
+  const tasa = parseFloat(document.getElementById('eg-tasa').value)||bcvHoy||484.74;
+  const usd = moneda==='Bs' ? monto/tasa : monto;
+  document.getElementById('eg-monto-usd').value = '$'+usd.toFixed(2);
+}
+async function guardarEditarGasto(){
+  const id = document.getElementById('eg-id').value;
+  const desc = document.getElementById('eg-descripcion').value.trim();
+  const moneda = document.getElementById('eg-moneda').value;
+  const monto = parseFloat(document.getElementById('eg-monto').value)||0;
+  const tasa = parseFloat(document.getElementById('eg-tasa').value)||bcvHoy||484.74;
+  if(!desc||!monto){ toast('Descripcion y monto son obligatorios'); return; }
+  const monto_usd = moneda==='Bs' ? monto/tasa : monto;
+  const monto_bs  = moneda==='Bs' ? monto : monto*tasa;
+  const eventoVal = document.getElementById('eg-evento').value;
+  const data = {
+    descripcion: desc,
+    tipo:        document.getElementById('eg-tipo').value,
+    categoria:   document.getElementById('eg-categoria').value,
+    moneda,
+    monto,
+    monto_usd,
+    monto_bs,
+    tasa_bcv:    tasa,
+    fecha:       document.getElementById('eg-fecha').value,
+    evento_id:   eventoVal ? parseInt(eventoVal) : null,
+    notas:       document.getElementById('eg-notas').value.trim()||null,
+  };
+  const res = await sbPatch('gastos_globales', id, data);
+  if(res){
+    const idx = gastosGlobales.findIndex(x=>x.id==id);
+    if(idx>=0) gastosGlobales[idx] = Object.assign({}, gastosGlobales[idx], data, {id:parseInt(id)});
+    cerrarModal('modal-editar-gasto');
+    renderGastosGlobal();
+    cargarDashboard();
+    toast('Gasto actualizado');
+  }
+}
 
 function abrirReponerGasto(gastoId){
   abrirModalReposicion();
@@ -4866,6 +4934,75 @@ function renderMovimientosBancaAmiga(){
   <div id="modal-ba-movs" style="overflow-y:auto;flex:1;padding:0 2px"></div>
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-bancaamiga-movs')">Cerrar</button>
+  </div>
+</div>
+</div>
+
+<!-- MODAL EDITAR GASTO -->
+<div class="modal-overlay" id="modal-editar-gasto" onclick="if(event.target===this)cerrarModal('modal-editar-gasto')">
+<div class="modal">
+  <h2>&#9999;&#65039; Editar Gasto</h2>
+  <input type="hidden" id="eg-id">
+  <div class="form-grid">
+    <div class="form-group form-full">
+      <label>Descripci&#243;n *</label>
+      <input type="text" id="eg-descripcion" placeholder="Descripci&#243;n del gasto">
+    </div>
+    <div class="form-group">
+      <label>Tipo *</label>
+      <select id="eg-tipo">
+        <option value="Gasto evento">Gasto evento</option>
+        <option value="Gasto operativo">Gasto operativo</option>
+        <option value="Inversi&#243;n">Inversi&#243;n</option>
+        <option value="Pago personal">Pago personal</option>
+        <option value="Reposici&#243;n">Reposici&#243;n</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Categor&#237;a</label>
+      <select id="eg-categoria">
+        <option value="">&#8212; Sin categor&#237;a &#8212;</option>
+        <option>Mercanc&#237;a / Stock</option><option>Transporte</option><option>Stand / Evento</option>
+        <option>Marketing / Publicidad</option><option>Empaque / Materiales</option>
+        <option>Dominio / Web / Apps</option><option>Comida / Vi&#225;ticos</option>
+        <option>Pago a Luisma</option><option>Servicios</option><option>Conciliaci&#243;n</option><option>Otro</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Monto *</label>
+      <input type="number" id="eg-monto" step="0.01" min="0" oninput="calcEgUsd()">
+    </div>
+    <div class="form-group">
+      <label>Moneda</label>
+      <select id="eg-moneda" onchange="calcEgUsd()">
+        <option value="Bs">Bol&#237;vares (Bs)</option>
+        <option value="USD">USD ($)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Tasa BCV</label>
+      <input type="number" id="eg-tasa" step="0.01" min="0" oninput="calcEgUsd()" placeholder="Autom&#225;tica">
+    </div>
+    <div class="form-group">
+      <label>Equiv. USD</label>
+      <input type="text" id="eg-monto-usd" readonly style="background:#f5f5f5;font-weight:700">
+    </div>
+    <div class="form-group">
+      <label>Fecha</label>
+      <input type="date" id="eg-fecha">
+    </div>
+    <div class="form-group">
+      <label>Evento</label>
+      <select id="eg-evento"><option value="">&#8212; Sin evento &#8212;</option></select>
+    </div>
+    <div class="form-group form-full">
+      <label>Notas</label>
+      <input type="text" id="eg-notas" placeholder="Notas adicionales">
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;margin-top:16px">
+    <button class="btn btn-primary" style="flex:1" onclick="guardarEditarGasto()">&#128190; Guardar</button>
+    <button class="btn btn-secondary" onclick="cerrarModal('modal-editar-gasto')">Cancelar</button>
   </div>
 </div>
 </div>
