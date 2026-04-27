@@ -522,7 +522,8 @@ tr:hover td{background:#fff8fc}
 <!-- GASTOS / INVERSIÓN -->
 <div class="page" id="page-gastos">
   <div class="page-header">
-    <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">📒 Contabilidad</div>
+    <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button>
+    <div class="page-title">📒 Contabilidad</div>
     <div class="header-actions">
       <button class="btn btn-secondary" onclick="exportarGastosCSV()">📊 Excel</button>
       <button class="btn btn-success" onclick="abrirModalReposicion()" style="background:#2e7d32;border-color:#2e7d32;color:white">💚 Reposición</button>
@@ -530,24 +531,66 @@ tr:hover td{background:#fff8fc}
     </div>
   </div>
   <div class="content">
-    <div class="grid-4" id="gastos-stats" style="margin-bottom:14px"></div>
-    <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
-      <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-cat-gasto" onchange="renderGastosGlobal()">
+
+    <!-- STATS -->
+    <div class="grid-4" id="gastos-stats" style="margin-bottom:16px"></div>
+
+    <!-- FILTROS -->
+    <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+      <select style="padding:8px 14px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-tipo-gasto" onchange="renderGastosGlobal()">
+        <option value="">Todos los tipos</option>
+        <option value="Gasto evento">🎪 Gasto evento</option>
+        <option value="Gasto operativo">⚙️ Gasto operativo</option>
+        <option value="Inversión">📈 Inversión</option>
+        <option value="Pago personal">👤 Pago personal</option>
+        <option value="Reposición">💚 Reposición</option>
+      </select>
+      <select style="padding:8px 14px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-cat-gasto" onchange="renderGastosGlobal()">
         <option value="">Todas las categorías</option>
         <option>Mercancía / Stock</option><option>Transporte</option><option>Stand / Evento</option>
         <option>Marketing / Publicidad</option><option>Empaque / Materiales</option>
         <option>Dominio / Web / Apps</option><option>Comida / Viáticos</option>
         <option>Pago a Luisma</option><option>Servicios</option><option>Otro</option>
       </select>
-      <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-mes-gasto" onchange="renderGastosGlobal()">
+      <select style="padding:8px 14px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-mes-gasto" onchange="renderGastosGlobal()">
         <option value="">Todos los meses</option>
       </select>
+      <select style="padding:8px 14px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-evento-gasto" onchange="renderGastosGlobal()">
+        <option value="">Todos los eventos</option>
+      </select>
+      <input type="text" id="filtro-buscar-gasto" placeholder="🔍 Buscar..." oninput="renderGastosGlobal()"
+        style="padding:8px 14px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none;min-width:160px">
     </div>
+
+    <!-- DEUDA MAMÁ -->
     <div id="deuda-mama-cont" style="margin-bottom:14px"></div>
-    <div class="card" style="padding:0"><div class="table-wrap">
-      <table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>En USD</th><th>Bs.</th><th>Tipo</th><th>Evento</th><th></th></tr></thead>
-      <tbody id="tbody-gastos"></tbody></table>
-    </div></div>
+
+    <!-- PENDIENTES REPONER -->
+    <div id="gastos-pendientes-wrap" style="margin-bottom:14px"></div>
+
+    <!-- TABLA -->
+    <div class="card" style="padding:0;overflow:hidden">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th style="width:90px">Fecha</th>
+              <th>Descripción</th>
+              <th>Categoría</th>
+              <th>Monto Bs</th>
+              <th>Monto $</th>
+              <th>Tipo</th>
+              <th>Quién pagó</th>
+              <th>Evento</th>
+              <th>Estado</th>
+              <th style="width:80px"></th>
+            </tr>
+          </thead>
+          <tbody id="tbody-gastos"></tbody>
+        </table>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -1515,7 +1558,7 @@ async function init(){
   cargarDashboard();
   poblarEventosSelect();
   poblarEventosGastoGlobal();
-  poblarMesesFiltroGasto();
+  poblarMesesFiltroGasto(); poblarFiltroEventosGasto();
   verificarApartadosVencidos();
   iniciarVozReconocimiento();
   renderPOS();
@@ -3670,6 +3713,18 @@ function poblarEventosGastoGlobal(){
   const sel=document.getElementById('gg-evento'); if(!sel)return;
   sel.innerHTML='<option value="">-- Sin evento --</option>'+eventos.map(e=>'<option value="'+e.id+'">'+e.nombre+(e.fecha?' ('+e.fecha+')':'')+'</option>').join('');
 }
+function poblarFiltroEventosGasto(){
+  var sel=document.getElementById('filtro-evento-gasto');
+  if(!sel) return;
+  var current=sel.value;
+  sel.innerHTML='<option value="">Todos los eventos</option>';
+  eventos.forEach(function(e){
+    var opt=document.createElement('option');
+    opt.value=e.id; opt.textContent=e.nombre;
+    if(String(e.id)===current) opt.selected=true;
+    sel.appendChild(opt);
+  });
+}
 function poblarMesesFiltroGasto(){
   const meses=new Set(gastosGlobales.map(g=>(g.fecha||'').slice(0,7)).filter(Boolean));
   const sel=document.getElementById('filtro-mes-gasto'); if(!sel)return;
@@ -3726,93 +3781,143 @@ function renderDeudaMama(cid){
     +'</div>';
 }
 function renderGastosGlobal(){
-  const cat=document.getElementById('filtro-cat-gasto')?document.getElementById('filtro-cat-gasto').value:'';
-  const mes=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
-  let lista=gastosGlobales;
-  if(cat) lista=lista.filter(g=>g.categoria===cat);
-  if(mes) lista=lista.filter(g=>(g.fecha||'').slice(0,7)===mes);
-  const totalUSD=lista.filter(g=>!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal').reduce((s,g)=>{
-    var u=parseFloat(g.monto_usd||0);
-    if(u>0) return s+u;
+  const filTipo=document.getElementById('filtro-tipo-gasto')?document.getElementById('filtro-tipo-gasto').value:'';
+  const filCat=document.getElementById('filtro-cat-gasto')?document.getElementById('filtro-cat-gasto').value:'';
+  const filMes=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
+  const filEvento=document.getElementById('filtro-evento-gasto')?document.getElementById('filtro-evento-gasto').value:'';
+  const filBuscar=(document.getElementById('filtro-buscar-gasto')?document.getElementById('filtro-buscar-gasto').value:'').toLowerCase();
+  const tasa=bcvHoy||484.74;
+
+  let lista=[...gastosGlobales].sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+  if(filTipo) lista=lista.filter(g=>g.tipo===filTipo);
+  if(filCat)  lista=lista.filter(g=>g.categoria===filCat);
+  if(filMes)  lista=lista.filter(g=>(g.fecha||'').slice(0,7)===filMes);
+  if(filEvento) lista=lista.filter(g=>String(g.evento_id)===filEvento);
+  if(filBuscar) lista=lista.filter(g=>(g.descripcion||g.concepto||g.notas||'').toLowerCase().includes(filBuscar)||(g.categoria||'').toLowerCase().includes(filBuscar));
+
+  // ── STATS ──
+  const totalBs=lista.filter(g=>g.tipo!=='Reposición').reduce((s,g)=>s+parseFloat(g.monto_bs||0),0);
+  const totalUsd=lista.filter(g=>g.tipo!=='Reposición').reduce((s,g)=>{
+    var u=parseFloat(g.monto_usd||0); if(u>0) return s+u;
     if((g.moneda||'')==='USD') return s+parseFloat(g.monto||0);
-    var bs=parseFloat(g.monto_bs||g.monto||0);
-    return bs>0 ? s+bs/(bcvHoy||484.74) : s;
+    var b=parseFloat(g.monto_bs||0); return b>0?s+b/tasa:s;
   },0);
-  const porCat={};
-  lista.forEach(g=>{porCat[g.categoria||'?']=(porCat[g.categoria||'?']||0)+parseFloat(g.monto_usd||g.monto||0);});
-  const top=Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
-  const totalBs=lista.filter(g=>g.moneda==='Bs'&&!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal').reduce((s,g)=>s+parseFloat(g.monto||0),0);
-  const tasaRef=parseFloat(document.getElementById('inp-tasa')?document.getElementById('inp-tasa').value:0)||bcvHoy||0;
-  const cntAjenos=lista.filter(g=>g.es_ajeno||g.tipo==='Pago personal').length;
-  const pendientesReponer=lista.filter(g=>(g.es_ajeno||g.tipo==='Pago personal')&&!g.reposicion_de).length;
-  const cntRepos=lista.filter(g=>g.tipo==='Reposición').length;
+  const pendientes=gastosGlobales.filter(g=>g.tipo==='Pago personal'&&!g.reposicion_de);
+  const inversiones=lista.filter(g=>g.tipo==='Inversión');
+  const totalInv=inversiones.reduce((s,g)=>{var u=parseFloat(g.monto_usd||0);return s+(u>0?u:parseFloat(g.monto_bs||0)/tasa);},0);
+
   document.getElementById('gastos-stats').innerHTML=
-    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUSD.toFixed(2)+'</div><div class="stat-label">💸 Total USD (Brillitos)</div></div>'
-    +(totalBs>0?'<div class="stat-card" style="border-left:4px solid #7b1fa2"><div class="stat-num" style="color:#7b1fa2;font-size:18px">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="stat-label">🇻🇪 Total Bs (Brillitos)</div></div>':'')
-    +'<div class="stat-card" style="display:none">x</div>'
-    +'<div class="stat-card" style="border-left:4px solid #e91e8c">'+(tasaRef>0?'<div class="stat-num" style="color:#e91e8c">Bs. '+(totalUSD*tasaRef).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'<div class="stat-num" style="color:#e91e8c;font-size:16px">Sin tasa</div>')+'<div class="stat-label">🇻🇪 Equiv. Bs (tasa actual)</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid var(--orange)"><div class="stat-num" style="color:var(--orange)">'+lista.filter(g=>g.tipo==='Inversión').length+'</div><div class="stat-label">📈 Inversiones</div></div>'
-    +(pendientesReponer>0?'<div class="stat-card" style="border-left:4px solid #ff6f00;background:#fff8e1"><div class="stat-num" style="color:#e65100">'+pendientesReponer+'</div><div class="stat-label">🚨 Pendientes reponer</div></div>':'')
-    +(cntAjenos-pendientesReponer>0?'<div class="stat-card" style="border-left:4px solid #43a047"><div class="stat-num" style="color:#2e7d32">'+(cntAjenos-pendientesReponer)+'</div><div class="stat-label">✅ Ajenos repuestos</div></div>':'')
-    +(cntRepos>0?'<div class="stat-card" style="border-left:4px solid #43a047"><div class="stat-num" style="color:#2e7d32">'+cntRepos+'</div><div class="stat-label">💚 Reposiciones</div></div>':'')
-    +'<div class="stat-card" style="border-left:4px solid var(--purple)"><div class="stat-num" style="color:var(--purple);font-size:14px">'+(top[0]?top[0][0]:'—')+'</div><div class="stat-label">🏆 Mayor categoría</div></div>';
-  const tipoMap={
-    'Gasto evento':'background:#fff3e0;color:#e65100',
-    'Inversión':'background:#e3f2fd;color:#1565c0',
-    'Gasto operativo':'background:#fce4ec;color:#c62828',
-    'Pago personal':'background:#ede7f6;color:#4527a0',
-    'Gasto ajeno':'background:#fff8e1;color:#795548',
-    'Reposición':'background:#e8f5e9;color:#2e7d32'
+    '<div class="stat-card" style="border-left:4px solid #c62828"><div class="stat-num" style="color:#c62828">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="stat-label">🇻🇪 Total Bs gastado</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUsd.toFixed(2)+'</div><div class="stat-label">💸 Equiv. USD</div></div>'
+    +'<div class="stat-card" style="border-left:4px solid #1565c0"><div class="stat-num" style="color:#1565c0">$'+totalInv.toFixed(2)+'</div><div class="stat-label">📈 Inversiones</div></div>'
+    +(pendientes.length>0?'<div class="stat-card" style="border-left:4px solid #e65100;background:#fff8e1"><div class="stat-num" style="color:#e65100">'+pendientes.length+'</div><div class="stat-label">🚨 Pendientes reponer</div></div>':'<div class="stat-card" style="border-left:4px solid #2e7d32"><div class="stat-num" style="color:#2e7d32">✅</div><div class="stat-label">Todo repuesto</div></div>');
+
+  // ── PENDIENTES REPONER (bloque destacado) ──
+  var pendWrap=document.getElementById('gastos-pendientes-wrap');
+  if(pendWrap){
+    var pendList=gastosGlobales.filter(g=>g.tipo==='Pago personal'&&!g.reposicion_de);
+    if(pendList.length){
+      pendWrap.innerHTML='<div class="card" style="border:2px solid #ffe082;background:#fffde7;padding:14px">'
+        +'<div style="font-weight:800;color:#e65100;margin-bottom:10px;font-size:14px">🚨 Pagos personales pendientes de reponer ('+pendList.length+')</div>'
+        +pendList.map(function(g){
+          var monto=g.moneda==='Bs'?'Bs. '+parseFloat(g.monto_bs||g.monto||0).toLocaleString('es-VE',{minimumFractionDigits:2}):'$'+parseFloat(g.monto||0).toFixed(2);
+          var quien=g.quien_pago||g.notas||'—';
+          var ev=g.evento_id?(eventos.find(function(e){return e.id==g.evento_id;})||{nombre:'Evento'}).nombre:'';
+          return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;background:white;border-radius:8px;margin-bottom:6px;border:1px solid #ffe082;gap:8px">'
+            +'<div style="flex:1;min-width:0">'
+            +'<div style="font-weight:700;font-size:13px">'+(g.descripcion||g.concepto||g.notas||'Sin descripción')+'</div>'
+            +'<div style="font-size:11px;color:#888">'+formatFecha(g.fecha)+(ev?' · 🎪 '+ev:'')+(quien&&quien!='—'?' · 👤 '+quien:'')+'</div>'
+            +'</div>'
+            +'<div style="font-weight:800;color:#e65100;white-space:nowrap">'+monto+'</div>'
+            +'<button class="btn btn-success btn-sm" style="font-size:11px;white-space:nowrap" onclick="abrirReponerGasto('+g.id+')">💚 Reponer</button>'
+            +'</div>';
+        }).join('')
+        +'</div>';
+    } else {
+      pendWrap.innerHTML='';
+    }
+  }
+
+  // ── TABLA ──
+  const tipoColors={
+    'Gasto evento':    {bg:'#fff3e0',color:'#e65100'},
+    'Inversión':       {bg:'#e3f2fd',color:'#1565c0'},
+    'Gasto operativo': {bg:'#fce4ec',color:'#c62828'},
+    'Pago personal':   {bg:'#ede7f6',color:'#4527a0'},
+    'Gasto ajeno':     {bg:'#fff8e1',color:'#795548'},
+    'Reposición':      {bg:'#e8f5e9',color:'#2e7d32'}
   };
+
   if(!lista.length){
-    document.getElementById('tbody-gastos').innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--gray);padding:20px">Sin gastos registrados</td></tr>';
+    document.getElementById('tbody-gastos').innerHTML='<tr><td colspan="10" style="text-align:center;color:var(--gray);padding:24px">Sin gastos</td></tr>';
+    renderDeudaMama('deuda-mama-cont');
     return;
   }
-  const rows = lista.map(function(g){
-    var trStyle='';
-    if(g.es_ajeno||g.tipo==='Pago personal') trStyle='opacity:0.75;background:#fffde7';
-    else if(g.tipo==='Reposición') trStyle='background:#f1f8e9';
-    var catBadge='';
-    var esAjenoRow=g.es_ajeno||g.tipo==='Pago personal';
-    if(esAjenoRow && !g.reposicion_de) catBadge='<br><span style="font-size:10px;background:#fff3e0;color:#e65100;padding:1px 6px;border-radius:6px;border:1px solid #ffcc02;font-weight:700">🚨 Pendiente reponer</span>';
-    else if(esAjenoRow && g.reposicion_de) catBadge='<br><span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:6px;border:1px solid #a5d6a7">✅ Repuesto</span>';
-    else if(g.tipo==='Reposición') catBadge='<br><span style="font-size:10px;background:#e8f5e9;color:#2e7d32;padding:1px 6px;border-radius:6px;border:1px solid #a5d6a7">💚 Repos.</span>';
-    var descExtra=g.reposicion_de?'<br><span style="font-size:11px;color:#666">\u21b3 '+g.reposicion_de+'</span>':'';
-    var montoCell=g.moneda==='Bs'
-      ?'<span style="color:#7b1fa2;font-weight:600">Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
-      :'<strong>$'+parseFloat(g.monto).toFixed(2)+'</strong>';
-    var _gusd=(function(){
-      var u=parseFloat(g.monto_usd||0);
-      if(u>0) return u;
-      if((g.moneda||'')=='USD') return parseFloat(g.monto||0);
-      // moneda Bs: convertir con bcvHoy
-      var bs=parseFloat(g.monto_bs||g.monto||0);
-      return bs>0 ? bs/(bcvHoy||484.74) : 0;
-    })();
-    var usdCell='<strong style="color:var(--red)">$'+_gusd.toFixed(2)+'</strong>';
-    var bsHist=(function(){var bs=g.moneda==='Bs'?parseFloat(g.monto||0):parseFloat(g.monto_bs||0);return bs>0?'Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';})();
-    var cur=g.tipo||'Gasto evento';
-    var st=tipoMap[cur]||'background:#f5f5f5;color:#333';
-    var tipoSelect='<select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarTipoGasto('+g.id+',this.value)">'
-      +Object.keys(tipoMap).map(function(t){return '<option value="'+t+'"'+(cur===t?' selected':'')+'>'+t+'</option>';}).join('')
-      +'</select>';
-    var eventoNombre=g.evento_id?(eventos.find(function(e){return e.id==g.evento_id;})||{nombre:'Evento'}).nombre:'—';
-    return '<tr style="'+trStyle+'">'
-      +'<td>'+formatFecha(g.fecha)+'</td>'
-      +'<td><strong>'+(g.categoria||'—')+'</strong>'+catBadge+'</td>'
-      +'<td>'+(g.descripcion||g.notas||'—')+descExtra+'</td>'
-      +'<td>'+montoCell+'</td>'
-      +'<td>'+usdCell+'</td>'
-      +'<td style="color:#7b1fa2;font-weight:600">'+bsHist+'</td>'
-      +'<td>'+tipoSelect+'</td>'
-      +'<td style="font-size:11px;color:var(--gray)">'+eventoNombre+'</td>'
-      +'<td><button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">🗑️</button></td>'
+
+  var rows=lista.map(function(g){
+    var tipo=g.tipo||'Gasto evento';
+    var tc=tipoColors[tipo]||{bg:'#f5f5f5',color:'#333'};
+    var tipoBadge='<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;background:'+tc.bg+';color:'+tc.color+'">'+tipo+'</span>';
+
+    // Monto Bs
+    var mBs=parseFloat(g.monto_bs||0)||parseFloat(g.moneda==='Bs'?g.monto||0:0);
+    var mBsStr=mBs>0?'<span style="color:#7b1fa2;font-weight:600">Bs. '+mBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'—';
+
+    // Monto USD
+    var mUsd=parseFloat(g.monto_usd||0);
+    if(!mUsd&&(g.moneda||'')==='USD') mUsd=parseFloat(g.monto||0);
+    if(!mUsd&&mBs>0) mUsd=mBs/tasa;
+    var mUsdStr='<strong style="color:var(--red)">$'+mUsd.toFixed(2)+'</strong>';
+
+    // Quién pagó
+    var quien=g.quien_pago||'';
+    if(!quien&&g.tipo==='Pago personal') quien=g.notas||'';
+    var quienStr=quien?'<span style="font-size:11px;background:#ede7f6;color:#4527a0;padding:1px 7px;border-radius:10px;font-weight:600">👤 '+quien+'</span>':'—';
+
+    // Evento
+    var evNom=g.evento_id?(eventos.find(function(e){return e.id==g.evento_id;})||{nombre:'Evento'}).nombre:'—';
+
+    // Estado reposición
+    var estadoStr='';
+    if(g.tipo==='Pago personal'){
+      estadoStr=g.reposicion_de
+        ?'<span style="font-size:11px;background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:10px;font-weight:700">✅ Repuesto</span>'
+        :'<span style="font-size:11px;background:#fff3e0;color:#e65100;padding:2px 8px;border-radius:10px;font-weight:700">🚨 Pendiente</span>';
+    } else if(g.tipo==='Reposición'){
+      estadoStr='<span style="font-size:11px;background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:10px;font-weight:700">💚 Repos.</span>';
+    }
+
+    var trBg=g.tipo==='Pago personal'&&!g.reposicion_de?'background:#fffde7':g.tipo==='Reposición'?'background:#f1f8e9':'';
+
+    return '<tr style="'+trBg+'">'
+      +'<td style="font-size:12px;color:#555">'+formatFecha(g.fecha)+'</td>'
+      +'<td><strong style="font-size:13px">'+(g.descripcion||g.concepto||g.notas||'—')+'</strong></td>'
+      +'<td style="font-size:12px;color:#666">'+(g.categoria||'—')+'</td>'
+      +'<td>'+mBsStr+'</td>'
+      +'<td>'+mUsdStr+'</td>'
+      +'<td>'+tipoBadge+'</td>'
+      +'<td>'+quienStr+'</td>'
+      +'<td style="font-size:11px;color:var(--gray)">'+evNom+'</td>'
+      +'<td>'+estadoStr+'</td>'
+      +'<td style="white-space:nowrap">'
+      +(g.tipo==='Pago personal'&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">💚</button> ':'')
+      +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">🗑️</button>'
+      +'</td>'
       +'</tr>';
   });
   document.getElementById('tbody-gastos').innerHTML=rows.join('');
   renderDeudaMama('deuda-mama-cont');
 }
 
+
+function abrirReponerGasto(gastoId){
+  abrirModalReposicion();
+  // Esperar a que el modal cargue los checkboxes y pre-seleccionar el gasto
+  setTimeout(function(){
+    var cb=document.querySelector('.rp-ajeno-check[value="'+gastoId+'"]');
+    if(cb){ cb.checked=true; cb.closest('label').style.background='#e8f5e9'; cb.closest('label').style.borderColor='#a5d6a7'; }
+  },100);
+}
 function abrirModalReposicion(){
   document.getElementById('rp-forma').value='';
   document.getElementById('rp-detalle').value='';
