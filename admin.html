@@ -1879,8 +1879,18 @@ function cargarDashboard(){
   });
   const vM = ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
   const aptActivos = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
-  const totalHoy = vH.reduce((s,v)=>s+parseFloat(v.total||0),0);
-  const totalMes = vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
+  const totalHoy = vH.reduce((s,v)=>{
+    var usd=parseFloat(v.total||0);
+    if(usd>0) return s+usd;
+    var bs=parseFloat(v.monto_bs||0);
+    return bs>0 ? s+bs/(bcvHoy||484.74) : s;
+  },0);
+  const totalMes = vM.reduce((s,v)=>{
+    var usd=parseFloat(v.total||0);
+    if(usd>0) return s+usd;
+    var bs=parseFloat(v.monto_bs||0);
+    return bs>0 ? s+bs/(bcvHoy||484.74) : s;
+  },0);
 
   // ── Separar hoy por moneda ──
   // Ventas en Bs (moneda_pago Bs o monto_bs > 0)
@@ -3716,7 +3726,13 @@ function renderGastosGlobal(){
   let lista=gastosGlobales;
   if(cat) lista=lista.filter(g=>g.categoria===cat);
   if(mes) lista=lista.filter(g=>(g.fecha||'').slice(0,7)===mes);
-  const totalUSD=lista.filter(g=>!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal').reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+  const totalUSD=lista.filter(g=>!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal').reduce((s,g)=>{
+    var u=parseFloat(g.monto_usd||0);
+    if(u>0) return s+u;
+    if((g.moneda||'')==='USD') return s+parseFloat(g.monto||0);
+    var bs=parseFloat(g.monto_bs||g.monto||0);
+    return bs>0 ? s+bs/(bcvHoy||484.74) : s;
+  },0);
   const porCat={};
   lista.forEach(g=>{porCat[g.categoria||'?']=(porCat[g.categoria||'?']||0)+parseFloat(g.monto_usd||g.monto||0);});
   const top=Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
@@ -3760,7 +3776,15 @@ function renderGastosGlobal(){
     var montoCell=g.moneda==='Bs'
       ?'<span style="color:#7b1fa2;font-weight:600">Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
       :'<strong>$'+parseFloat(g.monto).toFixed(2)+'</strong>';
-    var usdCell='<strong style="color:var(--red)">$'+parseFloat(g.monto_usd||g.monto||0).toFixed(2)+'</strong>';
+    var _gusd=(function(){
+      var u=parseFloat(g.monto_usd||0);
+      if(u>0) return u;
+      if((g.moneda||'')=='USD') return parseFloat(g.monto||0);
+      // moneda Bs: convertir con bcvHoy
+      var bs=parseFloat(g.monto_bs||g.monto||0);
+      return bs>0 ? bs/(bcvHoy||484.74) : 0;
+    })();
+    var usdCell='<strong style="color:var(--red)">$'+_gusd.toFixed(2)+'</strong>';
     var bsHist=(function(){var bs=g.moneda==='Bs'?parseFloat(g.monto||0):parseFloat(g.monto_bs||0);return bs>0?'Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';})();
     var cur=g.tipo||'Gasto evento';
     var st=tipoMap[cur]||'background:#f5f5f5;color:#333';
