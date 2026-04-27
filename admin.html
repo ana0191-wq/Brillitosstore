@@ -3875,7 +3875,7 @@ function abrirEditarGasto(id){
     sel.appendChild(opt);
   });
   calcEgUsd();
-  document.getElementById('modal-editar-gasto').classList.add('open');
+  abrirModal('modal-editar-gasto');
 }
 function calcEgUsd(){
   const moneda = document.getElementById('eg-moneda').value;
@@ -4864,7 +4864,7 @@ function renderMovimientosBancaAmiga(){
 </div>
 
 <!-- MODAL EDITAR GASTO -->
-<div class="modal-overlay" id="modal-editar-gasto" onclick="if(event.target===this)cerrarModal('modal-editar-gasto')">
+<div class="modal-bg" id="modal-editar-gasto" onclick="if(event.target===this)cerrarModal('modal-editar-gasto')">
 <div class="modal">
   <h2>&#9999;&#65039; Editar Gasto</h2>
   <input type="hidden" id="eg-id">
