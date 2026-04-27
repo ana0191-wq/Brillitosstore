@@ -532,6 +532,13 @@ tr:hover td{background:#fff8fc}
   </div>
   <div class="content">
     <div class="grid-4" id="gastos-stats" style="margin-bottom:14px"></div>
+    <div id="sec-inversiones" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div style="font-size:14px;font-weight:800;color:#1565c0">&#128176; Mis Inversiones en Brillitos</div>
+        <div id="inv-total" style="font-size:15px;font-weight:800;color:#1565c0"></div>
+      </div>
+      <div id="inv-lista" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
     <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-cat-gasto" onchange="renderGastosGlobal()">
         <option value="">Todas las categorías</option>
@@ -1519,6 +1526,7 @@ async function init(){
   renderEventos();
   renderApartados();
   renderGastosGlobal();
+  renderInversiones();
   cargarDashboard();
   poblarEventosSelect();
   poblarEventosGastoGlobal();
@@ -4992,6 +5000,76 @@ function cerrarConciliacionDia(){
   document.getElementById('modal-conciliacion-dia').style.display='none';
 }
 
+
+// INVERSIONES PERSONALES
+function renderInversiones(){
+  var mesSelVal=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
+  var mesActual=new Date().toISOString().slice(0,7);
+  var mes=mesSelVal||mesActual;
+  var lista=gastosGlobales.filter(function(g){return g.tipo==='Inversion';}).filter(function(g){return (g.fecha||'').slice(0,7)===mes;});
+  var totalUSD=lista.filter(function(g){return g.moneda==='USD';}).reduce(function(s,g){return s+parseFloat(g.monto||0);},0);
+  var totalBs=lista.filter(function(g){return g.moneda==='Bs';}).reduce(function(s,g){return s+parseFloat(g.monto||0);},0);
+  var el=document.getElementById('inv-lista');
+  var tot=document.getElementById('inv-total');
+  if(!el)return;
+  if(!lista.length){
+    el.innerHTML='<div style="color:#aaa;font-size:13px;text-align:center;padding:12px">No hay inversiones este mes</div>';
+    if(tot)tot.textContent='';
+    return;
+  }
+  var totStr='';
+  if(totalUSD>0)totStr+='$'+totalUSD.toFixed(2);
+  if(totalBs>0)totStr+=(totStr?' + ':'')+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+' Bs';
+  if(tot)tot.textContent=totStr;
+  el.innerHTML=lista.map(function(g){
+    return '<div style="display:flex;justify-content:space-between;align-items:center;background:#e3f2fd;border-radius:10px;padding:10px 14px">'
+      +'<div><div style="font-size:13px;font-weight:700;color:#1565c0">'+(g.descripcion||'Inversion')+'</div>'
+      +'<div style="font-size:11px;color:#888">'+(g.fecha||'')+(g.notas?' - '+g.notas:'')+'</div></div>'
+      +'<div style="display:flex;align-items:center;gap:8px">'
+      +'<span style="font-weight:800;color:#1565c0">'+(g.moneda==='Bs'?'Bs '+parseFloat(g.monto||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'$'+parseFloat(g.monto||0).toFixed(2))+'</span>'
+      +'<button onclick="eliminarGasto('+g.id+')" style="background:none;border:none;cursor:pointer;font-size:14px;color:#aaa">x</button>'
+      +'</div></div>';
+  }).join('');
+}
+function abrirModalInversion(){
+  var hoy=new Date().toISOString().split('T')[0];
+  document.getElementById('inv-fecha').value=hoy;
+  document.getElementById('inv-desc').value='';
+  document.getElementById('inv-monto').value='';
+  document.getElementById('inv-notas').value='';
+  document.getElementById('modal-inversion').style.display='flex';
+}
+function cerrarModalInv(){
+  document.getElementById('modal-inversion').style.display='none';
+}
+async function guardarInversion(){
+  var desc=document.getElementById('inv-desc').value.trim();
+  var monto=parseFloat(document.getElementById('inv-monto').value||0);
+  var moneda=document.getElementById('inv-moneda').value;
+  var fecha=document.getElementById('inv-fecha').value;
+  var notas=document.getElementById('inv-notas').value.trim();
+  if(!desc||!monto||!fecha){alert('Completa descripcion, monto y fecha');return;}
+  var tasa=bcvHoy||0;
+  var monto_usd=moneda==='Bs'&&tasa>0?parseFloat((monto/tasa).toFixed(2)):(moneda==='USD'?monto:0);
+  var monto_bs=moneda==='Bs'?monto:(tasa>0?parseFloat((monto*tasa).toFixed(2)):0);
+  var r=await fetch(SUPA_URL+'/rest/v1/gastos_globales',{
+    method:'POST',
+    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+    body:JSON.stringify({tipo:'Inversion',categoria:'Inversion personal',descripcion:desc,
+      monto:monto,moneda:moneda,tasa_bcv:tasa||null,monto_usd:monto_usd,monto_bs:monto_bs,fecha:fecha,notas:notas||null})
+  });
+  if(r.ok){
+    var nuevo=await r.json();
+    if(Array.isArray(nuevo))gastosGlobales.unshift.apply(gastosGlobales,nuevo);
+    cerrarModalInv();
+    renderGastosGlobal();
+    renderInversiones();
+    toast('Inversion registrada');
+  }else{
+    var e=await r.json();alert('Error: '+JSON.stringify(e));
+  }
+}
+
 </script>
 
 <a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
@@ -5156,6 +5234,39 @@ function cerrarConciliacionDia(){
     </button>
   </div>
 </div>
+
+<!-- MODAL INVERSION PERSONAL -->
+<div id="modal-inversion" class="modal-bg" onclick="if(event.target===this)cerrarModalInv()" style="display:none">
+<div class="modal" style="max-width:400px">
+  <div class="modal-title">&#128176; Registrar Inversion Personal</div>
+  <div class="form-group">
+    <label>Fecha</label>
+    <input type="date" id="inv-fecha" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box">
+  </div>
+  <div class="form-group">
+    <label>Descripcion <span style="color:var(--pink)">*</span></label>
+    <input type="text" id="inv-desc" placeholder="Ej: Compre mercancia para el evento" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box">
+  </div>
+  <div class="form-group">
+    <label>Monto</label>
+    <div style="display:flex;gap:8px">
+      <select id="inv-moneda" style="padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:white">
+        <option value="USD">$</option>
+        <option value="Bs">Bs</option>
+      </select>
+      <input type="number" id="inv-monto" placeholder="0.00" step="0.01" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px">
+    </div>
+  </div>
+  <div class="form-group">
+    <label>Notas (opcional)</label>
+    <input type="text" id="inv-notas" placeholder="Detalles adicionales..." style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box">
+  </div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="cerrarModalInv()">Cancelar</button>
+    <button class="btn btn-primary" onclick="guardarInversion()">Guardar</button>
+  </div>
+</div>
+</div>
+
 </body>
 </html>
-
