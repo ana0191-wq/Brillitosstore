@@ -906,7 +906,7 @@ function applyFilters(){
   }
   const rEl=document.getElementById('price-range');
   if(rEl && maxPrice<parseFloat(rEl.max)) res=res.filter(p=>p.precio===null||p.precio<=maxPrice);
-  if(onlyStock) res=res.filter(p=>p.stock>0);
+  res=res.filter(p=>(p.stock===null||p.stock===undefined||p.stock>0));
   if(sortMode==='az') res=[...res].sort((a,b)=>a.nombre.localeCompare(b.nombre));
   else if(sortMode==='za') res=[...res].sort((a,b)=>b.nombre.localeCompare(a.nombre));
   else if(sortMode==='price-asc') res=[...res].sort((a,b)=>(a.precio!==null?a.precio:999)-(b.precio!==null?b.precio:999));
