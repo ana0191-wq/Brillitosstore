@@ -3329,23 +3329,27 @@ async function renderEventos(){
   const eventosOrdenados=[...eventos].sort((a,b)=>{var fa=a.fecha?new Date(a.fecha+'T12:00:00'):null;var fb=b.fecha?new Date(b.fecha+'T12:00:00'):null;if(!fa&&!fb)return 0;if(!fa)return 1;if(!fb)return -1;return fa-fb;});
   div.innerHTML=eventosOrdenados.map(e=>{
     const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
-    const totalV=vts.reduce((s,v)=>{var u=parseFloat(v.total||0);if(u>0)return s+u;var b=parseFloat(v.monto_bs||0);return b>0?s+b/(bcvHoy||484.74):s;},0);
+    // ── Ventas: suma monto_bs de todas las ventas del evento ──
+    const tasa=bcvHoy||484.74;
+    const ventasBs=vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
+    const totalV=ventasBs/tasa;
+
+    // ── Gastos del evento: solo tipo 'Gasto evento' → suma monto_bs ──
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
-    const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión'&&g.descripcion!=='Gasto de Luisma');
+    const gastosEvDia=gastosE.filter(g=>g.tipo==='Gasto evento');
     const gastosInv=gastosE.filter(g=>g.tipo==='Inversión');
-    const gastosLuismaList=gastosE.filter(g=>g.descripcion==='Gasto de Luisma');
-    const gastosLuismaDescuento=gastosLuismaList.filter(g=>!g.cubierto_por||g.cubierto_por==='Luisma');
-    const gastosLuismaCubiertos=gastosLuismaList.filter(g=>g.cubierto_por==='Yo');
-    function _gUsd(g){var u=parseFloat(g.monto_usd||0);if(u>0)return u;if((g.moneda||'')==='USD')return parseFloat(g.monto||0);var b=parseFloat(g.monto_bs||g.monto||0);return b>0?b/(bcvHoy||484.74):0;}
-    const totalG=gastosOp.reduce((s,g)=>s+_gUsd(g),0)+gastosLuismaCubiertos.reduce((s,g)=>s+_gUsd(g),0);
-    const totalGastoLuisma=gastosLuismaDescuento.reduce((s,g)=>s+_gUsd(g),0);
-    const totalInv=gastosInv.reduce((s,g)=>s+_gUsd(g),0);
+    const gastosBs=gastosEvDia.reduce((s,g)=>s+parseFloat(g.monto_bs||0),0);
+    const totalG=gastosBs/tasa;
+    const totalInv=gastosInv.reduce((s,g)=>s+parseFloat(g.monto_usd||0),0);
+
+    // ── Ganancia neta en $ ──
     const ganancia=totalV-totalG;
+
+    // ── Luisma: mínimo $30 siempre ──
     const luismaMinimo=30;
-    const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
-    const luismaBase=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
-    const luismaParte=Math.max(0,luismaBase-totalGastoLuisma);
-    const tuParte=ganancia>0?ganancia-luismaBase:0;
+    const luismaParte=ganancia>0?Math.max(luismaMinimo,ganancia*0.3):0;
+
+    const tuParte=ganancia>0?ganancia-luismaParte:0;
 
     // ── Deuda a Mamá ──
     // Por cada item de producto de mamá: le debo (precio_venta - costo - 0.50) por unidad
