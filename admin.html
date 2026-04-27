@@ -1872,10 +1872,10 @@ function abrirMovimientosBancaAmiga(){
     movs.push({ fecha:v.fecha_venta||v.creado_en||'', tipo:'entrada',
       desc:(v.cliente_nombre||'Cliente')+' — '+(v.numero||''), sub:v.metodo_pago||'Pago Bs', monto:bs });
   });
-  (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Saldo Real').forEach(g=>{
+  (gastosGlobales||[]).filter(g=>g.tipo!=='Gasto ajeno'&&g.tipo!=='Saldo Real'&&(g.moneda==='Bs'||g.tipo==='Reposición')).forEach(g=>{
     const esRepos = g.tipo==='Reposición';
-    // Reposiciones = entradas (dinero que vuelve a Brillitos)
-    // Gastos en Bs normales = salidas
+    const montoBs2 = parseFloat(g.monto_bs||0)||(g.moneda==='Bs'?parseFloat(g.monto||0):0);
+    if(!montoBs2) return;
     movs.push({ fecha:g.fecha||g.creado_en||'', tipo:esRepos?'entrada':'salida',
       desc:g.descripcion||g.tipo, sub:g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''), monto:parseFloat(g.monto_bs||g.monto||0) });
   });
@@ -3452,51 +3452,49 @@ async function renderEventos(){
   if(!eventos.length){ div.innerHTML='<div class="card" style="text-align:center;color:var(--gray)">No hay eventos</div>'; return; }
   const eventosOrdenados=[...eventos].sort((a,b)=>{var fa=a.fecha?new Date(a.fecha+'T12:00:00'):null;var fb=b.fecha?new Date(b.fecha+'T12:00:00'):null;if(!fa&&!fb)return 0;if(!fa)return 1;if(!fb)return -1;return fa-fb;});
   div.innerHTML=eventosOrdenados.map(e=>{
-    // ── Tasa del evento (definida primero) ──
+    // ── TASA del evento ──
     const tasaEvento = parseFloat(e.tasa_bcv||0) || (typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74);
 
+    // ── VENTAS del evento ──
     const vts = ventas.filter(v=>v.evento_id==e.id && v.estado!=='Cancelado');
-    const totalV = vts.reduce((s,v)=>s+parseFloat(v.total||0), 0);  // USD total
-    const gastosE = gastosEvento.filter(g=>g.evento_id==e.id);
+    const totalV   = vts.reduce((s,v)=>s+parseFloat(v.total||0),    0); // USD
+    const totalVBs = vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0), 0); // Bs
+
+    // ── GASTOS del evento ──
+    const gastosE  = gastosEvento.filter(g=>g.evento_id==e.id);
     const gastosOp = gastosE.filter(g=>g.tipo!=='Inversión');
+    const gastosInv= gastosE.filter(g=>g.tipo==='Inversión');
     const gastosLuismaCubiertos = [];
     const gastosLuismaEvento = parseFloat(e.gastos_luisma||0);
 
-    // VENTAS: sumar monto_bs directamente
-    const totalVBs = vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0), 0);
-
-    // GASTOS: cada gasto a Bs de forma simple
-    // - tiene monto_bs → usar monto_bs
-    // - moneda USD o monto_usd → multiplicar por tasa
-    // - moneda Bs → usar monto
-    // - sin moneda: < 500 = USD, >= 500 = Bs
-    const gastoBs = g => {
-      const bs = parseFloat(g.monto_bs||0);
-      if(bs>0) return bs;
-      const usd = parseFloat(g.monto_usd||0);
-      if(usd>0) return usd * tasaEvento;
-      const m = parseFloat(g.monto||0);
-      if(g.moneda==='USD') return m * tasaEvento;
-      if(g.moneda==='Bs') return m;
-      return m < 500 ? m * tasaEvento : m;
+    // Cada gasto → USD (simple)
+    const gastoUSD = g => {
+      const usd = parseFloat(g.monto_usd||0); if(usd>0) return usd;
+      const bs  = parseFloat(g.monto_bs||0);  if(bs>0)  return bs/tasaEvento;
+      const m   = parseFloat(g.monto||0);
+      if(g.moneda==='USD') return m;
+      if(g.moneda==='Bs')  return m/tasaEvento;
+      return m < 500 ? m : m/tasaEvento; // sin moneda: <500=USD, >=500=Bs
     };
-    const totalGBs = gastosOp.reduce((s,g)=>s+gastoBs(g), 0);
 
-    // DEBUG — ver valores reales en consola
-    console.log('[Evento '+e.id+'] tasa='+tasaEvento+' totalV='+totalV+' totalVBs='+totalVBs+' totalGBs='+totalGBs);
-    gastosOp.forEach(function(g){console.log('  gasto id='+g.id+' monto='+g.monto+' monto_bs='+g.monto_bs+' monto_usd='+g.monto_usd+' moneda='+g.moneda+' →Bs='+gastoBs(g));});
+    const totalG   = gastosOp.reduce((s,g)=>s+gastoUSD(g), 0);  // USD
+    const totalGBs = totalG * tasaEvento;                         // Bs
+    const totalInv = gastosInv.reduce((s,g)=>s+gastoUSD(g), 0);  // USD
 
-    // GANANCIA: ventas Bs - gastos Bs → convertir a USD
-    const gananciaBs = totalVBs - totalGBs;
-    const ganancia = gananciaBs / tasaEvento;
-    const totalG = totalGBs / tasaEvento;
-    const totalInv = 0;
+    // ── GANANCIA NETA ──
+    // Usar USD si hay ventas en USD, si no usar Bs÷tasa
+    const ventasUSD = totalV > 0 ? totalV : totalVBs / tasaEvento;
+    const ganancia  = ventasUSD - totalG;
 
-    // LUISMA: 30% de ganancia, mínimo $15
-    const luismaMinimo = 15;
+    // ── INVERSIÓN recuperada ──
+    const invRecuperada = parseFloat(e.inversion_recuperada||0);
+
+    // ── LUISMA: 30% de ganancia, mínimo $15 ──
+    const luismaMinimo    = 15;
     const luismaPorcentaje = ganancia>0 ? ganancia*0.3 : 0;
-    const luismaParte = ganancia>0 ? Math.max(luismaMinimo, luismaPorcentaje) : 0;
-    const tuParte = ganancia>0 ? ganancia - luismaParte : 0;
+    const luismaParte      = ganancia>0 ? Math.max(luismaMinimo, luismaPorcentaje) : 0;
+    const tuParte          = ganancia>0 ? ganancia - luismaParte : 0;
+    const totalInv2        = totalInv; // alias para compatibilidad HTML
 
     // ── Deuda a Mamá ──
     // Por cada item de producto de mamá: le debo (precio_venta - costo - 0.50) por unidad
@@ -4901,15 +4899,17 @@ function renderMovimientosBancaAmiga(){
     });
   });
   // SALIDAS — gastos en Bs (no ajenos, no reposiciones-no-efectivo)
-  (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Saldo Real').forEach(g=>{
+  // Gastos en Bs + TODAS las reposiciones (cualquier moneda)
+  (gastosGlobales||[]).filter(g=>g.tipo!=='Gasto ajeno'&&g.tipo!=='Saldo Real'&&(g.moneda==='Bs'||g.tipo==='Reposición')).forEach(g=>{
     const esRepos = g.tipo==='Reposición';
-    // Todas las reposiciones en Bs son entradas — dinero que volvió a Brillitos
+    const montoBs = parseFloat(g.monto_bs||0) || (g.moneda==='Bs'?parseFloat(g.monto||0):0);
+    if(!montoBs) return; // sin monto Bs, ignorar
     movs.push({
       fecha: g.fecha||g.creado_en||'',
       tipo: esRepos ? 'entrada' : 'salida',
       desc: g.descripcion||g.tipo,
       sub: g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''),
-      monto: parseFloat(g.monto_bs||g.monto||0)
+      monto: montoBs
     });
   });
   // Ordenar por fecha asc para calcular saldo corriente
