@@ -3830,16 +3830,17 @@ function renderGastosGlobal(){
   });
   document.getElementById('tbody-gastos').innerHTML=rows.join('');
 
-  // ── Fila de totales ──
-  var sumBs=lista.reduce(function(s,g){return s+gBs(g);},0);
-  var sumUsd=lista.reduce(function(s,g){return s+gUsd(g);},0);
+  // ── Fila de totales — excluir Reposición (evitar doble conteo) ──
+  var listaReal=lista.filter(function(g){return g.tipo!=='Reposición';});
+  var sumBs=listaReal.reduce(function(s,g){return s+gBs(g);},0);
+  var sumUsd=listaReal.reduce(function(s,g){return s+gUsd(g);},0);
   var tfoot=document.querySelector('#tbody-gastos')&&document.querySelector('#tbody-gastos').closest('table').querySelector('tfoot');
   if(!tfoot){
     tfoot=document.createElement('tfoot');
     document.querySelector('#tbody-gastos').closest('table').appendChild(tfoot);
   }
   tfoot.innerHTML='<tr style="background:#f3f4f6;font-weight:800;border-top:2px solid var(--border)">'
-    +'<td colspan="3" style="padding:10px 12px;font-size:13px;color:#475569">&#931; Total ('+lista.length+' registros)</td>'
+    +'<td colspan="3" style="padding:10px 12px;font-size:13px;color:#475569">&#931; Total real ('+listaReal.length+' de '+lista.length+')</td>'
     +'<td style="color:#7b1fa2;font-size:14px">Bs. '+sumBs.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2})+'</td>'
     +'<td style="color:var(--red);font-size:14px">$'+sumUsd.toFixed(2)+'</td>'
     +'<td colspan="5"></td>'
@@ -3864,6 +3865,7 @@ function abrirEditarGasto(id){
   document.getElementById('eg-tasa').value = g.tasa_bcv||bcvHoy||'';
   document.getElementById('eg-fecha').value = g.fecha||'';
   document.getElementById('eg-notas').value = g.notas||'';
+  document.getElementById('eg-reposicion-de').value = g.reposicion_de||'';
   const sel = document.getElementById('eg-evento');
   sel.innerHTML = '<option value="">Sin evento</option>';
   eventos.forEach(function(ev){
@@ -3892,18 +3894,20 @@ async function guardarEditarGasto(){
   const monto_usd = moneda==='Bs' ? monto/tasa : monto;
   const monto_bs  = moneda==='Bs' ? monto : monto*tasa;
   const eventoVal = document.getElementById('eg-evento').value;
+  const reposicionDe = document.getElementById('eg-reposicion-de').value.trim()||null;
   const data = {
-    descripcion: desc,
-    tipo:        document.getElementById('eg-tipo').value,
-    categoria:   document.getElementById('eg-categoria').value,
+    descripcion:   desc,
+    tipo:          document.getElementById('eg-tipo').value,
+    categoria:     document.getElementById('eg-categoria').value,
     moneda,
     monto,
     monto_usd,
     monto_bs,
-    tasa_bcv:    tasa,
-    fecha:       document.getElementById('eg-fecha').value,
-    evento_id:   eventoVal ? parseInt(eventoVal) : null,
-    notas:       document.getElementById('eg-notas').value.trim()||null,
+    tasa_bcv:      tasa,
+    fecha:         document.getElementById('eg-fecha').value,
+    evento_id:     eventoVal ? parseInt(eventoVal) : null,
+    notas:         document.getElementById('eg-notas').value.trim()||null,
+    reposicion_de: reposicionDe,
   };
   const res = await sbPatch('gastos_globales', id, data);
   if(res){
@@ -4919,6 +4923,10 @@ function renderMovimientosBancaAmiga(){
     <div class="form-group form-full">
       <label>Notas</label>
       <input type="text" id="eg-notas" placeholder="Notas adicionales">
+    </div>
+    <div class="form-group form-full" id="eg-repos-wrap">
+      <label>&#128154; Repuesto como <span style="color:#999;font-weight:400;font-size:12px">(dejar vac&#237;o si no fue repuesto)</span></label>
+      <input type="text" id="eg-reposicion-de" placeholder="Ej: Efectivo — reposici&#243;n semana santa">
     </div>
   </div>
   <div style="display:flex;gap:10px;margin-top:16px">
