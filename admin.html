@@ -3958,6 +3958,28 @@ async function guardarEditarGasto(){
   }
 }
 
+function recalcularMontoReposicion(){
+  var checks=[...document.querySelectorAll('.rp-ajeno-check:checked')];
+  if(!checks.length){
+    document.getElementById('rp-monto').value='';
+    document.getElementById('rp-monto').readOnly=false;
+    calcRpUsd(); return;
+  }
+  // Sumar en Bs si todos son Bs, sino en USD
+  var totalBs=checks.reduce(function(s,c){return s+parseFloat(c.dataset.bs||0);},0);
+  var totalUsd=checks.reduce(function(s,c){return s+parseFloat(c.dataset.usd||0);},0);
+  // Detectar moneda predominante
+  var todosUsd=checks.every(function(c){return c.dataset.moneda==='USD';});
+  if(todosUsd){
+    document.getElementById('rp-moneda').value='USD';
+    document.getElementById('rp-monto').value=totalUsd.toFixed(2);
+  } else {
+    document.getElementById('rp-moneda').value='Bs';
+    document.getElementById('rp-monto').value=totalBs.toFixed(2);
+  }
+  document.getElementById('rp-monto').readOnly=true;
+  calcRpUsd();
+}
 function abrirReponerGasto(gastoId){
   abrirModalReposicion();
   // Esperar a que el modal cargue los checkboxes y pre-seleccionar el gasto
@@ -3967,6 +3989,7 @@ function abrirReponerGasto(gastoId){
   },100);
 }
 function abrirModalReposicion(){
+  document.getElementById('rp-monto').readOnly=false;
   document.getElementById('rp-forma').value='';
   document.getElementById('rp-detalle').value='';
   document.getElementById('rp-descripcion').value='';
@@ -3989,8 +4012,9 @@ function abrirModalReposicion(){
       var row=document.createElement('label');
       row.style.cssText='display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 10px;border-radius:8px;background:white;border:1.5px solid #ffe082;font-size:13px';
       var cb=document.createElement('input');
-      cb.type='checkbox'; cb.value=g.id; cb.className='rp-ajeno-check';
+      cb.type='checkbox'; cb.value=g.id; cb.className='rp-ajeno-check'; cb.dataset.bs=g.monto_bs||0; cb.dataset.usd=g.monto_usd||0; cb.dataset.moneda=g.moneda||'Bs';
       cb.style.cssText='width:18px;height:18px;accent-color:#2e7d32;flex-shrink:0;cursor:pointer';
+      cb.addEventListener('change', recalcularMontoReposicion);
       var txt=document.createElement('span');
       txt.innerHTML='<strong>🚨 '+formatFecha(g.fecha)+'</strong> — '+(g.descripcion||g.notas||'Sin desc')+'<br><span style="color:#7b1fa2;font-size:11px">'+monto+'</span>';
       row.appendChild(cb); row.appendChild(txt);
@@ -4040,7 +4064,9 @@ async function guardarReposicion(){
   const desc=document.getElementById('rp-descripcion').value.trim();
   if(!desc){toast('⚠️ Escribe una descripción');return;}
   const monto=parseFloat(document.getElementById('rp-monto').value)||0;
-  if(!monto){toast('⚠️ Ingresa el monto');return;}
+  var checks=[...document.querySelectorAll('.rp-ajeno-check:checked')];
+  if(!monto&&!checks.length){toast('⚠️ Ingresa el monto o selecciona gastos a reponer');return;}
+  const montoFinal=monto||checks.reduce(function(s,c){return s+parseFloat(c.dataset.bs||0);},0);
   const detalle=document.getElementById('rp-detalle').value.trim();
   const necesitaDetalle=['Comprando mercancía','Pagando gasto','Pagando inversión','Otro'].includes(forma);
   if(necesitaDetalle&&!detalle){toast('⚠️ Describe qué pagaste');return;}
@@ -4055,7 +4081,7 @@ async function guardarReposicion(){
     tipo:'Reposición',
     categoria:catMap[forma]||'Otro',
     descripcion:desc,
-    monto, moneda,
+    monto:montoFinal, moneda,
     tasa_bcv:tasa||null,
     monto_usd, monto_bs,
     fecha:document.getElementById('rp-fecha').value,
