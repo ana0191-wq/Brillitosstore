@@ -3816,30 +3816,41 @@ function renderGastosGlobal(){
 
     var trBg=g.tipo==='Pago personal'&&!g.reposicion_de?'background:#fffde7':g.tipo==='Reposición'?'background:#f1f8e9':'';
 
-    var tiposOpts=['Gasto','Gasto evento','Gasto operativo','Inversion','Pago personal','Reposicion','Gasto ajeno'].map(function(t){return '<option value="'+t+'"'+(g.tipo===t?' selected':'')+'>'+t+'</option>';}).join('');
-    var catsOpts=['','Mercancia/Stock','Transporte','Stand/Evento','Stand/Puesto','Marketing','Empaque','Dominio/Web','Comida/Viaticos','Pago a Luisma','Gasto de Luisma','Servicios','Conciliacion','Otro'].map(function(c){return '<option value="'+c+'"'+(g.categoria===c?' selected':'')+'>'+(!c?'Sin cat':c)+'</option>';}).join('');
-    var evsOpts='<option value=""'+((!g.evento_id)?' selected':'')+'>Sin evento</option>'+eventos.map(function(ev){return '<option value="'+ev.id+'"'+(g.evento_id==ev.id?' selected':'')+'>'+ev.nombre+'</option>';}).join('');
     var iS='padding:2px 4px;border:1px solid #ddd;border-radius:5px;font-size:12px;background:white;max-width:100%';
-    var gid=g.id;
+    var tiposOpts='';
+    ['Gasto','Gasto evento','Gasto operativo','Inversión','Pago personal','Reposición','Gasto ajeno'].forEach(function(t){tiposOpts+='<option value="'+t+'"'+(g.tipo===t?' selected':'')+'>'+t+'</option>';});
+    var catsOpts='';
+    ['','Mercancía / Stock','Transporte','Stand / Evento','Stand / Puesto','Marketing / Publicidad','Empaque / Materiales','Dominio / Web / Apps','Comida / Viáticos','Pago a Luisma','Gasto de Luisma','Servicios','Conciliación','Otro'].forEach(function(c){catsOpts+='<option value="'+c+'"'+(g.categoria===c?' selected':'')+'>'+(!c?'— Sin categoría —':c)+'</option>';});
+    var evsOpts='<option value=""'+((!g.evento_id)?' selected':'')+'>— Sin evento —</option>';
+    eventos.forEach(function(ev){evsOpts+='<option value="'+ev.id+'"'+(g.evento_id==ev.id?' selected':'')+'>'+ev.nombre+'</option>';});
     var gDesc=(g.descripcion||g.concepto||g.notas||'').replace(/"/g,'&quot;');
-    return '<tr style="'+trBg+'">'
+    return '<tr data-gid="'+g.id+'" style="'+trBg+'">'
       +'<td style="font-size:12px;color:#555">'+formatFecha(g.fecha)+'</td>'
-      +'<td><input style="'+iS+';font-weight:700;width:100%;min-width:90px" value="'+gDesc+'" onblur="inlineGuardar('+gid+',\"descripcion\",this.value)" onkeydown="if(event.key===&quot;Enter&quot;)this.blur()"></td>'
-      +'<td><select style="'+iS+'" onchange="inlineGuardar('+gid+',\"categoria\",this.value)">'+catsOpts+'</select></td>'
+      +'<td><input class="ig-desc" data-gid="'+g.id+'" style="'+iS+';font-weight:700;width:100%;min-width:90px" value="'+gDesc+'"></td>'
+      +'<td><select class="ig-cat" data-gid="'+g.id+'" style="'+iS+'">'+catsOpts+'</select></td>'
       +'<td>'+mBsStr+'</td>'
       +'<td>'+mUsdStr+'</td>'
-      +'<td><select style="'+iS+'" onchange="inlineGuardar('+gid+',\"tipo\",this.value)">'+tiposOpts+'</select></td>'
+      +'<td><select class="ig-tipo" data-gid="'+g.id+'" style="'+iS+'">'+tiposOpts+'</select></td>'
       +'<td>'+quienStr+'</td>'
-      +'<td><select style="'+iS+'" onchange="inlineGuardar('+gid+',\"evento_id\",this.value)">'+evsOpts+'</select></td>'
+      +'<td><select class="ig-evento" data-gid="'+g.id+'" style="'+iS+'">'+evsOpts+'</select></td>'
       +'<td>'+estadoStr+'</td>'
       +'<td style="white-space:nowrap">'
-      +(g.tipo==='Pago personal'&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+gid+')">&#128154;</button> ':'')
-      +'<button class="btn btn-secondary btn-sm" style="font-size:10px;margin-right:3px" onclick="abrirEditarGasto('+gid+')">&#9999;&#65039;</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+gid+')">&#128465;</button>'
+      +(g.tipo==='Pago personal'&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">&#128154;</button> ':'')
+      +'<button class="btn btn-secondary btn-sm" style="font-size:10px;margin-right:3px" onclick="abrirEditarGasto('+g.id+')">&#9999;&#65039;</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">&#128465;</button>'
       +'</td>'
       +'</tr>';
   });
   document.getElementById('tbody-gastos').innerHTML=rows.join('');
+  // ── Event delegation para edición inline ──
+  var tb=document.getElementById('tbody-gastos');
+  tb.querySelectorAll('.ig-desc').forEach(function(el){
+    el.addEventListener('blur',function(){inlineGuardar(this.dataset.gid,'descripcion',this.value);});
+    el.addEventListener('keydown',function(e){if(e.key==='Enter')this.blur();});
+  });
+  tb.querySelectorAll('.ig-cat').forEach(function(el){el.addEventListener('change',function(){inlineGuardar(this.dataset.gid,'categoria',this.value);});});
+  tb.querySelectorAll('.ig-tipo').forEach(function(el){el.addEventListener('change',function(){inlineGuardar(this.dataset.gid,'tipo',this.value);});});
+  tb.querySelectorAll('.ig-evento').forEach(function(el){el.addEventListener('change',function(){inlineGuardar(this.dataset.gid,'evento_id',this.value);});});
 
   // ── Fila de totales — excluir Reposición (evitar doble conteo) ──
   var listaReal=lista.filter(function(g){return g.tipo!=='Reposición';});
