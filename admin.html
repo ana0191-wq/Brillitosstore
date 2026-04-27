@@ -3829,6 +3829,22 @@ function renderGastosGlobal(){
       +'</tr>';
   });
   document.getElementById('tbody-gastos').innerHTML=rows.join('');
+
+  // ── Fila de totales ──
+  var sumBs=lista.reduce(function(s,g){return s+gBs(g);},0);
+  var sumUsd=lista.reduce(function(s,g){return s+gUsd(g);},0);
+  var tfoot=document.querySelector('#tbody-gastos')&&document.querySelector('#tbody-gastos').closest('table').querySelector('tfoot');
+  if(!tfoot){
+    tfoot=document.createElement('tfoot');
+    document.querySelector('#tbody-gastos').closest('table').appendChild(tfoot);
+  }
+  tfoot.innerHTML='<tr style="background:#f3f4f6;font-weight:800;border-top:2px solid var(--border)">'
+    +'<td colspan="3" style="padding:10px 12px;font-size:13px;color:#475569">&#931; Total ('+lista.length+' registros)</td>'
+    +'<td style="color:#7b1fa2;font-size:14px">Bs. '+sumBs.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2})+'</td>'
+    +'<td style="color:var(--red);font-size:14px">$'+sumUsd.toFixed(2)+'</td>'
+    +'<td colspan="5"></td>'
+    +'</tr>';
+
   renderDeudaMama('deuda-mama-cont');
 }
 
