@@ -2380,7 +2380,7 @@ function renderVentas(lista){
     '<tr data-id="'+v.id+'">'
     +'<td><input type="checkbox" class="chk-venta" data-id="'+v.id+'" onchange="onChkVenta()" '+(ventasSeleccionadas.has(v.id)?'checked':'')+' style="width:16px;height:16px;cursor:pointer"></td>'
     +'<td><strong>'+(v.numero||'#'+v.id)+'</strong></td>'
-    +'<td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td>'
+    +'<td>'+formatFecha(v.fecha_venta&&String(v.fecha_venta).slice(0,10)>='2020-01-01'?v.fecha_venta:v.creado_en)+'</td>'
     +'<td>'+(v.cliente_nombre||'—')+'</td>'
     +'<td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td>'
     +'<td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong></td>'
@@ -2544,7 +2544,7 @@ function filtrarVentas(){
     if(est&&v.estado!==est) return false;
     if(canal&&v.canal!==canal) return false;
     if(desde||hasta){
-      const fv=(v.fecha_venta&&v.fecha_venta.slice(0,10)>='2020-01-01'?v.fecha_venta:v.creado_en||'').slice(0,10);
+      const fv=(v.fecha_venta&&String(v.fecha_venta).slice(0,10)>='2020-01-01'?String(v.fecha_venta).slice(0,10):String(v.creado_en||'').slice(0,10));
       if(desde&&fv<desde) return false;
       if(hasta&&fv>hasta) return false;
     }
@@ -4345,7 +4345,7 @@ function toast(msg,duracion){
   toastEl.textContent=msg;toastEl.classList.add('show');
   clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove('show');},duracion||3000);
 }
-function formatFecha(str){ if(!str)return'—'; try{return new Date(str).toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return str;} }
+function formatFecha(str){ if(!str)return'—'; try{ const s=String(str).trim(); const d=s.length===10?new Date(s+'T12:00:00'):new Date(s); return d.toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return str;} }
 document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
 
 document.addEventListener('DOMContentLoaded', function(){ init(); });
