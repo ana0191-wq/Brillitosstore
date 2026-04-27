@@ -3733,7 +3733,8 @@ function poblarEventosGastoGlobal(){
 function poblarMesesFiltroGasto(){
   const meses=new Set(gastosGlobales.map(g=>(g.fecha||'').slice(0,7)).filter(Boolean));
   const sel=document.getElementById('filtro-mes-gasto'); if(!sel)return;
-  sel.innerHTML='<option value="">Todos los meses</option>'+[...meses].sort().reverse().map(m=>'<option value="'+m+'">'+m+'</option>').join('');
+  const mesActual=new Date().toISOString().slice(0,7);
+  sel.innerHTML='<option value="">Todos los meses</option>'+[...meses].sort().reverse().map(m=>'<option value="'+m+'"'+(m===mesActual?' selected':'')+'>'+m+'</option>').join('');
 }
 async function cambiarTipoGasto(id, nuevoTipo){
   await sbPatch('gastos_globales',id,{tipo:nuevoTipo});
@@ -3787,10 +3788,12 @@ function renderDeudaMama(cid){
 }
 function renderGastosGlobal(){
   const cat=document.getElementById('filtro-cat-gasto')?document.getElementById('filtro-cat-gasto').value:'';
-  const mes=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
+  const mesSelVal=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
+  const mesActual=new Date().toISOString().slice(0,7);
+  const mes=mesSelVal||mesActual;
   let lista=gastosGlobales;
   if(cat) lista=lista.filter(g=>g.categoria===cat);
-  if(mes) lista=lista.filter(g=>(g.fecha||'').slice(0,7)===mes);
+  lista=lista.filter(g=>(g.fecha||'').slice(0,7)===mes);
   const totalUSD=lista.filter(g=>!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal').reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
   const porCat={};
   lista.forEach(g=>{porCat[g.categoria||'?']=(porCat[g.categoria||'?']||0)+parseFloat(g.monto_usd||g.monto||0);});
