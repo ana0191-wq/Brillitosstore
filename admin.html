@@ -2409,8 +2409,9 @@ async function aplicarCambioMasivo(){
       toast('Error '+res.status+': '+t.slice(0,80));
       return;
     }
+    // Actualizar array local con == para evitar mismatch de tipos
     ids.forEach(function(id){
-      const v=ventas.find(function(x){return x.id===id;});
+      const v=ventas.find(function(x){return x.id==id;});
       if(!v) return;
       if(canal) v.canal=canal;
       if(eventoId) v.evento_id=parseInt(eventoId);
@@ -2424,8 +2425,11 @@ async function aplicarCambioMasivo(){
     });
     if(fechaEl) fechaEl.value='';
     deselectAll();
+    // Recargar ventas frescas desde Supabase para que quede sincronizado
+    const freshVentas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+    if(Array.isArray(freshVentas)) ventas=freshVentas;
     filtrarVentas();
-    toast('Cambios aplicados a '+ids.length+' venta(s)');
+    toast('✅ Cambios aplicados a '+ids.length+' venta(s)');
   }catch(e){
     console.error('Exception masivo:', e);
     toast('Error: '+e.message);
