@@ -3276,11 +3276,14 @@ async function renderEventos(){
   div.innerHTML=eventosOrdenados.map(e=>{
     const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
     const tasa=bcvHoy||484.74;
-    // Suma ventas: usa tasa_bcv_usada de la venta, si no bcvHoy
+    // Suma ventas: Bs → monto_bs/tasa | USD directo → total
+    const METODOS_USD=['Binance/USDT','PayPal','Efectivo $','Zelle'];
     const totalV=vts.reduce((s,v)=>{
+      var metodo=(v.metodo_pago||'');
       var bs=parseFloat(v.monto_bs||0);
       var usd=parseFloat(v.total||0);
       var tasaV=parseFloat(v.tasa_bcv_usada||0)||tasa;
+      if(METODOS_USD.includes(metodo)) return s+usd;
       if(bs>0) return s+(bs/tasaV);
       return s+usd;
     },0);
