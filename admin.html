@@ -1938,24 +1938,27 @@ function cargarDashboard(){
   const totalMesBs  = vM.filter(v=>v.monto_bs&&parseFloat(v.monto_bs)>0).reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
   const totalMesUsd = vM.reduce((s,v)=>s+parseFloat(v.total||0),0); // total siempre en $
   const tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
-  const toUSD=g=>{const usd=parseFloat(g.monto_usd||0),m=parseFloat(g.monto||0);if(usd>0)return usd;if(g.moneda==='Bs')return m/tasa;if(g.moneda==='USD')return m;return m>=500?m/tasa:m;};
-  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición'&&g.tipo!=='Saldo Real'&&!g.evento_id);
-  const totalGastMes=gastMes.reduce((s,g)=>s+toUSD(g),0);
-  let ganBrutaDash=0,ganDetalle=[];
-  vM.forEach(v=>{
-    const soloBS=parseFloat(v.monto_bs||0)>0&&!(parseFloat(v.total||0)>0);
-    (v.venta_items||[]).forEach(it=>{
-      const p=productos.find(x=>x.id==it.producto_id);
-      const pv=parseFloat(it.precio_unitario||0),co=p&&p.precio_costo>0?parseFloat(p.precio_costo):0,cant=parseInt(it.cantidad||1);
-      const pvUSD=(soloBS&&pv>10)?pv/tasa:pv,coUSD=(soloBS&&co>10)?co/tasa:co;
-      const margen=coUSD>0?(pvUSD-coUSD)*cant:pvUSD*cant*0.3;
-      ganBrutaDash+=margen;
-      if(p) ganDetalle.push({nombre:p.nombre,margen,cant});
-    });
-    ganBrutaDash-=soloBS?parseFloat(v.descuento||0)/tasa:parseFloat(v.descuento||0);
-  });
-  const gananciaNeta=ganBrutaDash-totalGastMes;
-  window._dashGanDetalle={gan:ganBrutaDash,gananciaNeta,totalGastMes,ganDetalle,tasa,mes};
+  // Función simple: gasto → USD
+  const toUSD=g=>{
+    const usd=parseFloat(g.monto_usd||0); if(usd>0) return usd;
+    const bs=parseFloat(g.monto_bs||0);   if(bs>0)  return bs/tasa;
+    const m=parseFloat(g.monto||0);       if(!m)    return 0;
+    if(g.moneda==='USD') return m;
+    if(g.moneda==='Bs')  return m/tasa;
+    return m>=100 ? m/tasa : m;
+  };
+  // GASTOS del mes — todos los gastos reales (no reposiciones, no saldo real, no ajenos)
+  const TIPOS_EXCLUIR = ['Reposición','Saldo Real','Gasto ajeno'];
+  const gastMes = gastosGlobales.filter(g=>
+    (g.fecha||'').slice(0,7)===mes &&
+    !TIPOS_EXCLUIR.includes(g.tipo)
+  );
+  const totalGastMes = gastMes.reduce((s,g)=>s+toUSD(g), 0);
+  // GANANCIA = Ventas totales del mes - Gastos totales del mes
+  // Simple: sum(ventas.total) - sum(gastos en USD)
+  const ganBrutaDash = totalMesUsd - totalGastMes;
+  const gananciaNeta = ganBrutaDash;
+  window._dashGanDetalle={gan:ganBrutaDash,gananciaNeta,totalGastMes,tasa,mes};
 
   var dHoyEl=document.getElementById('d-hoy'); if(dHoyEl) dHoyEl.textContent='$'+totalHoy.toFixed(2);
   var dMesEl=document.getElementById('d-mes'); if(dMesEl) dMesEl.textContent='$'+totalMes.toFixed(2);
