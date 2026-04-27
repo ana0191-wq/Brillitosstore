@@ -694,10 +694,6 @@ tr:hover td{background:#fff8fc}
         <option>Pendiente</option><option>Pagado</option><option>Entregado</option><option>Cancelado</option>
       </select>
     </div>
-    <div class="form-group form-full" id="v-total-manual-wrap">
-      <label>Total manual <span style="font-weight:400;color:#aaa;font-size:11px">— solo si no hay productos</span></label>
-      <input type="number" id="v-total-manual" step="0.01" min="0" placeholder="0.00">
-    </div>
     <div class="form-group"><label>Envío ($)</label><input type="number" id="v-envio" value="0" min="0" step="0.5" oninput="calcularTotal()"></div>
     <div class="form-group"><label>Descuento ($)</label><input type="number" id="v-descuento" value="0" min="0" step="0.5" oninput="calcularTotal()"></div>
   </div>
@@ -734,7 +730,7 @@ tr:hover td{background:#fff8fc}
   <!-- Productos -->
   <div style="margin-top:12px">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
-      <strong style="font-size:13px">Productos</strong> <span style="font-weight:400;color:#aaa;font-size:11px">(opcional)</span>
+      <strong style="font-size:13px">Productos</strong>
       <button class="btn btn-secondary btn-sm" onclick="agregarItem()">+ Agregar</button>
     </div>
     <div class="items-header"><span>Producto</span><span>Precio</span><span>Cant.</span><span>Subtotal</span><span></span></div>
@@ -972,7 +968,6 @@ tr:hover td{background:#fff8fc}
     <div class="form-group"><label>Fecha</label><input type="date" id="e-fecha"></div>
     <div class="form-group"><label>Lugar</label><input type="text" id="e-lugar"></div>
     <div class="form-group form-full"><label>Notas</label><textarea id="e-notas"></textarea></div>
-    <div class="form-group"><label>Gastos de Luisma ($) <span style="font-weight:400;color:#aaa;font-size:11px">se restan del total</span></label><input type="number" id="e-gastos-luisma" step="0.01" min="0" placeholder="0.00"></div>
   </div>
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-evento')">Cancelar</button>
@@ -985,7 +980,6 @@ tr:hover td{background:#fff8fc}
 <div class="modal-bg" id="modal-gasto" onclick="if(event.target===this)cerrarModal('modal-gasto')">
 <div class="modal">
   <h2>💸 Gasto del Evento</h2>
-  <div id="g-evento-label" style="background:#f3e8ff;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:700;color:#7c3aed;margin-bottom:10px;display:none"></div>
   <input type="hidden" id="g-evento-id">
   <div class="form-grid">
     <div class="form-group form-full">
@@ -1876,14 +1870,14 @@ function abrirMovimientosBancaAmiga(){
 function cargarDashboard(){
   const hoy = hoyVEN();
   const mes = mesVEN();
-  // Fecha efectiva: si tiene fecha_venta la respetamos, si no usamos creado_en ajustado a Venezuela
-  const fechaEfectiva=v=>{
-    if(v.fecha_venta) return v.fecha_venta.slice(0,10);
-    if(v.creado_en) return new Date(new Date(v.creado_en).getTime()-4*60*60*1000).toISOString().slice(0,10);
-    return '';
-  };
-  const vH = ventas.filter(v=>fechaEfectiva(v)===hoy&&v.estado!=='Cancelado');
-  const vM = ventas.filter(v=>fechaEfectiva(v).slice(0,7)===mes&&v.estado!=='Cancelado');
+  const vH = ventas.filter(v=>{
+    const fv=(v.fecha_venta||'').slice(0,10);
+    const fc=(v.creado_en||'').slice(0,10);
+    // creado_en viene en UTC, ajustar a Venezuela
+    const fcVen = v.creado_en ? new Date(new Date(v.creado_en).getTime()-4*60*60*1000).toISOString().slice(0,10) : '';
+    return (fv===hoy||fc===hoy||fcVen===hoy)&&v.estado!=='Cancelado';
+  });
+  const vM = ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
   const aptActivos = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
   const totalHoy = vH.reduce((s,v)=>s+parseFloat(v.total||0),0);
   const totalMes = vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
@@ -2638,7 +2632,7 @@ function selCliente(id,n,t){
   else{ document.getElementById('apt-cliente-id').value=id; document.getElementById('apt-cliente-search').value=n; document.getElementById('apt-cliente-results').style.display='none'; }
 }
 async function guardarVenta(){
-  // producto opcional
+  if(!ventaItems.length){ toast('⚠️ Agrega al menos un producto'); return; }
   // Deshabilitar botón para evitar doble envío
   const btnG = document.querySelector('#modal-venta .btn-primary, #modal-venta [onclick*="guardarVenta"]');
   if(btnG){ btnG.disabled = true; btnG.textContent = '⏳ Guardando...'; }
@@ -2646,7 +2640,7 @@ async function guardarVenta(){
 
   try {
     const nombre = document.getElementById('v-cliente-search').value.trim();
-    const sub    = ventaItems.length ? ventaItems.reduce((s,i)=>s+parseFloat(i.subtotal||0), 0) : (parseFloat(document.getElementById('v-total-manual')?.value)||0);
+    const sub    = ventaItems.reduce((s,i)=>s+parseFloat(i.subtotal||0), 0);
     const env    = parseFloat(document.getElementById('v-envio').value)||0;
     const desc   = parseFloat(document.getElementById('v-descuento').value)||0;
     const total  = sub + env - desc;
@@ -3332,24 +3326,11 @@ async function renderEventos(){
     const gastosLuismaList=gastosE.filter(g=>g.descripcion==='Gasto de Luisma');
     const gastosLuismaDescuento=gastosLuismaList.filter(g=>!g.cubierto_por||g.cubierto_por==='Luisma');
     const gastosLuismaCubiertos=gastosLuismaList.filter(g=>g.cubierto_por==='Yo');
-    // Convertir gasto a USD: si tiene monto_usd>0 usarlo, si no convertir monto_bs con tasa, si no usar monto directo
-    const gastoUsd=g=>{
-      const usd=parseFloat(g.monto_usd||0);
-      if(usd>0) return usd;
-      const bs=parseFloat(g.monto_bs||0);
-      const tasa=parseFloat(g.tasa_bcv||0);
-      if(bs>0&&tasa>0) return bs/tasa;
-      // Si el monto es razonable en USD (< 500) asumirlo USD, si no ignorarlo
-      const m=parseFloat(g.monto||0);
-      return (g.moneda==='Bs'||m>500)?0:m;
-    };
-    const totalG=gastosOp.reduce((s,g)=>s+gastoUsd(g),0)
-               +gastosLuismaCubiertos.reduce((s,g)=>s+gastoUsd(g),0);
-    const totalGastoLuisma=gastosLuismaDescuento.reduce((s,g)=>s+gastoUsd(g),0);
-    const totalInv=gastosInv.reduce((s,g)=>s+gastoUsd(g),0);
-    const gastosLuismaEvento=parseFloat(e.gastos_luisma||0);
-    const totalGConLuisma=totalG+gastosLuismaEvento;
-    const ganancia=totalV-totalGConLuisma;
+    const totalG=gastosOp.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0)
+               +gastosLuismaCubiertos.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+    const totalGastoLuisma=gastosLuismaDescuento.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+    const totalInv=gastosInv.reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
+    const ganancia=totalV-totalG;
     const luismaMinimo=30;
     const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
     const luismaBase=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
@@ -3445,32 +3426,19 @@ async function renderEventos(){
 
     return '<div class="card" style="padding:16px">'
 
-      // ── CABECERA (siempre visible, clickeable para expandir) ──
-      +'<div style="display:flex;justify-content:space-between;align-items:start;cursor:pointer" onclick="toggleDetalleEvento('+e.id+',event)">'
+      // ── CABECERA ──
+      +'<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:14px">'
       +'<div>'
       +'<div style="font-size:16px;font-weight:800;margin-bottom:3px">🎪 '+e.nombre+'</div>'
       +'<div style="font-size:12px;color:#888">'+fmtFechaEvento(e.fecha)+(e.lugar?' · 📍'+e.lugar:'')+'</div>'
       +'<span style="display:inline-block;margin-top:5px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+'">'+badgeLabel+'</span>'
       +'</div>'
       +'<div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end">'
-      // Mini resumen siempre visible
-      +'<div style="text-align:right">'
-      +'<div style="font-size:13px;font-weight:800;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+' ganancia</div>'
-      +'<div style="font-size:11px;color:#888">'+vts.length+' ventas · '+gastosE.length+' gastos</div>'
-      +'</div>'
-      +'<div style="font-size:18px;color:#aaa;line-height:1" id="chevron-'+e.id+'">▸</div>'
-      +'</div></div>'
-
-      // ── DETALLE COLAPSABLE ──
-      +'<div id="detalle-evento-'+e.id+'" style="display:none">'
-
-      // Botones de acción
-      +'<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">'
-      +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+');event.stopPropagation()">+ Gasto</button>'
-      +'<button class="btn btn-secondary btn-sm" style="background:#e8f5e9;color:#2e7d32;border:none" onclick="abrirConciliacion('+e.id+');event.stopPropagation()">🏦 Conciliar</button>'
-      +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+');event.stopPropagation()">✏️ Editar</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+');event.stopPropagation()">🗑️ Eliminar</button>'
-      +'</div>'
+      +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+')">+ Gasto</button>'
+      +'<div style="display:flex;gap:5px">'
+      +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+')">✏️</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+')">🗑️</button>'
+      +'</div></div></div>'
 
       // ── RESUMEN FINANCIERO (una sola vez, claro) ──
       +'<div style="background:linear-gradient(135deg,#fdf4ff,#fff);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid #ede9fe">'
@@ -3481,35 +3449,11 @@ async function renderEventos(){
       +'<span style="font-size:15px;font-weight:800;color:#2e7d32">$'+totalV.toFixed(2)+'</span>'
       +'</div>'
 
-      // Gastos operativos con desglose
+      // Gastos operativos
       +(totalG>0
-        ?'<div style="padding:6px 0;border-bottom:1px solid #f3e8ff">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center">'
-        +'<span style="font-size:13px;color:#555">Gastos operativos ('+gastosOp.length+')</span>'
-        +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+totalG.toFixed(2)+'</span>'
-        +'</div>'
-        +gastosOp.map(function(g){
-          return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 12px;font-size:11px;color:#888">'
-            +'<span>• '+(g.descripcion||g.concepto||'Gasto')+(g.moneda==='Bs'?' 🇻🇪':'')+'</span>'
-            +'<span>'+( (parseFloat(g.monto_usd||0)>0) ? '$'+parseFloat(g.monto_usd).toFixed(2) : (g.moneda==='Bs'?'Bs '+parseFloat(g.monto_bs||g.monto||0).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2)) )+'</span>'
-            +'</div>';
-        }).join('')
-        +(gastosLuismaCubiertos.length>0
-          ? gastosLuismaCubiertos.map(function(g){
-              return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 12px;font-size:11px;color:#888">'
-                +'<span>• '+(g.descripcion||'Gasto Luisma')+' (yo cubrí)</span>'
-                +'<span>'+( parseFloat(g.monto_usd||0)>0?'$'+parseFloat(g.monto_usd).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2) )+'</span>'
-                +'</div>';
-            }).join('')
-          : '')
-        +'</div>'
-        :'<div style="padding:6px 0;border-bottom:1px solid #f3e8ff;font-size:12px;color:#aaa">Sin gastos registrados para este evento</div>')
-
-      // Gastos Luisma del evento
-      +(gastosLuismaEvento>0
         ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
-        +'<span style="font-size:13px;color:#555">🧑 Gastos de Luisma</span>'
-        +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+gastosLuismaEvento.toFixed(2)+'</span>'
+        +'<span style="font-size:13px;color:#555">Gastos operativos</span>'
+        +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+totalG.toFixed(2)+'</span>'
         +'</div>':'')
 
       // Inversión recuperada — dato informativo
@@ -3629,19 +3573,8 @@ async function renderEventos(){
       // Notas
       +(e.notas?'<div style="margin-top:12px;padding:8px 10px;background:#fafafa;border-radius:8px;font-size:12px;color:#666">📝 '+e.notas+'</div>':'')
 
-      +'</div>' // cierre detalle colapsable
       +'</div>';
   }).join('');
-}
-
-function toggleDetalleEvento(eid, event){
-  if(event && event.target && (event.target.tagName==='BUTTON'||event.target.closest('button'))) return;
-  var det=document.getElementById('detalle-evento-'+eid);
-  var chev=document.getElementById('chevron-'+eid);
-  if(!det) return;
-  var abierto=det.style.display!=='none';
-  det.style.display=abierto?'none':'block';
-  if(chev) chev.textContent=abierto?'▸':'▾';
 }
 
 function recalcLuisma(eid, ganancia, pct){
@@ -3685,12 +3618,11 @@ function abrirModalEvento(id=null){
   document.getElementById('e-fecha').value=e?e.fecha||'':'';
   document.getElementById('e-lugar').value=e?e.lugar||'':'';
   document.getElementById('e-notas').value=e?e.notas||'':'';
-  document.getElementById('e-gastos-luisma').value=e&&e.gastos_luisma?e.gastos_luisma:'';
   abrirModal('modal-evento');
 }
 async function guardarEvento(){
   const nombre=document.getElementById('e-nombre').value.trim(); if(!nombre){ toast('⚠️ Nombre obligatorio'); return; }
-  const data={nombre,fecha:document.getElementById('e-fecha').value||null,lugar:document.getElementById('e-lugar').value.trim(),notas:document.getElementById('e-notas').value.trim(),gastos_luisma:parseFloat(document.getElementById('e-gastos-luisma').value)||0};
+  const data={nombre,fecha:document.getElementById('e-fecha').value||null,lugar:document.getElementById('e-lugar').value.trim(),notas:document.getElementById('e-notas').value.trim()};
   if(editEventoId){ await sbPatch('eventos',editEventoId,data); const i=eventos.findIndex(e=>e.id===editEventoId); if(i>=0) eventos[i]={...eventos[i],...data}; }
   else{ const res=await sbPost('eventos',data); if(res[0]) eventos.push(res[0]); poblarEventosSelect(); poblarEventosGastoGlobal(); }
   cerrarModal('modal-evento'); renderEventos(); toast('✅ Guardado');
@@ -3698,12 +3630,6 @@ async function guardarEvento(){
 async function eliminarEvento(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('eventos','id=eq.'+id); eventos=eventos.filter(e=>e.id!==id); renderEventos(); toast('🗑️ Eliminado'); }
 function abrirModalGasto(eventoId){
   document.getElementById('g-evento-id').value=eventoId;
-  const evLabel=document.getElementById('g-evento-label');
-  if(evLabel){
-    const ev=eventos.find(function(x){return x.id==eventoId;});
-    if(ev){ evLabel.textContent='📍 Evento: '+ev.nombre; evLabel.style.display='block'; }
-    else { evLabel.style.display='none'; }
-  }
   document.getElementById('g-monto').value=''; document.getElementById('g-moneda').value='USD';
   document.getElementById('g-tasa').value=''; document.getElementById('g-notas').value='';
   document.getElementById('g-fecha').value=new Date().toISOString().slice(0,10);
@@ -4701,208 +4627,6 @@ function renderMovimientosBancaAmiga(){
       +'</div></div>';
   }).join('');
 }
-
-function abrirConciliacion(eid){
-  document.getElementById('conc-evento-id').value=eid;
-  document.getElementById('conc-entradas').value='';
-  document.getElementById('conc-gastos').value='';
-  document.getElementById('conc-resultado').innerHTML='';
-  abrirModal('modal-conciliacion');
-}
-
-function parsearMontos(texto){
-  return texto.split(/[\n;]+/)
-    .map(function(s){
-      s=s.trim();
-      if(s.indexOf('.')>=0){ s=s.replace(/,/g,''); }
-      else { s=s.replace(',','.'); }
-      return parseFloat(s);
-    })
-    .filter(function(n){ return !isNaN(n)&&n>0; });
-}
-
-function ejecutarConciliacion(){
-  var eid=parseInt(document.getElementById('conc-evento-id').value);
-  var entradasBanco=parsearMontos(document.getElementById('conc-entradas').value);
-  var gastosBanco=parsearMontos(document.getElementById('conc-gastos').value);
-  var tolerance=0.02;
-
-  var ventasEvento=ventas.filter(function(v){ return v.evento_id==eid&&v.estado!=='Cancelado'; });
-  var montosVentas=ventasEvento.map(function(v){
-    var bs=parseFloat(v.monto_bs||0);
-    if(!bs){ var tasa=parseFloat(v.tasa_bcv_usada||0); bs=parseFloat(v.total||0)*(tasa||1); }
-    return {id:v.id,numero:v.numero||'#'+v.id,monto:bs,conciliado:false};
-  });
-
-  var entradasResult=entradasBanco.map(function(eb){
-    var match=null;
-    for(var i=0;i<montosVentas.length;i++){
-      if(montosVentas[i].conciliado) continue;
-      if(Math.abs(montosVentas[i].monto-eb)/(eb||1)<=tolerance){ match=montosVentas[i]; montosVentas[i].conciliado=true; break; }
-    }
-    return {banco:eb,venta:match};
-  });
-
-  var gastosEvt=gastosEvento.filter(function(g){ return g.evento_id==eid; });
-  var montosGastos=gastosEvt.map(function(g){
-    var bs=parseFloat(g.monto_bs||0)||parseFloat(g.monto||0);
-    return {id:g.id,desc:g.descripcion||'Gasto',monto:bs,conciliado:false};
-  });
-  var gastosResult=gastosBanco.map(function(gb){
-    var match=null;
-    for(var i=0;i<montosGastos.length;i++){
-      if(montosGastos[i].conciliado) continue;
-      if(Math.abs(montosGastos[i].monto-gb)/(gb||1)<=tolerance){ match=montosGastos[i]; montosGastos[i].conciliado=true; break; }
-    }
-    return {banco:gb,gasto:match};
-  });
-
-  var ok=entradasResult.filter(function(r){return r.venta;});
-  var nok=entradasResult.filter(function(r){return !r.venta;});
-  var totalBanco=entradasBanco.reduce(function(s,n){return s+n;},0);
-  var totalSistema=ok.reduce(function(s,r){return s+r.banco;},0);
-  var html='';
-
-  html+='<div style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;margin-bottom:8px">Entradas — '+entradasBanco.length+' del banco · '+ok.length+' conciliadas · '+nok.length+' sin par</div>';
-
-  if(ok.length){
-    html+='<div style="margin-bottom:8px">';
-    ok.forEach(function(r){
-      html+='<div style="display:flex;justify-content:space-between;padding:5px 8px;background:#f0fdf4;border-radius:6px;margin-bottom:3px;font-size:13px"><span>✅ Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+' — '+r.venta.numero+'</span><span style="color:#2e7d32;font-weight:700">coincide</span></div>';
-    });
-    html+='</div>';
-  }
-
-  if(nok.length){
-    html+='<div style="margin-bottom:12px">';
-    nok.forEach(function(r,ri){
-      var uid='cnk-'+eid+'-'+ri;
-      html+='<div id="wrap-'+uid+'" style="background:#fff8e1;border-radius:8px;padding:8px 10px;margin-bottom:6px">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-        +'<span style="font-size:13px">⚠️ <strong>Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+'</strong> — sin venta registrada</span>'
-        +'<button class="btn btn-sm" data-uid="'+uid+'" data-action="toggle" style="background:#fff3cd;color:#e65100;border:none;font-size:11px">+ Registrar</button>'
-        +'</div>'
-        +'<div id="'+uid+'" style="display:none;padding:8px;background:#fffde7;border-radius:6px">'
-        +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end">'
-        +'<div><label style="font-size:11px;font-weight:700;display:block;margin-bottom:2px">Método</label>'
-        +'<select id="'+uid+'-met" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px">'
-        +'<option value="BancaMiga">BancaMiga</option>'
-        +'<option value="Pago Móvil">Pago Móvil</option>'
-        +'<option value="Efectivo Bs">Efectivo Bs</option>'
-        +'</select></div>'
-        +'<div><label style="font-size:11px;font-weight:700;display:block;margin-bottom:2px">Ref.</label>'
-        +'<input id="'+uid+'-ref" type="text" placeholder="opcional" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px;width:100px"></div>'
-        +'<button class="btn btn-success btn-sm" data-action="save-venta" data-eid="'+eid+'" data-monto="'+r.banco+'" data-uid="'+uid+'" style="font-size:12px">💾 Guardar</button>'
-        +'</div></div></div>';
-    });
-    html+='</div>';
-  }
-
-  if(gastosBanco.length){
-    var gok=gastosResult.filter(function(r){return r.gasto;});
-    var gnok=gastosResult.filter(function(r){return !r.gasto;});
-    html+='<div style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;margin:12px 0 8px">Gastos — '+gastosBanco.length+' del banco · '+gok.length+' conciliados · '+gnok.length+' sin par</div>';
-    if(gok.length){
-      html+='<div style="margin-bottom:8px">';
-      gok.forEach(function(r){
-        html+='<div style="display:flex;justify-content:space-between;padding:5px 8px;background:#f0fdf4;border-radius:6px;margin-bottom:3px;font-size:13px"><span>✅ Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+' — '+r.gasto.desc+'</span><span style="color:#2e7d32;font-weight:700">coincide</span></div>';
-      });
-      html+='</div>';
-    }
-    if(gnok.length){
-      html+='<div style="margin-bottom:8px">';
-      gnok.forEach(function(r,ri){
-        var uid2='cgk-'+eid+'-'+ri;
-        html+='<div id="wrap-'+uid2+'" style="background:#fff8e1;border-radius:8px;padding:8px 10px;margin-bottom:6px">'
-          +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">'
-          +'<span style="font-size:13px">⚠️ <strong>Bs. '+r.banco.toLocaleString('es-VE',{minimumFractionDigits:2})+'</strong> — gasto sin registrar</span>'
-          +'<button class="btn btn-sm" data-uid="'+uid2+'" data-action="toggle" style="background:#fff3cd;color:#e65100;border:none;font-size:11px">+ Registrar</button>'
-          +'</div>'
-          +'<div id="'+uid2+'" style="display:none;padding:8px;background:#fffde7;border-radius:6px">'
-          +'<div style="display:flex;gap:6px;flex-wrap:wrap;align-items:flex-end">'
-          +'<div><label style="font-size:11px;font-weight:700;display:block;margin-bottom:2px">Concepto</label>'
-          +'<select id="'+uid2+'-con" style="border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:12px">'
-          +'<option>Stand / Puesto</option><option>Transporte</option><option>Comida / Viáticos</option>'
-          +'<option>Gasto de Luisma</option><option>Mercancía llevada</option><option>Otro</option>'
-          +'</select></div>'
-          +'<button class="btn btn-warning btn-sm" data-action="save-gasto" data-eid="'+eid+'" data-monto="'+r.banco+'" data-uid="'+uid2+'" style="font-size:12px">💾 Guardar</button>'
-          +'</div></div></div>';
-      });
-      html+='</div>';
-    }
-  }
-
-  html+='<div style="background:#f3e8ff;border-radius:10px;padding:12px;margin-top:8px;display:flex;gap:16px;flex-wrap:wrap">'
-    +'<div><div style="font-size:10px;color:#7c3aed;font-weight:700">Banco</div><div style="font-size:16px;font-weight:900">Bs. '+totalBanco.toLocaleString('es-VE',{minimumFractionDigits:2})+'</div></div>'
-    +'<div><div style="font-size:10px;color:#2e7d32;font-weight:700">Conciliado</div><div style="font-size:16px;font-weight:900;color:#2e7d32">Bs. '+totalSistema.toLocaleString('es-VE',{minimumFractionDigits:2})+'</div></div>'
-    +'<div><div style="font-size:10px;color:#c62828;font-weight:700">Diferencia</div><div style="font-size:16px;font-weight:900;color:#c62828">Bs. '+(totalBanco-totalSistema).toLocaleString('es-VE',{minimumFractionDigits:2})+'</div></div>'
-    +'</div>';
-
-  var res=document.getElementById('conc-resultado');
-  res.innerHTML=html;
-  res.onclick=function(e){
-    var t=e.target.closest('[data-action]');
-    if(!t) return;
-    var act=t.dataset.action;
-    if(act==='toggle'){
-      var el=document.getElementById(t.dataset.uid);
-      if(el) el.style.display=el.style.display==='none'?'block':'none';
-    } else if(act==='save-venta'){
-      registrarVentaBanco(parseInt(t.dataset.eid),parseFloat(t.dataset.monto),t.dataset.uid);
-    } else if(act==='save-gasto'){
-      registrarGastoBanco(parseInt(t.dataset.eid),parseFloat(t.dataset.monto),t.dataset.uid);
-    }
-  };
-}
-
-async function registrarVentaBanco(eid,montoBs,uid){
-  var metodo=document.getElementById(uid+'-met')?document.getElementById(uid+'-met').value:'BancaMiga';
-  var ref=document.getElementById(uid+'-ref')?document.getElementById(uid+'-ref').value:'';
-  var tasa=0;
-  var vEv=ventas.filter(function(v){return v.evento_id==eid&&parseFloat(v.tasa_bcv_usada||0)>0;});
-  if(vEv.length) tasa=parseFloat(vEv[0].tasa_bcv_usada)||0;
-  var totalUsd=tasa>0?(montoBs/tasa):0;
-  var cntV=await sbGet('ventas','select=id&limit=1&order=id.desc');
-  var lastVId=(Array.isArray(cntV)&&cntV[0]&&cntV[0].id)||0;
-  var num='V-'+new Date().getFullYear()+'-'+String(lastVId+1).padStart(3,'0');
-  var btn=document.querySelector('#'+uid+' [data-action="save-venta"]');
-  if(btn){btn.disabled=true;btn.textContent='⏳';}
-  var res2=await sbPost('ventas',{numero:num,cliente_nombre:'Banco',canal:'Evento',
-    evento_id:parseInt(eid),metodo_pago:metodo,estado:'Pagado',
-    subtotal:totalUsd,costo_envio:0,descuento:0,total:totalUsd,
-    tasa_bcv_usada:tasa||0,monto_bs:montoBs,moneda_pago:'Bs',
-    referencia_pago:ref||null,fecha_venta:new Date().toISOString().slice(0,10)});
-  if(res2&&res2[0]&&res2[0].id){
-    ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
-    if(!Array.isArray(ventas)) ventas=[];
-    var wrap=document.getElementById('wrap-'+uid);
-    if(wrap){wrap.style.background='#f0fdf4';wrap.innerHTML='<span style="color:#2e7d32;font-size:13px;font-weight:700">✅ '+num+' registrada — Bs. '+montoBs.toFixed(2)+'</span>';}
-    toast('✅ '+num+' registrada');
-  } else {
-    if(btn){btn.disabled=false;btn.textContent='💾 Guardar';}
-    toast('❌ Error al guardar');
-  }
-}
-
-async function registrarGastoBanco(eid,montoBs,uid){
-  var concepto=document.getElementById(uid+'-con')?document.getElementById(uid+'-con').value:'Otro';
-  var btn=document.querySelector('#'+uid+' [data-action="save-gasto"]');
-  if(btn){btn.disabled=true;btn.textContent='⏳';}
-  var res2=await sbPost('gastos_globales',{evento_id:parseInt(eid),descripcion:concepto,
-    categoria:'Stand / Evento',monto:montoBs,moneda:'Bs',monto_bs:montoBs,monto_usd:0,
-    fecha:new Date().toISOString().slice(0,10),tipo:'Gasto',
-    cubierto_por:concepto==='Gasto de Luisma'?'Luisma':null});
-  if(res2&&res2[0]&&res2[0].id){
-    var freshG=await sbGet('gastos_globales','select=*&order=fecha.desc');
-    if(Array.isArray(freshG)) gastosEvento=freshG;
-    var wrap=document.getElementById('wrap-'+uid);
-    if(wrap){wrap.style.background='#f0fdf4';wrap.innerHTML='<span style="color:#2e7d32;font-size:13px;font-weight:700">✅ Gasto registrado — Bs. '+montoBs.toFixed(2)+'</span>';}
-    toast('✅ Gasto registrado');
-  } else {
-    if(btn){btn.disabled=false;btn.textContent='💾 Guardar';}
-    toast('❌ Error al guardar');
-  }
-}
 </script>
 
 <a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
@@ -4992,28 +4716,6 @@ async function registrarGastoBanco(eid,montoBs,uid){
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-bancaamiga-movs')">Cerrar</button>
   </div>
-</div>
-</div>
-
-<!-- MODAL: CONCILIACIÓN BANCARIA -->
-<div class="modal-bg" id="modal-conciliacion" onclick="if(event.target===this)cerrarModal('modal-conciliacion')">
-<div class="modal" style="max-width:680px;width:95%">
-  <h2>🏦 Conciliación Bancaria</h2>
-  <input type="hidden" id="conc-evento-id">
-  <p style="font-size:13px;color:#666;margin:0 0 14px">Pega los montos del banco (uno por línea). Los comparo contra las ventas registradas del evento.</p>
-  <div style="display:flex;gap:12px;flex-wrap:wrap">
-    <div style="flex:1;min-width:200px">
-      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px">Entradas del banco (Bs)</label>
-      <textarea id="conc-entradas" rows="10" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:13px;font-family:monospace;box-sizing:border-box" placeholder="2423,70&#10;2966,07&#10;550&#10;..."></textarea>
-      <div style="font-size:11px;color:#aaa;margin-top:4px">Un monto por línea. Usa punto o coma decimal.</div>
-    </div>
-    <div style="flex:1;min-width:200px">
-      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:6px">Gastos del banco (Bs) — opcional</label>
-      <textarea id="conc-gastos" rows="10" style="width:100%;border:1px solid #ddd;border-radius:8px;padding:8px;font-size:13px;font-family:monospace;box-sizing:border-box" placeholder="1212&#10;725&#10;..."></textarea>
-    </div>
-  </div>
-  <button class="btn btn-primary" style="width:100%;margin-top:14px" onclick="ejecutarConciliacion()">🔍 Comparar</button>
-  <div id="conc-resultado" style="margin-top:16px"></div>
 </div>
 </div>
 
