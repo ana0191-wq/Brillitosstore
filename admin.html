@@ -3433,7 +3433,7 @@ async function guardarCliente(){
 async function eliminarCliente(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('clientes','id=eq.'+id); clientes=clientes.filter(c=>c.id!==id); renderClientes(); toast('🗑️ Eliminado'); }
 
 // ===== EVENTOS =====
-async function fmtFechaEvento(fecha){
+function fmtFechaEvento(fecha){
   if(!fecha) return '<span style="color:#bbb;font-size:11px">Sin fecha</span>';
   try{
     var d=new Date(fecha+'T12:00:00');
