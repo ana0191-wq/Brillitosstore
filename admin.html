@@ -367,6 +367,7 @@ tr:hover td{background:#fff8fc}
     <div class="header-actions">
       <button class="btn btn-secondary" onclick="exportarVentasCSV()">📊 Excel</button>
       <button class="btn" style="background:#ede7f6;color:#4527a0;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer" onclick="asignarEventoMasivoHoy()">🎪 Asignar evento</button>
+      <button class="btn" style="background:#e8f5e9;color:#2e7d32;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer" onclick="abrirConciliacionDia()">🏦 Conciliar día</button>
       <button class="btn btn-primary" onclick="abrirModalVenta()">+ Nueva Venta</button>
     </div>
   </div>
@@ -4903,6 +4904,91 @@ async function registrarGastoBanco(eid,montoBs,uid){
     toast('❌ Error al guardar');
   }
 }
+
+// ══ CONCILIACIÓN DIARIA ══
+var _concSistemaBS=0, _concSistemaUSD=0;
+async function abrirConciliacionDia(){
+  var hoy=new Date().toISOString().split('T')[0];
+  document.getElementById('conc-fecha').value=hoy;
+  document.getElementById('conc-banco-bs').value='';
+  document.getElementById('conc-tasa').value='';
+  document.getElementById('conc-notas').value='';
+  document.getElementById('conc-resultado').style.display='none';
+  document.getElementById('conc-sistema-bs').textContent='Calculando...';
+  document.getElementById('conc-sistema-usd').textContent='';
+  document.getElementById('modal-conciliacion-dia').style.display='flex';
+  await _cargarTotalesConc(hoy);
+  document.getElementById('conc-fecha').onchange=async function(){ await _cargarTotalesConc(this.value); calcularDifConc(); };
+}
+async function _cargarTotalesConc(fecha){
+  if(!fecha) return;
+  try{
+    var r=await fetch(SUPA_URL+'/rest/v1/ventas?fecha_venta=eq.'+fecha+'&estado=neq.Cancelado&select=monto_bs,total',
+      {headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
+    var data=await r.json();
+    _concSistemaBS=data.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
+    _concSistemaUSD=data.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
+    document.getElementById('conc-sistema-bs').textContent='Bs '+_concSistemaBS.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('conc-sistema-usd').textContent='$'+_concSistemaUSD.toFixed(2);
+  }catch(e){document.getElementById('conc-sistema-bs').textContent='Error';}
+}
+function calcularDifConc(){
+  var banco=parseFloat(document.getElementById('conc-banco-bs').value||0);
+  var tasa=parseFloat(document.getElementById('conc-tasa').value||0);
+  if(!banco){document.getElementById('conc-resultado').style.display='none';return;}
+  var dif=_concSistemaBS-banco;
+  var difUSD=tasa>0?Math.abs(dif/tasa).toFixed(2):null;
+  var res=document.getElementById('conc-resultado');
+  res.style.display='block';
+  if(Math.abs(dif)<0.5){
+    res.style.background='#f0fdf4';
+    document.getElementById('conc-res-label').style.color='#2e7d32';
+    document.getElementById('conc-res-label').textContent='Cuadra perfecto!';
+    document.getElementById('conc-res-monto').style.color='#2e7d32';
+    document.getElementById('conc-res-monto').textContent='Bs 0.00';
+    document.getElementById('conc-res-usd').textContent='';
+  } else if(dif>0){
+    res.style.background='#fff5f5';
+    document.getElementById('conc-res-label').style.color='#c62828';
+    document.getElementById('conc-res-label').textContent='Sistema tiene mas que el banco';
+    document.getElementById('conc-res-monto').style.color='#c62828';
+    document.getElementById('conc-res-monto').textContent='Bs '+dif.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+' de mas';
+    document.getElementById('conc-res-usd').textContent=difUSD?'aprox $'+difUSD+' a tasa '+tasa:'';
+  } else {
+    res.style.background='#fffde7';
+    document.getElementById('conc-res-label').style.color='#e65100';
+    document.getElementById('conc-res-label').textContent='El banco tiene mas que el sistema';
+    document.getElementById('conc-res-monto').style.color='#e65100';
+    document.getElementById('conc-res-monto').textContent='Bs '+Math.abs(dif).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+' sin registrar';
+    document.getElementById('conc-res-usd').textContent=difUSD?'aprox $'+difUSD+' a tasa '+tasa:'';
+  }
+}
+async function guardarConciliacionDia(){
+  var banco=parseFloat(document.getElementById('conc-banco-bs').value||0);
+  var tasa=parseFloat(document.getElementById('conc-tasa').value||0);
+  var fecha=document.getElementById('conc-fecha').value;
+  var notas=document.getElementById('conc-notas').value||'';
+  if(!banco||!fecha){alert('Ingresa la fecha y el total del banco');return;}
+  var dif=_concSistemaBS-banco;
+  if(Math.abs(dif)<0.5){cerrarConciliacionDia();return;}
+  var monto_usd=tasa>0?parseFloat((Math.abs(dif)/tasa).toFixed(2)):0;
+  var descripcion='Diferencia de conciliacion '+fecha+(notas?' - '+notas:'');
+  try{
+    var r=await fetch(SUPA_URL+'/rest/v1/gastos_globales',{
+      method:'POST',
+      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
+      body:JSON.stringify({tipo:'Gasto',categoria:'Conciliacion',descripcion:descripcion,
+        monto:Math.abs(dif),moneda:'Bs',tasa_bcv:tasa||null,monto_usd:monto_usd,
+        monto_bs:Math.abs(dif),fecha:fecha,notas:notas||'Conciliacion diaria'})
+    });
+    if(r.ok){cerrarConciliacionDia();mostrarToast('Diferencia registrada en contabilidad');}
+    else{var e=await r.json();alert('Error: '+JSON.stringify(e));}
+  }catch(e){alert('Error: '+e.message);}
+}
+function cerrarConciliacionDia(){
+  document.getElementById('modal-conciliacion-dia').style.display='none';
+}
+
 </script>
 
 <a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
@@ -5017,6 +5103,56 @@ async function registrarGastoBanco(eid,montoBs,uid){
 </div>
 </div>
 
+
+<!-- ══ MODAL CONCILIACIÓN DIARIA ══ -->
+<div id="modal-conciliacion-dia" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:18px;padding:24px;width:90%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
+      <div style="font-size:17px;font-weight:800">&#127970; Conciliaci&#243;n del d&#237;a</div>
+      <button onclick="cerrarConciliacionDia()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa">&#x2715;</button>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Fecha a conciliar</label>
+      <input type="date" id="conc-fecha" style="width:100%;padding:8px 12px;border:2px solid #ede9fe;border-radius:8px;font-size:14px;box-sizing:border-box">
+    </div>
+    <div style="background:#f8f9fa;border-radius:10px;padding:12px;margin-bottom:14px">
+      <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px">&#128202; Sistema registra</div>
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:#666">Total ventas en Bs</span>
+        <span id="conc-sistema-bs" style="font-size:16px;font-weight:800;color:#4527a0">&#8212;</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
+        <span style="font-size:13px;color:#666">Total ventas en $</span>
+        <span id="conc-sistema-usd" style="font-size:13px;font-weight:700;color:#888">&#8212;</span>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Total que entr&#243; al banco (Bs)</label>
+      <input type="number" id="conc-banco-bs" placeholder="Ej: 63663.26" step="0.01"
+        style="width:100%;padding:8px 12px;border:2px solid #ede9fe;border-radius:8px;font-size:14px;box-sizing:border-box"
+        oninput="calcularDifConc()">
+    </div>
+    <div id="conc-resultado" style="display:none;border-radius:10px;padding:12px;margin-bottom:14px;text-align:center">
+      <div style="font-size:12px;font-weight:700;margin-bottom:4px" id="conc-res-label"></div>
+      <div style="font-size:22px;font-weight:900" id="conc-res-monto"></div>
+      <div style="font-size:11px;color:#888;margin-top:2px" id="conc-res-usd"></div>
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Tasa BCV del d&#237;a</label>
+      <input type="number" id="conc-tasa" placeholder="Ej: 484.74" step="0.01"
+        style="width:100%;padding:8px 12px;border:2px solid #ede9fe;border-radius:8px;font-size:14px;box-sizing:border-box"
+        oninput="calcularDifConc()">
+    </div>
+    <div style="margin-bottom:16px">
+      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Notas (opcional)</label>
+      <input type="text" id="conc-notas" placeholder="Ej: diferencia de tasa, cobro pendiente..."
+        style="width:100%;padding:8px 12px;border:2px solid #ede9fe;border-radius:8px;font-size:14px;box-sizing:border-box">
+    </div>
+    <button onclick="guardarConciliacionDia()" class="btn btn-primary" style="width:100%;padding:10px;font-size:14px;font-weight:700">
+      &#128190; Registrar diferencia
+    </button>
+  </div>
+</div>
 </body>
 </html>
 
