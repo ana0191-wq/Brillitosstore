@@ -3594,12 +3594,9 @@ async function renderEventos(){
         return '<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">'
 
           // Luisma
-          +'<div style="background:#f5f0ff;border-radius:10px;padding:10px 14px">'
-          +'<div style="display:flex;justify-content:space-between;align-items:center">'
-          +'<span style="font-size:13px;font-weight:700;color:#7c3aed">'+luismaLabel+'</span>'
+          +'<div style="display:flex;justify-content:space-between;align-items:center;background:#f5f0ff;border-radius:10px;padding:10px 14px">'
+          +'<span style="font-size:13px;font-weight:700;color:#7c3aed">💜 Le debes a Luisma</span>'
           +'<span style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</span>'
-          +'</div>'
-          +(totalGastoLuisma>0?'<div style="font-size:11px;color:#9c6fe4;margin-top:4px">−$'+totalGastoLuisma.toFixed(2)+' gastos descontados · base $'+luismaBase.toFixed(2)+'</div>':'')
           +'</div>'
 
           // Tuyo
@@ -3608,21 +3605,7 @@ async function renderEventos(){
           +'<span style="font-size:20px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</span>'
           +'</div>'
 
-          // Slider explorar
-          +'<div style="background:#f8f8f8;border-radius:10px;padding:10px;margin-top:2px">'
-          +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#aaa;margin-bottom:5px">'
-          +'<span>¿Y si le doy más a Luisma? <small>(mín. $30)</small></span>'
-          +'<span id="luisma-slider-val-'+e.id+'">'+Math.round(luismaParte/ganancia*100)+'%</span>'
-          +'</div>'
-          +'<input type="range" min="0" max="60" step="5" value="'+Math.round(luismaParte/ganancia*100)+'"'
-          +' style="width:100%;accent-color:#7c3aed;cursor:pointer"'
-          +' oninput="recalcLuisma('+e.id+','+ganancia.toFixed(2)+',this.value)">'
-          +'<div id="luisma-nota-'+e.id+'" style="font-size:11px;color:#888;margin-top:5px;text-align:center">👆 Mueve para explorar</div>'
-          +'<div id="luisma-preview-'+e.id+'" style="display:none;margin-top:8px;display:flex;gap:6px">'
-          +'<div style="flex:1;background:#f5f0ff;border-radius:8px;padding:8px;text-align:center">'
-          +'<div style="font-size:10px;color:#7c3aed;font-weight:700">Luisma</div>'
-          +'<div id="luisma-parte-'+e.id+'" style="font-size:16px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</div>'
-          +'</div>'
+
           +'<div style="flex:1;background:#f0fdf4;border-radius:8px;padding:8px;text-align:center">'
           +'<div style="font-size:10px;color:#2e7d32;font-weight:700">Tuyo</div>'
           +'<div id="tu-parte-'+e.id+'" style="font-size:16px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
@@ -3642,23 +3625,10 @@ async function renderEventos(){
 
       // ── DEUDA MAMÁ ──
       +(deudaMama>0
-        ?(function(){
-          var filasMama=itemsMama.map(function(it){
-            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #fce4ec">'
-              +'<span style="color:#555">'+it.nombre+(it.cant>1?' ×'+it.cant:'')+'</span>'
-              +'<span style="font-weight:700;color:#c2185b">$'+it.subtotal.toFixed(2)+'</span>'
-              +'</div>';
-          }).join('');
-          return '<div style="background:#fff0f4;border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid #f48fb1">'
-            +'<div style="font-size:11px;font-weight:800;color:#c2185b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">👩‍👧 Le debes a Mamá</div>'
-            +filasMama
-            +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 0;margin-top:4px;border-top:2px solid #f48fb1">'
-            +'<span style="font-size:13px;font-weight:800">Total a pagarle</span>'
-            +'<span style="font-size:18px;font-weight:900;color:#c2185b">$'+deudaMama.toFixed(2)+'</span>'
-            +'</div>'
-            +'<div style="font-size:11px;color:#888;margin-top:6px">precio venta − costo − $0.50 por producto</div>'
-            +'</div>';
-        })()
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;background:#fff0f4;border-radius:10px;padding:10px 14px;margin-bottom:10px;border:1px solid #f48fb1">'
+          +'<span style="font-size:13px;font-weight:700;color:#c2185b">👩‍👧 Le debes a Mamá</span>'
+          +'<span style="font-size:20px;font-weight:900;color:#c2185b">$'+deudaMama.toFixed(2)+'</span>'
+          +'</div>'
         :'')
 
       // ── GASTOS DETALLE (colapsable) ──
