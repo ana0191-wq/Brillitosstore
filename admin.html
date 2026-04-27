@@ -1957,7 +1957,8 @@ function cargarDashboard(){
   });
   // Gastos del mes — solo gastos reales en USD (excluir ajenos, reposiciones y gastos en Bs que no tienen monto_usd)
   const gastMes = gastosGlobales.filter(g=>
-    (g.fecha||'').slice(0,7)===mes
+    !esSaldoReal(g)
+    && (g.fecha||'').slice(0,7)===mes
     && g.tipo !== 'Gasto ajeno'
     && g.tipo !== 'Reposición'
   );
