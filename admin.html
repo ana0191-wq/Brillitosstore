@@ -3277,7 +3277,8 @@ function imprimirResumenEvento(id, e){
   if(!ev)return;
   var vts=(ventas||[]).filter(function(v){return v.evento_id==id&&v.estado!=='Cancelado';});
   var gastosE=(gastosEvento||[]).filter(function(g){return g.evento_id==id;});
-  var tasa=parseFloat(ev.tasa_bcv||0)||tasaActual||1;
+  var _tasaGlobal=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:(parseFloat((document.getElementById('inp-tasa')||{}).value||0)||484.74);
+  var tasa=parseFloat(ev.tasa_bcv||0)||_tasaGlobal||484.74;
   var totalVBs=vts.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
   var totalVUSD=vts.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
   var gastoBsFn=function(g){
@@ -3474,7 +3475,7 @@ async function renderEventos(){
     const totalGBs=gastosOp.reduce((s,g)=>s+gastoBs(g),0);
 
     // Tasa: usar la del evento o tasaActual global
-    const tasaEvento=parseFloat(e.tasa_bcv||0)||tasaActual||1;
+    const tasaEvento=parseFloat(e.tasa_bcv||0)||(typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74)||484.74;
 
     // Ganancia en Bs y USD
     const gananciaBs=totalVBs - totalGBs;
