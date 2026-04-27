@@ -3461,6 +3461,7 @@ async function renderEventos(){
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
     const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión');
     const gastosLuismaCubiertos=[];
+    const gastosLuismaEvento=parseFloat(e.gastos_luisma||0);
 
     // Todo en Bs — convertir gastos USD a Bs, usar monto_bs si existe
     const gastoBs=g=>{
