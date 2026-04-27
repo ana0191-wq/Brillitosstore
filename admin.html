@@ -2380,12 +2380,13 @@ function actualizarBarraMasiva(){
 }
 async function aplicarCambioMasivo(){
   if(!ventasSeleccionadas.size){toast('Selecciona al menos una venta');return;}
-  const canal=document.getElementById('masiva-canal').value;
-  const eventoId=document.getElementById('masiva-evento').value;
-  const metodo=document.getElementById('masiva-metodo').value;
-  const cuenta=document.getElementById('masiva-cuenta').value;
-  const estado=document.getElementById('masiva-estado').value;
-  const fecha=document.getElementById('masiva-fecha').value;
+  const canal=document.getElementById('masiva-canal')?document.getElementById('masiva-canal').value:'';
+  const eventoId=document.getElementById('masiva-evento')?document.getElementById('masiva-evento').value:'';
+  const metodo=document.getElementById('masiva-metodo')?document.getElementById('masiva-metodo').value:'';
+  const cuenta=document.getElementById('masiva-cuenta')?document.getElementById('masiva-cuenta').value:'';
+  const estado=document.getElementById('masiva-estado')?document.getElementById('masiva-estado').value:'';
+  const fechaEl=document.getElementById('masiva-fecha');
+  const fecha=fechaEl?fechaEl.value:'';
   const cambios={};
   if(canal) cambios.canal=canal;
   if(eventoId) cambios.evento_id=parseInt(eventoId);
@@ -2395,15 +2396,21 @@ async function aplicarCambioMasivo(){
   if(fecha) cambios.fecha_venta=fecha;
   if(!Object.keys(cambios).length){toast('Elige al menos un campo a cambiar');return;}
   const ids=[...ventasSeleccionadas];
-  const resumen=Object.entries(cambios).map(([k,v])=>k+': '+v).join(', ');
-  if(!confirm('Aplicar a '+ids.length+' venta(s): '+resumen)) return;
+  console.log('Cambios masivos:', cambios, 'IDs:', ids);
   try{
-    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
-    const res=await fetch(SB+'/rest/v1/ventas?id=in.('+ids.join(',')+')',
-      {method:'PATCH',headers:H,body:JSON.stringify(cambios)});
-    if(!res.ok){const t=await res.text();toast('Error '+res.status+': '+t.slice(0,60));return;}
-    ids.forEach(id=>{
-      const v=ventas.find(x=>x.id===id);
+    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=minimal'};
+    const url=SB+'/rest/v1/ventas?id=in.('+ids.join(',')+')';
+    console.log('PATCH', url, JSON.stringify(cambios));
+    const res=await fetch(url,{method:'PATCH',headers:H,body:JSON.stringify(cambios)});
+    console.log('Respuesta status:', res.status);
+    if(!res.ok){
+      const t=await res.text();
+      console.error('Error masivo:', t);
+      toast('Error '+res.status+': '+t.slice(0,80));
+      return;
+    }
+    ids.forEach(function(id){
+      const v=ventas.find(function(x){return x.id===id;});
       if(!v) return;
       if(canal) v.canal=canal;
       if(eventoId) v.evento_id=parseInt(eventoId);
@@ -2412,15 +2419,17 @@ async function aplicarCambioMasivo(){
       if(estado) v.estado=estado;
       if(fecha) v.fecha_venta=fecha;
     });
-    // Reset selectores masivos
-    ['masiva-canal','masiva-evento','masiva-metodo','masiva-cuenta','masiva-estado'].forEach(id=>{
+    ['masiva-canal','masiva-evento','masiva-metodo','masiva-cuenta','masiva-estado'].forEach(function(id){
       const el=document.getElementById(id); if(el) el.value='';
     });
-    const mf=document.getElementById('masiva-fecha'); if(mf) mf.value='';
+    if(fechaEl) fechaEl.value='';
     deselectAll();
     filtrarVentas();
     toast('Cambios aplicados a '+ids.length+' venta(s)');
-  }catch(e){toast('Error: '+e.message);}
+  }catch(e){
+    console.error('Exception masivo:', e);
+    toast('Error: '+e.message);
+  }
 }
 
 // ── RANGOS DE FECHA ──
