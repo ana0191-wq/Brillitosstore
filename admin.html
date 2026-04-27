@@ -3482,6 +3482,10 @@ async function renderEventos(){
     };
     const totalGBs = gastosOp.reduce((s,g)=>s+gastoBs(g), 0);
 
+    // DEBUG — ver valores reales en consola
+    console.log('[Evento '+e.id+'] tasa='+tasaEvento+' totalV='+totalV+' totalVBs='+totalVBs+' totalGBs='+totalGBs);
+    gastosOp.forEach(function(g){console.log('  gasto id='+g.id+' monto='+g.monto+' monto_bs='+g.monto_bs+' monto_usd='+g.monto_usd+' moneda='+g.moneda+' →Bs='+gastoBs(g));});
+
     // GANANCIA: ventas Bs - gastos Bs → convertir a USD
     const gananciaBs = totalVBs - totalGBs;
     const ganancia = gananciaBs / tasaEvento;
