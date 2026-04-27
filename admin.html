@@ -444,7 +444,7 @@ tr:hover td{background:#fff8fc}
       </div>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap">
-      <table id="tabla-ventas"><thead><tr><th style="width:32px"><input type="checkbox" id="chk-all-ventas" onchange="toggleAllVentas(this)" title="Seleccionar todas"></th><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
+      <table id="tabla-ventas"><thead><tr><th style="width:32px"><input type="checkbox" id="chk-all-ventas" onchange="toggleAllVentas(this)" title="Seleccionar todas"></th><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Evento</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
       <tbody id="tbody-ventas"></tbody></table>
     </div></div>
   </div>
@@ -659,8 +659,8 @@ tr:hover td{background:#fff8fc}
         <option value="WhatsApp">WhatsApp</option><option value="Instagram">Instagram</option><option value="Evento">Evento</option><option value="Web">Web</option><option value="POS">POS</option>
       </select>
     </div>
-    <div class="form-group" id="v-evento-wrap" style="display:none">
-      <label>Evento</label>
+    <div class="form-group" id="v-evento-wrap">
+      <label>🎪 Evento (opcional)</label>
       <select id="v-evento"><option value="">-- Seleccionar --</option></select>
     </div>
     <div class="form-group">
@@ -2348,6 +2348,7 @@ function renderVentas(lista){
     +'<td>'+formatFecha(v.fecha_venta&&String(v.fecha_venta).slice(0,10)>='2020-01-01'?v.fecha_venta:v.creado_en)+'</td>'
     +'<td>'+(v.cliente_nombre||'—')+'</td>'
     +'<td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td>'
+    +'<td style="font-size:11px;color:#7c3aed">'+(v.evento_id?(eventos.find(function(e){return e.id==v.evento_id;})||{}).nombre||'#'+v.evento_id:'—')+'</td>'
     +'<td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong></td>'
     +'<td style="color:#2e7d32">'+(parseFloat(v.monto_bs||0)>0?'Bs.'+parseFloat(v.monto_bs).toFixed(2):'—')+'</td>'
     +'<td style="font-size:12px">'+(v.metodo_pago||'')+'</td>'
@@ -2566,7 +2567,7 @@ function abrirModalVenta(v=null){
   abrirModal('modal-venta');
 }
 function editarVenta(id){ const v=ventas.find(x=>x.id===id); if(v) abrirModalVenta(v); }
-function toggleEventoWrap(){ document.getElementById('v-evento-wrap').style.display=document.getElementById('v-canal').value==='Evento'?'block':'none'; }
+function toggleEventoWrap(){ /* evento siempre visible */ }
 function poblarEventosSelect(){
   const sel=document.getElementById('v-evento');
   sel.innerHTML='<option value="">-- Seleccionar --</option>'+eventos.map(e=>'<option value="'+e.id+'">'+e.nombre+(e.fecha?' ('+e.fecha+')':'')+'</option>').join('');
