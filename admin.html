@@ -367,7 +367,6 @@ tr:hover td{background:#fff8fc}
     <div class="header-actions">
       <button class="btn btn-secondary" onclick="exportarVentasCSV()">📊 Excel</button>
       <button class="btn" style="background:#ede7f6;color:#4527a0;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer" onclick="asignarEventoMasivoHoy()">🎪 Asignar evento</button>
-      <button class="btn" style="background:#e8f5e9;color:#2e7d32;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer" onclick="abrirConciliacionDia()">🏦 Conciliar día</button>
       <button class="btn btn-primary" onclick="abrirModalVenta()">+ Nueva Venta</button>
     </div>
   </div>
@@ -444,7 +443,7 @@ tr:hover td{background:#fff8fc}
       </div>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap">
-      <table id="tabla-ventas"><thead><tr><th style="width:32px"><input type="checkbox" id="chk-all-ventas" onchange="toggleAllVentas(this)" title="Seleccionar todas"></th><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Evento</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
+      <table id="tabla-ventas"><thead><tr><th style="width:32px"><input type="checkbox" id="chk-all-ventas" onchange="toggleAllVentas(this)" title="Seleccionar todas"></th><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
       <tbody id="tbody-ventas"></tbody></table>
     </div></div>
   </div>
@@ -490,7 +489,7 @@ tr:hover td{background:#fff8fc}
       </select>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap">
-      <table><thead><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Stock</th><th>QR</th><th>Aptd</th><th title="Visible en tienda web">🌐</th><th></th></tr></thead>
+      <table><thead><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Stock</th><th>QR</th><th>Aptd</th><th></th></tr></thead>
       <tbody id="tbody-prods"></tbody></table>
     </div></div>
   </div>
@@ -532,13 +531,6 @@ tr:hover td{background:#fff8fc}
   </div>
   <div class="content">
     <div class="grid-4" id="gastos-stats" style="margin-bottom:14px"></div>
-    <div id="sec-inversiones" style="margin-bottom:16px">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-        <div style="font-size:14px;font-weight:800;color:#1565c0">&#128176; Mis Inversiones en Brillitos</div>
-        <div id="inv-total" style="font-size:15px;font-weight:800;color:#1565c0"></div>
-      </div>
-      <div id="inv-lista" style="display:flex;flex-direction:column;gap:6px"></div>
-    </div>
     <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-cat-gasto" onchange="renderGastosGlobal()">
         <option value="">Todas las categorías</option>
@@ -551,8 +543,6 @@ tr:hover td{background:#fff8fc}
         <option value="">Todos los meses</option>
       </select>
     </div>
-    <!-- Resumen financiero contabilidad -->
-    <div id="conta-resumen" style="margin-bottom:14px"></div>
     <div id="deuda-mama-cont" style="margin-bottom:14px"></div>
     <div class="card" style="padding:0"><div class="table-wrap">
       <table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>En USD</th><th>Bs.</th><th>Tipo</th><th>Evento</th><th></th></tr></thead>
@@ -661,8 +651,8 @@ tr:hover td{background:#fff8fc}
         <option value="WhatsApp">WhatsApp</option><option value="Instagram">Instagram</option><option value="Evento">Evento</option><option value="Web">Web</option><option value="POS">POS</option>
       </select>
     </div>
-    <div class="form-group" id="v-evento-wrap">
-      <label>🎪 Evento (opcional)</label>
+    <div class="form-group" id="v-evento-wrap" style="display:none">
+      <label>Evento</label>
       <select id="v-evento"><option value="">-- Seleccionar --</option></select>
     </div>
     <div class="form-group">
@@ -1222,7 +1212,7 @@ tr:hover td{background:#fff8fc}
 <script>
 
 // ===== CONFIG =====
-// v1777260312
+// v1777083087
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
@@ -1346,7 +1336,6 @@ async function getBCV(fecha){
 async function mostrarBCVDash(){
   const tasa = await getBCV();
   const bcvEl=document.getElementById('bcv-rate-dash');
-  if(!bcvEl) return;
   bcvEl.textContent='Bs. '+parseFloat(tasa).toFixed(2);
   bcvEl.style.cursor='pointer';
   bcvEl.title='Toca para editar manualmente';
@@ -1438,7 +1427,7 @@ function abrirModalBs(totalUsd, callback){
 function calcMbs(){
   const usd = parseFloat((document.getElementById('mbs-usd').value||'0').replace('$',''))||0;
   const tasa = parseFloat(document.getElementById('mbs-tasa').value)||0;
-  document.getElementById('mbs-bs').value = tasa>0?'Bs. '+(usd*tasa).toFixed(2):'Bs. async —';
+  document.getElementById('mbs-bs').value = tasa>0?'Bs. '+(usd*tasa).toFixed(2):'Bs. —';
 }
 function confirmarMbs(){
   const tasa = parseFloat(document.getElementById('mbs-tasa').value)||0;
@@ -1493,13 +1482,12 @@ async function testVenta(){
 
 // ===== INIT =====
 async function init(){
-  try {
   toast('Cargando Brillitos... 🌸');
   console.log('🌸 init() arrancó');
   try{ const fv=document.getElementById('v-fecha-venta'); if(fv) fv.value=hoyVEN(); }catch(e){}
   const results = await Promise.allSettled([
     sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000'),
-    sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc'),
+    sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500'),
     sbGet('clientes','select=*&order=nombre.asc'),
     sbGet('eventos','select=*&order=fecha.desc'),
     sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200'),
@@ -1530,7 +1518,6 @@ async function init(){
   renderEventos();
   renderApartados();
   renderGastosGlobal();
-  renderInversiones();
   cargarDashboard();
   poblarEventosSelect();
   poblarEventosGastoGlobal();
@@ -1538,7 +1525,6 @@ async function init(){
   verificarApartadosVencidos();
   iniciarVozReconocimiento();
   renderPOS();
-  } catch(err){ console.error("❌ init() falló:", err); toast("❌ Error al cargar: "+err.message); }
 }
 
 // ===== SCANNER QR / CÓDIGO DE BARRAS =====
@@ -1837,31 +1823,6 @@ function irA(p){
 }
 
 // ===== DASHBOARD =====
-async function abrirEditarSaldoBancaAmiga(e){
-  if(e){e.stopPropagation();}
-  // Obtener saldo real actual si existe
-  const reg = (gastosGlobales||[]).filter(g=>g.tipo==='Saldo Real'&&g.moneda==='Bs')
-    .sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
-  const actual = reg.length>0 ? parseFloat(reg[0].monto||0) : null;
-  const input = prompt('💰 Saldo real actual en BancaAmiga (Bs):'+(actual!==null?' (actual: '+actual.toLocaleString('es-VE',{minimumFractionDigits:2})+')':''));
-  if(input===null||input.trim()==='') return;
-  const val = parseFloat(input.replace(/\./g,'').replace(',','.'));
-  if(isNaN(val)||val<0){toast('Monto inválido');return;}
-  try{
-    // Si ya existe un registro de hoy, actualizarlo; si no, crear uno nuevo
-    const hoy=new Date().toISOString().slice(0,10);
-    const regHoy=reg.find(g=>g.fecha===hoy);
-    if(regHoy){
-      await sbPatch('gastos_globales','id=eq.'+regHoy.id,{monto:val,monto_bs:val});
-      regHoy.monto=val; regHoy.monto_bs=val;
-    } else {
-      const nuevo=await sbPost('gastos_globales',{tipo:'Saldo Real',categoria:'Conciliación',descripcion:'Saldo real BancaAmiga',monto:val,moneda:'Bs',monto_bs:val,fecha:hoy,notas:'Ingresado manualmente'});
-      if(Array.isArray(nuevo)&&nuevo[0]) gastosGlobales.push(nuevo[0]);
-    }
-    cargarDashboard();
-    toast('✅ Saldo real actualizado: Bs. '+val.toLocaleString('es-VE',{minimumFractionDigits:2}));
-  }catch(err){toast('Error: '+err.message);}
-}
 function abrirMovimientosBancaAmiga(){
   abrirModal('modal-bancaamiga-movs');
   // Reutilizar renderMovimientosBancaAmiga pero apuntando al modal
@@ -1875,12 +1836,12 @@ function abrirMovimientosBancaAmiga(){
     movs.push({ fecha:v.fecha_venta||v.creado_en||'', tipo:'entrada',
       desc:(v.cliente_nombre||'Cliente')+' — '+(v.numero||''), sub:v.metodo_pago||'Pago Bs', monto:bs });
   });
-  (gastosGlobales||[]).filter(g=>g.tipo!=='Gasto ajeno'&&g.tipo!=='Saldo Real'&&(g.moneda==='Bs'||g.tipo==='Reposición')).forEach(g=>{
+  (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno').forEach(g=>{
     const esRepos = g.tipo==='Reposición';
-    const montoBs2 = parseFloat(g.monto_bs||0)||(g.moneda==='Bs'?parseFloat(g.monto||0):0);
-    if(!montoBs2) return;
+    const reposEfectivo = esRepos && (g.reposicion_de||'').startsWith('Efectivo');
+    if(esRepos && !reposEfectivo) return;
     movs.push({ fecha:g.fecha||g.creado_en||'', tipo:esRepos?'entrada':'salida',
-      desc:g.descripcion||g.tipo, sub:g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''), monto:parseFloat(g.monto_bs||g.monto||0) });
+      desc:g.descripcion||g.tipo, sub:g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''), monto:parseFloat(g.monto||0) });
   });
   movs.sort((a,b)=>(a.fecha?new Date(a.fecha):new Date(0))-(b.fecha?new Date(b.fecha):new Date(0)));
   let saldo=0;
@@ -1937,30 +1898,35 @@ function cargarDashboard(){
   // Mes en Bs y $
   const totalMesBs  = vM.filter(v=>v.monto_bs&&parseFloat(v.monto_bs)>0).reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
   const totalMesUsd = vM.reduce((s,v)=>s+parseFloat(v.total||0),0); // total siempre en $
-  const tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
-  const toUSD=g=>{const usd=parseFloat(g.monto_usd||0),m=parseFloat(g.monto||0);if(usd>0)return usd;if(g.moneda==='Bs')return m/tasa;if(g.moneda==='USD')return m;return m>=500?m/tasa:m;};
-  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición'&&g.tipo!=='Saldo Real');
-  const totalGastMes=gastMes.reduce((s,g)=>s+toUSD(g),0);
-  let ganBrutaDash=0,ganDetalle=[];
+  // Ganancia bruta estimada
+  let gan=0;
   vM.forEach(v=>{
-    const soloBS=parseFloat(v.monto_bs||0)>0&&!(parseFloat(v.total||0)>0);
     (v.venta_items||[]).forEach(it=>{
       const p=productos.find(x=>x.id==it.producto_id);
-      const pv=parseFloat(it.precio_unitario||0),co=p&&p.precio_costo>0?parseFloat(p.precio_costo):0,cant=parseInt(it.cantidad||1);
-      const pvUSD=(soloBS&&pv>10)?pv/tasa:pv,coUSD=(soloBS&&co>10)?co/tasa:co;
-      const margen=coUSD>0?(pvUSD-coUSD)*cant:pvUSD*cant*0.3;
-      ganBrutaDash+=margen;
-      if(p) ganDetalle.push({nombre:p.nombre,margen,cant});
+      if(p&&p.precio_costo>0) gan+=(parseFloat(it.precio_unitario||0)-parseFloat(p.precio_costo||0))*parseInt(it.cantidad||1);
+      else gan+=parseFloat(it.subtotal||0)*0.3;
     });
-    ganBrutaDash-=soloBS?parseFloat(v.descuento||0)/tasa:parseFloat(v.descuento||0);
+    gan-=parseFloat(v.descuento||0);
   });
-  const gananciaNeta=ganBrutaDash-totalGastMes;
-  window._dashGanDetalle={gan:ganBrutaDash,gananciaNeta,totalGastMes,ganDetalle,tasa,mes};
+  // Gastos del mes — solo gastos reales en USD (excluir ajenos, reposiciones y gastos en Bs que no tienen monto_usd)
+  const gastMes = gastosGlobales.filter(g=>
+    (g.fecha||'').slice(0,7)===mes
+    && g.tipo !== 'Gasto ajeno'
+    && g.tipo !== 'Reposición'
+  );
+  const totalGastMes = gastMes.reduce((s,g)=>{
+    // Si tiene monto_usd explícito usarlo; si es en USD usar monto; si es en Bs ignorar (no sabemos el USD exacto sin tasa)
+    const usd = parseFloat(g.monto_usd||0);
+    const monto = parseFloat(g.monto||0);
+    if(usd>0) return s+usd;
+    if((g.moneda||'USD')==='USD') return s+monto;
+    return s; // gasto en Bs sin conversión — no sumar para no distorsionar
+  },0);
+  const gananciaNeta = totalMes-totalGastMes;
 
-  var dHoyEl=document.getElementById('d-hoy'); if(dHoyEl) dHoyEl.textContent='$'+totalHoy.toFixed(2);
-  var dMesEl=document.getElementById('d-mes'); if(dMesEl) dMesEl.textContent='$'+totalMes.toFixed(2);
-  const dGanEl=document.getElementById('d-ganancia');
-  if(dGanEl){dGanEl.textContent='$'+ganBrutaDash.toFixed(2);dGanEl.title='Neta: $'+gananciaNeta.toFixed(2);dGanEl.style.cursor='pointer';dGanEl.onclick=()=>abrirDetalleGanancia();}
+  document.getElementById('d-hoy').textContent = '$'+totalHoy.toFixed(2);
+  document.getElementById('d-mes').textContent = '$'+totalMes.toFixed(2);
+  document.getElementById('d-ganancia').textContent = '$'+gan.toFixed(2);
   document.getElementById('d-apartados').textContent = aptActivos.length;
 
   // Desglose por método de pago hoy
@@ -2002,15 +1968,23 @@ function cargarDashboard(){
       porCuentaTodo[key].bs    += parseFloat(v.monto_bs||0);
       porCuentaTodo[key].count++;
     });
-    // Saldo real ingresado manualmente (el más reciente gana)
-    const saldoRealReg = gastosGlobales
-      .filter(g => g.tipo === 'Saldo Real' && g.moneda === 'Bs')
-      .sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
-    const saldoReal = saldoRealReg.length > 0 ? parseFloat(saldoRealReg[0].monto||0) : null;
+    // Restar gastos Bs reales de BancaAmiga (excluir ajenos y reposiciones)
+    const gastosBs = gastosGlobales
+      .filter(g => g.moneda === 'Bs'
+        && g.tipo !== 'Reposición'
+        && g.tipo !== 'Gasto ajeno'
+      )
+      .reduce((s,g) => s + parseFloat(g.monto||0), 0);
+    // Solo las reposiciones en Efectivo entran a BancaAmiga
+    // "Comprando mercancía", "Pagando gasto/inversión" = el dinero se usó directo, no entró a la cuenta
+    const reposicionesBs = gastosGlobales
+      .filter(g => g.moneda === 'Bs' && g.tipo === 'Reposición'
+        && (g.reposicion_de||'').startsWith('Efectivo')
+      )
+      .reduce((s,g) => s + parseFloat(g.monto||0), 0);
+    const saldoNeto = reposicionesBs - gastosBs;
     if(!porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'] = {total:0,bs:0,count:0};
-    // Si hay saldo real ingresado manualmente, usarlo; si no, usar suma de ventas Bs
-    if(saldoReal !== null) porCuentaTodo['bancaamiga_luisma'].bs = saldoReal;
-    porCuentaTodo['bancaamiga_luisma'].saldoReal = saldoReal;
+    porCuentaTodo['bancaamiga_luisma'].bs += saldoNeto;
     // Solo hoy — para badge
     const porCuentaHoy = {};
     vH.forEach(v=>{
@@ -2025,11 +1999,9 @@ function cargarDashboard(){
     const tarjetas = Object.entries(porCuentaTodo).sort((a,b)=>b[1].total-a[1].total).map(([key,d])=>{
       const c = cuentaCfg[key]||metodoCfg[key]||{emoji:'💰',color:'#666',bg:'#f5f5f5',label:key,esBs:false};
       const bsColor = c.esBs ? (d.bs>=0?'#3a7d52':'#c62828') : c.color;
-      const tasaActual = bcvHoy || parseFloat(document.getElementById('inp-tasa')?document.getElementById('inp-tasa').value:0) || 0;
-      const bsEquivUSD = tasaActual > 0 ? (d.bs / tasaActual).toFixed(2) : null;
       const montoHtml = c.esBs
         ? '<div style="font-size:20px;font-weight:800;color:'+bsColor+';line-height:1.2">Bs. '+d.bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
-          +(bsEquivUSD?'<div style="font-size:12px;color:'+bsColor+';opacity:.7">~$'+bsEquivUSD+'</div>':'')
+          +'<div style="font-size:12px;color:'+bsColor+';opacity:.7">~$'+d.total.toFixed(2)+'</div>'
         : '<div style="font-size:20px;font-weight:800;color:'+c.color+'">$'+d.total.toFixed(2)+'</div>';
       const hoy=porCuentaHoy[key];
       const badgeHoy=hoy
@@ -2041,20 +2013,13 @@ function cargarDashboard(){
         ? ' id="tarjeta-bancaamiga" style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer"'
         : ' style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05)"';
       const tapHint = key==='bancaamiga_luisma' ? '<div style="font-size:10px;color:'+c.color+';opacity:.5;margin-top:6px">📋 Ver movimientos</div>' : '';
-      // Ingreso fantasma para BancaAmiga
-      const fantasmaHtml = '';
-      const editBtn = key==='bancaamiga_luisma'
-        ? '<button onclick="abrirEditarSaldoBancaAmiga(event)" style="font-size:10px;background:white;border:1px solid '+c.color+';color:'+c.color+';border-radius:6px;padding:2px 8px;cursor:pointer;margin-top:6px">✏️ Editar saldo real</button>'
-        : '';
       return '<div'+clickable+'>'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
         +'<div style="font-size:11px;font-weight:700;color:'+c.color+';text-transform:uppercase;letter-spacing:.5px">'+c.emoji+' '+c.label+'</div>'
         +badgeHoy+'</div>'
         +montoHtml
-        +fantasmaHtml
         +'<div style="font-size:11px;color:'+c.color+';opacity:.6;margin-top:4px">'+d.count+' venta'+(d.count!==1?'s':'')+' totales</div>'
         +tapHint
-        +editBtn
         +'</div>';
     }).join('');
     dsgEl.innerHTML = Object.keys(porCuentaTodo).length
@@ -2238,7 +2203,7 @@ function selMetodoPOS(el,m){
   document.querySelectorAll('.pos-metodo').forEach(x=>x.classList.remove('active'));
   el.classList.add('active'); posMetodoActual=m;
 }
-function cobrarPOS(){
+async function cobrarPOS(){
   if(!posCarrito.length){ toast('⚠️ El carrito está vacío'); return; }
   const total=posCarrito.reduce((s,i)=>s+i.subtotal,0);
   const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(posMetodoActual);
@@ -2270,7 +2235,7 @@ async function _ejecutarCobroPOS(total,tasa,montoBs){
     +(montoBs>0?'<br><strong style="color:#2e7d32">Bs. '+montoBs.toFixed(2)+'</strong> (tasa '+tasa.toFixed(2)+')'  :'')
     +'<br><span style="font-size:12px;color:var(--gray)">'+posCarrito.map(i=>i.nombre+' x'+i.cantidad).join(', ')+'</span>';
   document.getElementById('modal-pos-ok').classList.add('open');
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc');
+  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
   cargarDashboard();
   document.getElementById('pos-cliente').value='';
   toast('✅ Venta registrada');
@@ -2325,7 +2290,7 @@ async function confirmarVentaVoz(){
   const res=await sbPost('ventas',{cliente_nombre:cliente||'Cliente voz',canal,metodo_pago:'Pago Móvil',tipo_entrega:'Entrega directa',estado:'Pendiente',subtotal:total,costo_envio:0,descuento:0,total,fecha_venta:new Date().toISOString().slice(0,10),tasa_bcv_usada:bcvHoy||0,monto_bs:0,numero:'VOZ-'+Date.now()});
   const vid=res[0]&&res[0].id;
   if(vid) for(const it of items) await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,body:JSON.stringify({venta_id:vid,...it})});
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc');
+  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
   cargarDashboard(); document.getElementById('voz-panel').classList.remove('open');
   document.getElementById('voz-resultado').style.display='none'; vozTranscript=''; vozVentaDetectada=null;
   toast('✅ Venta por voz registrada');
@@ -2345,10 +2310,9 @@ function renderVentas(lista){
     '<tr data-id="'+v.id+'">'
     +'<td><input type="checkbox" class="chk-venta" data-id="'+v.id+'" onchange="onChkVenta()" '+(ventasSeleccionadas.has(v.id)?'checked':'')+' style="width:16px;height:16px;cursor:pointer"></td>'
     +'<td><strong>'+(v.numero||'#'+v.id)+'</strong></td>'
-    +'<td>'+formatFecha(v.fecha_venta&&String(v.fecha_venta).slice(0,10)>='2020-01-01'?v.fecha_venta:v.creado_en)+'</td>'
+    +'<td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td>'
     +'<td>'+(v.cliente_nombre||'—')+'</td>'
     +'<td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td>'
-    +'<td style="font-size:11px;color:#7c3aed">'+(v.evento_id?(eventos.find(function(e){return e.id==v.evento_id;})||{}).nombre||'#'+v.evento_id:'—')+'</td>'
     +'<td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong></td>'
     +'<td style="color:#2e7d32">'+(parseFloat(v.monto_bs||0)>0?'Bs.'+parseFloat(v.monto_bs).toFixed(2):'—')+'</td>'
     +'<td style="font-size:12px">'+(v.metodo_pago||'')+'</td>'
@@ -2405,13 +2369,12 @@ function actualizarBarraMasiva(){
 }
 async function aplicarCambioMasivo(){
   if(!ventasSeleccionadas.size){toast('Selecciona al menos una venta');return;}
-  const canal=document.getElementById('masiva-canal')?document.getElementById('masiva-canal').value:'';
-  const eventoId=document.getElementById('masiva-evento')?document.getElementById('masiva-evento').value:'';
-  const metodo=document.getElementById('masiva-metodo')?document.getElementById('masiva-metodo').value:'';
-  const cuenta=document.getElementById('masiva-cuenta')?document.getElementById('masiva-cuenta').value:'';
-  const estado=document.getElementById('masiva-estado')?document.getElementById('masiva-estado').value:'';
-  const fechaEl=document.getElementById('masiva-fecha');
-  const fecha=fechaEl?fechaEl.value:'';
+  const canal=document.getElementById('masiva-canal').value;
+  const eventoId=document.getElementById('masiva-evento').value;
+  const metodo=document.getElementById('masiva-metodo').value;
+  const cuenta=document.getElementById('masiva-cuenta').value;
+  const estado=document.getElementById('masiva-estado').value;
+  const fecha=document.getElementById('masiva-fecha').value;
   const cambios={};
   if(canal) cambios.canal=canal;
   if(eventoId) cambios.evento_id=parseInt(eventoId);
@@ -2421,22 +2384,15 @@ async function aplicarCambioMasivo(){
   if(fecha) cambios.fecha_venta=fecha;
   if(!Object.keys(cambios).length){toast('Elige al menos un campo a cambiar');return;}
   const ids=[...ventasSeleccionadas];
-  console.log('Cambios masivos:', cambios, 'IDs:', ids);
+  const resumen=Object.entries(cambios).map(([k,v])=>k+': '+v).join(', ');
+  if(!confirm('Aplicar a '+ids.length+' venta(s): '+resumen)) return;
   try{
-    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=minimal'};
-    const url=SB+'/rest/v1/ventas?id=in.('+ids.join(',')+')';
-    console.log('PATCH', url, JSON.stringify(cambios));
-    const res=await fetch(url,{method:'PATCH',headers:H,body:JSON.stringify(cambios)});
-    console.log('Respuesta status:', res.status);
-    if(!res.ok){
-      const t=await res.text();
-      console.error('Error masivo:', t);
-      toast('Error '+res.status+': '+t.slice(0,80));
-      return;
-    }
-    // Actualizar array local con == para evitar mismatch de tipos
-    ids.forEach(function(id){
-      const v=ventas.find(function(x){return x.id==id;});
+    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+    const res=await fetch(SB+'/rest/v1/ventas?id=in.('+ids.join(',')+')',
+      {method:'PATCH',headers:H,body:JSON.stringify(cambios)});
+    if(!res.ok){const t=await res.text();toast('Error '+res.status+': '+t.slice(0,60));return;}
+    ids.forEach(id=>{
+      const v=ventas.find(x=>x.id===id);
       if(!v) return;
       if(canal) v.canal=canal;
       if(eventoId) v.evento_id=parseInt(eventoId);
@@ -2445,21 +2401,15 @@ async function aplicarCambioMasivo(){
       if(estado) v.estado=estado;
       if(fecha) v.fecha_venta=fecha;
     });
-    ['masiva-canal','masiva-evento','masiva-metodo','masiva-cuenta','masiva-estado'].forEach(function(id){
+    // Reset selectores masivos
+    ['masiva-canal','masiva-evento','masiva-metodo','masiva-cuenta','masiva-estado'].forEach(id=>{
       const el=document.getElementById(id); if(el) el.value='';
     });
-    if(fechaEl) fechaEl.value='';
+    const mf=document.getElementById('masiva-fecha'); if(mf) mf.value='';
     deselectAll();
-    // Recargar ventas frescas desde Supabase sin limit
-    const freshVentas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc');
-    if(Array.isArray(freshVentas)) ventas=freshVentas;
     filtrarVentas();
-    cargarDashboard();
-    toast('✅ Cambios aplicados a '+ids.length+' venta(s)');
-  }catch(e){
-    console.error('Exception masivo:', e);
-    toast('Error: '+e.message);
-  }
+    toast('Cambios aplicados a '+ids.length+' venta(s)');
+  }catch(e){toast('Error: '+e.message);}
 }
 
 // ── RANGOS DE FECHA ──
@@ -2510,7 +2460,7 @@ function filtrarVentas(){
     if(est&&v.estado!==est) return false;
     if(canal&&v.canal!==canal) return false;
     if(desde||hasta){
-      const fv=(v.fecha_venta&&String(v.fecha_venta).slice(0,10)>='2020-01-01'?String(v.fecha_venta).slice(0,10):String(v.creado_en||'').slice(0,10));
+      const fv=(v.fecha_venta||v.creado_en||'').slice(0,10);
       if(desde&&fv<desde) return false;
       if(hasta&&fv>hasta) return false;
     }
@@ -2567,7 +2517,7 @@ function abrirModalVenta(v=null){
   abrirModal('modal-venta');
 }
 function editarVenta(id){ const v=ventas.find(x=>x.id===id); if(v) abrirModalVenta(v); }
-function toggleEventoWrap(){ /* evento siempre visible */ }
+function toggleEventoWrap(){ document.getElementById('v-evento-wrap').style.display=document.getElementById('v-canal').value==='Evento'?'block':'none'; }
 function poblarEventosSelect(){
   const sel=document.getElementById('v-evento');
   sel.innerHTML='<option value="">-- Seleccionar --</option>'+eventos.map(e=>'<option value="'+e.id+'">'+e.nombre+(e.fecha?' ('+e.fecha+')':'')+'</option>').join('');
@@ -3119,7 +3069,7 @@ function renderProductos(lista){
     const aptStock=apartados.filter(a=>a.estado==='Activo'&&(a.apartado_items||[]).some(i=>i.producto_id==p.id)).length;
     return '<tr>'
       +'<td>'+(p.imagen?'<img src="'+p.imagen+'" style="width:36px;height:36px;object-fit:cover;border-radius:8px" onerror="this.style.display=\'none\'">':'<div style="width:36px;height:36px;background:var(--pink-light);border-radius:8px;display:flex;align-items:center;justify-content:center">🌸</div>')+'</td>'
-      +'<td>'+(p.propietario==='Mamá'?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fce4ec;color:#c2185b;margin-right:4px">Mamá</span>':'')+'<strong>'+(p.nombre||'')+'</strong>'+(p.visible_web===false?'<span style="font-size:9px;margin-left:3px;opacity:.4">🚫</span>':'')+'</td>'
+      +'<td>'+(p.propietario==='Mamá'?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fce4ec;color:#c2185b;margin-right:4px">Mamá</span>':'')+'<strong>'+(p.nombre||'')+'</strong>'+(p.visible_web===false?'<span style="font-size:10px;margin-left:4px;color:#bbb" title="Oculto en web">🚫🌐</span>':'')+'</td>'
       +'<td>'+(p.categoria||'')+'</td>'
       +'<td>'+(p.precio_costo>0?'$'+parseFloat(p.precio_costo).toFixed(2):'—')+'</td>'
       +'<td><strong>$'+parseFloat(p.precio||0).toFixed(2)+'</strong></td>'
@@ -3127,7 +3077,6 @@ function renderProductos(lista){
       +'<td><input type="number" value="'+(p.stock||0)+'" min="0" style="width:52px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px" onchange="actualizarStockProd('+p.id+',this.value)"></td>'
       +'<td><button onclick="verQRProducto('+p.id+')" style="background:none;border:none;cursor:pointer;font-size:18px;padding:2px" title="Ver QR">🔲</button></td>'
       +'<td>'+(aptStock>0?'<span class="badge badge-pendiente">📌'+aptStock+'</span>':'—')+'</td>'
-      +'<td><label style="display:flex;align-items:center;justify-content:center;cursor:pointer" title="'+(p.visible_web===false?'Oculto en web — clic para mostrar':'Visible en web — clic para ocultar')+'"><input type="checkbox" '+(p.visible_web===false?'':'checked')+' onchange="toggleVisibleWeb('+p.id+',this.checked)" style="width:16px;height:16px;accent-color:var(--pink);cursor:pointer"></label></td>'
       +'<td style="white-space:nowrap;display:flex;gap:4px;align-items:center">'+"<button class='btn btn-sm' style='font-size:10px;padding:2px 7px;background:"+(p.propietario==='Mamá'?'#fce4ec;color:#c2185b;border-color:#f48fb1':'#f5f5f5;color:#555;border-color:#ddd')+";border:1.5px solid;border-radius:8px;font-weight:700' onclick='togglePropietario("+p.id+")'title='Cambiar propietario'>"+(p.propietario==='Mamá'?'Mamá':'Mío')+"</button>"+"<button class='btn btn-warning btn-sm' onclick='abrirModalProducto("+p.id+")'>✏️</button>"+"<button class='btn btn-danger btn-sm' onclick='eliminarProd("+p.id+")'>🗑️</button>"+'</td>'
       +'</tr>';
   }).join('');
@@ -3256,86 +3205,6 @@ function abrirModalProductoRapido(){
   window._posQuickAdd=true;
   abrirModal('modal-producto');
 }
-async function toggleVisibleWeb(id, visible){
-  const p = productos.find(x=>x.id==id);
-  if(!p) return;
-  p.visible_web = visible;
-  await sbPatch('productos', id, {visible_web: visible});
-  toast(visible ? '🌐 Visible en tienda' : '🚫 Oculto en tienda');
-}
-function toggleResumenEvento(id){
-  var d=document.getElementById('resumen-detalle-'+id);
-  var t=document.getElementById('resumen-toggle-'+id);
-  if(!d)return;
-  var open=d.style.display==='none';
-  d.style.display=open?'block':'none';
-  if(t) t.textContent=open?'▲':'▼';
-}
-
-function imprimirResumenEvento(id, e){
-  if(e){e.stopPropagation();}
-  var ev=(eventos||[]).find(function(x){return x.id==id;});
-  if(!ev)return;
-  var vts=(ventas||[]).filter(function(v){return v.evento_id==id&&v.estado!=='Cancelado';});
-  var gastosE=(gastosEvento||[]).filter(function(g){return g.evento_id==id;});
-  var _tasaGlobal=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:(parseFloat((document.getElementById('inp-tasa')||{}).value||0)||484.74);
-  var tasa=parseFloat(ev.tasa_bcv||0)||_tasaGlobal||484.74;
-  var totalVBs=vts.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
-  var totalVUSD=vts.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
-  var gastoBsFn=function(g){
-    var bs=parseFloat(g.monto_bs||0); if(bs>0) return bs;
-    var usd=parseFloat(g.monto_usd||0); if(usd>0) return usd*tasa;
-    var m=parseFloat(g.monto||0);
-    if(g.moneda==='USD') return m*tasa;
-    if(g.moneda==='Bs'||m>100) return m;
-    return m*tasa;
-  };
-  var totalGBs=gastosE.reduce(function(s,g){return s+gastoBsFn(g);},0);
-  var gananciaBs=totalVBs-totalGBs;
-  var gananciaUSD=gananciaBs/tasa;
-  var luisma=Math.max(15,gananciaUSD*0.3);
-  var yo=gananciaUSD-luisma;
-  var fecha=ev.fecha||'—';
-  var nombre=ev.nombre||ev.titulo||('Evento #'+id);
-
-  var filasg=gastosE.map(function(g){
-    var bs=gastoBsFn(g);
-    return '<tr><td style="padding:4px 8px;border-bottom:1px solid #f0f0f0">'+(g.descripcion||g.concepto||'Gasto')+'</td>'
-      +'<td style="padding:4px 8px;border-bottom:1px solid #f0f0f0;text-align:right">Bs. '+bs.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2})+'</td></tr>';
-  }).join('');
-
-  var html='<!DOCTYPE html><html><head><meta charset="UTF-8">'
-    +'<title>Resumen '+nombre+'</title>'
-    +'<style>body{font-family:Inter,sans-serif;padding:32px;color:#1e293b;max-width:600px;margin:auto}'
-    +'h1{font-size:20px;color:#d63a8a;margin-bottom:4px}'
-    +'.sub{font-size:13px;color:#888;margin-bottom:24px}'
-    +'.row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f0f0f0}'
-    +'.label{font-weight:600;color:#475569}'
-    +'.val{font-weight:700}'
-    +'.total{font-size:22px;font-weight:900;color:#2e7d32}'
-    +'.box{border-radius:10px;padding:12px 16px;margin-top:8px;display:flex;justify-content:space-between;align-items:center}'
-    +'table{width:100%;border-collapse:collapse;margin-top:8px;font-size:13px}'
-    +'@media print{button{display:none}}'
-    +'</style></head><body>'
-    +'<h1>🌸 '+nombre+'</h1>'
-    +'<div class="sub">📅 '+fecha+' · Tasa BCV: '+tasa.toFixed(2)+'</div>'
-    +'<div class="row"><span class="label">💰 Entradas</span><span class="val" style="color:#2e7d32">Bs. '+totalVBs.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2})+'</span></div>'
-    +'<div class="row"><span class="label" style="color:#555">📋 Gastos ('+gastosE.length+')</span>'
-    +'<span class="val" style="color:#c62828">− Bs. '+totalGBs.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2})+'</span></div>'
-    +'<table>'+filasg+'</table>'
-    +'<div class="row" style="border-top:2px solid #d63a8a;margin-top:16px;padding-top:12px">'
-    +'<span style="font-size:16px;font-weight:800">Ganancia neta</span>'
-    +'<span class="total">$'+gananciaUSD.toFixed(2)+' <small style="font-size:14px;color:#888">· Bs. '+gananciaBs.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2})+'</small></span></div>'
-    +'<div class="box" style="background:#f5f0ff;margin-top:16px"><span style="font-weight:700;color:#7c3aed">💜 Le debes a Luisma</span><span style="font-size:20px;font-weight:900;color:#7c3aed">$'+luisma.toFixed(2)+'</span></div>'
-    +'<div class="box" style="background:#f0fdf4"><span style="font-weight:700;color:#2e7d32">✅ Tuyo</span><span style="font-size:20px;font-weight:900;color:#2e7d32">$'+yo.toFixed(2)+'</span></div>'
-    +'<div style="margin-top:32px;text-align:center"><button onclick="window.print()" style="background:#d63a8a;color:white;border:none;border-radius:10px;padding:10px 28px;font-size:15px;cursor:pointer">🖨️ Imprimir / Guardar PDF</button></div>'
-    +'</body></html>';
-
-  var win=window.open('','_blank');
-  win.document.write(html);
-  win.document.close();
-}
-
 async function eliminarProd(id){
   if(!confirm('¿Eliminar?')) return;
   id = parseInt(id);
@@ -3433,7 +3302,7 @@ async function guardarCliente(){
 async function eliminarCliente(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('clientes','id=eq.'+id); clientes=clientes.filter(c=>c.id!==id); renderClientes(); toast('🗑️ Eliminado'); }
 
 // ===== EVENTOS =====
-function fmtFechaEvento(fecha){
+async function fmtFechaEvento(fecha){
   if(!fecha) return '<span style="color:#bbb;font-size:11px">Sin fecha</span>';
   try{
     var d=new Date(fecha+'T12:00:00');
@@ -3455,49 +3324,37 @@ async function renderEventos(){
   if(!eventos.length){ div.innerHTML='<div class="card" style="text-align:center;color:var(--gray)">No hay eventos</div>'; return; }
   const eventosOrdenados=[...eventos].sort((a,b)=>{var fa=a.fecha?new Date(a.fecha+'T12:00:00'):null;var fb=b.fecha?new Date(b.fecha+'T12:00:00'):null;if(!fa&&!fb)return 0;if(!fa)return 1;if(!fb)return -1;return fa-fb;});
   div.innerHTML=eventosOrdenados.map(e=>{
-    // ── TASA del evento ──
-    const tasaEvento = parseFloat(e.tasa_bcv||0) || (typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74);
-
-    // ── VENTAS del evento ──
-    const vts = ventas.filter(v=>v.evento_id==e.id && v.estado!=='Cancelado');
-    const totalV   = vts.reduce((s,v)=>s+parseFloat(v.total||0),    0); // USD
-    const totalVBs = vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0), 0); // Bs
-
-    // ── GASTOS del evento ──
-    const gastosE  = gastosEvento.filter(g=>g.evento_id==e.id);
-    const gastosOp = gastosE.filter(g=>g.tipo!=='Inversión');
-    const gastosInv= gastosE.filter(g=>g.tipo==='Inversión');
-    const gastosLuismaCubiertos = [];
-    const gastosLuismaEvento = parseFloat(e.gastos_luisma||0);
-
-    // Cada gasto → USD (simple)
-    const gastoUSD = g => {
-      const usd = parseFloat(g.monto_usd||0); if(usd>0) return usd;
-      const bs  = parseFloat(g.monto_bs||0);  if(bs>0)  return bs/tasaEvento;
-      const m   = parseFloat(g.monto||0);
-      if(g.moneda==='USD') return m;
-      if(g.moneda==='Bs')  return m/tasaEvento;
-      return m < 500 ? m : m/tasaEvento; // sin moneda: <500=USD, >=500=Bs
+    const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
+    const totalV=vts.reduce((s,v)=>s+parseFloat(v.total||0),0);
+    const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
+    const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión'&&g.descripcion!=='Gasto de Luisma');
+    const gastosInv=gastosE.filter(g=>g.tipo==='Inversión');
+    const gastosLuismaList=gastosE.filter(g=>g.descripcion==='Gasto de Luisma');
+    const gastosLuismaDescuento=gastosLuismaList.filter(g=>!g.cubierto_por||g.cubierto_por==='Luisma');
+    const gastosLuismaCubiertos=gastosLuismaList.filter(g=>g.cubierto_por==='Yo');
+    // Convertir gasto a USD: si tiene monto_usd>0 usarlo, si no convertir monto_bs con tasa, si no usar monto directo
+    const gastoUsd=g=>{
+      const usd=parseFloat(g.monto_usd||0);
+      if(usd>0) return usd;
+      const bs=parseFloat(g.monto_bs||0);
+      const tasa=parseFloat(g.tasa_bcv||0);
+      if(bs>0&&tasa>0) return bs/tasa;
+      // Si el monto es razonable en USD (< 500) asumirlo USD, si no ignorarlo
+      const m=parseFloat(g.monto||0);
+      return (g.moneda==='Bs'||m>500)?0:m;
     };
-
-    const totalG   = gastosOp.reduce((s,g)=>s+gastoUSD(g), 0);  // USD
-    const totalGBs = totalG * tasaEvento;                         // Bs
-    const totalInv = gastosInv.reduce((s,g)=>s+gastoUSD(g), 0);  // USD
-
-    // ── GANANCIA NETA ──
-    // Usar USD si hay ventas en USD, si no usar Bs÷tasa
-    const ventasUSD = totalV > 0 ? totalV : totalVBs / tasaEvento;
-    const ganancia  = ventasUSD - totalG;
-
-    // ── INVERSIÓN recuperada ──
-    const invRecuperada = parseFloat(e.inversion_recuperada||0);
-
-    // ── LUISMA: 30% de ganancia, mínimo $15 ──
-    const luismaMinimo    = 15;
-    const luismaPorcentaje = ganancia>0 ? ganancia*0.3 : 0;
-    const luismaParte      = ganancia>0 ? Math.max(luismaMinimo, luismaPorcentaje) : 0;
-    const tuParte          = ganancia>0 ? ganancia - luismaParte : 0;
-    const totalInv2        = totalInv; // alias para compatibilidad HTML
+    const totalG=gastosOp.reduce((s,g)=>s+gastoUsd(g),0)
+               +gastosLuismaCubiertos.reduce((s,g)=>s+gastoUsd(g),0);
+    const totalGastoLuisma=gastosLuismaDescuento.reduce((s,g)=>s+gastoUsd(g),0);
+    const totalInv=gastosInv.reduce((s,g)=>s+gastoUsd(g),0);
+    const gastosLuismaEvento=parseFloat(e.gastos_luisma||0);
+    const totalGConLuisma=totalG+gastosLuismaEvento;
+    const ganancia=totalV-totalGConLuisma;
+    const luismaMinimo=30;
+    const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
+    const luismaBase=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
+    const luismaParte=Math.max(0,luismaBase-totalGastoLuisma);
+    const tuParte=ganancia>0?ganancia-luismaBase:0;
 
     // ── Deuda a Mamá ──
     // Por cada item de producto de mamá: le debo (precio_venta - costo - 0.50) por unidad
@@ -3586,265 +3443,197 @@ async function renderEventos(){
         +'<span style="color:#555">'+kv[0]+'</span><span style="color:#2e7d32">$'+kv[1].toFixed(2)+'</span></div>';
     }).join('');
 
-    const fechaFmt = fechaEv
-      ? fechaEv.toLocaleDateString('es-VE',{day:'numeric',month:'short',year:'numeric'})
-      : 'Sin fecha';
-    const ganColor = ganancia >= 0 ? '#2e7d32' : '#c62828';
-    const ganBg    = ganancia >= 0 ? '#f0fdf4' : '#fff5f5';
+    return '<div class="card" style="padding:16px">'
 
-    return '<div class="card" style="padding:0;overflow:hidden;border-radius:16px;margin-bottom:12px">'
-
-      // CABECERA
-      +'<div style="background:linear-gradient(135deg,#7c3aed,#d63a8a);padding:14px 16px;color:white;cursor:pointer" onclick="toggleDetalleEvento('+e.id+',event)">'
-      +'<div style="display:flex;justify-content:space-between;align-items:center">'
+      // ── CABECERA (siempre visible, clickeable para expandir) ──
+      +'<div style="display:flex;justify-content:space-between;align-items:start;cursor:pointer" onclick="toggleDetalleEvento('+e.id+',event)">'
       +'<div>'
-      +'<div style="font-size:16px;font-weight:900;margin-bottom:2px">🎪 '+e.nombre+'</div>'
-      +'<div style="font-size:12px;opacity:.85">'+(e.lugar?'📍 '+e.lugar+' · ':'')+' 📅 '+fechaFmt+'</div>'
+      +'<div style="font-size:16px;font-weight:800;margin-bottom:3px">🎪 '+e.nombre+'</div>'
+      +'<div style="font-size:12px;color:#888">'+fmtFechaEvento(e.fecha)+(e.lugar?' · 📍'+e.lugar:'')+'</div>'
+      +'<span style="display:inline-block;margin-top:5px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+'">'+badgeLabel+'</span>'
       +'</div>'
+      +'<div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end">'
+      // Mini resumen siempre visible
       +'<div style="text-align:right">'
-      +'<div style="font-size:18px;font-weight:900;color:'+(ganancia>=0?'#a7f3d0':'#fca5a5')+'">$'+ganancia.toFixed(2)+'</div>'
-      +'<div style="font-size:10px;opacity:.7">ganancia neta</div>'
+      +'<div style="font-size:13px;font-weight:800;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+' ganancia</div>'
+      +'<div style="font-size:11px;color:#888">'+vts.length+' ventas · '+gastosE.length+' gastos</div>'
       +'</div>'
-      +'</div>'
+      +'<div style="font-size:18px;color:#aaa;line-height:1" id="chevron-'+e.id+'">▸</div>'
+      +'</div></div>'
+
+      // ── DETALLE COLAPSABLE ──
+      +'<div id="detalle-evento-'+e.id+'" style="display:none">'
+
+      // Botones de acción
+      +'<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">'
+      +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+');event.stopPropagation()">+ Gasto</button>'
+      +'<button class="btn btn-secondary btn-sm" style="background:#e8f5e9;color:#2e7d32;border:none" onclick="abrirConciliacion('+e.id+');event.stopPropagation()">🏦 Conciliar</button>'
+      +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+');event.stopPropagation()">✏️ Editar</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+');event.stopPropagation()">🗑️ Eliminar</button>'
       +'</div>'
 
-      // CUERPO
-      +'<div id="detalle-ev-'+e.id+'" style="padding:14px 16px">'
+      // ── RESUMEN FINANCIERO (una sola vez, claro) ──
+      +'<div style="background:linear-gradient(135deg,#fdf4ff,#fff);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid #ede9fe">'
 
       // Ventas
-      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff">'
-      +'<span style="font-size:13px;color:#555;font-weight:600">🛍️ Ventas ('+vts.length+')</span>'
-      +'<div style="text-align:right">'
-      +'<div style="font-size:15px;font-weight:800;color:#2e7d32">$'+ventasUSD.toFixed(2)+'</div>'
-      +(totalVBs>0?'<div style="font-size:11px;color:#3a7d52">Bs. '+totalVBs.toLocaleString('es-VE',{minimumFractionDigits:0})+'</div>':'')
-      +'</div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
+      +'<span style="font-size:13px;color:#555">Ventas ('+vts.length+')</span>'
+      +'<span style="font-size:15px;font-weight:800;color:#2e7d32">$'+totalV.toFixed(2)+'</span>'
       +'</div>'
 
-      // Gastos
-      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff">'
-      +'<span style="font-size:13px;color:#555;font-weight:600">💸 Gastos / Inv ('+gastosE.length+')</span>'
-      +'<span style="font-size:15px;font-weight:800;color:#c62828">-$'+(totalG+totalInv).toFixed(2)+'</span>'
-      +'</div>'
+      // Gastos operativos con desglose
+      +(totalG>0
+        ?'<div style="padding:6px 0;border-bottom:1px solid #f3e8ff">'
+        +'<div style="display:flex;justify-content:space-between;align-items:center">'
+        +'<span style="font-size:13px;color:#555">Gastos operativos ('+gastosOp.length+')</span>'
+        +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+totalG.toFixed(2)+'</span>'
+        +'</div>'
+        +gastosOp.map(function(g){
+          return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 12px;font-size:11px;color:#888">'
+            +'<span>• '+(g.descripcion||g.concepto||'Gasto')+(g.moneda==='Bs'?' 🇻🇪':'')+'</span>'
+            +'<span>'+( (parseFloat(g.monto_usd||0)>0) ? '$'+parseFloat(g.monto_usd).toFixed(2) : (g.moneda==='Bs'?'Bs '+parseFloat(g.monto_bs||g.monto||0).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2)) )+'</span>'
+            +'</div>';
+        }).join('')
+        +(gastosLuismaCubiertos.length>0
+          ? gastosLuismaCubiertos.map(function(g){
+              return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 12px;font-size:11px;color:#888">'
+                +'<span>• '+(g.descripcion||'Gasto Luisma')+' (yo cubrí)</span>'
+                +'<span>'+( parseFloat(g.monto_usd||0)>0?'$'+parseFloat(g.monto_usd).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2) )+'</span>'
+                +'</div>';
+            }).join('')
+          : '')
+        +'</div>'
+        :'<div style="padding:6px 0;border-bottom:1px solid #f3e8ff;font-size:12px;color:#aaa">Sin gastos registrados para este evento</div>')
 
-      // Ganancia neta
-      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff;background:'+ganBg+';margin:0 -16px;padding-left:16px;padding-right:16px">'
-      +'<span style="font-size:14px;font-weight:800">📈 Ganancia neta</span>'
-      +'<span style="font-size:17px;font-weight:900;color:'+ganColor+'">$'+ganancia.toFixed(2)+'</span>'
-      +'</div>'
+      // Gastos Luisma del evento
+      +(gastosLuismaEvento>0
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
+        +'<span style="font-size:13px;color:#555">🧑 Gastos de Luisma</span>'
+        +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+gastosLuismaEvento.toFixed(2)+'</span>'
+        +'</div>':'')
 
-      // Recuperación
+      // Inversión recuperada — dato informativo
       +(totalInv>0
-        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff">'
-         +'<span style="font-size:13px;color:#1565c0;font-weight:600">💼 Recuperación</span>'
-         +'<span style="font-size:15px;font-weight:800;color:#1565c0">+$'+totalInv.toFixed(2)+'</span>'
-         +'</div>'
-        :'')
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
+        +'<span style="font-size:13px;color:#1565c0">💼 Inversión recuperada</span>'
+        +'<span style="font-size:14px;font-weight:700;color:#1565c0">+$'+totalInv.toFixed(2)+'</span>'
+        +'</div>':'')
 
-      // Pagar a Luisma
-      +(luismaParte>0
-        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff">'
-         +'<span style="font-size:13px;color:#7c3aed;font-weight:700">💜 Pagar a Luisma</span>'
-         +'<span style="font-size:15px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</span>'
-         +'</div>'
-        :'')
-
-      // Pagar a Mamá
-      +(deudaMama>0
-        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #ffe4e6">'
-         +'<span style="font-size:13px;color:#c2185b;font-weight:700">👩‍👧 Pagar a Mamá</span>'
-         +'<span style="font-size:15px;font-weight:900;color:#c2185b">$'+deudaMama.toFixed(2)+'</span>'
-         +'</div>'
-        :'')
-
-      // Botones
-      +'<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'
-      +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+');event.stopPropagation()">+ Gasto</button>'
-      +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+');event.stopPropagation()">✏️ Editar</button>'
-      +'<button class="btn btn-secondary btn-sm" style="background:#e8f5e9;color:#2e7d32;border:none" onclick="abrirConciliacion('+e.id+');event.stopPropagation()">⚖️ Conciliar</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+');event.stopPropagation()">🗑️</button>'
+      // Ganancia neta — línea gruesa
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 12px;border-bottom:2px solid #ede9fe">'
+      +'<span style="font-size:14px;font-weight:800">Ganancia neta</span>'
+      +'<span style="font-size:22px;font-weight:900;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+'</span>'
       +'</div>'
-      +'</div>'   // cierre cuerpo
-      +'</div>';  // cierre card
 
+      // División — solo si hay ganancia
+      +(ganancia>0?(function(){
+        var luismaLabel=luismaParte===luismaMinimo&&luismaPorcentaje<luismaMinimo
+          ?'Luisma (mín. $30)'
+          :'Luisma ('+Math.round(luismaParte/ganancia*100)+'%)';
+        return '<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">'
+
+          // Luisma
+          +'<div style="background:#f5f0ff;border-radius:10px;padding:10px 14px">'
+          +'<div style="display:flex;justify-content:space-between;align-items:center">'
+          +'<span style="font-size:13px;font-weight:700;color:#7c3aed">'+luismaLabel+'</span>'
+          +'<span style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</span>'
+          +'</div>'
+          +(totalGastoLuisma>0?'<div style="font-size:11px;color:#9c6fe4;margin-top:4px">−$'+totalGastoLuisma.toFixed(2)+' gastos descontados · base $'+luismaBase.toFixed(2)+'</div>':'')
+          +'</div>'
+
+          // Tuyo
+          +'<div style="display:flex;justify-content:space-between;align-items:center;background:#f0fdf4;border-radius:10px;padding:10px 14px">'
+          +'<span style="font-size:13px;font-weight:700;color:#2e7d32">Tuyo</span>'
+          +'<span style="font-size:20px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</span>'
+          +'</div>'
+
+          // Slider explorar
+          +'<div style="background:#f8f8f8;border-radius:10px;padding:10px;margin-top:2px">'
+          +'<div style="display:flex;justify-content:space-between;font-size:11px;font-weight:700;color:#aaa;margin-bottom:5px">'
+          +'<span>¿Y si le doy más a Luisma? <small>(mín. $30)</small></span>'
+          +'<span id="luisma-slider-val-'+e.id+'">'+Math.round(luismaParte/ganancia*100)+'%</span>'
+          +'</div>'
+          +'<input type="range" min="0" max="60" step="5" value="'+Math.round(luismaParte/ganancia*100)+'"'
+          +' style="width:100%;accent-color:#7c3aed;cursor:pointer"'
+          +' oninput="recalcLuisma('+e.id+','+ganancia.toFixed(2)+',this.value)">'
+          +'<div id="luisma-nota-'+e.id+'" style="font-size:11px;color:#888;margin-top:5px;text-align:center">👆 Mueve para explorar</div>'
+          +'<div id="luisma-preview-'+e.id+'" style="display:none;margin-top:8px;display:flex;gap:6px">'
+          +'<div style="flex:1;background:#f5f0ff;border-radius:8px;padding:8px;text-align:center">'
+          +'<div style="font-size:10px;color:#7c3aed;font-weight:700">Luisma</div>'
+          +'<div id="luisma-parte-'+e.id+'" style="font-size:16px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</div>'
+          +'</div>'
+          +'<div style="flex:1;background:#f0fdf4;border-radius:8px;padding:8px;text-align:center">'
+          +'<div style="font-size:10px;color:#2e7d32;font-weight:700">Tuyo</div>'
+          +'<div id="tu-parte-'+e.id+'" style="font-size:16px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
+          +'</div>'
+          +'</div>'
+          +'</div>'
+
+          +'</div>';
+      })():'')
+
+      // Pérdida
+      +(ganancia<0
+        ?'<div style="margin-top:8px;padding:8px 10px;background:#fff5f5;border-radius:8px;font-size:13px;font-weight:700;color:#c62828;text-align:center">⚠️ Pérdida de $'+Math.abs(ganancia).toFixed(2)+'</div>'
+        :'')
+
+      +'</div>'      +'</div>'
+
+      // ── DEUDA MAMÁ ──
+      +(deudaMama>0
+        ?(function(){
+          var filasMama=itemsMama.map(function(it){
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:12px;border-bottom:1px solid #fce4ec">'
+              +'<span style="color:#555">'+it.nombre+(it.cant>1?' ×'+it.cant:'')+'</span>'
+              +'<span style="font-weight:700;color:#c2185b">$'+it.subtotal.toFixed(2)+'</span>'
+              +'</div>';
+          }).join('');
+          return '<div style="background:#fff0f4;border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid #f48fb1">'
+            +'<div style="font-size:11px;font-weight:800;color:#c2185b;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">👩‍👧 Le debes a Mamá</div>'
+            +filasMama
+            +'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0 0;margin-top:4px;border-top:2px solid #f48fb1">'
+            +'<span style="font-size:13px;font-weight:800">Total a pagarle</span>'
+            +'<span style="font-size:18px;font-weight:900;color:#c2185b">$'+deudaMama.toFixed(2)+'</span>'
+            +'</div>'
+            +'<div style="font-size:11px;color:#888;margin-top:6px">precio venta − costo − $0.50 por producto</div>'
+            +'</div>';
+        })()
+        :'')
+
+      // ── GASTOS DETALLE (colapsable) ──
+      +'<div style="margin-bottom:14px">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<span style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">📋 Gastos registrados</span>'
+      +(gastosE.length?'<span style="font-size:12px;font-weight:700;color:#c62828">Total: $'+(totalG+totalInv).toFixed(2)+'</span>':'')
+      +'</div>'
+      +'<div id="gastos-evento-'+e.id+'" style="display:none">'+filasGastos+'</div>'
+      +'<button onclick="toggleGastosEvento('+e.id+')" class="btn btn-secondary btn-sm" style="font-size:11px;width:100%;margin-top:4px">'
+      +(gastosE.length?'Ver '+gastosE.length+' gasto'+(gastosE.length>1?'s':''):'Sin gastos — agregar')+'</button>'
+      +'</div>'
+
+      // ── VENTAS DETALLE (colapsable) ──
+      +'<div>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
+      +'<span style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">🛒 Ventas del evento</span>'
+      +'<span style="font-size:12px;font-weight:700;color:#2e7d32">$'+totalV.toFixed(2)+' · '+vts.length+' ventas</span>'
+      +'</div>'
+      // Métodos de pago siempre visibles
+      +(vts.length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+resMet+'</div>':'')
+      +'<div id="ventas-evento-'+e.id+'" style="display:none">'
+      +(vts.length?cardsVentas:'<div style="color:#aaa;font-size:13px;padding:8px 0">Sin ventas asignadas aún</div>')
+      +'</div>'
+      +'<button onclick="toggleVentasEvento('+e.id+')" class="btn btn-secondary btn-sm" style="font-size:11px;width:100%;margin-top:4px">'
+      +(vts.length?'Ver '+vts.length+' venta'+(vts.length>1?'s':''):'Sin ventas aún')+'</button>'
+      +'</div>'
+
+      // Notas
+      +(e.notas?'<div style="margin-top:12px;padding:8px 10px;background:#fafafa;border-radius:8px;font-size:12px;color:#666">📝 '+e.notas+'</div>':'')
+
+      +'</div>' // cierre detalle colapsable
+      +'</div>';
   }).join('');
 }
 
-function toggleDetalleEvento(eid, event){
-  if(event && event.target){
-    var t = event.target;
-    if(t.tagName==='BUTTON') return;
-    if(t.closest && t.closest('button')) return;
-  }
-  var el = document.getElementById('detalle-ev-'+eid);
-  if(!el) return;
-  el.style.display = el.style.display==='none' ? 'block' : 'none';
-}
-
-function mreToggle(id){
-  var el=document.getElementById(id);
-  if(el) el.style.display=el.style.display==='none'?'block':'none';
-}
-function abrirResumenEvento(eid,event){
-  try {
-    if(event&&event.target&&(event.target.tagName==='BUTTON'||event.target.closest('button'))) return;
-    var eidN = parseInt(eid);
-    // Buscar evento — tolerar string o número
-    var e = null;
-    if(typeof eventos !== 'undefined') {
-      e = eventos.find(function(x){ return parseInt(x.id)===eidN; });
-    }
-    if(!e){ alert('Evento no encontrado: '+eid); return; }
-
-    var tasa = parseFloat(e.tasa_bcv||0) || (typeof bcvHoy!=='undefined'&&bcvHoy>0 ? bcvHoy : 484.74);
-
-    // Ventas del evento
-    var vts = (typeof ventas!=='undefined'?ventas:[]).filter(function(v){
-      return parseInt(v.evento_id)===eidN && v.estado!=='Cancelado';
-    });
-
-    // Gastos del evento
-    var allGastos = (typeof gastosEvento!=='undefined'?gastosEvento:[]).concat(
-                    typeof gastosGlobales!=='undefined'?gastosGlobales.filter(function(g){ return parseInt(g.evento_id)===eidN; }):[]
-                   );
-    // Deduplicar por id
-    var seen = {}; var gastosE = [];
-    allGastos.forEach(function(g){ if(!seen[g.id]){seen[g.id]=true;gastosE.push(g);} });
-
-    var gastosOp  = gastosE.filter(function(g){ return g.tipo!=='Inversión'&&g.tipo!=='Inversion'; });
-    var gastosInv = gastosE.filter(function(g){ return g.tipo==='Inversión'||g.tipo==='Inversion'; });
-
-    // Conversión a USD
-    var gUSD = function(g){
-      var u=parseFloat(g.monto_usd||0); if(u>0) return u;
-      var b=parseFloat(g.monto_bs||0);  if(b>0) return b/tasa;
-      var m=parseFloat(g.monto||0);
-      if(g.moneda==='USD') return m;
-      if(g.moneda==='Bs')  return m/tasa;
-      return m<500 ? m : m/tasa;
-    };
-
-    var totalV   = vts.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
-    var totalVBs = vts.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
-    var ventasUSD = totalV>0 ? totalV : totalVBs/tasa;
-
-    var totalG   = gastosOp.reduce(function(s,g){return s+gUSD(g);},0);
-    var totalInv = gastosInv.reduce(function(s,g){return s+gUSD(g);},0);
-    var ganancia = ventasUSD - totalG;
-    var luismaParte = ganancia>0 ? Math.max(15, ganancia*0.3) : 0;
-
-    // Deuda mamá
-    var deudaMama = 0;
-    vts.forEach(function(v){
-      (v.venta_items||[]).forEach(function(it){
-        var p = (typeof productos!=='undefined'?productos:[]).find(function(x){return x.id==it.producto_id;});
-        if(!p||p.propietario!=='Mamá') return;
-        deudaMama += (parseFloat(it.precio_unitario||p.precio||0)-parseFloat(p.precio_costo||0)-0.50)*parseInt(it.cantidad||1);
-      });
-    });
-
-    // Poblar modal
-    document.getElementById('mre-nombre').textContent = '🎪 '+e.nombre;
-    var _fd=e.fecha?new Date(e.fecha+'T12:00:00'):null;
-    document.getElementById('mre-fecha').textContent = _fd
-      ? _fd.toLocaleDateString('es-VE',{day:'numeric',month:'short',year:'numeric'})
-      : 'Sin fecha';
-    document.getElementById('mre-lugar').textContent  = e.lugar ? '📍 '+e.lugar : '';
-    document.getElementById('mre-ventas-cnt').textContent = '('+vts.length+')';
-    document.getElementById('mre-ventas').textContent = '$'+ventasUSD.toFixed(2);
-    document.getElementById('mre-ventas-bs').textContent = totalVBs>0 ? 'Bs. '+Math.round(totalVBs).toLocaleString('es-VE') : '';
-    document.getElementById('mre-gastos-cnt').textContent = '('+gastosE.length+')';
-    document.getElementById('mre-gastos').textContent = '-$'+(totalG+totalInv).toFixed(2);
-    document.getElementById('mre-gastos-bs').textContent = gastosOp.length+' op.'+(gastosInv.length>0?' · '+gastosInv.length+' inv.':'');
-
-    var ganEl = document.getElementById('mre-ganancia');
-    ganEl.textContent  = '$'+ganancia.toFixed(2);
-    ganEl.style.color  = ganancia>=0 ? '#2e7d32' : '#c62828';
-
-    var recRow = document.getElementById('mre-rec-row');
-    recRow.style.display = totalInv>0 ? 'flex' : 'none';
-    document.getElementById('mre-recuperacion').textContent = '+$'+totalInv.toFixed(2);
-
-    document.getElementById('mre-luisma').textContent = luismaParte>0 ? '$'+luismaParte.toFixed(2) : '—';
-
-    // Tu parte
-    var tuParte = ganancia>0 ? ganancia - luismaParte : 0;
-    var tuParteRow = document.getElementById('mre-tu-parte-row');
-    if(tuParteRow){
-      tuParteRow.style.display = ganancia>0 ? 'flex' : 'none';
-      document.getElementById('mre-tu-parte').textContent = '$'+tuParte.toFixed(2);
-    }
-
-    var mamaRow = document.getElementById('mre-mama-row');
-    mamaRow.style.display = deudaMama>0 ? 'flex' : 'none';
-    if(deudaMama>0) document.getElementById('mre-mama').textContent = '$'+deudaMama.toFixed(2);
-
-    // Resumen métodos de pago encima del detalle
-    var metPago = {};
-    vts.forEach(function(v){ var mp=v.metodo_pago||'Otro'; metPago[mp]=(metPago[mp]||0)+parseFloat(v.total||0); });
-    var metStr = Object.entries(metPago).sort(function(a,b){return b[1]-a[1];}).map(function(kv){
-      return '<span style="background:#f0fdf4;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;color:#2e7d32">'+kv[0]+' $'+kv[1].toFixed(2)+'</span>';
-    }).join(' ');
-    var metEl = document.getElementById('mre-metodos');
-    if(metEl) metEl.innerHTML = metStr;
-
-    // Detalle ventas (expandible)
-    document.getElementById('mre-ventas-det').innerHTML = vts.length ? vts.map(function(v){
-      var m = parseFloat(v.monto_bs||0)>0 ? 'Bs.'+Math.round(parseFloat(v.monto_bs)).toLocaleString('es-VE') : '$'+parseFloat(v.total||0).toFixed(2);
-      return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #eee"><span>'+(v.numero||'#'+v.id)+' '+(v.cliente_nombre||'')+'</span><span style="font-weight:700">'+m+'</span></div>';
-    }).join('') : '<span style="color:#aaa">Sin ventas</span>';
-
-    // Detalle gastos (expandible)
-    document.getElementById('mre-gastos-det').innerHTML = gastosE.length ? gastosE.map(function(g){
-      var esInv = g.tipo==='Inversión'||g.tipo==='Inversion';
-      return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #eee"><span style="color:'+(esInv?'#1565c0':'#555')+'">'+(esInv?'💼 ':'')+(g.descripcion||g.categoria||'Gasto')+'</span><span style="font-weight:700;color:'+(esInv?'#1565c0':'#c62828')+'">$'+gUSD(g).toFixed(2)+'</span></div>';
-    }).join('') : '<span style="color:#aaa">Sin gastos</span>';
-
-    window._mreData = {e:e,ventasUSD:ventasUSD,totalVBs:totalVBs,totalG:totalG,totalInv:totalInv,ganancia:ganancia,luismaParte:luismaParte,deudaMama:deudaMama,tasa:tasa,vts:vts,gastosE:gastosE,gUSD:gUSD};
-
-    // Abrir modal
-    var modal = document.getElementById('modal-resumen-evento');
-    modal.classList.add('open');
-    history.pushState({modal:'modal-resumen-evento'},'','');
-  } catch(err) {
-    console.error('abrirResumenEvento error:', err);
-    alert('Error al abrir resumen: '+err.message);
-  }
-}
-
-function descargarPDFEvento(){
-  var d=window._mreData; if(!d) return;
-  var e=d.e;
-  var doc=new jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-  var y=20,lm=15;
-  doc.setFillColor(124,58,237); doc.rect(0,0,210,38,'F');
-  doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont(undefined,'bold');
-  doc.text('Brillitos - Resumen de Evento',lm,14);
-  doc.setFontSize(12); doc.setFont(undefined,'normal');
-  doc.text(e.nombre+(e.lugar?' - '+e.lugar:''),lm,23);
-  doc.text(e.fecha||'',lm,31);
-  y=48;
-  var row=function(label,val,r,g2,b2){
-    doc.setTextColor(80,80,80); doc.setFontSize(11); doc.setFont(undefined,'normal');
-    doc.text(label,lm,y);
-    doc.setTextColor(r||40,g2||40,b2||40); doc.setFont(undefined,'bold');
-    doc.text(String(val),195,y,{align:'right'});
-    doc.setDrawColor(220,220,220); doc.setLineWidth(0.2); doc.line(lm,y+2,195,y+2);
-    y+=10;
-  };
-  row('Ventas ('+d.vts.length+')', '$'+d.ventasUSD.toFixed(2)+(d.totalVBs>0?' / Bs.'+Math.round(d.totalVBs).toLocaleString('es-VE'):''), 46,125,50);
-  row('Gastos operativos', '-$'+d.totalG.toFixed(2), 198,40,40);
-  if(d.totalInvVal>0) row('Inversion recuperada', '+$'+d.totalInvVal.toFixed(2), 21,101,192);
-  doc.setDrawColor(124,58,237); doc.setLineWidth(0.6); doc.line(lm,y-2,195,y-2); y+=2;
-  row('Ganancia neta', '$'+d.ganancia.toFixed(2), d.ganancia>=0?46:198, d.ganancia>=0?125:40, d.ganancia>=0?50:40);
-  y+=4;
-  row('Pagar a Luisma', '$'+d.luismaParte.toFixed(2), 124,58,237);
-  if(d.deudaMama>0) row('Pagar a Mama', '$'+d.deudaMama.toFixed(2), 194,24,91);
-  y+=8;
-  doc.setTextColor(160,160,160); doc.setFontSize(9); doc.setFont(undefined,'normal');
-  doc.text('Tasa BCV: '+d.tasa.toFixed(2)+' Bs/$  -  Generado '+new Date().toLocaleDateString('es-VE'),lm,y);
-  var fname='Brillitos_'+e.nombre.replace(/[^a-zA-Z0-9]/g,'_')+'.pdf';
-  doc.save(fname);
-}
 function toggleDetalleEvento(eid, event){
   if(event && event.target && (event.target.tagName==='BUTTON'||event.target.closest('button'))) return;
   var det=document.getElementById('detalle-evento-'+eid);
@@ -3943,8 +3732,7 @@ function poblarEventosGastoGlobal(){
 function poblarMesesFiltroGasto(){
   const meses=new Set(gastosGlobales.map(g=>(g.fecha||'').slice(0,7)).filter(Boolean));
   const sel=document.getElementById('filtro-mes-gasto'); if(!sel)return;
-  const mesActual=new Date().toISOString().slice(0,7);
-  sel.innerHTML='<option value="">Todos los meses</option>'+[...meses].sort().reverse().map(m=>'<option value="'+m+'"'+(m===mesActual?' selected':'')+'>'+m+'</option>').join('');
+  sel.innerHTML='<option value="">Todos los meses</option>'+[...meses].sort().reverse().map(m=>'<option value="'+m+'">'+m+'</option>').join('');
 }
 async function cambiarTipoGasto(id, nuevoTipo){
   await sbPatch('gastos_globales',id,{tipo:nuevoTipo});
@@ -3954,26 +3742,17 @@ async function cambiarTipoGasto(id, nuevoTipo){
 }
 function calcularDeudaMama(){
   var total=0, detalle=[];
-  var tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
   ventas.filter(function(v){return v.estado!=='Cancelado';}).forEach(function(v){
     var esEvento=!!(v.evento_id);
-    var ventaEnBs=parseFloat(v.monto_bs||0)>0;
     (v.venta_items||[]).forEach(function(it){
       var p=productos.find(function(x){return x.id==it.producto_id;});
       if(!p||p.propietario!=='Mamá') return;
       var cant=parseInt(it.cantidad||1);
       var precioVenta=parseFloat(it.precio_unitario||p.precio||0);
       var costo=parseFloat(p.precio_costo||0);
-      // Si la venta es en Bs, calcular en Bs y convertir a USD para mostrar consistente
-      var subtotalUSD;
-      if(ventaEnBs){
-        var subtotalBs=(precioVenta-costo-(esEvento?0.50:0))*cant;
-        subtotalUSD=subtotalBs/tasa;
-      } else {
-        subtotalUSD=(precioVenta-costo-(esEvento?0.50:0))*cant;
-      }
-      total+=subtotalUSD;
-      detalle.push({nombre:p.nombre,cant:cant,venta:v.numero||'#'+v.id,esEvento:esEvento,subtotal:subtotalUSD,enBs:ventaEnBs});
+      var subtotal=(precioVenta-costo-(esEvento?0.50:0))*cant;
+      total+=subtotal;
+      detalle.push({nombre:p.nombre,cant:cant,venta:v.numero||'#'+v.id,esEvento:esEvento,subtotal:subtotal});
     });
   });
   return {total:total,detalle:detalle};
@@ -3982,30 +3761,6 @@ function toggleDeudaDetalle(cid){
   var d=document.getElementById('deuda-det-'+cid);
   if(d) d.style.display=d.style.display==='none'?'block':'none';
 }
-function abrirDetalleGanancia(){
-  var d=window._dashGanDetalle||{};
-  var rows=(d.ganDetalle||[]).reduce(function(acc,x){var e=acc.find(function(a){return a.n===x.nombre;});if(e){e.m+=x.margen;e.c+=x.cant;}else acc.push({n:x.nombre,m:x.margen,c:x.cant});return acc;},[]).sort(function(a,b){return b.m-a.m;}).slice(0,12);
-  var filas=rows.map(function(r){return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #fce4ec;font-size:13px"><span>'+r.n+' <small style="color:#aaa">x'+r.c+'</small></span><strong style="color:#c2185b">$'+r.m.toFixed(2)+'</strong></div>';}).join('');
-  var ov=document.createElement('div');
-  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
-  ov.onclick=function(){ov.remove();};
-  ov.innerHTML='<div style="background:white;border-radius:16px;padding:20px;max-width:420px;width:90%;max-height:80vh;overflow-y:auto" onclick="event.stopPropagation()">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
-    +'<span style="font-size:15px;font-weight:800;color:#c2185b">📊 Desglose ganancia</span>'
-    +'<button id="btn-cerrar-gan" style="background:none;border:none;font-size:22px;cursor:pointer;color:#aaa">×</button></div>'
-    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">'
-    +'<div style="background:#fce4ec;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#c2185b;font-weight:700">MARGEN BRUTO</div><div style="font-size:18px;font-weight:900;color:#c2185b">$'+(d.gan||0).toFixed(2)+'</div></div>'
-    +'<div style="background:#fff3e0;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#e65100;font-weight:700">GASTOS OP.</div><div style="font-size:18px;font-weight:900;color:#e65100">-$'+(d.totalGastMes||0).toFixed(2)+'</div></div>'
-    +'<div style="background:#e8f5e9;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#2e7d32;font-weight:700">NETA</div><div style="font-size:18px;font-weight:900;color:#2e7d32">$'+(d.gananciaNeta||0).toFixed(2)+'</div></div></div>'
-    +'<div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">Top productos por margen</div>'
-    +filas
-    +'<div style="font-size:10px;color:#bbb;margin-top:10px">Tasa: '+(d.tasa||484.74).toFixed(2)+' Bs/$ · Clic fuera para cerrar</div>'
-    +'</div>';
-  document.body.appendChild(ov);
-  var btn=document.getElementById('btn-cerrar-gan');
-  if(btn) btn.onclick=function(){ov.remove();};
-}
-
 function renderDeudaMama(cid){
   var el=document.getElementById(cid); if(!el) return;
   var dm=calcularDeudaMama();
@@ -4031,57 +3786,24 @@ function renderDeudaMama(cid){
 }
 function renderGastosGlobal(){
   const cat=document.getElementById('filtro-cat-gasto')?document.getElementById('filtro-cat-gasto').value:'';
-  const mesSelVal=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
-  const mesActual=new Date().toISOString().slice(0,7);
-  const mes=mesSelVal||mesActual;
+  const mes=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
   let lista=gastosGlobales;
   if(cat) lista=lista.filter(g=>g.categoria===cat);
-  lista=lista.filter(g=>(g.fecha||'').slice(0,7)===mes);
-  const filtroBase=g=>!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal'&&g.tipo!=='Saldo Real';
-  const tasaHoy=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
-
-  // Separar gastos por moneda real
-  // USD: tiene monto_usd, o moneda=USD, o monto < 500 sin moneda
-  // Bs:  moneda=Bs, o monto_bs > 0, o monto >= 500 sin moneda
-  const esUSD=g=>{
-    if(parseFloat(g.monto_usd||0)>0) return true;
-    if(g.moneda==='USD') return true;
-    if(!g.moneda) return parseFloat(g.monto||0)<500;
-    return false;
-  };
-  const gastUSD=lista.filter(g=>filtroBase(g)&&esUSD(g));
-  const gastBs =lista.filter(g=>filtroBase(g)&&!esUSD(g));
-
-  // Total en USD (solo gastos en dólares reales)
-  const totalUSD=gastUSD.reduce((s,g)=>{
-    const u=parseFloat(g.monto_usd||0); return s+(u>0?u:parseFloat(g.monto||0));
-  },0);
-
-  // Total en Bs (solo gastos en bolívares reales)
-  const totalBs=gastBs.reduce((s,g)=>{
-    const bs=parseFloat(g.monto_bs||0); return s+(bs>0?bs:parseFloat(g.monto||0));
-  },0);
-
-  // Equivalente total en USD (para comparación)
-  const totalEquivUSD=totalUSD+(totalBs/tasaHoy);
-
-  // Categoría mayor (por monto equivalente en USD)
+  if(mes) lista=lista.filter(g=>(g.fecha||'').slice(0,7)===mes);
+  const totalUSD=lista.filter(g=>!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal').reduce((s,g)=>s+parseFloat(g.monto_usd||g.monto||0),0);
   const porCat={};
-  lista.filter(filtroBase).forEach(g=>{
-    const v=esUSD(g)
-      ?(parseFloat(g.monto_usd||0)||parseFloat(g.monto||0))
-      :(parseFloat(g.monto_bs||g.monto||0)/tasaHoy);
-    if(v>0) porCat[g.categoria||'?']=(porCat[g.categoria||'?']||0)+v;
-  });
+  lista.forEach(g=>{porCat[g.categoria||'?']=(porCat[g.categoria||'?']||0)+parseFloat(g.monto_usd||g.monto||0);});
   const top=Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
+  const totalBs=lista.filter(g=>g.moneda==='Bs'&&!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal').reduce((s,g)=>s+parseFloat(g.monto||0),0);
   const tasaRef=parseFloat(document.getElementById('inp-tasa')?document.getElementById('inp-tasa').value:0)||bcvHoy||0;
   const cntAjenos=lista.filter(g=>g.es_ajeno||g.tipo==='Pago personal').length;
   const pendientesReponer=lista.filter(g=>(g.es_ajeno||g.tipo==='Pago personal')&&!g.reposicion_de).length;
   const cntRepos=lista.filter(g=>g.tipo==='Reposición').length;
   document.getElementById('gastos-stats').innerHTML=
-    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUSD.toFixed(2)+'</div><div class="stat-label">💵 Gastos en USD</div></div>'
-    +(totalBs>0?'<div class="stat-card" style="border-left:4px solid #7b1fa2"><div class="stat-num" style="color:#7b1fa2;font-size:18px">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:0})+'</div><div class="stat-label">🇻🇪 Gastos en Bs</div></div>':'')
-    +'<div class="stat-card" style="border-left:4px solid #e91e8c"><div class="stat-num" style="color:#e91e8c">$'+totalEquivUSD.toFixed(2)+'</div><div class="stat-label">📊 Total equiv. USD</div></div>'
+    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUSD.toFixed(2)+'</div><div class="stat-label">💸 Total USD (Brillitos)</div></div>'
+    +(totalBs>0?'<div class="stat-card" style="border-left:4px solid #7b1fa2"><div class="stat-num" style="color:#7b1fa2;font-size:18px">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="stat-label">🇻🇪 Total Bs (Brillitos)</div></div>':'')
+    +'<div class="stat-card" style="display:none">x</div>'
+    +'<div class="stat-card" style="border-left:4px solid #e91e8c">'+(tasaRef>0?'<div class="stat-num" style="color:#e91e8c">Bs. '+(totalUSD*tasaRef).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'<div class="stat-num" style="color:#e91e8c;font-size:16px">Sin tasa</div>')+'<div class="stat-label">🇻🇪 Equiv. Bs (tasa actual)</div></div>'
     +'<div class="stat-card" style="border-left:4px solid var(--orange)"><div class="stat-num" style="color:var(--orange)">'+lista.filter(g=>g.tipo==='Inversión').length+'</div><div class="stat-label">📈 Inversiones</div></div>'
     +(pendientesReponer>0?'<div class="stat-card" style="border-left:4px solid #ff6f00;background:#fff8e1"><div class="stat-num" style="color:#e65100">'+pendientesReponer+'</div><div class="stat-label">🚨 Pendientes reponer</div></div>':'')
     +(cntAjenos-pendientesReponer>0?'<div class="stat-card" style="border-left:4px solid #43a047"><div class="stat-num" style="color:#2e7d32">'+(cntAjenos-pendientesReponer)+'</div><div class="stat-label">✅ Ajenos repuestos</div></div>':'')
@@ -4112,10 +3834,9 @@ function renderGastosGlobal(){
     var montoCell=g.moneda==='Bs'
       ?'<span style="color:#7b1fa2;font-weight:600">Bs. '+parseFloat(g.monto).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>'
       :'<strong>$'+parseFloat(g.monto).toFixed(2)+'</strong>';
-    var _usdVal=parseFloat(g.monto_usd||0);
-    var usdCell=_usdVal>0?'<strong style="color:var(--red)">$'+_usdVal.toFixed(2)+'</strong>':'<span style="color:#bbb">—</span>';
+    var usdCell='<strong style="color:var(--red)">$'+parseFloat(g.monto_usd||g.monto||0).toFixed(2)+'</strong>';
     var bsHist=(function(){var bs=g.moneda==='Bs'?parseFloat(g.monto||0):parseFloat(g.monto_bs||0);return bs>0?'Bs. '+bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'—';})();
-    var cur=g.tipo||'Gasto operativo';
+    var cur=g.tipo||'Gasto evento';
     var st=tipoMap[cur]||'background:#f5f5f5;color:#333';
     var tipoSelect='<select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarTipoGasto('+g.id+',this.value)">'
       +Object.keys(tipoMap).map(function(t){return '<option value="'+t+'"'+(cur===t?' selected':'')+'>'+t+'</option>';}).join('')
@@ -4135,81 +3856,6 @@ function renderGastosGlobal(){
   });
   document.getElementById('tbody-gastos').innerHTML=rows.join('');
   renderDeudaMama('deuda-mama-cont');
-  renderContaResumen();
-}
-
-function renderContaResumen(){
-  var el=document.getElementById('conta-resumen'); if(!el) return;
-  // Saldo BancaAmiga — mismo que el dashboard
-  var tasaConta=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
-  // Saldo = ventas Bs - gastos Bs + reposiciones Bs
-  var saldoBs=0;
-  (ventas||[]).filter(function(v){return v.estado!=='Cancelado';}).forEach(function(v){
-    saldoBs+=parseFloat(v.monto_bs||0);
-  });
-  (gastosGlobales||[]).filter(function(g){return g.tipo!=='Gasto ajeno'&&g.tipo!=='Saldo Real';}).forEach(function(g){
-    var esRepos=g.tipo==='Reposición';
-    var mBs=parseFloat(g.monto_bs||0)||(g.moneda==='Bs'?parseFloat(g.monto||0):0);
-    if(!mBs) return;
-    saldoBs+=esRepos?mBs:-mBs;
-  });
-  // Saldo real registrado lo sobreescribe si existe
-  var saldoRealReg=(gastosGlobales||[]).filter(function(g){return g.tipo==='Saldo Real'&&(g.moneda==='Bs'||parseFloat(g.monto_bs||0)>0);})
-    .sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
-  if(saldoRealReg.length>0) saldoBs=parseFloat(saldoRealReg[0].monto_bs||saldoRealReg[0].monto||0);
-  var tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
-  var saldoUSD=saldoBs/tasa;
-
-  // Pagos pendientes — ventas con estado Pendiente
-  var ventasPend=(ventas||[]).filter(function(v){return v.estado==='Pendiente';});
-  var totalPend=ventasPend.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
-  var totalPendBs=ventasPend.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
-
-  // Deuda a Luisma — suma de luismaParte de todos los eventos
-  var deudaLuisma=0;
-  (eventos||[]).forEach(function(e){
-    var vts=(ventas||[]).filter(function(v){return v.evento_id==e.id&&v.estado!=='Cancelado';});
-    var gastosE=(gastosEvento||[]).filter(function(g){return g.evento_id==e.id;});
-    var tasaEv=parseFloat(e.tasa_bcv||0)||tasa;
-    var totalVBs=vts.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
-    var totalGBs=gastosE.reduce(function(s,g){
-      var bs=parseFloat(g.monto_bs||0); if(bs>0) return s+bs;
-      var usd=parseFloat(g.monto_usd||0); if(usd>0) return s+usd*tasaEv;
-      var m=parseFloat(g.monto||0);
-      return s+(g.moneda==='USD'?m*tasaEv:(m>=500?m:m*tasaEv));
-    },0);
-    var ganBs=totalVBs-totalGBs;
-    var ganUSD=ganBs/tasaEv;
-    if(ganUSD>0) deudaLuisma+=Math.max(15,ganUSD*0.3);
-  });
-
-  el.innerHTML=
-    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px">'
-    // BancaAmiga
-    +'<div style="flex:1;min-width:160px;background:#edf7f1;border-radius:12px;padding:14px 16px;border-left:4px solid #3a7d52">'
-    +'<div style="font-size:11px;font-weight:700;color:#3a7d52;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🏦 BancaAmiga</div>'
-    +'<div style="font-size:20px;font-weight:900;color:#3a7d52">Bs. '+saldoBs.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
-    +'<div style="font-size:12px;color:#3a7d52;opacity:.7">~$'+saldoUSD.toFixed(2)+'</div>'
-    +'<button onclick="abrirEditarSaldoBancaAmiga(null)" style="font-size:10px;margin-top:6px;background:white;border:1px solid #3a7d52;color:#3a7d52;border-radius:6px;padding:2px 8px;cursor:pointer">✏️ Actualizar</button>'
-    +'</div>'
-    // Cobros pendientes
-    +(ventasPend.length>0
-      ?'<div style="flex:1;min-width:160px;background:#fff8e1;border-radius:12px;padding:14px 16px;border-left:4px solid #f59e0b">'
-      +'<div style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">⏳ Cobros Pendientes</div>'
-      +'<div style="font-size:20px;font-weight:900;color:#b45309">$'+totalPend.toFixed(2)+'</div>'
-      +(totalPendBs>0?'<div style="font-size:12px;color:#b45309;opacity:.7">Bs. '+totalPendBs.toLocaleString("es-VE",{minimumFractionDigits:0})+'</div>':'')
-      +'<div style="font-size:11px;color:#888;margin-top:4px">'+ventasPend.length+' venta'+(ventasPend.length>1?'s':'')+'</div>'
-      +'</div>'
-      :'')
-    // Deuda Luisma
-    +(deudaLuisma>0
-      ?'<div style="flex:1;min-width:160px;background:#f5f0ff;border-radius:12px;padding:14px 16px;border-left:4px solid #7c3aed">'
-      +'<div style="font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">💜 Deuda a Luisma</div>'
-      +'<div style="font-size:20px;font-weight:900;color:#7c3aed">$'+deudaLuisma.toFixed(2)+'</div>'
-      +'<div style="font-size:11px;color:#888;margin-top:4px">Total eventos</div>'
-      +'</div>'
-      :'')
-    +'</div>';
 }
 
 function abrirModalReposicion(){
@@ -4440,46 +4086,44 @@ function renderEntregas(){
 }
 
 // ===== REPORTES =====
-function cargarReporte(){
+async function cargarReporte(){
   const mes=document.getElementById('reporte-mes').value; if(!mes)return;
   const vM=ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
   const total=vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
   const totalBs=vM.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
-  var tasaR=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
-  var toUSDr=function(g){var usd=parseFloat(g.monto_usd||0),m=parseFloat(g.monto||0);if(usd>0)return usd;if(g.moneda==='Bs')return m/tasaR;if(g.moneda==='USD')return m;return m>=500?m/tasaR:m;};
-  var gastMes=gastosGlobales.filter(function(g){return (g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición';});
-  var totalGastMes=gastMes.reduce(function(s,g){return s+toUSDr(g);},0);
-  var totalGastBs=totalGastMes*tasaR;
-  var ganBruta=0;
+  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición');
+  const totalGastMes=gastMes.reduce((s,g)=>{const usd=parseFloat(g.monto_usd||0);const monto=parseFloat(g.monto||0);if(usd>0)return s+usd;if((g.moneda||'USD')==='USD')return s+monto;return s;},0);
+  const gananciaMes=total-totalGastMes;
+  // Ganancia bruta = precio venta - precio costo
+  let ganBruta=0;
   vM.forEach(function(v){
-    var soloBS=parseFloat(v.monto_bs||0)>0&&!(parseFloat(v.total||0)>0);
     (v.venta_items||[]).forEach(function(it){
       var prod=productos.find(function(x){return x.id==it.producto_id;});
-      var pv=parseFloat(it.precio_unitario||0),co=prod&&prod.precio_costo>0?parseFloat(prod.precio_costo):0,cant=parseInt(it.cantidad||1);
-      var pvUSD=(soloBS&&pv>10)?pv/tasaR:pv,coUSD=(soloBS&&co>10)?co/tasaR:co;
-      ganBruta+=coUSD>0?(pvUSD-coUSD)*cant:pvUSD*cant*0.3;
+      if(prod&&prod.precio_costo>0) ganBruta+=(parseFloat(it.precio_unitario||0)-parseFloat(prod.precio_costo||0))*parseInt(it.cantidad||1);
+      else ganBruta+=parseFloat(it.subtotal||0)*0.3;
     });
-    ganBruta-=soloBS?parseFloat(v.descuento||0)/tasaR:parseFloat(v.descuento||0);
+    ganBruta-=parseFloat(v.descuento||0);
   });
-  var gananciaNeta=ganBruta-totalGastMes;
-  var margenShow=ganBruta>0&&(total>0||totalBs>0)?(ganBruta/(total>0?total:totalBs/tasaR)*100):35;
+  var gananciaNeta=total-totalGastMes;
   document.getElementById('reporte-stats').innerHTML=
-    '<div class="stat-card"><div class="stat-num" style="font-size:15px">$'+total.toFixed(2)+'<br><small style="font-size:11px;color:#888">Bs.'+totalBs.toLocaleString('es-VE',{maximumFractionDigits:0})+'</small></div><div class="stat-label">💰 Ventas del mes</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:var(--green);font-size:15px">$'+ganBruta.toFixed(2)+'<br><small style="font-size:11px;color:#888">'+margenShow.toFixed(0)+'% margen</small></div><div class="stat-label">📦 Margen bruto</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:var(--red);font-size:15px">$'+totalGastMes.toFixed(2)+'<br><small style="font-size:11px;color:#888">Bs.'+totalGastBs.toLocaleString('es-VE',{maximumFractionDigits:0})+'</small></div><div class="stat-label">💸 Gastos reales</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="font-size:15px;color:'+(gananciaNeta>=0?'var(--green)':'var(--red)')+'">$'+gananciaNeta.toFixed(2)+'<br><small style="font-size:11px;color:#888">Bs.'+(gananciaNeta*tasaR).toLocaleString('es-VE',{maximumFractionDigits:0})+'</small></div><div class="stat-label">📈 Ganancia neta</div></div>'
+    '<div class="stat-card"><div class="stat-num">$'+total.toFixed(2)+'</div><div class="stat-label">💰 Ventas del mes</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">$'+ganBruta.toFixed(2)+'</div><div class="stat-label">📦 Ganancia bruta</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--red)">$'+totalGastMes.toFixed(2)+'</div><div class="stat-label">💸 Gastos del mes</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:'+(gananciaNeta>=0?'var(--green)':'var(--red)')+'">$'+gananciaNeta.toFixed(2)+'</div><div class="stat-label">📈 Ganancia neta</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="font-size:16px">Bs.'+totalBs.toFixed(0)+'</div><div class="stat-label">💱 Total en Bs</div></div>'
     +'<div class="stat-card"><div class="stat-num">'+vM.length+'</div><div class="stat-label">🛍️ Nº de ventas</div></div>';
 
   // ── Punto de equilibrio ──
-  var totalVentaBs=totalBs>0?totalBs:total*tasaR;
-  var pagoPersonalBs=gastosGlobales.filter(function(g){return (g.fecha||'').slice(0,7)===mes&&g.tipo==='Pago personal';}).reduce(function(s,g){return s+toUSDr(g)*tasaR;},0);
-  var gastosOpBs=totalGastBs;
-  var margenPct=totalVentaBs>0?(ganBruta*tasaR/totalVentaBs):0.35;
-  if(margenPct<=0.05)margenPct=0.35;
-  var paraRecuperarBs=gastosOpBs>0?(gastosOpBs/margenPct):0;
-  var paraPersonalBs=pagoPersonalBs>0?((gastosOpBs+pagoPersonalBs)/margenPct):0;
-  var paraGanarBs=(gastosOpBs+pagoPersonalBs)/margenPct*1.3;
-  var paraRecuperar=paraRecuperarBs/tasaR,paraPersonal=paraPersonalBs/tasaR,paraGanar=paraGanarBs/tasaR;
+  var pagoPersonal=gastosGlobales.filter(function(g){return (g.fecha||'').slice(0,7)===mes&&g.tipo==='Pago personal';}).reduce(function(s,g){var usd=parseFloat(g.monto_usd||0);var monto=parseFloat(g.monto||0);if(usd>0)return s+usd;if((g.moneda||'USD')==='USD')return s+monto;return s;},0);
+  var gastosOp=totalGastMes; // ya excluye ajenos y reposiciones
+  var totalCostoMercancia=0;
+  vM.forEach(function(v){(v.venta_items||[]).forEach(function(it){var p=productos.find(function(x){return x.id==it.producto_id;});if(p&&p.precio_costo>0)totalCostoMercancia+=parseFloat(p.precio_costo||0)*parseInt(it.cantidad||1);});});
+  var margenPct=total>0?((total-totalCostoMercancia)/total):0.3;
+  if(margenPct<=0)margenPct=0.3;
+  // Cuánto vender para cubrir cada meta
+  var paraRecuperar=gastosOp>0?(gastosOp/margenPct):0;
+  var paraPersonal=pagoPersonal>0?((gastosOp+pagoPersonal)/margenPct):0;
+  var paraGanar=((gastosOp+pagoPersonal)/margenPct)*1.2; // 20% extra de utilidad
   var diasMes=new Date(parseInt(mes.slice(0,4)),parseInt(mes.slice(5,7)),0).getDate();
   var diaActual=mes===new Date().toISOString().slice(0,7)?new Date().getDate():diasMes;
   var ventaDiaria=total>0?(total/diaActual):0;
@@ -4489,10 +4133,9 @@ function cargarReporte(){
     +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">'
     +'<div style="background:white;border-radius:10px;padding:12px;border-left:3px solid var(--orange)">'
       +'<div style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:4px">💸 Para cubrir gastos</div>'
-      +'<div style="font-size:20px;font-weight:800;color:var(--orange)">Bs.'+paraRecuperarBs.toLocaleString("es-VE",{maximumFractionDigits:0})+'</div>'
-      +'<div style="font-size:12px;color:#aaa">~$'+paraRecuperar.toFixed(2)+'</div>'
+      +'<div style="font-size:20px;font-weight:800;color:var(--orange)">$'+paraRecuperar.toFixed(2)+'</div>'
       +'<div style="font-size:11px;color:var(--gray);margin-top:3px">Solo cubres costos, sin ganancia</div>'
-      +'<div style="font-size:12px;font-weight:600;color:'+(totalVentaBs>=paraRecuperarBs?'var(--green)':'var(--red)')+'">'+( totalVentaBs>=paraRecuperarBs?'✅ Ya lo alcanzaste':'⚠️ Faltan Bs.'+(paraRecuperarBs-totalVentaBs).toFixed(0))+'</div>'
+      +'<div style="font-size:12px;font-weight:600;color:'+(total>=paraRecuperar?'var(--green)':'var(--red)')+'">'+( total>=paraRecuperar?'✅ Ya lo alcanzaste':'⚠️ Faltan $'+(paraRecuperar-total).toFixed(2))+'</div>'
     +'</div>'
     +(pagoPersonal>0?'<div style="background:white;border-radius:10px;padding:12px;border-left:3px solid var(--purple)">'
       +'<div style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:4px">👥 Para pagar personal</div>'
@@ -4575,7 +4218,6 @@ function descargarCSV(csv,nombre){ const a=document.createElement('a'); a.href=U
 
 // ===== UTILS =====
 // ══════════════════════════════════════════
-// MODAL RESUMEN EVENTO
 // MOVIMIENTOS BANCAAMIGA
 // ══════════════════════════════════════════
 
@@ -4604,7 +4246,7 @@ function toast(msg,duracion){
   toastEl.textContent=msg;toastEl.classList.add('show');
   clearTimeout(toastEl._t);toastEl._t=setTimeout(function(){toastEl.classList.remove('show');},duracion||3000);
 }
-function formatFecha(str){ if(!str)return'—'; try{ const s=String(str).trim(); const d=s.length===10?new Date(s+'T12:00:00'):new Date(s); return d.toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return str;} }
+function formatFecha(str){ if(!str)return'—'; try{return new Date(str).toLocaleDateString('es-VE',{day:'2-digit',month:'2-digit',year:'numeric'});}catch{return str;} }
 document.querySelectorAll('.modal-bg').forEach(bg=>bg.addEventListener('click',function(e){if(e.target===this)this.classList.remove('open');}));
 
 document.addEventListener('DOMContentLoaded', function(){ init(); });
@@ -5007,17 +4649,16 @@ function renderMovimientosBancaAmiga(){
     });
   });
   // SALIDAS — gastos en Bs (no ajenos, no reposiciones-no-efectivo)
-  // Gastos en Bs + TODAS las reposiciones (cualquier moneda)
-  (gastosGlobales||[]).filter(g=>g.tipo!=='Gasto ajeno'&&g.tipo!=='Saldo Real'&&(g.moneda==='Bs'||g.tipo==='Reposición')).forEach(g=>{
+  (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno').forEach(g=>{
     const esRepos = g.tipo==='Reposición';
-    const montoBs = parseFloat(g.monto_bs||0) || (g.moneda==='Bs'?parseFloat(g.monto||0):0);
-    if(!montoBs) return; // sin monto Bs, ignorar
+    const reposEfectivo = esRepos && (g.reposicion_de||'').startsWith('Efectivo');
+    if(esRepos && !reposEfectivo) return;
     movs.push({
       fecha: g.fecha||g.creado_en||'',
       tipo: esRepos ? 'entrada' : 'salida',
       desc: g.descripcion||g.tipo,
       sub: g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''),
-      monto: montoBs
+      monto: parseFloat(g.monto||0)
     });
   });
   // Ordenar por fecha asc para calcular saldo corriente
@@ -5262,161 +4903,6 @@ async function registrarGastoBanco(eid,montoBs,uid){
     toast('❌ Error al guardar');
   }
 }
-
-// ══ CONCILIACIÓN DIARIA ══
-var _concSistemaBS=0, _concSistemaUSD=0;
-async function abrirConciliacionDia(){
-  var hoy=new Date().toISOString().split('T')[0];
-  document.getElementById('conc-fecha').value=hoy;
-  document.getElementById('conc-banco-bs').value='';
-  document.getElementById('conc-tasa').value='';
-  document.getElementById('conc-notas').value='';
-  document.getElementById('conc-resultado').style.display='none';
-  document.getElementById('conc-sistema-bs').textContent='Calculando...';
-  document.getElementById('conc-sistema-usd').textContent='';
-  document.getElementById('modal-conciliacion-dia').style.display='flex';
-  await _cargarTotalesConc(hoy);
-  document.getElementById('conc-fecha').onchange=async function(){ await _cargarTotalesConc(this.value); calcularDifConc(); };
-}
-async function _cargarTotalesConc(fecha){
-  if(!fecha) return;
-  try{
-    var r=await fetch(SUPA_URL+'/rest/v1/ventas?fecha_venta=eq.'+fecha+'&estado=neq.Cancelado&select=monto_bs,total',
-      {headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY}});
-    var data=await r.json();
-    _concSistemaBS=data.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
-    _concSistemaUSD=data.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
-    document.getElementById('conc-sistema-bs').textContent='Bs '+_concSistemaBS.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2});
-    document.getElementById('conc-sistema-usd').textContent='$'+_concSistemaUSD.toFixed(2);
-  }catch(e){document.getElementById('conc-sistema-bs').textContent='Error';}
-}
-function calcularDifConc(){
-  var banco=parseFloat(document.getElementById('conc-banco-bs').value||0);
-  var tasa=parseFloat(document.getElementById('conc-tasa').value||0);
-  if(!banco){document.getElementById('conc-resultado').style.display='none';return;}
-  var dif=_concSistemaBS-banco;
-  var difUSD=tasa>0?Math.abs(dif/tasa).toFixed(2):null;
-  var res=document.getElementById('conc-resultado');
-  res.style.display='block';
-  if(Math.abs(dif)<0.5){
-    res.style.background='#f0fdf4';
-    document.getElementById('conc-res-label').style.color='#2e7d32';
-    document.getElementById('conc-res-label').textContent='Cuadra perfecto!';
-    document.getElementById('conc-res-monto').style.color='#2e7d32';
-    document.getElementById('conc-res-monto').textContent='Bs 0.00';
-    document.getElementById('conc-res-usd').textContent='';
-  } else if(dif>0){
-    res.style.background='#fff5f5';
-    document.getElementById('conc-res-label').style.color='#c62828';
-    document.getElementById('conc-res-label').textContent='Sistema tiene mas que el banco';
-    document.getElementById('conc-res-monto').style.color='#c62828';
-    document.getElementById('conc-res-monto').textContent='Bs '+dif.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+' de mas';
-    document.getElementById('conc-res-usd').textContent=difUSD?'aprox $'+difUSD+' a tasa '+tasa:'';
-  } else {
-    res.style.background='#fffde7';
-    document.getElementById('conc-res-label').style.color='#e65100';
-    document.getElementById('conc-res-label').textContent='El banco tiene mas que el sistema';
-    document.getElementById('conc-res-monto').style.color='#e65100';
-    document.getElementById('conc-res-monto').textContent='Bs '+Math.abs(dif).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+' sin registrar';
-    document.getElementById('conc-res-usd').textContent=difUSD?'aprox $'+difUSD+' a tasa '+tasa:'';
-  }
-}
-async function guardarConciliacionDia(){
-  var banco=parseFloat(document.getElementById('conc-banco-bs').value||0);
-  var tasa=parseFloat(document.getElementById('conc-tasa').value||0);
-  var fecha=document.getElementById('conc-fecha').value;
-  var notas=document.getElementById('conc-notas').value||'';
-  if(!banco||!fecha){alert('Ingresa la fecha y el total del banco');return;}
-  var dif=_concSistemaBS-banco;
-  if(Math.abs(dif)<0.5){cerrarConciliacionDia();return;}
-  var monto_usd=tasa>0?parseFloat((Math.abs(dif)/tasa).toFixed(2)):0;
-  var descripcion='Diferencia de conciliacion '+fecha+(notas?' - '+notas:'');
-  try{
-    var r=await fetch(SUPA_URL+'/rest/v1/gastos_globales',{
-      method:'POST',
-      headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=minimal'},
-      body:JSON.stringify({tipo:'Gasto',categoria:'Conciliacion',descripcion:descripcion,
-        monto:Math.abs(dif),moneda:'Bs',tasa_bcv:tasa||null,monto_usd:monto_usd,
-        monto_bs:Math.abs(dif),fecha:fecha,notas:notas||'Conciliacion diaria'})
-    });
-    if(r.ok){cerrarConciliacionDia();mostrarToast('Diferencia registrada en contabilidad');}
-    else{var e=await r.json();alert('Error: '+JSON.stringify(e));}
-  }catch(e){alert('Error: '+e.message);}
-}
-function cerrarConciliacionDia(){
-  document.getElementById('modal-conciliacion-dia').style.display='none';
-}
-
-
-// INVERSIONES PERSONALES
-function renderInversiones(){
-  var mesSelVal=document.getElementById('filtro-mes-gasto')?document.getElementById('filtro-mes-gasto').value:'';
-  var mesActual=new Date().toISOString().slice(0,7);
-  var mes=mesSelVal||mesActual;
-  var lista=gastosGlobales.filter(function(g){return g.tipo==='Inversion';}).filter(function(g){return (g.fecha||'').slice(0,7)===mes;});
-  var totalUSD=lista.filter(function(g){return g.moneda==='USD';}).reduce(function(s,g){return s+parseFloat(g.monto||0);},0);
-  var totalBs=lista.filter(function(g){return g.moneda==='Bs';}).reduce(function(s,g){return s+parseFloat(g.monto||0);},0);
-  var el=document.getElementById('inv-lista');
-  var tot=document.getElementById('inv-total');
-  if(!el)return;
-  if(!lista.length){
-    el.innerHTML='<div style="color:#aaa;font-size:13px;text-align:center;padding:12px">No hay inversiones este mes</div>';
-    if(tot)tot.textContent='';
-    return;
-  }
-  var totStr='';
-  if(totalUSD>0)totStr+='$'+totalUSD.toFixed(2);
-  if(totalBs>0)totStr+=(totStr?' + ':'')+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+' Bs';
-  if(tot)tot.textContent=totStr;
-  el.innerHTML=lista.map(function(g){
-    return '<div style="display:flex;justify-content:space-between;align-items:center;background:#e3f2fd;border-radius:10px;padding:10px 14px">'
-      +'<div><div style="font-size:13px;font-weight:700;color:#1565c0">'+(g.descripcion||'Inversion')+'</div>'
-      +'<div style="font-size:11px;color:#888">'+(g.fecha||'')+(g.notas?' - '+g.notas:'')+'</div></div>'
-      +'<div style="display:flex;align-items:center;gap:8px">'
-      +'<span style="font-weight:800;color:#1565c0">'+(g.moneda==='Bs'?'Bs '+parseFloat(g.monto||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2}):'$'+parseFloat(g.monto||0).toFixed(2))+'</span>'
-      +'<button onclick="eliminarGasto('+g.id+')" style="background:none;border:none;cursor:pointer;font-size:14px;color:#aaa">x</button>'
-      +'</div></div>';
-  }).join('');
-}
-function abrirModalInversion(){
-  var hoy=new Date().toISOString().split('T')[0];
-  document.getElementById('inv-fecha').value=hoy;
-  document.getElementById('inv-desc').value='';
-  document.getElementById('inv-monto').value='';
-  document.getElementById('inv-notas').value='';
-  document.getElementById('modal-inversion').style.display='flex';
-}
-function cerrarModalInv(){
-  document.getElementById('modal-inversion').style.display='none';
-}
-async function guardarInversion(){
-  var desc=document.getElementById('inv-desc').value.trim();
-  var monto=parseFloat(document.getElementById('inv-monto').value||0);
-  var moneda=document.getElementById('inv-moneda').value;
-  var fecha=document.getElementById('inv-fecha').value;
-  var notas=document.getElementById('inv-notas').value.trim();
-  if(!desc||!monto||!fecha){alert('Completa descripcion, monto y fecha');return;}
-  var tasa=bcvHoy||0;
-  var monto_usd=moneda==='Bs'&&tasa>0?parseFloat((monto/tasa).toFixed(2)):(moneda==='USD'?monto:0);
-  var monto_bs=moneda==='Bs'?monto:(tasa>0?parseFloat((monto*tasa).toFixed(2)):0);
-  var r=await fetch(SUPA_URL+'/rest/v1/gastos_globales',{
-    method:'POST',
-    headers:{'apikey':SUPA_KEY,'Authorization':'Bearer '+SUPA_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-    body:JSON.stringify({tipo:'Inversion',categoria:'Inversion personal',descripcion:desc,
-      monto:monto,moneda:moneda,tasa_bcv:tasa||null,monto_usd:monto_usd,monto_bs:monto_bs,fecha:fecha,notas:notas||null})
-  });
-  if(r.ok){
-    var nuevo=await r.json();
-    if(Array.isArray(nuevo))gastosGlobales.unshift.apply(gastosGlobales,nuevo);
-    cerrarModalInv();
-    renderGastosGlobal();
-    renderInversiones();
-    toast('Inversion registrada');
-  }else{
-    var e=await r.json();alert('Error: '+JSON.stringify(e));
-  }
-}
-
 </script>
 
 <a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
@@ -5531,146 +5017,6 @@ async function guardarInversion(){
 </div>
 </div>
 
-
-<!-- ══ MODAL CONCILIACIÓN DIARIA ══ -->
-<div id="modal-conciliacion-dia" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:999;align-items:center;justify-content:center">
-  <div style="background:white;border-radius:18px;padding:24px;width:90%;max-width:420px;box-shadow:0 8px 32px rgba(0,0,0,.18)">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px">
-      <div style="font-size:17px;font-weight:800">&#127970; Conciliaci&#243;n del d&#237;a</div>
-      <button onclick="cerrarConciliacionDia()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#aaa">&#x2715;</button>
-    </div>
-    <div style="margin-bottom:14px">
-      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Fecha a conciliar</label>
-      <input type="date" id="conc-fecha" style="width:100%;padding:8px 12px;border:2px solid #ede9fe;border-radius:8px;font-size:14px;box-sizing:border-box">
-    </div>
-    <div style="background:#f8f9fa;border-radius:10px;padding:12px;margin-bottom:14px">
-      <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:8px">&#128202; Sistema registra</div>
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <span style="font-size:13px;color:#666">Total ventas en Bs</span>
-        <span id="conc-sistema-bs" style="font-size:16px;font-weight:800;color:#4527a0">&#8212;</span>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-        <span style="font-size:13px;color:#666">Total ventas en $</span>
-        <span id="conc-sistema-usd" style="font-size:13px;font-weight:700;color:#888">&#8212;</span>
-      </div>
-    </div>
-    <div style="margin-bottom:14px">
-      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Total que entr&#243; al banco (Bs)</label>
-      <input type="number" id="conc-banco-bs" placeholder="Ej: 63663.26" step="0.01"
-        style="width:100%;padding:8px 12px;border:2px solid #ede9fe;border-radius:8px;font-size:14px;box-sizing:border-box"
-        oninput="calcularDifConc()">
-    </div>
-    <div id="concd-resultado" style="display:none;border-radius:10px;padding:12px;margin-bottom:14px;text-align:center">
-      <div style="font-size:12px;font-weight:700;margin-bottom:4px" id="concd-res-label"></div>
-      <div style="font-size:22px;font-weight:900" id="concd-res-monto"></div>
-      <div style="font-size:11px;color:#888;margin-top:2px" id="concd-res-usd"></div>
-    </div>
-    <div style="margin-bottom:16px">
-      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Tasa BCV del d&#237;a</label>
-      <input type="number" id="conc-tasa" placeholder="Ej: 484.74" step="0.01"
-        style="width:100%;padding:8px 12px;border:2px solid #ede9fe;border-radius:8px;font-size:14px;box-sizing:border-box"
-        oninput="calcularDifConc()">
-    </div>
-    <div style="margin-bottom:16px">
-      <label style="font-size:12px;font-weight:700;color:#555;display:block;margin-bottom:4px">Notas (opcional)</label>
-      <input type="text" id="conc-notas" placeholder="Ej: diferencia de tasa, cobro pendiente..."
-        style="width:100%;padding:8px 12px;border:2px solid #ede9fe;border-radius:8px;font-size:14px;box-sizing:border-box">
-    </div>
-    <button onclick="guardarConciliacionDia()" class="btn btn-primary" style="width:100%;padding:10px;font-size:14px;font-weight:700">
-      &#128190; Registrar diferencia
-    </button>
-  </div>
-</div>
-
-<!-- MODAL INVERSION PERSONAL -->
-<div id="modal-inversion" class="modal-bg" onclick="if(event.target===this)cerrarModalInv()" style="display:none">
-<div class="modal" style="max-width:400px">
-  <div class="modal-title">&#128176; Registrar Inversion Personal</div>
-  <div class="form-group">
-    <label>Fecha</label>
-    <input type="date" id="inv-fecha" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box">
-  </div>
-  <div class="form-group">
-    <label>Descripcion <span style="color:var(--pink)">*</span></label>
-    <input type="text" id="inv-desc" placeholder="Ej: Compre mercancia para el evento" style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box">
-  </div>
-  <div class="form-group">
-    <label>Monto</label>
-    <div style="display:flex;gap:8px">
-      <select id="inv-moneda" style="padding:8px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;background:white">
-        <option value="USD">$</option>
-        <option value="Bs">Bs</option>
-      </select>
-      <input type="number" id="inv-monto" placeholder="0.00" step="0.01" style="flex:1;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px">
-    </div>
-  </div>
-  <div class="form-group">
-    <label>Notas (opcional)</label>
-    <input type="text" id="inv-notas" placeholder="Detalles adicionales..." style="width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;box-sizing:border-box">
-  </div>
-  <div class="modal-footer">
-    <button class="btn btn-secondary" onclick="cerrarModalInv()">Cancelar</button>
-    <button class="btn btn-primary" onclick="guardarInversion()">Guardar</button>
-  </div>
-</div>
-</div>
-
-<!-- MODAL RESUMEN EVENTO -->
-<div class="modal-bg" id="modal-resumen-evento" onclick="if(event.target===this)cerrarModal('modal-resumen-evento')" style="z-index:1100">
-  <div class="modal" style="max-width:440px;padding:0;overflow:hidden;border-radius:16px">
-    <div style="background:linear-gradient(135deg,#7c3aed,#c2185b);padding:20px 20px 16px;color:white">
-      <div style="display:flex;justify-content:space-between;align-items:start">
-        <div>
-          <div id="mre-nombre" style="font-size:19px;font-weight:900;margin-bottom:3px"></div>
-          <div id="mre-fecha" style="font-size:12px;opacity:.8"></div>
-          <div id="mre-lugar" style="font-size:11px;opacity:.7;margin-top:1px"></div>
-        </div>
-        <button onclick="cerrarModal('modal-resumen-evento')" style="background:rgba(255,255,255,.2);border:none;color:white;font-size:22px;border-radius:50%;width:34px;height:34px;cursor:pointer;line-height:1">x</button>
-      </div>
-    </div>
-    <div style="padding:4px 20px 0">
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff;cursor:pointer" onclick="mreToggle('mre-ventas-det')">
-        <span style="font-size:14px;color:#555;font-weight:600">Ventas <small id="mre-ventas-cnt" style="color:#aaa;font-weight:400"></small></span>
-        <div style="text-align:right">
-          <div id="mre-ventas" style="font-size:17px;font-weight:900;color:#2e7d32"></div>
-          <div id="mre-ventas-bs" style="font-size:11px;color:#3a7d52"></div>
-        </div>
-      </div>
-      <div id="mre-metodos" style="display:flex;gap:5px;flex-wrap:wrap;padding:4px 0 2px"></div>
-      <div id="mre-ventas-det" style="display:none;background:#f9fafb;border-radius:8px;padding:8px 10px;margin:4px 0;max-height:180px;overflow-y:auto;font-size:12px;color:#555"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff;cursor:pointer" onclick="mreToggle('mre-gastos-det')">
-        <span style="font-size:14px;color:#555;font-weight:600">Gastos / Inversion <small id="mre-gastos-cnt" style="color:#aaa;font-weight:400"></small></span>
-        <div style="text-align:right">
-          <div id="mre-gastos" style="font-size:17px;font-weight:900;color:#c62828"></div>
-          <div id="mre-gastos-bs" style="font-size:11px;color:#e57373"></div>
-        </div>
-      </div>
-      <div id="mre-gastos-det" style="display:none;background:#f9fafb;border-radius:8px;padding:8px 10px;margin:4px 0;max-height:180px;overflow-y:auto;font-size:12px;color:#555"></div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
-        <span style="font-size:14px;color:#555;font-weight:600">Ganancia neta</span>
-        <div id="mre-ganancia" style="font-size:17px;font-weight:900"></div>
-      </div>
-      <div id="mre-rec-row" style="display:none;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
-        <span style="font-size:14px;color:#1565c0;font-weight:600">Recuperacion inversion</span>
-        <div id="mre-recuperacion" style="font-size:17px;font-weight:900;color:#1565c0"></div>
-      </div>
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
-        <span style="font-size:14px;color:#7c3aed;font-weight:600">💜 Pagar a Luisma</span>
-        <div id="mre-luisma" style="font-size:17px;font-weight:900;color:#7c3aed"></div>
-      </div>
-      <div id="mre-tu-parte-row" style="display:none;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3e8ff">
-        <span style="font-size:14px;color:#2e7d32;font-weight:600">🌸 Tu parte</span>
-        <div id="mre-tu-parte" style="font-size:17px;font-weight:900;color:#2e7d32"></div>
-      </div>
-      <div id="mre-mama-row" style="display:none;justify-content:space-between;align-items:center;padding:12px 0">
-        <span style="font-size:14px;color:#c2185b;font-weight:600">Pagar a Mama</span>
-        <div id="mre-mama" style="font-size:17px;font-weight:900;color:#c2185b"></div>
-      </div>
-    </div>
-    <div style="padding:12px 20px 20px;border-top:1px solid #f3e8ff">
-      <button onclick="descargarPDFEvento()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#c2185b);color:white;border:none;border-radius:12px;padding:13px;font-size:14px;font-weight:700;cursor:pointer">Descargar PDF</button>
-    </div>
-  </div>
-</div>
 </body>
 </html>
+
