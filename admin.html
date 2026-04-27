@@ -3586,7 +3586,7 @@ async function renderEventos(){
     return '<div class="card" style="padding:16px">'
 
       // ── CABECERA (siempre visible, clickeable para expandir) ──
-      +'<div style="display:flex;justify-content:space-between;align-items:start;cursor:pointer" onclick="toggleDetalleEvento('+e.id+',event)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:start;cursor:pointer" onclick="abrirResumenEvento('+e.id+',event)">'
       +'<div>'
       +'<div style="font-size:16px;font-weight:800;margin-bottom:3px">🎪 '+e.nombre+'</div>'
       +'<div style="font-size:12px;color:#888">'+fmtFechaEvento(e.fecha)+(e.lugar?' · 📍'+e.lugar:'')+'</div>'
@@ -3753,6 +3753,107 @@ async function renderEventos(){
   }).join('');
 }
 
+function mreToggle(id){
+  var el=document.getElementById(id);
+  if(el) el.style.display=el.style.display==='none'?'block':'none';
+}
+function abrirResumenEvento(eid,event){
+  if(event&&event.target&&(event.target.tagName==='BUTTON'||event.target.closest('button'))) return;
+  var e=(eventos||[]).find(function(x){return x.id==eid;}); if(!e) return;
+  var tasa=parseFloat(e.tasa_bcv||0)||(typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74);
+  var vts=(ventas||[]).filter(function(v){return v.evento_id==eid&&v.estado!=='Cancelado';});
+  var gastosE=(gastosEvento||[]).filter(function(g){return g.evento_id==eid;});
+  var gastosOp=gastosE.filter(function(g){return g.tipo!=='Inversion'&&g.tipo!=='Inversión';});
+  var gastosInvArr=gastosE.filter(function(g){return g.tipo==='Inversion'||g.tipo==='Inversión';});
+  var totalV=vts.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
+  var totalVBs=vts.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
+  var ventasUSD=totalV>0?totalV:totalVBs/tasa;
+  var gUSD=function(g){
+    var u=parseFloat(g.monto_usd||0); if(u>0) return u;
+    var b=parseFloat(g.monto_bs||0);  if(b>0) return b/tasa;
+    var m=parseFloat(g.monto||0);
+    if(g.moneda==='USD') return m;
+    if(g.moneda==='Bs')  return m/tasa;
+    return m<500?m:m/tasa;
+  };
+  var totalG=gastosOp.reduce(function(s,g){return s+gUSD(g);},0);
+  var totalInvVal=gastosInvArr.reduce(function(s,g){return s+gUSD(g);},0);
+  var ganancia=ventasUSD-totalG;
+  var luismaParte=ganancia>0?Math.max(15,ganancia*0.3):0;
+  var deudaMama=0;
+  vts.forEach(function(v){
+    (v.venta_items||[]).forEach(function(it){
+      var p=(productos||[]).find(function(x){return x.id==it.producto_id;});
+      if(!p||p.propietario!=='Mamá') return;
+      var cant=parseInt(it.cantidad||1);
+      deudaMama+=(parseFloat(it.precio_unitario||p.precio||0)-parseFloat(p.precio_costo||0)-0.50)*cant;
+    });
+  });
+  document.getElementById('mre-nombre').textContent='🎪 '+e.nombre;
+  document.getElementById('mre-fecha').textContent=e.fecha||'Sin fecha';
+  document.getElementById('mre-lugar').textContent=e.lugar?'📍 '+e.lugar:'';
+  document.getElementById('mre-ventas-cnt').textContent='('+vts.length+')';
+  document.getElementById('mre-ventas').textContent='$'+ventasUSD.toFixed(2);
+  document.getElementById('mre-ventas-bs').textContent=totalVBs>0?'Bs. '+totalVBs.toLocaleString('es-VE',{minimumFractionDigits:0}):'';
+  document.getElementById('mre-gastos-cnt').textContent='('+gastosE.length+')';
+  document.getElementById('mre-gastos').textContent='-$'+(totalG+totalInvVal).toFixed(2);
+  document.getElementById('mre-gastos-bs').textContent=(gastosInvArr.length>0?gastosInvArr.length+' inversión · ':'')+(gastosOp.length)+' op.';
+  var ganEl=document.getElementById('mre-ganancia');
+  ganEl.textContent='$'+ganancia.toFixed(2); ganEl.style.color=ganancia>=0?'#2e7d32':'#c62828';
+  var recRow=document.getElementById('mre-rec-row');
+  recRow.style.display=totalInvVal>0?'flex':'none';
+  document.getElementById('mre-recuperacion').textContent='+$'+totalInvVal.toFixed(2);
+  document.getElementById('mre-luisma').textContent=luismaParte>0?'$'+luismaParte.toFixed(2):'—';
+  var mamaRow=document.getElementById('mre-mama-row');
+  mamaRow.style.display=deudaMama>0?'flex':'none';
+  document.getElementById('mre-mama').textContent='$'+deudaMama.toFixed(2);
+  // Detalle ventas
+  document.getElementById('mre-ventas-det').innerHTML=vts.map(function(v){
+    var monto=parseFloat(v.monto_bs||0)>0?'Bs.'+parseFloat(v.monto_bs).toLocaleString('es-VE',{minimumFractionDigits:0}):'$'+parseFloat(v.total||0).toFixed(2);
+    return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #eee"><span>'+(v.numero||'#'+v.id)+' '+(v.cliente_nombre||'')+'</span><span style="font-weight:700">'+monto+'</span></div>';
+  }).join('')||'<span style="color:#aaa">Sin detalle</span>';
+  // Detalle gastos
+  document.getElementById('mre-gastos-det').innerHTML=gastosE.map(function(g){
+    var esInv=g.tipo==='Inversión'||g.tipo==='Inversion';
+    return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid #eee"><span style="color:'+(esInv?'#1565c0':'#555')+'">'+(esInv?'💼 ':'')+(g.descripcion||g.categoria||'Gasto')+'</span><span style="font-weight:700;color:'+(esInv?'#1565c0':'#c62828')+'">$'+gUSD(g).toFixed(2)+'</span></div>';
+  }).join('')||'<span style="color:#aaa">Sin gastos</span>';
+  window._mreData={e:e,ventasUSD:ventasUSD,totalVBs:totalVBs,totalG:totalG,totalInvVal:totalInvVal,ganancia:ganancia,luismaParte:luismaParte,deudaMama:deudaMama,tasa:tasa,vts:vts,gastosE:gastosE,gUSD:gUSD};
+  abrirModal('modal-resumen-evento');
+}
+function descargarPDFEvento(){
+  var d=window._mreData; if(!d) return;
+  var e=d.e;
+  var doc=new jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  var y=20,lm=15;
+  doc.setFillColor(124,58,237); doc.rect(0,0,210,38,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(18); doc.setFont(undefined,'bold');
+  doc.text('Brillitos - Resumen de Evento',lm,14);
+  doc.setFontSize(12); doc.setFont(undefined,'normal');
+  doc.text(e.nombre+(e.lugar?' - '+e.lugar:''),lm,23);
+  doc.text(e.fecha||'',lm,31);
+  y=48;
+  var row=function(label,val,r,g2,b2){
+    doc.setTextColor(80,80,80); doc.setFontSize(11); doc.setFont(undefined,'normal');
+    doc.text(label,lm,y);
+    doc.setTextColor(r||40,g2||40,b2||40); doc.setFont(undefined,'bold');
+    doc.text(String(val),195,y,{align:'right'});
+    doc.setDrawColor(220,220,220); doc.setLineWidth(0.2); doc.line(lm,y+2,195,y+2);
+    y+=10;
+  };
+  row('Ventas ('+d.vts.length+')', '$'+d.ventasUSD.toFixed(2)+(d.totalVBs>0?' / Bs.'+Math.round(d.totalVBs).toLocaleString('es-VE'):''), 46,125,50);
+  row('Gastos operativos', '-$'+d.totalG.toFixed(2), 198,40,40);
+  if(d.totalInvVal>0) row('Inversion recuperada', '+$'+d.totalInvVal.toFixed(2), 21,101,192);
+  doc.setDrawColor(124,58,237); doc.setLineWidth(0.6); doc.line(lm,y-2,195,y-2); y+=2;
+  row('Ganancia neta', '$'+d.ganancia.toFixed(2), d.ganancia>=0?46:198, d.ganancia>=0?125:40, d.ganancia>=0?50:40);
+  y+=4;
+  row('Pagar a Luisma', '$'+d.luismaParte.toFixed(2), 124,58,237);
+  if(d.deudaMama>0) row('Pagar a Mama', '$'+d.deudaMama.toFixed(2), 194,24,91);
+  y+=8;
+  doc.setTextColor(160,160,160); doc.setFontSize(9); doc.setFont(undefined,'normal');
+  doc.text('Tasa BCV: '+d.tasa.toFixed(2)+' Bs/$  -  Generado '+new Date().toLocaleDateString('es-VE'),lm,y);
+  var fname='Brillitos_'+e.nombre.replace(/[^a-zA-Z0-9]/g,'_')+'.pdf';
+  doc.save(fname);
+}
 function toggleDetalleEvento(eid, event){
   if(event && event.target && (event.target.tagName==='BUTTON'||event.target.closest('button'))) return;
   var det=document.getElementById('detalle-evento-'+eid);
@@ -4049,14 +4150,22 @@ function renderGastosGlobal(){
 function renderContaResumen(){
   var el=document.getElementById('conta-resumen'); if(!el) return;
   // Saldo BancaAmiga — mismo que el dashboard
-  var saldoRealReg=(gastosGlobales||[]).filter(function(g){return g.tipo==='Saldo Real'&&g.moneda==='Bs';})
+  var tasaConta=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
+  // Saldo = ventas Bs - gastos Bs + reposiciones Bs
+  var saldoBs=0;
+  (ventas||[]).filter(function(v){return v.estado!=='Cancelado';}).forEach(function(v){
+    saldoBs+=parseFloat(v.monto_bs||0);
+  });
+  (gastosGlobales||[]).filter(function(g){return g.tipo!=='Gasto ajeno'&&g.tipo!=='Saldo Real';}).forEach(function(g){
+    var esRepos=g.tipo==='Reposición';
+    var mBs=parseFloat(g.monto_bs||0)||(g.moneda==='Bs'?parseFloat(g.monto||0):0);
+    if(!mBs) return;
+    saldoBs+=esRepos?mBs:-mBs;
+  });
+  // Saldo real registrado lo sobreescribe si existe
+  var saldoRealReg=(gastosGlobales||[]).filter(function(g){return g.tipo==='Saldo Real'&&(g.moneda==='Bs'||parseFloat(g.monto_bs||0)>0);})
     .sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
-  var saldoBs=saldoRealReg.length>0?parseFloat(saldoRealReg[0].monto||0):null;
-  // Si no hay saldo real, sumar ventas en Bs
-  if(saldoBs===null){
-    saldoBs=(ventas||[]).filter(function(v){return v.estado!=='Cancelado';})
-      .reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
-  }
+  if(saldoRealReg.length>0) saldoBs=parseFloat(saldoRealReg[0].monto_bs||saldoRealReg[0].monto||0);
   var tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
   var saldoUSD=saldoBs/tasa;
 
@@ -4475,6 +4584,63 @@ function descargarCSV(csv,nombre){ const a=document.createElement('a'); a.href=U
 
 // ===== UTILS =====
 // ══════════════════════════════════════════
+// MODAL RESUMEN EVENTO
+</script>
+<!-- RESUMEN EVENTO -->
+<div class="modal-bg" id="modal-resumen-evento" onclick="if(event.target===this)cerrarModal('modal-resumen-evento')" style="z-index:1100">
+<div class="modal" style="max-width:440px;padding:0;overflow:hidden;border-radius:16px">
+  <div id="mre-header" style="background:linear-gradient(135deg,#7c3aed,#c2185b);padding:20px 20px 16px;color:white">
+    <div style="display:flex;justify-content:space-between;align-items:start">
+      <div>
+        <div id="mre-nombre" style="font-size:19px;font-weight:900;margin-bottom:3px"></div>
+        <div id="mre-fecha" style="font-size:12px;opacity:.8"></div>
+        <div id="mre-lugar" style="font-size:11px;opacity:.7;margin-top:1px"></div>
+      </div>
+      <button onclick="cerrarModal('modal-resumen-evento')" style="background:rgba(255,255,255,.2);border:none;color:white;font-size:20px;border-radius:50%;width:32px;height:32px;cursor:pointer">×</button>
+    </div>
+  </div>
+  <div style="padding:4px 20px 0">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff;cursor:pointer" onclick="mreToggle('mre-ventas-det')">
+      <span style="font-size:14px;color:#555;font-weight:600">🛍️ Ventas <small style="color:#aaa;font-weight:400" id="mre-ventas-cnt"></small></span>
+      <div style="text-align:right">
+        <div id="mre-ventas" style="font-size:17px;font-weight:900;color:#2e7d32"></div>
+        <div id="mre-ventas-bs" style="font-size:11px;color:#3a7d52"></div>
+      </div>
+    </div>
+    <div id="mre-ventas-det" style="display:none;background:#f9fafb;border-radius:8px;padding:8px 10px;margin:4px 0;max-height:180px;overflow-y:auto;font-size:12px;color:#555"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff;cursor:pointer" onclick="mreToggle('mre-gastos-det')">
+      <span style="font-size:14px;color:#555;font-weight:600">💸 Gastos / Inversión <small style="color:#aaa;font-weight:400" id="mre-gastos-cnt"></small></span>
+      <div style="text-align:right">
+        <div id="mre-gastos" style="font-size:17px;font-weight:900;color:#c62828"></div>
+        <div id="mre-gastos-bs" style="font-size:11px;color:#e57373"></div>
+      </div>
+    </div>
+    <div id="mre-gastos-det" style="display:none;background:#f9fafb;border-radius:8px;padding:8px 10px;margin:4px 0;max-height:180px;overflow-y:auto;font-size:12px;color:#555"></div>
+
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
+      <span style="font-size:14px;color:#555;font-weight:600">📈 Ganancia neta</span>
+      <div id="mre-ganancia" style="font-size:17px;font-weight:900"></div>
+    </div>
+    <div id="mre-rec-row" style="display:none;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
+      <span style="font-size:14px;color:#1565c0;font-weight:600">💼 Recuperación inversión</span>
+      <div id="mre-recuperacion" style="font-size:17px;font-weight:900;color:#1565c0"></div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
+      <span style="font-size:14px;color:#7c3aed;font-weight:600">💜 Pagar a Luisma</span>
+      <div id="mre-luisma" style="font-size:17px;font-weight:900;color:#7c3aed"></div>
+    </div>
+    <div id="mre-mama-row" style="display:none;justify-content:space-between;align-items:center;padding:12px 0">
+      <span style="font-size:14px;color:#c2185b;font-weight:600">💕 Pagar a Mamá</span>
+      <div id="mre-mama" style="font-size:17px;font-weight:900;color:#c2185b"></div>
+    </div>
+  </div>
+  <div style="padding:12px 20px 20px;border-top:1px solid #f3e8ff">
+    <button onclick="descargarPDFEvento()" style="width:100%;background:linear-gradient(135deg,#7c3aed,#c2185b);color:white;border:none;border-radius:12px;padding:12px;font-size:14px;font-weight:700;cursor:pointer">📄 Descargar PDF</button>
+  </div>
+</div>
+</div>
+<script>
 // MOVIMIENTOS BANCAAMIGA
 // ══════════════════════════════════════════
 
