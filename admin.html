@@ -1961,14 +1961,7 @@ function cargarDashboard(){
     && g.tipo !== 'Gasto ajeno'
     && g.tipo !== 'Reposición'
   );
-  const totalGastMes = gastMes.reduce((s,g)=>{
-    // Si tiene monto_usd explícito usarlo; si es en USD usar monto; si es en Bs ignorar (no sabemos el USD exacto sin tasa)
-    const usd = parseFloat(g.monto_usd||0);
-    const monto = parseFloat(g.monto||0);
-    if(usd>0) return s+usd;
-    if((g.moneda||'USD')==='USD') return s+monto;
-    return s; // gasto en Bs sin conversión — no sumar para no distorsionar
-  },0);
+  const totalGastMes = gastMes.reduce((s,g)=>s+gUsd(g),0);
   const gananciaNeta = totalMes-totalGastMes;
 
   document.getElementById('d-hoy').textContent = '$'+totalHoy.toFixed(2);
@@ -3377,13 +3370,13 @@ async function renderEventos(){
     const ventasBs=vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
     const totalV=ventasBs/tasa;
 
-    // ── Gastos del evento: solo tipo 'Gasto evento' → suma monto_bs ──
+    // ── Gastos del evento ──
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
     const gastosEvDia=gastosE.filter(g=>g.tipo==='Gasto evento');
     const gastosInv=gastosE.filter(g=>g.tipo==='Inversión');
-    const gastosBs=gastosEvDia.reduce((s,g)=>s+parseFloat(g.monto_bs||0),0);
+    const gastosBs=gastosEvDia.reduce((s,g)=>s+gBs(g),0);
     const totalG=gastosBs/tasa;
-    const totalInv=gastosInv.reduce((s,g)=>s+parseFloat(g.monto_usd||0),0);
+    const totalInv=gastosInv.reduce((s,g)=>s+gUsd(g),0);
 
     // ── Ganancia neta en $ ──
     const ganancia=totalV-totalG;
@@ -3780,6 +3773,31 @@ function renderDeudaMama(cid){
     +'<div style="font-size:10px;color:#aaa;margin-top:6px">Evento: precio−costo−$0.50 · Fuera de evento: precio−costo</div>'
     +'</div>';
 }
+
+// ── Helpers de conversión (usar siempre los campos guardados) ──
+function gUsd(g){
+  var u=parseFloat(g.monto_usd||0);
+  if(u>0) return u;
+  if((g.moneda||'')==='USD') return parseFloat(g.monto||0);
+  var b=parseFloat(g.monto_bs||0);
+  return b>0 ? b/(bcvHoy||484.74) : 0;
+}
+function gBs(g){
+  var b=parseFloat(g.monto_bs||0);
+  if(b>0) return b;
+  if((g.moneda||'')==='Bs') return parseFloat(g.monto||0);
+  var u=parseFloat(g.monto_usd||0)||parseFloat(g.monto||0);
+  return u>0 ? u*(bcvHoy||484.74) : 0;
+}
+function vUsd(v){
+  var u=parseFloat(v.total||0);
+  if(u>0) return u;
+  // venta solo en Bs — NO convertir, total=0 significa que se registró solo en Bs
+  return 0;
+}
+function vBs(v){
+  return parseFloat(v.monto_bs||0);
+}
 function renderGastosGlobal(){
   const filTipo=document.getElementById('filtro-tipo-gasto')?document.getElementById('filtro-tipo-gasto').value:'';
   const filCat=document.getElementById('filtro-cat-gasto')?document.getElementById('filtro-cat-gasto').value:'';
@@ -3796,15 +3814,11 @@ function renderGastosGlobal(){
   if(filBuscar) lista=lista.filter(g=>(g.descripcion||g.concepto||g.notas||'').toLowerCase().includes(filBuscar)||(g.categoria||'').toLowerCase().includes(filBuscar));
 
   // ── STATS ──
-  const totalBs=lista.filter(g=>g.tipo!=='Reposición').reduce((s,g)=>s+parseFloat(g.monto_bs||0),0);
-  const totalUsd=lista.filter(g=>g.tipo!=='Reposición').reduce((s,g)=>{
-    var u=parseFloat(g.monto_usd||0); if(u>0) return s+u;
-    if((g.moneda||'')==='USD') return s+parseFloat(g.monto||0);
-    var b=parseFloat(g.monto_bs||0); return b>0?s+b/tasa:s;
-  },0);
+  const totalBs=lista.filter(g=>g.tipo!=='Reposición').reduce((s,g)=>s+gBs(g),0);
+  const totalUsd=lista.filter(g=>g.tipo!=='Reposición').reduce((s,g)=>s+gUsd(g),0);
   const pendientes=gastosGlobales.filter(g=>g.tipo==='Pago personal'&&!g.reposicion_de);
   const inversiones=lista.filter(g=>g.tipo==='Inversión');
-  const totalInv=inversiones.reduce((s,g)=>{var u=parseFloat(g.monto_usd||0);return s+(u>0?u:parseFloat(g.monto_bs||0)/tasa);},0);
+  const totalInv=inversiones.reduce((s,g)=>s+gUsd(g),0);
 
   document.getElementById('gastos-stats').innerHTML=
     '<div class="stat-card" style="border-left:4px solid #c62828"><div class="stat-num" style="color:#c62828">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="stat-label">🇻🇪 Total Bs gastado</div></div>'
@@ -3859,14 +3873,10 @@ function renderGastosGlobal(){
     var tc=tipoColors[tipo]||{bg:'#f5f5f5',color:'#333'};
     var tipoBadge='<span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:12px;background:'+tc.bg+';color:'+tc.color+'">'+tipo+'</span>';
 
-    // Monto Bs
-    var mBs=parseFloat(g.monto_bs||0)||parseFloat(g.moneda==='Bs'?g.monto||0:0);
+    // Monto Bs y USD — usar helpers que respetan tasa guardada
+    var mBs=gBs(g);
     var mBsStr=mBs>0?'<span style="color:#7b1fa2;font-weight:600">Bs. '+mBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'—';
-
-    // Monto USD
-    var mUsd=parseFloat(g.monto_usd||0);
-    if(!mUsd&&(g.moneda||'')==='USD') mUsd=parseFloat(g.monto||0);
-    if(!mUsd&&mBs>0) mUsd=mBs/tasa;
+    var mUsd=gUsd(g);
     var mUsdStr='<strong style="color:var(--red)">$'+mUsd.toFixed(2)+'</strong>';
 
     // Quién pagó
