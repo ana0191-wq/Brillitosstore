@@ -3932,21 +3932,40 @@ function renderGastosGlobal(){
   let lista=gastosGlobales;
   if(cat) lista=lista.filter(g=>g.categoria===cat);
   lista=lista.filter(g=>(g.fecha||'').slice(0,7)===mes);
-  const esGastoUSD=g=>{
+  const filtroBase=g=>!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal'&&g.tipo!=='Saldo Real';
+  const tasaHoy=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
+
+  // Separar gastos por moneda real
+  // USD: tiene monto_usd, o moneda=USD, o monto < 500 sin moneda
+  // Bs:  moneda=Bs, o monto_bs > 0, o monto >= 500 sin moneda
+  const esUSD=g=>{
     if(parseFloat(g.monto_usd||0)>0) return true;
     if(g.moneda==='USD') return true;
-    if((g.moneda||'')===''){
-      const m=parseFloat(g.monto||0); if(m>0&&m<500) return true;
-    }
+    if(!g.moneda) return parseFloat(g.monto||0)<500;
     return false;
   };
-  const gastoUSDval=g=>parseFloat(g.monto_usd||0)>0?parseFloat(g.monto_usd):parseFloat(g.monto||0);
-  const filtroBase=g=>!g.es_ajeno&&g.tipo!=='Reposición'&&g.tipo!=='Pago personal'&&g.tipo!=='Saldo Real';
-  const totalUSD=lista.filter(g=>filtroBase(g)&&esGastoUSD(g)).reduce((s,g)=>s+gastoUSDval(g),0);
-  const totalBs=lista.filter(g=>filtroBase(g)&&(g.moneda==='Bs'||(!esGastoUSD(g)&&parseFloat(g.monto||0)>=500))).reduce((s,g)=>s+parseFloat(g.monto_bs||g.monto||0),0);
+  const gastUSD=lista.filter(g=>filtroBase(g)&&esUSD(g));
+  const gastBs =lista.filter(g=>filtroBase(g)&&!esUSD(g));
+
+  // Total en USD (solo gastos en dólares reales)
+  const totalUSD=gastUSD.reduce((s,g)=>{
+    const u=parseFloat(g.monto_usd||0); return s+(u>0?u:parseFloat(g.monto||0));
+  },0);
+
+  // Total en Bs (solo gastos en bolívares reales)
+  const totalBs=gastBs.reduce((s,g)=>{
+    const bs=parseFloat(g.monto_bs||0); return s+(bs>0?bs:parseFloat(g.monto||0));
+  },0);
+
+  // Equivalente total en USD (para comparación)
+  const totalEquivUSD=totalUSD+(totalBs/tasaHoy);
+
+  // Categoría mayor (por monto equivalente en USD)
   const porCat={};
   lista.filter(filtroBase).forEach(g=>{
-    const v=esGastoUSD(g)?gastoUSDval(g):0;
+    const v=esUSD(g)
+      ?(parseFloat(g.monto_usd||0)||parseFloat(g.monto||0))
+      :(parseFloat(g.monto_bs||g.monto||0)/tasaHoy);
     if(v>0) porCat[g.categoria||'?']=(porCat[g.categoria||'?']||0)+v;
   });
   const top=Object.entries(porCat).sort((a,b)=>b[1]-a[1]);
@@ -3955,10 +3974,9 @@ function renderGastosGlobal(){
   const pendientesReponer=lista.filter(g=>(g.es_ajeno||g.tipo==='Pago personal')&&!g.reposicion_de).length;
   const cntRepos=lista.filter(g=>g.tipo==='Reposición').length;
   document.getElementById('gastos-stats').innerHTML=
-    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUSD.toFixed(2)+'</div><div class="stat-label">💸 Total USD (Brillitos)</div></div>'
-    +(totalBs>0?'<div class="stat-card" style="border-left:4px solid #7b1fa2"><div class="stat-num" style="color:#7b1fa2;font-size:18px">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="stat-label">🇻🇪 Total Bs (Brillitos)</div></div>':'')
-    +'<div class="stat-card" style="display:none">x</div>'
-    +'<div class="stat-card" style="border-left:4px solid #e91e8c">'+(totalBs>0?'<div class="stat-num" style="color:#e91e8c">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'<div class="stat-num" style="color:#e91e8c;font-size:16px">—</div>')+'<div class="stat-label">🇻🇪 Total Bs (gastos)</div></div>'
+    '<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUSD.toFixed(2)+'</div><div class="stat-label">💵 Gastos en USD</div></div>'
+    +(totalBs>0?'<div class="stat-card" style="border-left:4px solid #7b1fa2"><div class="stat-num" style="color:#7b1fa2;font-size:18px">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:0})+'</div><div class="stat-label">🇻🇪 Gastos en Bs</div></div>':'')
+    +'<div class="stat-card" style="border-left:4px solid #e91e8c"><div class="stat-num" style="color:#e91e8c">$'+totalEquivUSD.toFixed(2)+'</div><div class="stat-label">📊 Total equiv. USD</div></div>'
     +'<div class="stat-card" style="border-left:4px solid var(--orange)"><div class="stat-num" style="color:var(--orange)">'+lista.filter(g=>g.tipo==='Inversión').length+'</div><div class="stat-label">📈 Inversiones</div></div>'
     +(pendientesReponer>0?'<div class="stat-card" style="border-left:4px solid #ff6f00;background:#fff8e1"><div class="stat-num" style="color:#e65100">'+pendientesReponer+'</div><div class="stat-label">🚨 Pendientes reponer</div></div>':'')
     +(cntAjenos-pendientesReponer>0?'<div class="stat-card" style="border-left:4px solid #43a047"><div class="stat-num" style="color:#2e7d32">'+(cntAjenos-pendientesReponer)+'</div><div class="stat-label">✅ Ajenos repuestos</div></div>':'')
