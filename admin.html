@@ -1925,14 +1925,7 @@ function cargarDashboard(){
   const vM = ventas.filter(v=>fechaEfectiva(v).slice(0,7)===mes&&v.estado!=='Cancelado');
   const aptActivos = apartados.filter(a=>a.estado==='Pendiente'||a.estado==='Activo');
   const totalHoy = vH.reduce((s,v)=>s+parseFloat(v.total||0),0);
-  // Ventas del mes: sumar $ directo + Bs convertidos para ventas sin total$
-  const _tasa0 = typeof bcvHoy!=='undefined'&&bcvHoy>0 ? bcvHoy : 484.74;
-  const totalMes = vM.reduce((s,v)=>{
-    const usd=parseFloat(v.total||0), bs=parseFloat(v.monto_bs||0);
-    if(usd>0) return s+usd;
-    if(bs>0)  return s+(bs/_tasa0);
-    return s;
-  },0);
+  const totalMes = vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
 
   // ── Separar hoy por moneda ──
   // Ventas en Bs (moneda_pago Bs o monto_bs > 0)
@@ -1945,27 +1938,24 @@ function cargarDashboard(){
   const totalMesBs  = vM.filter(v=>v.monto_bs&&parseFloat(v.monto_bs)>0).reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
   const totalMesUsd = vM.reduce((s,v)=>s+parseFloat(v.total||0),0); // total siempre en $
   const tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
-  // Función simple: gasto → USD
-  const toUSD=g=>{
-    const usd=parseFloat(g.monto_usd||0); if(usd>0) return usd;
-    const bs=parseFloat(g.monto_bs||0);   if(bs>0)  return bs/tasa;
-    const m=parseFloat(g.monto||0);       if(!m)    return 0;
-    if(g.moneda==='USD') return m;
-    if(g.moneda==='Bs')  return m/tasa;
-    return m>=100 ? m/tasa : m;
-  };
-  // GASTOS del mes — todos los gastos reales (no reposiciones, no saldo real, no ajenos)
-  const TIPOS_EXCLUIR = ['Reposición','Saldo Real','Gasto ajeno'];
-  const gastMes = gastosGlobales.filter(g=>
-    (g.fecha||'').slice(0,7)===mes &&
-    !TIPOS_EXCLUIR.includes(g.tipo)
-  );
-  const totalGastMes = gastMes.reduce((s,g)=>s+toUSD(g), 0);
-  // GANANCIA = Ventas totales del mes - Gastos totales del mes
-  // Simple: sum(ventas.total) - sum(gastos en USD)
-  const ganBrutaDash = totalMesUsd - totalGastMes;
-  const gananciaNeta = ganBrutaDash;
-  window._dashGanDetalle={gan:ganBrutaDash,gananciaNeta,totalGastMes,tasa,mes};
+  const toUSD=g=>{const usd=parseFloat(g.monto_usd||0),m=parseFloat(g.monto||0);if(usd>0)return usd;if(g.moneda==='Bs')return m/tasa;if(g.moneda==='USD')return m;return m>=500?m/tasa:m;};
+  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición'&&g.tipo!=='Saldo Real');
+  const totalGastMes=gastMes.reduce((s,g)=>s+toUSD(g),0);
+  let ganBrutaDash=0,ganDetalle=[];
+  vM.forEach(v=>{
+    const soloBS=parseFloat(v.monto_bs||0)>0&&!(parseFloat(v.total||0)>0);
+    (v.venta_items||[]).forEach(it=>{
+      const p=productos.find(x=>x.id==it.producto_id);
+      const pv=parseFloat(it.precio_unitario||0),co=p&&p.precio_costo>0?parseFloat(p.precio_costo):0,cant=parseInt(it.cantidad||1);
+      const pvUSD=(soloBS&&pv>10)?pv/tasa:pv,coUSD=(soloBS&&co>10)?co/tasa:co;
+      const margen=coUSD>0?(pvUSD-coUSD)*cant:pvUSD*cant*0.3;
+      ganBrutaDash+=margen;
+      if(p) ganDetalle.push({nombre:p.nombre,margen,cant});
+    });
+    ganBrutaDash-=soloBS?parseFloat(v.descuento||0)/tasa:parseFloat(v.descuento||0);
+  });
+  const gananciaNeta=ganBrutaDash-totalGastMes;
+  window._dashGanDetalle={gan:ganBrutaDash,gananciaNeta,totalGastMes,ganDetalle,tasa,mes};
 
   var dHoyEl=document.getElementById('d-hoy'); if(dHoyEl) dHoyEl.textContent='$'+totalHoy.toFixed(2);
   var dMesEl=document.getElementById('d-mes'); if(dMesEl) dMesEl.textContent='$'+totalMes.toFixed(2);
@@ -3484,10 +3474,10 @@ async function renderEventos(){
     const gastoUSD = g => {
       const usd = parseFloat(g.monto_usd||0); if(usd>0) return usd;
       const bs  = parseFloat(g.monto_bs||0);  if(bs>0)  return bs/tasaEvento;
-      const m   = parseFloat(g.monto||0);     if(!m)    return 0;
+      const m   = parseFloat(g.monto||0);
       if(g.moneda==='USD') return m;
       if(g.moneda==='Bs')  return m/tasaEvento;
-      return m < 100 ? m : m/tasaEvento;
+      return m < 500 ? m : m/tasaEvento; // sin moneda: <500=USD, >=500=Bs
     };
 
     const totalG   = gastosOp.reduce((s,g)=>s+gastoUSD(g), 0);  // USD
@@ -3496,14 +3486,7 @@ async function renderEventos(){
 
     // ── GANANCIA NETA ──
     // Usar USD si hay ventas en USD, si no usar Bs÷tasa
-    // Cada venta: si tiene total$ usarlo, si solo tiene Bs convertir
-    const ventasUSD = vts.reduce((s,v)=>{
-      const usd = parseFloat(v.total||0);
-      const bs  = parseFloat(v.monto_bs||0);
-      if(usd>0) return s+usd;
-      if(bs>0)  return s+(bs/tasaEvento);
-      return s;
-    }, 0);
+    const ventasUSD = totalV > 0 ? totalV : totalVBs / tasaEvento;
     const ganancia  = ventasUSD - totalG;
 
     // ── INVERSIÓN recuperada ──
@@ -3734,20 +3717,15 @@ function abrirResumenEvento(eid,event){
     var gUSD = function(g){
       var u=parseFloat(g.monto_usd||0); if(u>0) return u;
       var b=parseFloat(g.monto_bs||0);  if(b>0) return b/tasa;
-      var m=parseFloat(g.monto||0);     if(!m)  return 0;
+      var m=parseFloat(g.monto||0);
       if(g.moneda==='USD') return m;
       if(g.moneda==='Bs')  return m/tasa;
-      return m<100 ? m : m/tasa;
+      return m<500 ? m : m/tasa;
     };
 
     var totalV   = vts.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
     var totalVBs = vts.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
-    var ventasUSD = vts.reduce(function(s,v){
-      var usd=parseFloat(v.total||0), bs=parseFloat(v.monto_bs||0);
-      if(usd>0) return s+usd;
-      if(bs>0)  return s+(bs/tasa);
-      return s;
-    },0);
+    var ventasUSD = totalV>0 ? totalV : totalVBs/tasa;
 
     var totalG   = gastosOp.reduce(function(s,g){return s+gUSD(g);},0);
     var totalInv = gastosInv.reduce(function(s,g){return s+gUSD(g);},0);
