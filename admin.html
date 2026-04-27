@@ -1495,7 +1495,7 @@ async function init(){
   try{ const fv=document.getElementById('v-fecha-venta'); if(fv) fv.value=hoyVEN(); }catch(e){}
   const results = await Promise.allSettled([
     sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000'),
-    sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500'),
+    sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc'),
     sbGet('clientes','select=*&order=nombre.asc'),
     sbGet('eventos','select=*&order=fecha.desc'),
     sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200'),
@@ -2064,15 +2064,20 @@ function cargarDashboard(){
         : ' style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05)"';
       const tapHint = key==='bancaamiga_luisma' ? '<div style="font-size:10px;color:'+c.color+';opacity:.5;margin-top:6px">📋 Ver movimientos</div>' : '';
       // Ingreso fantasma para BancaAmiga
-      const fantasmaHtml = (key==='bancaamiga_luisma' && d.fantasma && Math.abs(d.fantasma)>0.5)
-        ? '<div style="font-size:11px;margin-top:4px;padding:4px 8px;border-radius:8px;background:'+(d.fantasma>0?'#fff8e1':'#fff5f5')+';color:'+(d.fantasma>0?'#b45309':'#c62828')+';font-weight:700">'
-          +(d.fantasma>0?'👻 Ingreso fantasma: +':'⚠️ Diferencia: ')
-          +'Bs. '+Math.abs(d.fantasma).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})
-          +(d.saldoReal!==null?'<br><span style="font-size:10px;opacity:.7">Calc: Bs. '+d.saldoCalculado.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'')
-          +'</div>'
-        : (key==='bancaamiga_luisma' && d.saldoReal!==null
-          ? '<div style="font-size:10px;color:#3a7d52;margin-top:3px">✅ Cuadra con saldo real</div>'
-          : '');
+      const mostrarCalc = window._mostrarSaldoCalc === true;
+      const fantasmaHtml = (key==='bancaamiga_luisma' && d.saldoReal!==null)
+        ? (Math.abs(d.fantasma||0)>0.5
+          ? '<div style="font-size:11px;margin-top:4px;padding:4px 8px;border-radius:8px;background:'+(d.fantasma>0?'#fff8e1':'#fff5f5')+';color:'+(d.fantasma>0?'#b45309':'#c62828')+';font-weight:700">'
+            +(d.fantasma>0?'👻 Ingreso fantasma: +':'⚠️ Diferencia: ')
+            +'Bs. '+Math.abs(d.fantasma||0).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})
+            +(mostrarCalc?'<br><span style="font-size:10px;opacity:.7">Calc: Bs. '+d.saldoCalculado.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'')
+            +'<br><button onclick="window._mostrarSaldoCalc=!window._mostrarSaldoCalc;cargarDashboard();" style="font-size:9px;background:transparent;border:none;cursor:pointer;opacity:.6;padding:0;margin-top:2px">'+(mostrarCalc?'▲ ocultar cálculo':'▼ ver cálculo')+'</button>'
+            +'</div>'
+          : '<div style="font-size:10px;color:#3a7d52;margin-top:3px">✅ Cuadra con saldo real'
+            +(mostrarCalc?'<br><span style="opacity:.6">Calc: Bs. '+d.saldoCalculado.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'')
+            +'<button onclick="window._mostrarSaldoCalc=!window._mostrarSaldoCalc;cargarDashboard();" style="font-size:9px;background:transparent;border:none;cursor:pointer;opacity:.6;padding:0;margin-left:4px">'+(mostrarCalc?'▲':'▼ desglose')+'</button>'
+            +'</div>')
+        : '';
       const editBtn = key==='bancaamiga_luisma'
         ? '<button onclick="abrirEditarSaldoBancaAmiga(event)" style="font-size:10px;background:white;border:1px solid '+c.color+';color:'+c.color+';border-radius:6px;padding:2px 8px;cursor:pointer;margin-top:6px">✏️ Editar saldo real</button>'
         : '';
@@ -2300,7 +2305,7 @@ async function _ejecutarCobroPOS(total,tasa,montoBs){
     +(montoBs>0?'<br><strong style="color:#2e7d32">Bs. '+montoBs.toFixed(2)+'</strong> (tasa '+tasa.toFixed(2)+')'  :'')
     +'<br><span style="font-size:12px;color:var(--gray)">'+posCarrito.map(i=>i.nombre+' x'+i.cantidad).join(', ')+'</span>';
   document.getElementById('modal-pos-ok').classList.add('open');
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc');
   cargarDashboard();
   document.getElementById('pos-cliente').value='';
   toast('✅ Venta registrada');
@@ -2539,7 +2544,7 @@ function filtrarVentas(){
     if(est&&v.estado!==est) return false;
     if(canal&&v.canal!==canal) return false;
     if(desde||hasta){
-      const fv=(v.fecha_venta||v.creado_en||'').slice(0,10);
+      const fv=(v.fecha_venta&&v.fecha_venta.slice(0,10)>='2020-01-01'?v.fecha_venta:v.creado_en||'').slice(0,10);
       if(desde&&fv<desde) return false;
       if(hasta&&fv>hasta) return false;
     }
