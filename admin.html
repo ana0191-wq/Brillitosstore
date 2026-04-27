@@ -3286,9 +3286,11 @@ async function renderEventos(){
     const TIPOS_EXCLUIR=['Reposición'];
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id&&!esSaldoReal(g)&&!TIPOS_EXCLUIR.includes(g.tipo)&&!fueRepuesto(g));
     const gastosEUnicos=[...new Map(gastosE.map(g=>[g.id,g])).values()];
-    const totalG=gastosEUnicos.reduce((s,g)=>s+gUsd(g),0);
     const gastosInv=gastosEUnicos.filter(g=>g.tipo==='Inversión');
+    const gastosOp=gastosEUnicos.filter(g=>g.tipo!=='Inversión');
     const totalInv=gastosInv.reduce((s,g)=>s+gUsd(g),0);
+    const totalOp=gastosOp.reduce((s,g)=>s+gUsd(g),0);
+    const totalG=totalOp; // Inversión no resta ganancia — ya cubierta por ventas
     const ganancia=totalV-totalG; // deudaMama se resta abajo al calcular tuParte
     const luismaMinimo=30;
     const luismaParte=ganancia>0?Math.max(luismaMinimo,ganancia*0.3):0;
@@ -3422,8 +3424,8 @@ async function renderEventos(){
       +'<div style="background:#fafafa;border-radius:12px;padding:14px;margin-bottom:14px;border:1px solid #f0f0f0">'
       +'<div style="font-size:11px;font-weight:800;color:#999;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Resumen financiero</div>'
       +'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#555">Ventas ('+vts.length+')</span><strong style="color:#2e7d32">$'+totalV.toFixed(2)+'</strong></div>'
-      +((totalG-totalInv)>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#555">Gastos operativos ('+(gastosEUnicos.length-gastosInv.length)+')</span><strong style="color:#c62828">−$'+(totalG-totalInv).toFixed(2)+'</strong></div>':'')
-      +(totalInv>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#1565c0">💼 Inversión ('+gastosInv.length+')</span><strong style="color:#c62828">−$'+totalInv.toFixed(2)+'</strong></div>':'')
+      +(totalInv>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#1565c0">💼 Inversión recuperada</span><strong style="color:#1565c0">+$'+totalInv.toFixed(2)+'</strong></div>':'')
+      +(totalOp>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#555">Gastos del evento ('+gastosOp.length+')</span><strong style="color:#c62828">−$'+totalOp.toFixed(2)+'</strong></div>':'')
       +(deudaMama>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#c2185b">👩‍👧 Pago Mamá</span><strong style="color:#c2185b">−$'+deudaMama.toFixed(2)+'</strong></div>':'')
       +'<div style="display:flex;justify-content:space-between;padding:10px 0 0"><strong style="font-size:14px">Ganancia neta</strong><strong style="font-size:22px;color:'+(gananciaNeta>=0?'#2e7d32':'#c62828')+'">$'+gananciaNeta.toFixed(2)+'</strong></div>'
       +'</div>'
