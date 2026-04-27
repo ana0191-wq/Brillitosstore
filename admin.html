@@ -3293,10 +3293,6 @@ async function renderEventos(){
     const luismaMinimo=30;
     const luismaParte=ganancia>0?Math.max(luismaMinimo,ganancia*0.3):0;
     const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
-    const gananciaNeta=ganancia-deudaMama;
-    const tuParte=gananciaNeta>0?gananciaNeta-luismaParte:ganancia>0?ganancia-luismaParte:0;
-    const tuParteReal=Math.max(0,gananciaNeta-luismaParte);
-
     // Deuda mamá
     var deudaMama=0; var itemsMama=[];
     vts.forEach(function(v){
@@ -3311,6 +3307,10 @@ async function renderEventos(){
         itemsMama.push({nombre:p.nombre,cant:cant,subtotal:porUnidad*cant});
       });
     });
+
+    // Ganancia neta real (después de mamá)
+    var gananciaNeta=ganancia-deudaMama;
+    var tuParteReal=Math.max(0,gananciaNeta-luismaParte);
 
     // Estado
     const hoy=new Date(); hoy.setHours(0,0,0,0);
