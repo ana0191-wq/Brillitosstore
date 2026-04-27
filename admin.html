@@ -3831,9 +3831,7 @@ function renderGastosGlobal(){
 
   document.getElementById('gastos-stats').innerHTML=
     '<div class="stat-card" style="border-left:4px solid #c62828"><div class="stat-num" style="color:#c62828">Bs. '+totalBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div><div class="stat-label">🇻🇪 Total Bs gastado</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUsd.toFixed(2)+'</div><div class="stat-label">💸 Equiv. USD</div></div>'
-    +'<div class="stat-card" style="border-left:4px solid #1565c0"><div class="stat-num" style="color:#1565c0">$'+totalInv.toFixed(2)+'</div><div class="stat-label">📈 Inversiones</div></div>'
-    +(pendientes.length>0?'<div class="stat-card" style="border-left:4px solid #e65100;background:#fff8e1"><div class="stat-num" style="color:#e65100">'+pendientes.length+'</div><div class="stat-label">🚨 Pendientes reponer</div></div>':'<div class="stat-card" style="border-left:4px solid #2e7d32"><div class="stat-num" style="color:#2e7d32">✅</div><div class="stat-label">Todo repuesto</div></div>');
+    +'<div class="stat-card" style="border-left:4px solid var(--red)"><div class="stat-num" style="color:var(--red)">$'+totalUsd.toFixed(2)+'</div><div class="stat-label">💸 Equiv. USD</div></div>';
 
   // ── PENDIENTES REPONER (bloque destacado) ──
   var pendWrap=document.getElementById('gastos-pendientes-wrap');
