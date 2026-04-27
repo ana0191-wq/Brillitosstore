@@ -3816,20 +3816,26 @@ function renderGastosGlobal(){
 
     var trBg=g.tipo==='Pago personal'&&!g.reposicion_de?'background:#fffde7':g.tipo==='Reposición'?'background:#f1f8e9':'';
 
+    var tiposOpts=['Gasto','Gasto evento','Gasto operativo','Inversion','Pago personal','Reposicion','Gasto ajeno'].map(function(t){return '<option value="'+t+'"'+(g.tipo===t?' selected':'')+'>'+t+'</option>';}).join('');
+    var catsOpts=['','Mercancia/Stock','Transporte','Stand/Evento','Stand/Puesto','Marketing','Empaque','Dominio/Web','Comida/Viaticos','Pago a Luisma','Gasto de Luisma','Servicios','Conciliacion','Otro'].map(function(c){return '<option value="'+c+'"'+(g.categoria===c?' selected':'')+'>'+(!c?'Sin cat':c)+'</option>';}).join('');
+    var evsOpts='<option value=""'+((!g.evento_id)?' selected':'')+'>Sin evento</option>'+eventos.map(function(ev){return '<option value="'+ev.id+'"'+(g.evento_id==ev.id?' selected':'')+'>'+ev.nombre+'</option>';}).join('');
+    var iS='padding:2px 4px;border:1px solid #ddd;border-radius:5px;font-size:12px;background:white;max-width:100%';
+    var gid=g.id;
+    var gDesc=(g.descripcion||g.concepto||g.notas||'').replace(/"/g,'&quot;');
     return '<tr style="'+trBg+'">'
       +'<td style="font-size:12px;color:#555">'+formatFecha(g.fecha)+'</td>'
-      +'<td><strong style="font-size:13px">'+(g.descripcion||g.concepto||g.notas||'—')+'</strong></td>'
-      +'<td style="font-size:12px;color:#666">'+(g.categoria||'—')+'</td>'
+      +'<td><input style="'+iS+';font-weight:700;width:100%;min-width:90px" value="'+gDesc+'" onblur="inlineGuardar('+gid+',\"descripcion\",this.value)" onkeydown="if(event.key===&quot;Enter&quot;)this.blur()"></td>'
+      +'<td><select style="'+iS+'" onchange="inlineGuardar('+gid+',\"categoria\",this.value)">'+catsOpts+'</select></td>'
       +'<td>'+mBsStr+'</td>'
       +'<td>'+mUsdStr+'</td>'
-      +'<td>'+tipoBadge+'</td>'
+      +'<td><select style="'+iS+'" onchange="inlineGuardar('+gid+',\"tipo\",this.value)">'+tiposOpts+'</select></td>'
       +'<td>'+quienStr+'</td>'
-      +'<td style="font-size:11px;color:var(--gray)">'+evNom+'</td>'
+      +'<td><select style="'+iS+'" onchange="inlineGuardar('+gid+',\"evento_id\",this.value)">'+evsOpts+'</select></td>'
       +'<td>'+estadoStr+'</td>'
       +'<td style="white-space:nowrap">'
-      +(g.tipo==='Pago personal'&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">&#128154;</button> ':'')
-      +'<button class="btn btn-secondary btn-sm" style="font-size:10px;margin-right:3px" onclick="abrirEditarGasto('+g.id+')">&#9999;&#65039;</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">&#128465;</button>'
+      +(g.tipo==='Pago personal'&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+gid+')">&#128154;</button> ':'')
+      +'<button class="btn btn-secondary btn-sm" style="font-size:10px;margin-right:3px" onclick="abrirEditarGasto('+gid+')">&#9999;&#65039;</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+gid+')">&#128465;</button>'
       +'</td>'
       +'</tr>';
   });
@@ -3881,6 +3887,17 @@ function abrirEditarGasto(id){
   });
   calcEgUsd();
   abrirModal('modal-editar-gasto');
+}
+async function inlineGuardar(id,campo,valor){
+  var data={};
+  if(campo==='evento_id') data[campo]=valor?parseInt(valor):null;
+  else data[campo]=valor||null;
+  var res=await sbPatch('gastos_globales',id,data);
+  if(res){
+    var i=gastosGlobales.findIndex(function(g){return g.id==id;});
+    if(i>=0) gastosGlobales[i][campo]=data[campo];
+    renderGastosGlobal(); cargarDashboard();
+  } else { toast('❌ Error al guardar'); }
 }
 function calcEgUsd(){
   const moneda = document.getElementById('eg-moneda').value;
