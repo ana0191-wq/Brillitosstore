@@ -1961,14 +1961,14 @@ function cargarDashboard(){
       porCuenta[key].bs+=parseFloat(v.monto_bs||0);
       porCuenta[key].count++;
     });
-    var gastosBaRaw=gastosGlobales.filter(function(g){
-      return !esSaldoReal(g)&&g.moneda==='Bs'&&g.tipo!=='Reposición'&&g.tipo!=='Gasto ajeno';
-    }).reduce(function(s,g){return s+parseFloat(g.monto_bs||g.monto||0);},0);
-    var reposBs=gastosGlobales.filter(function(g){
-      return g.moneda==='Bs'&&g.tipo==='Reposición'&&(g.reposicion_de||'').indexOf('Efectivo')===0;
-    }).reduce(function(s,g){return s+parseFloat(g.monto_bs||g.monto||0);},0);
-    if(!porCuenta['bancaamiga_luisma']) porCuenta['bancaamiga_luisma']={total:0,bs:0,count:0};
-    porCuenta['bancaamiga_luisma'].bs+=reposBs-gastosBaRaw;
+    // BancaAmiga = ventas en Bs - gastos en Bs (excluir saldo real y reposiciones)
+    var totalVentasBs=ventas.filter(function(v){return v.estado!=='Cancelado';})
+      .reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
+    var totalGastosBs=gastosGlobales.filter(function(g){
+      return !esSaldoReal(g)&&g.tipo!=='Reposición'&&g.tipo!=='Gasto ajeno';
+    }).reduce(function(s,g){return s+gBs(g);},0);
+    var saldoBancaAmiga=totalVentasBs-totalGastosBs;
+    porCuenta['bancaamiga_luisma']={total:porCuenta['bancaamiga_luisma']?porCuenta['bancaamiga_luisma'].total:0, bs:saldoBancaAmiga, count:porCuenta['bancaamiga_luisma']?porCuenta['bancaamiga_luisma'].count:0};
 
     var porCuentaHoy={};
     vH.forEach(function(v){
