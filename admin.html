@@ -3385,33 +3385,30 @@ async function renderEventos(){
     const totalV=vts.reduce((s,v)=>s+parseFloat(v.total||0),0);
     const totalVBs=vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
     const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
-    const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión'&&g.descripcion!=='Gasto de Luisma');
-    const gastosInv=gastosE.filter(g=>g.tipo==='Inversión');
-    const gastosLuismaList=gastosE.filter(g=>g.descripcion==='Gasto de Luisma');
-    const gastosLuismaDescuento=gastosLuismaList.filter(g=>!g.cubierto_por||g.cubierto_por==='Luisma');
-    const gastosLuismaCubiertos=gastosLuismaList.filter(g=>g.cubierto_por==='Yo');
-    // Convertir gasto a USD: si tiene monto_usd>0 usarlo, si no convertir monto_bs con tasa, si no usar monto directo
-    const gastoUsd=g=>{
-      const usd=parseFloat(g.monto_usd||0);
-      if(usd>0) return usd;
+    const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión');
+
+    // Todo en Bs — entradas desde monto_bs de ventas, gastos desde monto_bs o monto
+    const gastoBs=g=>{
       const bs=parseFloat(g.monto_bs||0);
-      const tasa=parseFloat(g.tasa_bcv||0);
-      if(bs>0&&tasa>0) return bs/tasa;
-      // Si el monto es razonable en USD (< 500) asumirlo USD, si no ignorarlo
-      const m=parseFloat(g.monto||0);
-      return (g.moneda==='Bs'||m>500)?0:m;
+      if(bs>0) return bs;
+      return parseFloat(g.monto||0);
     };
-    const totalG=gastosOp.reduce((s,g)=>s+gastoUsd(g),0)
-               +gastosLuismaCubiertos.reduce((s,g)=>s+gastoUsd(g),0);
-    const totalGastoLuisma=gastosLuismaDescuento.reduce((s,g)=>s+gastoUsd(g),0);
-    const totalInv=gastosInv.reduce((s,g)=>s+gastoUsd(g),0);
-    const gastosLuismaEvento=parseFloat(e.gastos_luisma||0);
-    const totalGConLuisma=totalG+gastosLuismaEvento;
-    const ganancia=totalV-totalGConLuisma;
-    const luismaMinimo=30;
+    const totalGBs=gastosOp.reduce((s,g)=>s+gastoBs(g),0);
+
+    // Tasa: usar la del evento o tasaActual global
+    const tasaEvento=parseFloat(e.tasa_bcv||0)||tasaActual||1;
+
+    // Ganancia en Bs y USD
+    const gananciaBs=totalVBs - totalGBs;
+    const ganancia=gananciaBs/tasaEvento;
+    const totalG=totalGBs/tasaEvento;
+    const totalInv=0;
+
+    // Luisma: 30% de ganancia neta, mínimo $15
+    const luismaMinimo=15;
     const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
     const luismaBase=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
-    const luismaParte=Math.max(0,luismaBase-totalGastoLuisma);
+    const luismaParte=luismaBase;
     const tuParte=ganancia>0?ganancia-luismaBase:0;
 
     // ── Deuda a Mamá ──
@@ -3646,7 +3643,7 @@ async function renderEventos(){
       +'<div>'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
       +'<span style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">🛒 Ventas del evento</span>'
-      +'<span style="font-size:12px;font-weight:700;color:#2e7d32">$'+totalV.toFixed(2)+' · '+vts.length+' ventas</span>'
+      +'<span style="font-size:12px;font-weight:700;color:#2e7d32">'+(totalVBs>0?'Bs.'+totalVBs.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:0})+' · ':'')+'$'+totalV.toFixed(2)+' · '+vts.length+' ventas</span>'
       +'</div>'
       // Métodos de pago siempre visibles
       +(vts.length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+resMet+'</div>':'')
