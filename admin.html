@@ -1939,7 +1939,7 @@ function cargarDashboard(){
   const totalMesUsd = vM.reduce((s,v)=>s+parseFloat(v.total||0),0); // total siempre en $
   const tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
   const toUSD=g=>{const usd=parseFloat(g.monto_usd||0),m=parseFloat(g.monto||0);if(usd>0)return usd;if(g.moneda==='Bs')return m/tasa;if(g.moneda==='USD')return m;return m>=500?m/tasa:m;};
-  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición');
+  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición'&&g.tipo!=='Saldo Real');
   const totalGastMes=gastMes.reduce((s,g)=>s+toUSD(g),0);
   let ganBrutaDash=0,ganDetalle=[];
   vM.forEach(v=>{
@@ -3586,174 +3586,98 @@ async function renderEventos(){
         +'<span style="color:#555">'+kv[0]+'</span><span style="color:#2e7d32">$'+kv[1].toFixed(2)+'</span></div>';
     }).join('');
 
-    return '<div class="card" style="padding:16px">'
+    const fechaFmt = fechaEv
+      ? fechaEv.toLocaleDateString('es-VE',{day:'numeric',month:'short',year:'numeric'})
+      : 'Sin fecha';
+    const ganColor = ganancia >= 0 ? '#2e7d32' : '#c62828';
+    const ganBg    = ganancia >= 0 ? '#f0fdf4' : '#fff5f5';
 
-      // ── CABECERA (siempre visible, clickeable para expandir) ──
-      +'<div style="display:flex;justify-content:space-between;align-items:start;cursor:pointer" onclick="abrirResumenEvento('+e.id+',event)">'
+    return '<div class="card" style="padding:0;overflow:hidden;border-radius:16px;margin-bottom:12px">'
+
+      // CABECERA
+      +'<div style="background:linear-gradient(135deg,#7c3aed,#d63a8a);padding:14px 16px;color:white;cursor:pointer" onclick="toggleDetalleEvento('+e.id+',event)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center">'
       +'<div>'
-      +'<div style="font-size:16px;font-weight:800;margin-bottom:3px">🎪 '+e.nombre+'</div>'
-      +'<div style="font-size:12px;color:#888">'+fmtFechaEvento(e.fecha)+(e.lugar?' · 📍'+e.lugar:'')+'</div>'
-      +'<span style="display:inline-block;margin-top:5px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:'+badgeBg+';color:'+badgeColor+'">'+badgeLabel+'</span>'
+      +'<div style="font-size:16px;font-weight:900;margin-bottom:2px">🎪 '+e.nombre+'</div>'
+      +'<div style="font-size:12px;opacity:.85">'+(e.lugar?'📍 '+e.lugar+' · ':'')+' 📅 '+fechaFmt+'</div>'
       +'</div>'
-      +'<div style="display:flex;gap:6px;flex-direction:column;align-items:flex-end">'
-      // Mini resumen siempre visible
       +'<div style="text-align:right">'
-      +'<div style="font-size:13px;font-weight:800;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+' ganancia</div>'
-      +'<div style="font-size:11px;color:#888">'+vts.length+' ventas · '+gastosE.length+' gastos</div>'
+      +'<div style="font-size:18px;font-weight:900;color:'+(ganancia>=0?'#a7f3d0':'#fca5a5')+'">$'+ganancia.toFixed(2)+'</div>'
+      +'<div style="font-size:10px;opacity:.7">ganancia neta</div>'
       +'</div>'
-      +'<div style="font-size:18px;color:#aaa;line-height:1" id="chevron-'+e.id+'">▸</div>'
-      +'</div></div>'
-
-      // ── DETALLE COLAPSABLE ──
-      +'<div id="detalle-evento-'+e.id+'" style="display:none">'
-
-      // Botones de acción
-      +'<div style="display:flex;gap:6px;margin-top:12px;flex-wrap:wrap">'
-      +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+');event.stopPropagation()">+ Gasto</button>'
-      +'<button class="btn btn-secondary btn-sm" style="background:#e8f5e9;color:#2e7d32;border:none" onclick="abrirConciliacion('+e.id+');event.stopPropagation()">🏦 Conciliar</button>'
-      +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+');event.stopPropagation()">✏️ Editar</button>'
-      +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+');event.stopPropagation()">🗑️ Eliminar</button>'
+      +'</div>'
       +'</div>'
 
-      // ── RESUMEN FINANCIERO (una sola vez, claro) ──
-      +'<div style="background:linear-gradient(135deg,#fdf4ff,#fff);border-radius:12px;padding:16px;margin-bottom:14px;border:1px solid #ede9fe">'
+      // CUERPO
+      +'<div id="detalle-ev-'+e.id+'" style="padding:14px 16px">'
 
       // Ventas
-      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
-      +'<span style="font-size:13px;color:#555">Ventas ('+vts.length+')</span>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff">'
+      +'<span style="font-size:13px;color:#555;font-weight:600">🛍️ Ventas ('+vts.length+')</span>'
       +'<div style="text-align:right">'
-      +'<div style="font-size:15px;font-weight:800;color:#2e7d32">$'+totalV.toFixed(2)+'</div>'
-      +(totalVBs>0?'<div style="font-size:12px;color:#3a7d52;font-weight:700">Bs. '+totalVBs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>':'')
+      +'<div style="font-size:15px;font-weight:800;color:#2e7d32">$'+ventasUSD.toFixed(2)+'</div>'
+      +(totalVBs>0?'<div style="font-size:11px;color:#3a7d52">Bs. '+totalVBs.toLocaleString('es-VE',{minimumFractionDigits:0})+'</div>':'')
       +'</div>'
       +'</div>'
 
-      // Gastos operativos con desglose
-      +(totalG>0
-        ?'<div style="padding:6px 0;border-bottom:1px solid #f3e8ff">'
-        +'<div style="display:flex;justify-content:space-between;align-items:center">'
-        +'<span style="font-size:13px;color:#555">Gastos operativos ('+gastosOp.length+')</span>'
-        +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+totalG.toFixed(2)+'</span>'
-        +'</div>'
-        +gastosOp.map(function(g){
-          return '<div style="display:flex;justify-content:space-between;padding:2px 0 2px 12px;font-size:11px;color:#888">'
-            +'<span>• '+(g.descripcion||g.concepto||'Gasto')+(g.moneda==='Bs'?' 🇻🇪':'')+'</span>'
-            +'<span>'+( (parseFloat(g.monto_usd||0)>0) ? '$'+parseFloat(g.monto_usd).toFixed(2) : (g.moneda==='Bs'?'Bs '+parseFloat(g.monto_bs||g.monto||0).toFixed(2):'$'+parseFloat(g.monto||0).toFixed(2)) )+'</span>'
-            +'</div>';
-        }).join('')
-        +''
-        +'</div>'
-        :'<div style="padding:6px 0;border-bottom:1px solid #f3e8ff;font-size:12px;color:#aaa">Sin gastos registrados para este evento</div>')
+      // Gastos
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff">'
+      +'<span style="font-size:13px;color:#555;font-weight:600">💸 Gastos / Inv ('+gastosE.length+')</span>'
+      +'<span style="font-size:15px;font-weight:800;color:#c62828">-$'+(totalG+totalInv).toFixed(2)+'</span>'
+      +'</div>'
 
-      // Gastos Luisma del evento
-      +(gastosLuismaEvento>0
-        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
-        +'<span style="font-size:13px;color:#555">🧑 Gastos de Luisma</span>'
-        +'<span style="font-size:14px;font-weight:700;color:#c62828">−$'+gastosLuismaEvento.toFixed(2)+'</span>'
-        +'</div>':'')
+      // Ganancia neta
+      +'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff;background:'+ganBg+';margin:0 -16px;padding-left:16px;padding-right:16px">'
+      +'<span style="font-size:14px;font-weight:800">📈 Ganancia neta</span>'
+      +'<span style="font-size:17px;font-weight:900;color:'+ganColor+'">$'+ganancia.toFixed(2)+'</span>'
+      +'</div>'
 
-      // Inversión recuperada — dato informativo
+      // Recuperación
       +(totalInv>0
-        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid #f3e8ff">'
-        +'<span style="font-size:13px;color:#1565c0">💼 Inversión recuperada</span>'
-        +'<span style="font-size:14px;font-weight:700;color:#1565c0">+$'+totalInv.toFixed(2)+'</span>'
-        +'</div>':'')
-
-      // Ganancia + inversión recuperada
-      +(totalInv>0
-        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f3e8ff;background:#f0fdf4;border-radius:8px;padding:8px 10px;margin-top:4px">'
-        +'<span style="font-size:13px;font-weight:700;color:#2e7d32">🏆 Ganancia + inversión</span>'
-        +'<span style="font-size:15px;font-weight:900;color:#2e7d32">$'+(ganancia+totalInv).toFixed(2)+'</span>'
-        +'</div>':'')
-
-      // Ganancia neta colapsable
-      +'<div onclick="toggleResumenEvento('+e.id+')" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 12px;border-bottom:2px solid #ede9fe;cursor:pointer">'
-      +'<span style="font-size:14px;font-weight:800">Ganancia neta</span>'
-      +'<div style="display:flex;align-items:center;gap:10px">'
-      +'<span style="font-size:22px;font-weight:900;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+'</span>'
-      +'<button onclick="imprimirResumenEvento('+e.id+',event)" title="PDF" style="background:#f5f0ff;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:14px">📄</button>'
-      +'<span id="resumen-toggle-'+e.id+'" style="font-size:12px;color:#aaa">▼</span>'
-      +'</div>'
-      +'</div>'
-      +'<div id="resumen-detalle-'+e.id+'" style="display:none">'
-
-      // División — solo si hay ganancia
-      +(ganancia>0?(function(){
-        var luismaLabel=luismaParte===luismaMinimo&&luismaPorcentaje<luismaMinimo
-          ?'Luisma (mín. $30)'
-          :'Luisma ('+Math.round(luismaParte/ganancia*100)+'%)';
-        return '<div style="margin-top:12px;display:flex;flex-direction:column;gap:8px">'
-
-          // Luisma
-          +'<div style="display:flex;justify-content:space-between;align-items:center;background:#f5f0ff;border-radius:10px;padding:10px 14px">'
-          +'<span style="font-size:13px;font-weight:700;color:#7c3aed">💜 Le debes a Luisma</span>'
-          +'<span style="font-size:20px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</span>'
-          +'</div>'
-
-          // Tuyo
-          +'<div style="display:flex;justify-content:space-between;align-items:center;background:#f0fdf4;border-radius:10px;padding:10px 14px">'
-          +'<span style="font-size:13px;font-weight:700;color:#2e7d32">Tuyo</span>'
-          +'<span style="font-size:20px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</span>'
-          +'</div>'
-
-
-          +'<div style="flex:1;background:#f0fdf4;border-radius:8px;padding:8px;text-align:center">'
-          +'<div style="font-size:10px;color:#2e7d32;font-weight:700">Tuyo</div>'
-          +'<div id="tu-parte-'+e.id+'" style="font-size:16px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
-          +'</div>'
-          +'</div>'
-          +'</div>'
-
-          +'</div>';
-      })():'')
-
-      // Pérdida
-      +(ganancia<0
-        ?'<div style="margin-top:8px;padding:8px 10px;background:#fff5f5;border-radius:8px;font-size:13px;font-weight:700;color:#c62828;text-align:center">⚠️ Pérdida de $'+Math.abs(ganancia).toFixed(2)+'</div>'
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff">'
+         +'<span style="font-size:13px;color:#1565c0;font-weight:600">💼 Recuperación</span>'
+         +'<span style="font-size:15px;font-weight:800;color:#1565c0">+$'+totalInv.toFixed(2)+'</span>'
+         +'</div>'
         :'')
 
-      +'</div>'      +'</div>'
+      // Pagar a Luisma
+      +(luismaParte>0
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #f3e8ff">'
+         +'<span style="font-size:13px;color:#7c3aed;font-weight:700">💜 Pagar a Luisma</span>'
+         +'<span style="font-size:15px;font-weight:900;color:#7c3aed">$'+luismaParte.toFixed(2)+'</span>'
+         +'</div>'
+        :'')
 
-      +'</div>'
-      // ── DEUDA MAMÁ ──
+      // Pagar a Mamá
       +(deudaMama>0
-        ?'<div style="display:flex;justify-content:space-between;align-items:center;background:#fff0f4;border-radius:10px;padding:10px 14px;margin-bottom:10px;border:1px solid #f48fb1">'
-          +'<span style="font-size:13px;font-weight:700;color:#c2185b">👩‍👧 Le debes a Mamá</span>'
-          +'<span style="font-size:20px;font-weight:900;color:#c2185b">$'+deudaMama.toFixed(2)+'</span>'
-          +'</div>'
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:1px solid #ffe4e6">'
+         +'<span style="font-size:13px;color:#c2185b;font-weight:700">👩‍👧 Pagar a Mamá</span>'
+         +'<span style="font-size:15px;font-weight:900;color:#c2185b">$'+deudaMama.toFixed(2)+'</span>'
+         +'</div>'
         :'')
 
-      // ── GASTOS DETALLE (colapsable) ──
-      +'<div style="margin-bottom:14px">'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-      +'<span style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">📋 Gastos registrados</span>'
-      +(gastosE.length?'<span style="font-size:12px;font-weight:700;color:#c62828">Total: $'+(totalG+totalInv).toFixed(2)+'</span>':'')
+      // Botones
+      +'<div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap">'
+      +'<button class="btn btn-warning btn-sm" onclick="abrirModalGasto('+e.id+');event.stopPropagation()">+ Gasto</button>'
+      +'<button class="btn btn-secondary btn-sm" onclick="abrirModalEvento('+e.id+');event.stopPropagation()">✏️ Editar</button>'
+      +'<button class="btn btn-secondary btn-sm" style="background:#e8f5e9;color:#2e7d32;border:none" onclick="abrirConciliacion('+e.id+');event.stopPropagation()">⚖️ Conciliar</button>'
+      +'<button class="btn btn-danger btn-sm" onclick="eliminarEvento('+e.id+');event.stopPropagation()">🗑️</button>'
       +'</div>'
-      +'<div id="gastos-evento-'+e.id+'" style="display:none">'+filasGastos+'</div>'
-      +'<button onclick="toggleGastosEvento('+e.id+')" class="btn btn-secondary btn-sm" style="font-size:11px;width:100%;margin-top:4px">'
-      +(gastosE.length?'Ver '+gastosE.length+' gasto'+(gastosE.length>1?'s':''):'Sin gastos — agregar')+'</button>'
-      +'</div>'
+      +'</div>'   // cierre cuerpo
+      +'</div>';  // cierre card
 
-      // ── VENTAS DETALLE (colapsable) ──
-      +'<div>'
-      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'
-      +'<span style="font-size:12px;font-weight:800;color:#555;text-transform:uppercase;letter-spacing:.5px">🛒 Ventas del evento</span>'
-      +'<span style="font-size:12px;font-weight:700;color:#2e7d32">'+(totalVBs>0?'Bs.'+totalVBs.toLocaleString('es-VE',{minimumFractionDigits:0,maximumFractionDigits:0})+' · ':'')+'$'+totalV.toFixed(2)+' · '+vts.length+' ventas</span>'
-      +'</div>'
-      // Métodos de pago siempre visibles
-      +(vts.length?'<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px">'+resMet+'</div>':'')
-      +'<div id="ventas-evento-'+e.id+'" style="display:none">'
-      +(vts.length?cardsVentas:'<div style="color:#aaa;font-size:13px;padding:8px 0">Sin ventas asignadas aún</div>')
-      +'</div>'
-      +'<button onclick="toggleVentasEvento('+e.id+')" class="btn btn-secondary btn-sm" style="font-size:11px;width:100%;margin-top:4px">'
-      +(vts.length?'Ver '+vts.length+' venta'+(vts.length>1?'s':''):'Sin ventas aún')+'</button>'
-      +'</div>'
-
-      // Notas
-      +(e.notas?'<div style="margin-top:12px;padding:8px 10px;background:#fafafa;border-radius:8px;font-size:12px;color:#666">📝 '+e.notas+'</div>':'')
-
-      +'</div>' // cierre detalle colapsable
-      +'</div>';
   }).join('');
+}
+
+function toggleDetalleEvento(eid, event){
+  if(event && event.target){
+    var t = event.target;
+    if(t.tagName==='BUTTON') return;
+    if(t.closest && t.closest('button')) return;
+  }
+  var el = document.getElementById('detalle-ev-'+eid);
+  if(!el) return;
+  el.style.display = el.style.display==='none' ? 'block' : 'none';
 }
 
 function mreToggle(id){
