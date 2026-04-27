@@ -3489,7 +3489,9 @@ async function renderEventos(){
     const totalInv = 0;
 
     // LUISMA: 30% de ganancia, mínimo $15
-    const luismaParte = ganancia>0 ? Math.max(15, ganancia*0.3) : 0;
+    const luismaMinimo = 15;
+    const luismaPorcentaje = ganancia>0 ? ganancia*0.3 : 0;
+    const luismaParte = ganancia>0 ? Math.max(luismaMinimo, luismaPorcentaje) : 0;
     const tuParte = ganancia>0 ? ganancia - luismaParte : 0;
 
     // ── Deuda a Mamá ──
