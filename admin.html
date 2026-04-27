@@ -1832,6 +1832,31 @@ function irA(p){
 }
 
 // ===== DASHBOARD =====
+async function abrirEditarSaldoBancaAmiga(e){
+  if(e){e.stopPropagation();}
+  // Obtener saldo real actual si existe
+  const reg = (gastosGlobales||[]).filter(g=>g.tipo==='Saldo Real'&&g.moneda==='Bs')
+    .sort((a,b)=>(b.fecha||'').localeCompare(a.fecha||''));
+  const actual = reg.length>0 ? parseFloat(reg[0].monto||0) : null;
+  const input = prompt('💰 Saldo real actual en BancaAmiga (Bs):'+(actual!==null?' (actual: '+actual.toLocaleString('es-VE',{minimumFractionDigits:2})+')':''));
+  if(input===null||input.trim()==='') return;
+  const val = parseFloat(input.replace(/\./g,'').replace(',','.'));
+  if(isNaN(val)||val<0){toast('Monto inválido');return;}
+  try{
+    // Si ya existe un registro de hoy, actualizarlo; si no, crear uno nuevo
+    const hoy=new Date().toISOString().slice(0,10);
+    const regHoy=reg.find(g=>g.fecha===hoy);
+    if(regHoy){
+      await sbPatch('gastos_globales','id=eq.'+regHoy.id,{monto:val,monto_bs:val});
+      regHoy.monto=val; regHoy.monto_bs=val;
+    } else {
+      const nuevo=await sbPost('gastos_globales',{tipo:'Saldo Real',categoria:'Conciliación',descripcion:'Saldo real BancaAmiga',monto:val,moneda:'Bs',monto_bs:val,fecha:hoy,notas:'Ingresado manualmente'});
+      if(Array.isArray(nuevo)&&nuevo[0]) gastosGlobales.push(nuevo[0]);
+    }
+    cargarDashboard();
+    toast('✅ Saldo real actualizado: Bs. '+val.toLocaleString('es-VE',{minimumFractionDigits:2}));
+  }catch(err){toast('Error: '+err.message);}
+}
 function abrirMovimientosBancaAmiga(){
   abrirModal('modal-bancaamiga-movs');
   // Reutilizar renderMovimientosBancaAmiga pero apuntando al modal
@@ -1996,9 +2021,18 @@ function cargarDashboard(){
         && (g.reposicion_de||'').startsWith('Efectivo')
       )
       .reduce((s,g) => s + parseFloat(g.monto||0), 0);
-    const saldoNeto = reposicionesBs - gastosBs + ajustesSaldo;
+    const saldoCalculado = (porCuentaTodo['bancaamiga_luisma']?porCuentaTodo['bancaamiga_luisma'].bs:0) + reposicionesBs - gastosBs + ajustesSaldo;
+    // Saldo real ingresado manualmente (el más reciente gana)
+    const saldoRealReg = gastosGlobales
+      .filter(g => g.tipo === 'Saldo Real' && g.moneda === 'Bs')
+      .sort((a,b) => (b.fecha||'').localeCompare(a.fecha||''));
+    const saldoReal = saldoRealReg.length > 0 ? parseFloat(saldoRealReg[0].monto||0) : null;
+    const ingresoFantasma = saldoReal !== null ? saldoReal - saldoCalculado : 0;
     if(!porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'] = {total:0,bs:0,count:0};
-    porCuentaTodo['bancaamiga_luisma'].bs += saldoNeto;
+    porCuentaTodo['bancaamiga_luisma'].bs = saldoReal !== null ? saldoReal : saldoCalculado;
+    porCuentaTodo['bancaamiga_luisma'].fantasma = ingresoFantasma;
+    porCuentaTodo['bancaamiga_luisma'].saldoCalculado = saldoCalculado;
+    porCuentaTodo['bancaamiga_luisma'].saldoReal = saldoReal;
     // Solo hoy — para badge
     const porCuentaHoy = {};
     vH.forEach(v=>{
@@ -2029,13 +2063,28 @@ function cargarDashboard(){
         ? ' id="tarjeta-bancaamiga" style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05);cursor:pointer"'
         : ' style="flex:1;min-width:150px;background:'+c.bg+';border-radius:14px;padding:14px 16px;border-left:4px solid '+c.color+';box-shadow:0 2px 8px rgba(0,0,0,.05)"';
       const tapHint = key==='bancaamiga_luisma' ? '<div style="font-size:10px;color:'+c.color+';opacity:.5;margin-top:6px">📋 Ver movimientos</div>' : '';
+      // Ingreso fantasma para BancaAmiga
+      const fantasmaHtml = (key==='bancaamiga_luisma' && d.fantasma && Math.abs(d.fantasma)>0.5)
+        ? '<div style="font-size:11px;margin-top:4px;padding:4px 8px;border-radius:8px;background:'+(d.fantasma>0?'#fff8e1':'#fff5f5')+';color:'+(d.fantasma>0?'#b45309':'#c62828')+';font-weight:700">'
+          +(d.fantasma>0?'👻 Ingreso fantasma: +':'⚠️ Diferencia: ')
+          +'Bs. '+Math.abs(d.fantasma).toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})
+          +(d.saldoReal!==null?'<br><span style="font-size:10px;opacity:.7">Calc: Bs. '+d.saldoCalculado.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</span>':'')
+          +'</div>'
+        : (key==='bancaamiga_luisma' && d.saldoReal!==null
+          ? '<div style="font-size:10px;color:#3a7d52;margin-top:3px">✅ Cuadra con saldo real</div>'
+          : '');
+      const editBtn = key==='bancaamiga_luisma'
+        ? '<button onclick="abrirEditarSaldoBancaAmiga(event)" style="font-size:10px;background:white;border:1px solid '+c.color+';color:'+c.color+';border-radius:6px;padding:2px 8px;cursor:pointer;margin-top:6px">✏️ Editar saldo real</button>'
+        : '';
       return '<div'+clickable+'>'
         +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
         +'<div style="font-size:11px;font-weight:700;color:'+c.color+';text-transform:uppercase;letter-spacing:.5px">'+c.emoji+' '+c.label+'</div>'
         +badgeHoy+'</div>'
         +montoHtml
+        +fantasmaHtml
         +'<div style="font-size:11px;color:'+c.color+';opacity:.6;margin-top:4px">'+d.count+' venta'+(d.count!==1?'s':'')+' totales</div>'
         +tapHint
+        +editBtn
         +'</div>';
     }).join('');
     dsgEl.innerHTML = Object.keys(porCuentaTodo).length
