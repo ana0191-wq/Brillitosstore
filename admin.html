@@ -3456,6 +3456,7 @@ async function renderEventos(){
     const tasaEvento = parseFloat(e.tasa_bcv||0) || (typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74);
 
     const vts = ventas.filter(v=>v.evento_id==e.id && v.estado!=='Cancelado');
+    const totalV = vts.reduce((s,v)=>s+parseFloat(v.total||0), 0);  // USD total
     const gastosE = gastosEvento.filter(g=>g.evento_id==e.id);
     const gastosOp = gastosE.filter(g=>g.tipo!=='Inversión');
     const gastosLuismaCubiertos = [];
@@ -4896,14 +4897,13 @@ function renderMovimientosBancaAmiga(){
   // SALIDAS — gastos en Bs (no ajenos, no reposiciones-no-efectivo)
   (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Saldo Real').forEach(g=>{
     const esRepos = g.tipo==='Reposición';
-    const reposEfectivo = esRepos && (g.reposicion_de||'').startsWith('Efectivo');
-    if(esRepos && !reposEfectivo) return;
+    // Todas las reposiciones en Bs son entradas — dinero que volvió a Brillitos
     movs.push({
       fecha: g.fecha||g.creado_en||'',
       tipo: esRepos ? 'entrada' : 'salida',
       desc: g.descripcion||g.tipo,
       sub: g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''),
-      monto: parseFloat(g.monto||0)
+      monto: parseFloat(g.monto_bs||g.monto||0)
     });
   });
   // Ordenar por fecha asc para calcular saldo corriente
