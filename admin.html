@@ -1266,7 +1266,7 @@ function cuentaNombre(id){
 
 // ===== TIMEZONE VENEZUELA (UTC-4) =====
 function hoyVEN(){ const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240); return d.toISOString().slice(0,10); }
-async function mesVEN(){  const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240); return d.toISOString().slice(0,7); }
+function mesVEN(){  const d=new Date(); d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240); return d.toISOString().slice(0,7); }
 
 let posCarrito=[], posMetodoActual='Pago Móvil';
 let mbsCallback=null;
@@ -2238,7 +2238,7 @@ function selMetodoPOS(el,m){
   document.querySelectorAll('.pos-metodo').forEach(x=>x.classList.remove('active'));
   el.classList.add('active'); posMetodoActual=m;
 }
-async function cobrarPOS(){
+function cobrarPOS(){
   if(!posCarrito.length){ toast('⚠️ El carrito está vacío'); return; }
   const total=posCarrito.reduce((s,i)=>s+i.subtotal,0);
   const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(posMetodoActual);
@@ -4496,7 +4496,7 @@ function renderEntregas(){
 }
 
 // ===== REPORTES =====
-async function cargarReporte(){
+function cargarReporte(){
   const mes=document.getElementById('reporte-mes').value; if(!mes)return;
   const vM=ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
   const total=vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
