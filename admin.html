@@ -3820,7 +3820,10 @@ function abrirResumenEvento(eid,event){
 
     // Poblar modal
     document.getElementById('mre-nombre').textContent = '🎪 '+e.nombre;
-    document.getElementById('mre-fecha').textContent  = e.fecha||'Sin fecha';
+    var _fd=e.fecha?new Date(e.fecha+'T12:00:00'):null;
+    document.getElementById('mre-fecha').textContent = _fd
+      ? _fd.toLocaleDateString('es-VE',{day:'numeric',month:'short',year:'numeric'})
+      : 'Sin fecha';
     document.getElementById('mre-lugar').textContent  = e.lugar ? '📍 '+e.lugar : '';
     document.getElementById('mre-ventas-cnt').textContent = '('+vts.length+')';
     document.getElementById('mre-ventas').textContent = '$'+ventasUSD.toFixed(2);
@@ -3839,9 +3842,26 @@ function abrirResumenEvento(eid,event){
 
     document.getElementById('mre-luisma').textContent = luismaParte>0 ? '$'+luismaParte.toFixed(2) : '—';
 
+    // Tu parte
+    var tuParte = ganancia>0 ? ganancia - luismaParte : 0;
+    var tuParteRow = document.getElementById('mre-tu-parte-row');
+    if(tuParteRow){
+      tuParteRow.style.display = ganancia>0 ? 'flex' : 'none';
+      document.getElementById('mre-tu-parte').textContent = '$'+tuParte.toFixed(2);
+    }
+
     var mamaRow = document.getElementById('mre-mama-row');
     mamaRow.style.display = deudaMama>0 ? 'flex' : 'none';
     if(deudaMama>0) document.getElementById('mre-mama').textContent = '$'+deudaMama.toFixed(2);
+
+    // Resumen métodos de pago encima del detalle
+    var metPago = {};
+    vts.forEach(function(v){ var mp=v.metodo_pago||'Otro'; metPago[mp]=(metPago[mp]||0)+parseFloat(v.total||0); });
+    var metStr = Object.entries(metPago).sort(function(a,b){return b[1]-a[1];}).map(function(kv){
+      return '<span style="background:#f0fdf4;border-radius:6px;padding:2px 7px;font-size:11px;font-weight:700;color:#2e7d32">'+kv[0]+' $'+kv[1].toFixed(2)+'</span>';
+    }).join(' ');
+    var metEl = document.getElementById('mre-metodos');
+    if(metEl) metEl.innerHTML = metStr;
 
     // Detalle ventas (expandible)
     document.getElementById('mre-ventas-det').innerHTML = vts.length ? vts.map(function(v){
@@ -5692,6 +5712,7 @@ async function guardarInversion(){
           <div id="mre-ventas-bs" style="font-size:11px;color:#3a7d52"></div>
         </div>
       </div>
+      <div id="mre-metodos" style="display:flex;gap:5px;flex-wrap:wrap;padding:4px 0 2px"></div>
       <div id="mre-ventas-det" style="display:none;background:#f9fafb;border-radius:8px;padding:8px 10px;margin:4px 0;max-height:180px;overflow-y:auto;font-size:12px;color:#555"></div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff;cursor:pointer" onclick="mreToggle('mre-gastos-det')">
         <span style="font-size:14px;color:#555;font-weight:600">Gastos / Inversion <small id="mre-gastos-cnt" style="color:#aaa;font-weight:400"></small></span>
@@ -5710,8 +5731,12 @@ async function guardarInversion(){
         <div id="mre-recuperacion" style="font-size:17px;font-weight:900;color:#1565c0"></div>
       </div>
       <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid #f3e8ff">
-        <span style="font-size:14px;color:#7c3aed;font-weight:600">Pagar a Luisma</span>
+        <span style="font-size:14px;color:#7c3aed;font-weight:600">💜 Pagar a Luisma</span>
         <div id="mre-luisma" style="font-size:17px;font-weight:900;color:#7c3aed"></div>
+      </div>
+      <div id="mre-tu-parte-row" style="display:none;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #f3e8ff">
+        <span style="font-size:14px;color:#2e7d32;font-weight:600">🌸 Tu parte</span>
+        <div id="mre-tu-parte" style="font-size:17px;font-weight:900;color:#2e7d32"></div>
       </div>
       <div id="mre-mama-row" style="display:none;justify-content:space-between;align-items:center;padding:12px 0">
         <span style="font-size:14px;color:#c2185b;font-weight:600">Pagar a Mama</span>
