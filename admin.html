@@ -490,7 +490,7 @@ tr:hover td{background:#fff8fc}
       </select>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap">
-      <table><thead><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Stock</th><th>QR</th><th>Aptd</th><th></th></tr></thead>
+      <table><thead><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Stock</th><th>QR</th><th>Aptd</th><th title="Visible en tienda web">🌐</th><th></th></tr></thead>
       <tbody id="tbody-prods"></tbody></table>
     </div></div>
   </div>
@@ -2360,7 +2360,7 @@ async function confirmarVentaVoz(){
   const res=await sbPost('ventas',{cliente_nombre:cliente||'Cliente voz',canal,metodo_pago:'Pago Móvil',tipo_entrega:'Entrega directa',estado:'Pendiente',subtotal:total,costo_envio:0,descuento:0,total,fecha_venta:new Date().toISOString().slice(0,10),tasa_bcv_usada:bcvHoy||0,monto_bs:0,numero:'VOZ-'+Date.now()});
   const vid=res[0]&&res[0].id;
   if(vid) for(const it of items) await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,body:JSON.stringify({venta_id:vid,...it})});
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc');
   cargarDashboard(); document.getElementById('voz-panel').classList.remove('open');
   document.getElementById('voz-resultado').style.display='none'; vozTranscript=''; vozVentaDetectada=null;
   toast('✅ Venta por voz registrada');
@@ -3153,7 +3153,7 @@ function renderProductos(lista){
     const aptStock=apartados.filter(a=>a.estado==='Activo'&&(a.apartado_items||[]).some(i=>i.producto_id==p.id)).length;
     return '<tr>'
       +'<td>'+(p.imagen?'<img src="'+p.imagen+'" style="width:36px;height:36px;object-fit:cover;border-radius:8px" onerror="this.style.display=\'none\'">':'<div style="width:36px;height:36px;background:var(--pink-light);border-radius:8px;display:flex;align-items:center;justify-content:center">🌸</div>')+'</td>'
-      +'<td>'+(p.propietario==='Mamá'?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fce4ec;color:#c2185b;margin-right:4px">Mamá</span>':'')+'<strong>'+(p.nombre||'')+'</strong>'+(p.visible_web===false?'<span style="font-size:10px;margin-left:4px;color:#bbb" title="Oculto en web">🚫🌐</span>':'')+'</td>'
+      +'<td>'+(p.propietario==='Mamá'?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fce4ec;color:#c2185b;margin-right:4px">Mamá</span>':'')+'<strong>'+(p.nombre||'')+'</strong>'+(p.visible_web===false?'<span style="font-size:9px;margin-left:3px;opacity:.4">🚫</span>':'')+'</td>'
       +'<td>'+(p.categoria||'')+'</td>'
       +'<td>'+(p.precio_costo>0?'$'+parseFloat(p.precio_costo).toFixed(2):'—')+'</td>'
       +'<td><strong>$'+parseFloat(p.precio||0).toFixed(2)+'</strong></td>'
@@ -3161,6 +3161,7 @@ function renderProductos(lista){
       +'<td><input type="number" value="'+(p.stock||0)+'" min="0" style="width:52px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px" onchange="actualizarStockProd('+p.id+',this.value)"></td>'
       +'<td><button onclick="verQRProducto('+p.id+')" style="background:none;border:none;cursor:pointer;font-size:18px;padding:2px" title="Ver QR">🔲</button></td>'
       +'<td>'+(aptStock>0?'<span class="badge badge-pendiente">📌'+aptStock+'</span>':'—')+'</td>'
+      +'<td><label style="display:flex;align-items:center;justify-content:center;cursor:pointer" title="'+(p.visible_web===false?'Oculto en web — clic para mostrar':'Visible en web — clic para ocultar')+'"><input type="checkbox" '+(p.visible_web===false?'':'checked')+' onchange="toggleVisibleWeb('+p.id+',this.checked)" style="width:16px;height:16px;accent-color:var(--pink);cursor:pointer"></label></td>'
       +'<td style="white-space:nowrap;display:flex;gap:4px;align-items:center">'+"<button class='btn btn-sm' style='font-size:10px;padding:2px 7px;background:"+(p.propietario==='Mamá'?'#fce4ec;color:#c2185b;border-color:#f48fb1':'#f5f5f5;color:#555;border-color:#ddd')+";border:1.5px solid;border-radius:8px;font-weight:700' onclick='togglePropietario("+p.id+")'title='Cambiar propietario'>"+(p.propietario==='Mamá'?'Mamá':'Mío')+"</button>"+"<button class='btn btn-warning btn-sm' onclick='abrirModalProducto("+p.id+")'>✏️</button>"+"<button class='btn btn-danger btn-sm' onclick='eliminarProd("+p.id+")'>🗑️</button>"+'</td>'
       +'</tr>';
   }).join('');
@@ -3288,6 +3289,13 @@ function abrirModalProductoRapido(){
   }catch(e){}
   window._posQuickAdd=true;
   abrirModal('modal-producto');
+}
+async function toggleVisibleWeb(id, visible){
+  const p = productos.find(x=>x.id==id);
+  if(!p) return;
+  p.visible_web = visible;
+  await sbPatch('productos', id, {visible_web: visible});
+  toast(visible ? '🌐 Visible en tienda' : '🚫 Oculto en tienda');
 }
 async function eliminarProd(id){
   if(!confirm('¿Eliminar?')) return;
