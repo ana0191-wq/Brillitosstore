@@ -3371,7 +3371,7 @@ async function renderEventos(){
     const totalV=ventasBs/tasa;
 
     // ── Gastos del evento ──
-    const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
+    const gastosE=gastosEvento.filter(g=>g.evento_id==e.id&&!esSaldoReal(g));
     const gastosEvDia=gastosE.filter(g=>g.tipo==='Gasto evento');
     const gastosInv=gastosE.filter(g=>g.tipo==='Inversión');
     const gastosBs=gastosEvDia.reduce((s,g)=>s+gBs(g),0);
@@ -3774,6 +3774,14 @@ function renderDeudaMama(cid){
     +'</div>';
 }
 
+
+// ── Filtro global: excluir Saldo Real y Conciliación de todos los cálculos ──
+function esSaldoReal(g){
+  return (g.tipo||'').toLowerCase().includes('saldo') ||
+         (g.categoria||'').toLowerCase().includes('concilia') ||
+         (g.descripcion||'').toLowerCase().includes('saldo real') ||
+         (g.concepto||'').toLowerCase().includes('saldo real');
+}
 // ── Helpers de conversión (usar siempre los campos guardados) ──
 function gUsd(g){
   var u=parseFloat(g.monto_usd||0);
@@ -3806,7 +3814,7 @@ function renderGastosGlobal(){
   const filBuscar=(document.getElementById('filtro-buscar-gasto')?document.getElementById('filtro-buscar-gasto').value:'').toLowerCase();
   const tasa=bcvHoy||484.74;
 
-  let lista=[...gastosGlobales].sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+  let lista=[...gastosGlobales].filter(g=>!esSaldoReal(g)).sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
   if(filTipo) lista=lista.filter(g=>g.tipo===filTipo);
   if(filCat)  lista=lista.filter(g=>g.categoria===filCat);
   if(filMes)  lista=lista.filter(g=>(g.fecha||'').slice(0,7)===filMes);
@@ -3816,7 +3824,7 @@ function renderGastosGlobal(){
   // ── STATS ──
   const totalBs=lista.filter(g=>g.tipo!=='Reposición').reduce((s,g)=>s+gBs(g),0);
   const totalUsd=lista.filter(g=>g.tipo!=='Reposición').reduce((s,g)=>s+gUsd(g),0);
-  const pendientes=gastosGlobales.filter(g=>g.tipo==='Pago personal'&&!g.reposicion_de);
+  const pendientes=gastosGlobales.filter(g=>!esSaldoReal(g)&&g.tipo==='Pago personal'&&!g.reposicion_de);
   const inversiones=lista.filter(g=>g.tipo==='Inversión');
   const totalInv=inversiones.reduce((s,g)=>s+gUsd(g),0);
 
