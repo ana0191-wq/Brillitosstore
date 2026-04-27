@@ -2008,9 +2008,11 @@ function cargarDashboard(){
     const tarjetas = Object.entries(porCuentaTodo).sort((a,b)=>b[1].total-a[1].total).map(([key,d])=>{
       const c = cuentaCfg[key]||metodoCfg[key]||{emoji:'💰',color:'#666',bg:'#f5f5f5',label:key,esBs:false};
       const bsColor = c.esBs ? (d.bs>=0?'#3a7d52':'#c62828') : c.color;
+      const tasaActual = bcvHoy || parseFloat(document.getElementById('inp-tasa')?document.getElementById('inp-tasa').value:0) || 0;
+      const bsEquivUSD = tasaActual > 0 ? (d.bs / tasaActual).toFixed(2) : null;
       const montoHtml = c.esBs
         ? '<div style="font-size:20px;font-weight:800;color:'+bsColor+';line-height:1.2">Bs. '+d.bs.toLocaleString('es-VE',{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
-          +'<div style="font-size:12px;color:'+bsColor+';opacity:.7">~$'+d.total.toFixed(2)+'</div>'
+          +(bsEquivUSD?'<div style="font-size:12px;color:'+bsColor+';opacity:.7">~$'+bsEquivUSD+'</div>':'')
         : '<div style="font-size:20px;font-weight:800;color:'+c.color+'">$'+d.total.toFixed(2)+'</div>';
       const hoy=porCuentaHoy[key];
       const badgeHoy=hoy
