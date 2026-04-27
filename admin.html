@@ -3279,10 +3279,16 @@ async function renderEventos(){
     const ventasBs=vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
     const totalV=ventasBs/tasa;
 
-    // ── Gastos del evento — todos los tipos reales, sin repetidos por evento_id ──
-    const TIPOS_EXCLUIR=['Pago personal','Reposición','Gasto ajeno'];
-    const gastosE=gastosEvento.filter(g=>g.evento_id==e.id&&!esSaldoReal(g)&&!TIPOS_EXCLUIR.includes(g.tipo));
-    // Deduplicar por id por seguridad
+    // ── Gastos del evento ──
+    // Siempre cuentan: Gasto evento, Inversión
+    // Solo si tienen evento_id asignado: Gasto, Gasto operativo
+    // Nunca cuentan: Pago personal, Reposición, Gasto ajeno
+    const TIPOS_SIEMPRE=['Gasto evento','Inversión'];
+    const TIPOS_SI_EVENTO=['Gasto','Gasto operativo'];
+    const gastosE=gastosEvento.filter(g=>
+      g.evento_id==e.id && !esSaldoReal(g) &&
+      (TIPOS_SIEMPRE.includes(g.tipo) || TIPOS_SI_EVENTO.includes(g.tipo))
+    );
     const gastosEUnicos=[...new Map(gastosE.map(g=>[g.id,g])).values()];
     const totalGUsd=gastosEUnicos.reduce((s,g)=>s+gUsd(g),0);
     const totalG=totalGUsd;
