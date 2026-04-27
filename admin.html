@@ -3452,43 +3452,44 @@ async function renderEventos(){
   if(!eventos.length){ div.innerHTML='<div class="card" style="text-align:center;color:var(--gray)">No hay eventos</div>'; return; }
   const eventosOrdenados=[...eventos].sort((a,b)=>{var fa=a.fecha?new Date(a.fecha+'T12:00:00'):null;var fb=b.fecha?new Date(b.fecha+'T12:00:00'):null;if(!fa&&!fb)return 0;if(!fa)return 1;if(!fb)return -1;return fa-fb;});
   div.innerHTML=eventosOrdenados.map(e=>{
-    const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
-    const totalV=vts.reduce((s,v)=>s+parseFloat(v.total||0),0);
-    const totalVBs=vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
-    const gastosE=gastosEvento.filter(g=>g.evento_id==e.id);
-    const gastosOp=gastosE.filter(g=>g.tipo!=='Inversión');
-    const gastosLuismaCubiertos=[];
-    const gastosLuismaEvento=parseFloat(e.gastos_luisma||0);
+    // ── Tasa del evento (definida primero) ──
+    const tasaEvento = parseFloat(e.tasa_bcv||0) || (typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74);
 
-    // Todo en Bs — convertir gastos USD a Bs, usar monto_bs si existe
-    const gastoBs=g=>{
-      const bs=parseFloat(g.monto_bs||0);
+    const vts = ventas.filter(v=>v.evento_id==e.id && v.estado!=='Cancelado');
+    const gastosE = gastosEvento.filter(g=>g.evento_id==e.id);
+    const gastosOp = gastosE.filter(g=>g.tipo!=='Inversión');
+    const gastosLuismaCubiertos = [];
+    const gastosLuismaEvento = parseFloat(e.gastos_luisma||0);
+
+    // VENTAS: sumar monto_bs directamente
+    const totalVBs = vts.reduce((s,v)=>s+parseFloat(v.monto_bs||0), 0);
+
+    // GASTOS: cada gasto a Bs de forma simple
+    // - tiene monto_bs → usar monto_bs
+    // - moneda USD o monto_usd → multiplicar por tasa
+    // - moneda Bs → usar monto
+    // - sin moneda: < 500 = USD, >= 500 = Bs
+    const gastoBs = g => {
+      const bs = parseFloat(g.monto_bs||0);
       if(bs>0) return bs;
-      const usd=parseFloat(g.monto_usd||0);
-      if(usd>0) return usd*tasaEvento;
-      const m=parseFloat(g.monto||0);
-      // Si moneda es Bs o monto > 100 asumimos Bs, si no USD
-      if(g.moneda==='USD') return m*tasaEvento;
-      if(g.moneda==='Bs'||m>100) return m;
-      return m*tasaEvento; // pequeños montos sin moneda = USD
+      const usd = parseFloat(g.monto_usd||0);
+      if(usd>0) return usd * tasaEvento;
+      const m = parseFloat(g.monto||0);
+      if(g.moneda==='USD') return m * tasaEvento;
+      if(g.moneda==='Bs') return m;
+      return m < 500 ? m * tasaEvento : m;
     };
-    const totalGBs=gastosOp.reduce((s,g)=>s+gastoBs(g),0);
+    const totalGBs = gastosOp.reduce((s,g)=>s+gastoBs(g), 0);
 
-    // Tasa: usar la del evento o tasaActual global
-    const tasaEvento=parseFloat(e.tasa_bcv||0)||(typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74)||484.74;
+    // GANANCIA: ventas Bs - gastos Bs → convertir a USD
+    const gananciaBs = totalVBs - totalGBs;
+    const ganancia = gananciaBs / tasaEvento;
+    const totalG = totalGBs / tasaEvento;
+    const totalInv = 0;
 
-    // Ganancia en Bs y USD
-    const gananciaBs=totalVBs - totalGBs;
-    const ganancia=gananciaBs/tasaEvento;
-    const totalG=totalGBs/tasaEvento;
-    const totalInv=0;
-
-    // Luisma: 30% de ganancia neta, mínimo $15
-    const luismaMinimo=15;
-    const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
-    const luismaBase=ganancia>0?Math.max(luismaMinimo,luismaPorcentaje):0;
-    const luismaParte=luismaBase;
-    const tuParte=ganancia>0?ganancia-luismaBase:0;
+    // LUISMA: 30% de ganancia, mínimo $15
+    const luismaParte = ganancia>0 ? Math.max(15, ganancia*0.3) : 0;
+    const tuParte = ganancia>0 ? ganancia - luismaParte : 0;
 
     // ── Deuda a Mamá ──
     // Por cada item de producto de mamá: le debo (precio_venta - costo - 0.50) por unidad
