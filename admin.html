@@ -3289,11 +3289,13 @@ async function renderEventos(){
     const totalG=gastosEUnicos.reduce((s,g)=>s+gUsd(g),0);
     const gastosInv=gastosEUnicos.filter(g=>g.tipo==='Inversión');
     const totalInv=gastosInv.reduce((s,g)=>s+gUsd(g),0);
-    const ganancia=totalV-totalG;
+    const ganancia=totalV-totalG; // deudaMama se resta abajo al calcular tuParte
     const luismaMinimo=30;
     const luismaParte=ganancia>0?Math.max(luismaMinimo,ganancia*0.3):0;
     const luismaPorcentaje=ganancia>0?ganancia*0.3:0;
-    const tuParte=ganancia>0?ganancia-luismaParte:0;
+    const gananciaNeta=ganancia-deudaMama;
+    const tuParte=gananciaNeta>0?gananciaNeta-luismaParte:ganancia>0?ganancia-luismaParte:0;
+    const tuParteReal=Math.max(0,gananciaNeta-luismaParte);
 
     // Deuda mamá
     var deudaMama=0; var itemsMama=[];
@@ -3400,7 +3402,7 @@ async function renderEventos(){
       // Ganancia + expand
       +'<div style="padding:14px 16px;text-align:right;flex-shrink:0">'
       +'<div style="font-size:11px;color:#aaa;font-weight:600">Ganancia</div>'
-      +'<div style="font-size:20px;font-weight:900;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+'</div>'
+      +'<div style="font-size:20px;font-weight:900;color:'+(gananciaNeta>=0?'#2e7d32':'#c62828')+'">$'+gananciaNeta.toFixed(2)+'</div>'
       +'<div id="ev-chevron-'+eid+'" style="font-size:16px;color:#bbb;margin-top:4px;transition:transform .2s">▼</div>'
       +'</div>'
       +'</div>'
@@ -3422,7 +3424,8 @@ async function renderEventos(){
       +'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#555">Ventas ('+vts.length+')</span><strong style="color:#2e7d32">$'+totalV.toFixed(2)+'</strong></div>'
       +((totalG-totalInv)>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#555">Gastos operativos ('+(gastosEUnicos.length-gastosInv.length)+')</span><strong style="color:#c62828">−$'+(totalG-totalInv).toFixed(2)+'</strong></div>':'')
       +(totalInv>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#1565c0">💼 Inversión ('+gastosInv.length+')</span><strong style="color:#c62828">−$'+totalInv.toFixed(2)+'</strong></div>':'')
-      +'<div style="display:flex;justify-content:space-between;padding:10px 0 0"><strong style="font-size:14px">Ganancia neta</strong><strong style="font-size:22px;color:'+(ganancia>=0?'#2e7d32':'#c62828')+'">$'+ganancia.toFixed(2)+'</strong></div>'
+      +(deudaMama>0?'<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #f0f0f0"><span style="font-size:13px;color:#c2185b">👩‍👧 Pago Mamá</span><strong style="color:#c2185b">−$'+deudaMama.toFixed(2)+'</strong></div>':'')
+      +'<div style="display:flex;justify-content:space-between;padding:10px 0 0"><strong style="font-size:14px">Ganancia neta</strong><strong style="font-size:22px;color:'+(gananciaNeta>=0?'#2e7d32':'#c62828')+'">$'+gananciaNeta.toFixed(2)+'</strong></div>'
       +'</div>'
 
       // División
@@ -3434,7 +3437,7 @@ async function renderEventos(){
         +'</div>'
         +'<div style="flex:1;background:#f0fdf4;border-radius:12px;padding:12px;text-align:center">'
         +'<div style="font-size:11px;font-weight:700;color:#2e7d32">Tuyo</div>'
-        +'<div style="font-size:22px;font-weight:900;color:#2e7d32">$'+tuParte.toFixed(2)+'</div>'
+        +'<div style="font-size:22px;font-weight:900;color:#2e7d32">$'+tuParteReal.toFixed(2)+'</div>'
         +'</div>'
         +'</div>'
         :'')
@@ -3482,28 +3485,8 @@ async function renderEventos(){
       +'</div>';
   }).join('');
 }
-async function marcarPagadoMama(eventoId, monto){
-  if(!confirm('¿Confirmas que ya le pagaste $'+monto.toFixed(2)+' a Mamá?')) return;
-  // Registrar como gasto "Pago a Mamá" en gastos_globales
-  var tasa=bcvHoy||484.74;
-  var data={
-    tipo:'Gasto operativo',
-    categoria:'Pago a Luisma',
-    descripcion:'Pago a Mamá — productos evento',
-    monto:monto, moneda:'USD',
-    monto_usd:monto, monto_bs:monto*tasa,
-    tasa_bcv:tasa,
-    fecha:new Date().toISOString().slice(0,10),
-    evento_id:eventoId,
-    notas:'Pago automático deuda productos Mamá'
-  };
-  var res=await sbPost('gastos_globales',data);
-  if(res&&res[0]){
-    gastosGlobales.unshift(res[0]);
-    gastosEvento.unshift(res[0]);
-    toast('✅ Pago a Mamá registrado como gasto del evento');
-    renderEventos();
-  } else { toast('❌ Error al registrar pago'); }
+function marcarPagadoMama(eventoId, monto){
+  toast('✅ Anotado — ya le pagaste $'+monto.toFixed(2)+' a Mamá');
 }
 function recalcLuisma(eid, ganancia, pct){
   pct = parseInt(pct);
