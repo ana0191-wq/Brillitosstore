@@ -1148,6 +1148,7 @@ tr:hover td{background:#fff8fc}
         <option value="Inversión">📈 Inversión (stock/equipo)</option>
         <option value="Gasto evento">🎪 Gasto de evento</option>
         <option value="Pago personal">👤 Pago personal</option>
+        <option value="Por reponer">💚 Por reponer (pendiente reposición)</option>
         <option value="Gasto ajeno">🏠 Gasto ajeno (no es de Brillitos)</option>
         <option value="Reposición">💚 Reposición (devolución a Brillitos)</option>
       </select>
@@ -3776,6 +3777,7 @@ function renderGastosGlobal(){
     'Gasto operativo': {bg:'#fce4ec',color:'#c62828'},
     'Pago personal':   {bg:'#ede7f6',color:'#4527a0'},
     'Gasto ajeno':     {bg:'#fff8e1',color:'#795548'},
+    'Por reponer':     {bg:'#fff3e0',color:'#e65100'},
     'Reposición':      {bg:'#e8f5e9',color:'#2e7d32'}
   };
 
@@ -3814,11 +3816,11 @@ function renderGastosGlobal(){
       estadoStr='<span style="font-size:11px;background:#e8f5e9;color:#2e7d32;padding:2px 8px;border-radius:10px;font-weight:700">💚 Repos.</span>';
     }
 
-    var trBg=g.tipo==='Pago personal'&&!g.reposicion_de?'background:#fffde7':g.tipo==='Reposición'?'background:#f1f8e9':'';
+    var trBg=g.tipo==='Pago personal'&&!g.reposicion_de?'background:#fffde7':g.tipo==='Por reponer'?'background:#fff8e1':g.tipo==='Reposición'?'background:#f1f8e9':'';
 
     var iS='padding:2px 4px;border:1px solid #ddd;border-radius:5px;font-size:12px;background:white;max-width:100%';
     var tiposOpts='';
-    ['Gasto','Gasto evento','Gasto operativo','Inversión','Pago personal','Reposición','Gasto ajeno'].forEach(function(t){tiposOpts+='<option value="'+t+'"'+(g.tipo===t?' selected':'')+'>'+t+'</option>';});
+    ['Gasto','Gasto evento','Gasto operativo','Inversión','Pago personal','Por reponer','Reposición','Gasto ajeno'].forEach(function(t){tiposOpts+='<option value="'+t+'"'+(g.tipo===t?' selected':'')+'>'+t+'</option>';});
     var catsOpts='';
     ['','Mercancía / Stock','Transporte','Stand / Evento','Stand / Puesto','Marketing / Publicidad','Empaque / Materiales','Dominio / Web / Apps','Comida / Viáticos','Pago a Luisma','Gasto de Luisma','Servicios','Conciliación','Otro'].forEach(function(c){catsOpts+='<option value="'+c+'"'+(g.categoria===c?' selected':'')+'>'+(!c?'— Sin categoría —':c)+'</option>';});
     var evsOpts='<option value=""'+((!g.evento_id)?' selected':'')+'>— Sin evento —</option>';
@@ -4915,6 +4917,7 @@ function renderMovimientosBancaAmiga(){
         <option value="Gasto operativo">Gasto operativo</option>
         <option value="Inversi&#243;n">Inversi&#243;n</option>
         <option value="Pago personal">Pago personal</option>
+        <option value="Por reponer">&#128154; Por reponer</option>
         <option value="Reposici&#243;n">Reposici&#243;n</option>
         <option value="Gasto ajeno">Gasto ajeno</option>
       </select>
