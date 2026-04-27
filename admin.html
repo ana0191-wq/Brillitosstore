@@ -1346,6 +1346,7 @@ async function getBCV(fecha){
 async function mostrarBCVDash(){
   const tasa = await getBCV();
   const bcvEl=document.getElementById('bcv-rate-dash');
+  if(!bcvEl) return;
   bcvEl.textContent='Bs. '+parseFloat(tasa).toFixed(2);
   bcvEl.style.cursor='pointer';
   bcvEl.title='Toca para editar manualmente';
@@ -1492,6 +1493,7 @@ async function testVenta(){
 
 // ===== INIT =====
 async function init(){
+  try {
   toast('Cargando Brillitos... 🌸');
   console.log('🌸 init() arrancó');
   try{ const fv=document.getElementById('v-fecha-venta'); if(fv) fv.value=hoyVEN(); }catch(e){}
@@ -1536,6 +1538,7 @@ async function init(){
   verificarApartadosVencidos();
   iniciarVozReconocimiento();
   renderPOS();
+  } catch(err){ console.error("❌ init() falló:", err); toast("❌ Error al cargar: "+err.message); }
 }
 
 // ===== SCANNER QR / CÓDIGO DE BARRAS =====
@@ -1954,8 +1957,8 @@ function cargarDashboard(){
   const gananciaNeta=ganBrutaDash-totalGastMes;
   window._dashGanDetalle={gan:ganBrutaDash,gananciaNeta,totalGastMes,ganDetalle,tasa,mes};
 
-  document.getElementById('d-hoy').textContent = '$'+totalHoy.toFixed(2);
-  document.getElementById('d-mes').textContent = '$'+totalMes.toFixed(2);
+  var dHoyEl=document.getElementById('d-hoy'); if(dHoyEl) dHoyEl.textContent='$'+totalHoy.toFixed(2);
+  var dMesEl=document.getElementById('d-mes'); if(dMesEl) dMesEl.textContent='$'+totalMes.toFixed(2);
   const dGanEl=document.getElementById('d-ganancia');
   if(dGanEl){dGanEl.textContent='$'+ganBrutaDash.toFixed(2);dGanEl.title='Neta: $'+gananciaNeta.toFixed(2);dGanEl.style.cursor='pointer';dGanEl.onclick=()=>abrirDetalleGanancia();}
   document.getElementById('d-apartados').textContent = aptActivos.length;
