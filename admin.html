@@ -551,6 +551,8 @@ tr:hover td{background:#fff8fc}
         <option value="">Todos los meses</option>
       </select>
     </div>
+    <!-- Resumen financiero contabilidad -->
+    <div id="conta-resumen" style="margin-bottom:14px"></div>
     <div id="deuda-mama-cont" style="margin-bottom:14px"></div>
     <div class="card" style="padding:0"><div class="table-wrap">
       <table><thead><tr><th>Fecha</th><th>Categoría</th><th>Descripción</th><th>Monto</th><th>En USD</th><th>Bs.</th><th>Tipo</th><th>Evento</th><th></th></tr></thead>
@@ -3852,17 +3854,26 @@ async function cambiarTipoGasto(id, nuevoTipo){
 }
 function calcularDeudaMama(){
   var total=0, detalle=[];
+  var tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
   ventas.filter(function(v){return v.estado!=='Cancelado';}).forEach(function(v){
     var esEvento=!!(v.evento_id);
+    var ventaEnBs=parseFloat(v.monto_bs||0)>0;
     (v.venta_items||[]).forEach(function(it){
       var p=productos.find(function(x){return x.id==it.producto_id;});
       if(!p||p.propietario!=='Mamá') return;
       var cant=parseInt(it.cantidad||1);
       var precioVenta=parseFloat(it.precio_unitario||p.precio||0);
       var costo=parseFloat(p.precio_costo||0);
-      var subtotal=(precioVenta-costo-(esEvento?0.50:0))*cant;
-      total+=subtotal;
-      detalle.push({nombre:p.nombre,cant:cant,venta:v.numero||'#'+v.id,esEvento:esEvento,subtotal:subtotal});
+      // Si la venta es en Bs, calcular en Bs y convertir a USD para mostrar consistente
+      var subtotalUSD;
+      if(ventaEnBs){
+        var subtotalBs=(precioVenta-costo-(esEvento?0.50:0))*cant;
+        subtotalUSD=subtotalBs/tasa;
+      } else {
+        subtotalUSD=(precioVenta-costo-(esEvento?0.50:0))*cant;
+      }
+      total+=subtotalUSD;
+      detalle.push({nombre:p.nombre,cant:cant,venta:v.numero||'#'+v.id,esEvento:esEvento,subtotal:subtotalUSD,enBs:ventaEnBs});
     });
   });
   return {total:total,detalle:detalle};
@@ -3981,6 +3992,73 @@ function renderGastosGlobal(){
   });
   document.getElementById('tbody-gastos').innerHTML=rows.join('');
   renderDeudaMama('deuda-mama-cont');
+  renderContaResumen();
+}
+
+function renderContaResumen(){
+  var el=document.getElementById('conta-resumen'); if(!el) return;
+  // Saldo BancaAmiga — mismo que el dashboard
+  var saldoRealReg=(gastosGlobales||[]).filter(function(g){return g.tipo==='Saldo Real'&&g.moneda==='Bs';})
+    .sort(function(a,b){return (b.fecha||'').localeCompare(a.fecha||'');});
+  var saldoBs=saldoRealReg.length>0?parseFloat(saldoRealReg[0].monto||0):null;
+  // Si no hay saldo real, sumar ventas en Bs
+  if(saldoBs===null){
+    saldoBs=(ventas||[]).filter(function(v){return v.estado!=='Cancelado';})
+      .reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
+  }
+  var tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
+  var saldoUSD=saldoBs/tasa;
+
+  // Pagos pendientes — ventas con estado Pendiente
+  var ventasPend=(ventas||[]).filter(function(v){return v.estado==='Pendiente';});
+  var totalPend=ventasPend.reduce(function(s,v){return s+parseFloat(v.total||0);},0);
+  var totalPendBs=ventasPend.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
+
+  // Deuda a Luisma — suma de luismaParte de todos los eventos
+  var deudaLuisma=0;
+  (eventos||[]).forEach(function(e){
+    var vts=(ventas||[]).filter(function(v){return v.evento_id==e.id&&v.estado!=='Cancelado';});
+    var gastosE=(gastosEvento||[]).filter(function(g){return g.evento_id==e.id;});
+    var tasaEv=parseFloat(e.tasa_bcv||0)||tasa;
+    var totalVBs=vts.reduce(function(s,v){return s+parseFloat(v.monto_bs||0);},0);
+    var totalGBs=gastosE.reduce(function(s,g){
+      var bs=parseFloat(g.monto_bs||0); if(bs>0) return s+bs;
+      var usd=parseFloat(g.monto_usd||0); if(usd>0) return s+usd*tasaEv;
+      var m=parseFloat(g.monto||0);
+      return s+(g.moneda==='USD'?m*tasaEv:(m>=500?m:m*tasaEv));
+    },0);
+    var ganBs=totalVBs-totalGBs;
+    var ganUSD=ganBs/tasaEv;
+    if(ganUSD>0) deudaLuisma+=Math.max(15,ganUSD*0.3);
+  });
+
+  el.innerHTML=
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px">'
+    // BancaAmiga
+    +'<div style="flex:1;min-width:160px;background:#edf7f1;border-radius:12px;padding:14px 16px;border-left:4px solid #3a7d52">'
+    +'<div style="font-size:11px;font-weight:700;color:#3a7d52;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">🏦 BancaAmiga</div>'
+    +'<div style="font-size:20px;font-weight:900;color:#3a7d52">Bs. '+saldoBs.toLocaleString("es-VE",{minimumFractionDigits:2,maximumFractionDigits:2})+'</div>'
+    +'<div style="font-size:12px;color:#3a7d52;opacity:.7">~$'+saldoUSD.toFixed(2)+'</div>'
+    +'<button onclick="abrirEditarSaldoBancaAmiga(null)" style="font-size:10px;margin-top:6px;background:white;border:1px solid #3a7d52;color:#3a7d52;border-radius:6px;padding:2px 8px;cursor:pointer">✏️ Actualizar</button>'
+    +'</div>'
+    // Cobros pendientes
+    +(ventasPend.length>0
+      ?'<div style="flex:1;min-width:160px;background:#fff8e1;border-radius:12px;padding:14px 16px;border-left:4px solid #f59e0b">'
+      +'<div style="font-size:11px;font-weight:700;color:#b45309;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">⏳ Cobros Pendientes</div>'
+      +'<div style="font-size:20px;font-weight:900;color:#b45309">$'+totalPend.toFixed(2)+'</div>'
+      +(totalPendBs>0?'<div style="font-size:12px;color:#b45309;opacity:.7">Bs. '+totalPendBs.toLocaleString("es-VE",{minimumFractionDigits:0})+'</div>':'')
+      +'<div style="font-size:11px;color:#888;margin-top:4px">'+ventasPend.length+' venta'+(ventasPend.length>1?'s':'')+'</div>'
+      +'</div>'
+      :'')
+    // Deuda Luisma
+    +(deudaLuisma>0
+      ?'<div style="flex:1;min-width:160px;background:#f5f0ff;border-radius:12px;padding:14px 16px;border-left:4px solid #7c3aed">'
+      +'<div style="font-size:11px;font-weight:700;color:#7c3aed;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">💜 Deuda a Luisma</div>'
+      +'<div style="font-size:20px;font-weight:900;color:#7c3aed">$'+deudaLuisma.toFixed(2)+'</div>'
+      +'<div style="font-size:11px;color:#888;margin-top:4px">Total eventos</div>'
+      +'</div>'
+      :'')
+    +'</div>';
 }
 
 function abrirModalReposicion(){
