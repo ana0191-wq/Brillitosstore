@@ -1982,7 +1982,12 @@ function cargarDashboard(){
       .filter(g => g.moneda === 'Bs'
         && g.tipo !== 'Reposición'
         && g.tipo !== 'Gasto ajeno'
+        && g.tipo !== 'Inversion'
       )
+      .reduce((s,g) => s + parseFloat(g.monto||0), 0);
+    // Ajustes manuales de saldo (tipo 'Ajuste Saldo')
+    const ajustesSaldo = gastosGlobales
+      .filter(g => g.tipo === 'Ajuste Saldo' && g.moneda === 'Bs')
       .reduce((s,g) => s + parseFloat(g.monto||0), 0);
     // Solo las reposiciones en Efectivo entran a BancaAmiga
     // "Comprando mercancía", "Pagando gasto/inversión" = el dinero se usó directo, no entró a la cuenta
@@ -1991,7 +1996,7 @@ function cargarDashboard(){
         && (g.reposicion_de||'').startsWith('Efectivo')
       )
       .reduce((s,g) => s + parseFloat(g.monto||0), 0);
-    const saldoNeto = reposicionesBs - gastosBs;
+    const saldoNeto = reposicionesBs - gastosBs + ajustesSaldo;
     if(!porCuentaTodo['bancaamiga_luisma']) porCuentaTodo['bancaamiga_luisma'] = {total:0,bs:0,count:0};
     porCuentaTodo['bancaamiga_luisma'].bs += saldoNeto;
     // Solo hoy — para badge
@@ -2425,10 +2430,11 @@ async function aplicarCambioMasivo(){
     });
     if(fechaEl) fechaEl.value='';
     deselectAll();
-    // Recargar ventas frescas desde Supabase para que quede sincronizado
-    const freshVentas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+    // Recargar ventas frescas desde Supabase sin limit
+    const freshVentas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc');
     if(Array.isArray(freshVentas)) ventas=freshVentas;
     filtrarVentas();
+    cargarDashboard();
     toast('✅ Cambios aplicados a '+ids.length+' venta(s)');
   }catch(e){
     console.error('Exception masivo:', e);
