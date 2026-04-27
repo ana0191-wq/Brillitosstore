@@ -1934,35 +1934,30 @@ function cargarDashboard(){
   // Mes en Bs y $
   const totalMesBs  = vM.filter(v=>v.monto_bs&&parseFloat(v.monto_bs)>0).reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
   const totalMesUsd = vM.reduce((s,v)=>s+parseFloat(v.total||0),0); // total siempre en $
-  // Ganancia bruta estimada
-  let gan=0;
+  const tasa=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
+  const toUSD=g=>{const usd=parseFloat(g.monto_usd||0),m=parseFloat(g.monto||0);if(usd>0)return usd;if(g.moneda==='Bs')return m/tasa;if(g.moneda==='USD')return m;return m>=500?m/tasa:m;};
+  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición');
+  const totalGastMes=gastMes.reduce((s,g)=>s+toUSD(g),0);
+  let ganBrutaDash=0,ganDetalle=[];
   vM.forEach(v=>{
+    const soloBS=parseFloat(v.monto_bs||0)>0&&!(parseFloat(v.total||0)>0);
     (v.venta_items||[]).forEach(it=>{
       const p=productos.find(x=>x.id==it.producto_id);
-      if(p&&p.precio_costo>0) gan+=(parseFloat(it.precio_unitario||0)-parseFloat(p.precio_costo||0))*parseInt(it.cantidad||1);
-      else gan+=parseFloat(it.subtotal||0)*0.3;
+      const pv=parseFloat(it.precio_unitario||0),co=p&&p.precio_costo>0?parseFloat(p.precio_costo):0,cant=parseInt(it.cantidad||1);
+      const pvUSD=(soloBS&&pv>10)?pv/tasa:pv,coUSD=(soloBS&&co>10)?co/tasa:co;
+      const margen=coUSD>0?(pvUSD-coUSD)*cant:pvUSD*cant*0.3;
+      ganBrutaDash+=margen;
+      if(p) ganDetalle.push({nombre:p.nombre,margen,cant});
     });
-    gan-=parseFloat(v.descuento||0);
+    ganBrutaDash-=soloBS?parseFloat(v.descuento||0)/tasa:parseFloat(v.descuento||0);
   });
-  // Gastos del mes — solo gastos reales en USD (excluir ajenos, reposiciones y gastos en Bs que no tienen monto_usd)
-  const gastMes = gastosGlobales.filter(g=>
-    (g.fecha||'').slice(0,7)===mes
-    && g.tipo !== 'Gasto ajeno'
-    && g.tipo !== 'Reposición'
-  );
-  const totalGastMes = gastMes.reduce((s,g)=>{
-    // Si tiene monto_usd explícito usarlo; si es en USD usar monto; si es en Bs ignorar (no sabemos el USD exacto sin tasa)
-    const usd = parseFloat(g.monto_usd||0);
-    const monto = parseFloat(g.monto||0);
-    if(usd>0) return s+usd;
-    if((g.moneda||'USD')==='USD') return s+monto;
-    return s; // gasto en Bs sin conversión — no sumar para no distorsionar
-  },0);
-  const gananciaNeta = totalMes-totalGastMes;
+  const gananciaNeta=ganBrutaDash-totalGastMes;
+  window._dashGanDetalle={gan:ganBrutaDash,gananciaNeta,totalGastMes,ganDetalle,tasa,mes};
 
   document.getElementById('d-hoy').textContent = '$'+totalHoy.toFixed(2);
   document.getElementById('d-mes').textContent = '$'+totalMes.toFixed(2);
-  document.getElementById('d-ganancia').textContent = '$'+gan.toFixed(2);
+  const dGanEl=document.getElementById('d-ganancia');
+  if(dGanEl){dGanEl.textContent='$'+ganBrutaDash.toFixed(2);dGanEl.title='Neta: $'+gananciaNeta.toFixed(2);dGanEl.style.cursor='pointer';dGanEl.onclick=()=>abrirDetalleGanancia();}
   document.getElementById('d-apartados').textContent = aptActivos.length;
 
   // Desglose por método de pago hoy
@@ -3882,6 +3877,30 @@ function toggleDeudaDetalle(cid){
   var d=document.getElementById('deuda-det-'+cid);
   if(d) d.style.display=d.style.display==='none'?'block':'none';
 }
+function abrirDetalleGanancia(){
+  var d=window._dashGanDetalle||{};
+  var rows=(d.ganDetalle||[]).reduce(function(acc,x){var e=acc.find(function(a){return a.n===x.nombre;});if(e){e.m+=x.margen;e.c+=x.cant;}else acc.push({n:x.nombre,m:x.margen,c:x.cant});return acc;},[]).sort(function(a,b){return b.m-a.m;}).slice(0,12);
+  var filas=rows.map(function(r){return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid #fce4ec;font-size:13px"><span>'+r.n+' <small style="color:#aaa">x'+r.c+'</small></span><strong style="color:#c2185b">$'+r.m.toFixed(2)+'</strong></div>';}).join('');
+  var ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;display:flex;align-items:center;justify-content:center';
+  ov.onclick=function(){ov.remove();};
+  ov.innerHTML='<div style="background:white;border-radius:16px;padding:20px;max-width:420px;width:90%;max-height:80vh;overflow-y:auto" onclick="event.stopPropagation()">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    +'<span style="font-size:15px;font-weight:800;color:#c2185b">📊 Desglose ganancia</span>'
+    +'<button id="btn-cerrar-gan" style="background:none;border:none;font-size:22px;cursor:pointer;color:#aaa">×</button></div>'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">'
+    +'<div style="background:#fce4ec;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#c2185b;font-weight:700">MARGEN BRUTO</div><div style="font-size:18px;font-weight:900;color:#c2185b">$'+(d.gan||0).toFixed(2)+'</div></div>'
+    +'<div style="background:#fff3e0;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#e65100;font-weight:700">GASTOS OP.</div><div style="font-size:18px;font-weight:900;color:#e65100">-$'+(d.totalGastMes||0).toFixed(2)+'</div></div>'
+    +'<div style="background:#e8f5e9;border-radius:10px;padding:10px;text-align:center"><div style="font-size:10px;color:#2e7d32;font-weight:700">NETA</div><div style="font-size:18px;font-weight:900;color:#2e7d32">$'+(d.gananciaNeta||0).toFixed(2)+'</div></div></div>'
+    +'<div style="font-size:12px;font-weight:700;color:#888;margin-bottom:8px">Top productos por margen</div>'
+    +filas
+    +'<div style="font-size:10px;color:#bbb;margin-top:10px">Tasa: '+(d.tasa||484.74).toFixed(2)+' Bs/$ · Clic fuera para cerrar</div>'
+    +'</div>';
+  document.body.appendChild(ov);
+  var btn=document.getElementById('btn-cerrar-gan');
+  if(btn) btn.onclick=function(){ov.remove();};
+}
+
 function renderDeudaMama(cid){
   var el=document.getElementById(cid); if(!el) return;
   var dm=calcularDeudaMama();
@@ -4294,39 +4313,41 @@ async function cargarReporte(){
   const vM=ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
   const total=vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
   const totalBs=vM.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
-  const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición');
-  const totalGastMes=gastMes.reduce((s,g)=>{const usd=parseFloat(g.monto_usd||0);const monto=parseFloat(g.monto||0);if(usd>0)return s+usd;if((g.moneda||'USD')==='USD')return s+monto;return s;},0);
-  const gananciaMes=total-totalGastMes;
-  // Ganancia bruta = precio venta - precio costo
-  let ganBruta=0;
+  var tasaR=typeof bcvHoy!=='undefined'&&bcvHoy>0?bcvHoy:484.74;
+  var toUSDr=function(g){var usd=parseFloat(g.monto_usd||0),m=parseFloat(g.monto||0);if(usd>0)return usd;if(g.moneda==='Bs')return m/tasaR;if(g.moneda==='USD')return m;return m>=500?m/tasaR:m;};
+  var gastMes=gastosGlobales.filter(function(g){return (g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición';});
+  var totalGastMes=gastMes.reduce(function(s,g){return s+toUSDr(g);},0);
+  var totalGastBs=totalGastMes*tasaR;
+  var ganBruta=0;
   vM.forEach(function(v){
+    var soloBS=parseFloat(v.monto_bs||0)>0&&!(parseFloat(v.total||0)>0);
     (v.venta_items||[]).forEach(function(it){
       var prod=productos.find(function(x){return x.id==it.producto_id;});
-      if(prod&&prod.precio_costo>0) ganBruta+=(parseFloat(it.precio_unitario||0)-parseFloat(prod.precio_costo||0))*parseInt(it.cantidad||1);
-      else ganBruta+=parseFloat(it.subtotal||0)*0.3;
+      var pv=parseFloat(it.precio_unitario||0),co=prod&&prod.precio_costo>0?parseFloat(prod.precio_costo):0,cant=parseInt(it.cantidad||1);
+      var pvUSD=(soloBS&&pv>10)?pv/tasaR:pv,coUSD=(soloBS&&co>10)?co/tasaR:co;
+      ganBruta+=coUSD>0?(pvUSD-coUSD)*cant:pvUSD*cant*0.3;
     });
-    ganBruta-=parseFloat(v.descuento||0);
+    ganBruta-=soloBS?parseFloat(v.descuento||0)/tasaR:parseFloat(v.descuento||0);
   });
-  var gananciaNeta=total-totalGastMes;
+  var gananciaNeta=ganBruta-totalGastMes;
+  var margenShow=ganBruta>0&&(total>0||totalBs>0)?(ganBruta/(total>0?total:totalBs/tasaR)*100):35;
   document.getElementById('reporte-stats').innerHTML=
-    '<div class="stat-card"><div class="stat-num">$'+total.toFixed(2)+'</div><div class="stat-label">💰 Ventas del mes</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:var(--green)">$'+ganBruta.toFixed(2)+'</div><div class="stat-label">📦 Ganancia bruta</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:var(--red)">$'+totalGastMes.toFixed(2)+'</div><div class="stat-label">💸 Gastos del mes</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="color:'+(gananciaNeta>=0?'var(--green)':'var(--red)')+'">$'+gananciaNeta.toFixed(2)+'</div><div class="stat-label">📈 Ganancia neta</div></div>'
-    +'<div class="stat-card"><div class="stat-num" style="font-size:16px">Bs.'+totalBs.toFixed(0)+'</div><div class="stat-label">💱 Total en Bs</div></div>'
+    '<div class="stat-card"><div class="stat-num" style="font-size:15px">$'+total.toFixed(2)+'<br><small style="font-size:11px;color:#888">Bs.'+totalBs.toLocaleString('es-VE',{maximumFractionDigits:0})+'</small></div><div class="stat-label">💰 Ventas del mes</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--green);font-size:15px">$'+ganBruta.toFixed(2)+'<br><small style="font-size:11px;color:#888">'+margenShow.toFixed(0)+'% margen</small></div><div class="stat-label">📦 Margen bruto</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="color:var(--red);font-size:15px">$'+totalGastMes.toFixed(2)+'<br><small style="font-size:11px;color:#888">Bs.'+totalGastBs.toLocaleString('es-VE',{maximumFractionDigits:0})+'</small></div><div class="stat-label">💸 Gastos reales</div></div>'
+    +'<div class="stat-card"><div class="stat-num" style="font-size:15px;color:'+(gananciaNeta>=0?'var(--green)':'var(--red)')+'">$'+gananciaNeta.toFixed(2)+'<br><small style="font-size:11px;color:#888">Bs.'+(gananciaNeta*tasaR).toLocaleString('es-VE',{maximumFractionDigits:0})+'</small></div><div class="stat-label">📈 Ganancia neta</div></div>'
     +'<div class="stat-card"><div class="stat-num">'+vM.length+'</div><div class="stat-label">🛍️ Nº de ventas</div></div>';
 
   // ── Punto de equilibrio ──
-  var pagoPersonal=gastosGlobales.filter(function(g){return (g.fecha||'').slice(0,7)===mes&&g.tipo==='Pago personal';}).reduce(function(s,g){var usd=parseFloat(g.monto_usd||0);var monto=parseFloat(g.monto||0);if(usd>0)return s+usd;if((g.moneda||'USD')==='USD')return s+monto;return s;},0);
-  var gastosOp=totalGastMes; // ya excluye ajenos y reposiciones
-  var totalCostoMercancia=0;
-  vM.forEach(function(v){(v.venta_items||[]).forEach(function(it){var p=productos.find(function(x){return x.id==it.producto_id;});if(p&&p.precio_costo>0)totalCostoMercancia+=parseFloat(p.precio_costo||0)*parseInt(it.cantidad||1);});});
-  var margenPct=total>0?((total-totalCostoMercancia)/total):0.3;
-  if(margenPct<=0)margenPct=0.3;
-  // Cuánto vender para cubrir cada meta
-  var paraRecuperar=gastosOp>0?(gastosOp/margenPct):0;
-  var paraPersonal=pagoPersonal>0?((gastosOp+pagoPersonal)/margenPct):0;
-  var paraGanar=((gastosOp+pagoPersonal)/margenPct)*1.2; // 20% extra de utilidad
+  var totalVentaBs=totalBs>0?totalBs:total*tasaR;
+  var pagoPersonalBs=gastosGlobales.filter(function(g){return (g.fecha||'').slice(0,7)===mes&&g.tipo==='Pago personal';}).reduce(function(s,g){return s+toUSDr(g)*tasaR;},0);
+  var gastosOpBs=totalGastBs;
+  var margenPct=totalVentaBs>0?(ganBruta*tasaR/totalVentaBs):0.35;
+  if(margenPct<=0.05)margenPct=0.35;
+  var paraRecuperarBs=gastosOpBs>0?(gastosOpBs/margenPct):0;
+  var paraPersonalBs=pagoPersonalBs>0?((gastosOpBs+pagoPersonalBs)/margenPct):0;
+  var paraGanarBs=(gastosOpBs+pagoPersonalBs)/margenPct*1.3;
+  var paraRecuperar=paraRecuperarBs/tasaR,paraPersonal=paraPersonalBs/tasaR,paraGanar=paraGanarBs/tasaR;
   var diasMes=new Date(parseInt(mes.slice(0,4)),parseInt(mes.slice(5,7)),0).getDate();
   var diaActual=mes===new Date().toISOString().slice(0,7)?new Date().getDate():diasMes;
   var ventaDiaria=total>0?(total/diaActual):0;
@@ -4336,9 +4357,10 @@ async function cargarReporte(){
     +'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px">'
     +'<div style="background:white;border-radius:10px;padding:12px;border-left:3px solid var(--orange)">'
       +'<div style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:4px">💸 Para cubrir gastos</div>'
-      +'<div style="font-size:20px;font-weight:800;color:var(--orange)">$'+paraRecuperar.toFixed(2)+'</div>'
+      +'<div style="font-size:20px;font-weight:800;color:var(--orange)">Bs.'+paraRecuperarBs.toLocaleString("es-VE",{maximumFractionDigits:0})+'</div>'
+      +'<div style="font-size:12px;color:#aaa">~$'+paraRecuperar.toFixed(2)+'</div>'
       +'<div style="font-size:11px;color:var(--gray);margin-top:3px">Solo cubres costos, sin ganancia</div>'
-      +'<div style="font-size:12px;font-weight:600;color:'+(total>=paraRecuperar?'var(--green)':'var(--red)')+'">'+( total>=paraRecuperar?'✅ Ya lo alcanzaste':'⚠️ Faltan $'+(paraRecuperar-total).toFixed(2))+'</div>'
+      +'<div style="font-size:12px;font-weight:600;color:'+(totalVentaBs>=paraRecuperarBs?'var(--green)':'var(--red)')+'">'+( totalVentaBs>=paraRecuperarBs?'✅ Ya lo alcanzaste':'⚠️ Faltan Bs.'+(paraRecuperarBs-totalVentaBs).toFixed(0))+'</div>'
     +'</div>'
     +(pagoPersonal>0?'<div style="background:white;border-radius:10px;padding:12px;border-left:3px solid var(--purple)">'
       +'<div style="font-size:11px;color:var(--gray);font-weight:700;text-transform:uppercase;margin-bottom:4px">👥 Para pagar personal</div>'
