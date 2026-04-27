@@ -3655,6 +3655,13 @@ async function renderEventos(){
         +'<span style="font-size:14px;font-weight:700;color:#1565c0">+$'+totalInv.toFixed(2)+'</span>'
         +'</div>':'')
 
+      // Ganancia + inversión recuperada
+      +(totalInv>0
+        ?'<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f3e8ff;background:#f0fdf4;border-radius:8px;padding:8px 10px;margin-top:4px">'
+        +'<span style="font-size:13px;font-weight:700;color:#2e7d32">🏆 Ganancia + inversión</span>'
+        +'<span style="font-size:15px;font-weight:900;color:#2e7d32">$'+(ganancia+totalInv).toFixed(2)+'</span>'
+        +'</div>':'')
+
       // Ganancia neta colapsable
       +'<div onclick="toggleResumenEvento('+e.id+')" style="display:flex;justify-content:space-between;align-items:center;padding:10px 0 12px;border-bottom:2px solid #ede9fe;cursor:pointer">'
       +'<span style="font-size:14px;font-weight:800">Ganancia neta</span>'
