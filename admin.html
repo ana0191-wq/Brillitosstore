@@ -3276,11 +3276,12 @@ async function renderEventos(){
   div.innerHTML=eventosOrdenados.map(e=>{
     const vts=ventas.filter(v=>v.evento_id==e.id&&v.estado!=='Cancelado');
     const tasa=bcvHoy||484.74;
-    // Suma ventas: si tiene monto_bs usa conversión, si no usa total USD directo
+    // Suma ventas: usa tasa_bcv_usada de la venta, si no bcvHoy
     const totalV=vts.reduce((s,v)=>{
       var bs=parseFloat(v.monto_bs||0);
       var usd=parseFloat(v.total||0);
-      if(bs>0) return s+(bs/tasa);
+      var tasaV=parseFloat(v.tasa_bcv_usada||0)||tasa;
+      if(bs>0) return s+(bs/tasaV);
       return s+usd;
     },0);
     const TIPOS_EXCLUIR=['Reposición'];
