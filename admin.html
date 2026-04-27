@@ -3838,7 +3838,7 @@ function renderGastosGlobal(){
       +'<td><select class="ig-evento" data-gid="'+g.id+'" style="'+iS+'">'+evsOpts+'</select></td>'
       +'<td>'+estadoStr+'</td>'
       +'<td style="white-space:nowrap">'
-      +(g.tip(g.tipo==='Pago personal'||g.tipo==='Por reponer')&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">&#128154;</button> ':'')
+      +((g.tipo==='Pago personal'||g.tipo==='Por reponer')&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">&#128154;</button> ':'')
       +'<button class="btn btn-secondary btn-sm" style="font-size:10px;margin-right:3px" onclick="abrirEditarGasto('+g.id+')">&#9999;&#65039;</button>'
       +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">&#128465;</button>'
       +'</td>'
