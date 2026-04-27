@@ -3747,7 +3747,7 @@ function renderGastosGlobal(){
   // ── PENDIENTES REPONER (bloque destacado) ──
   var pendWrap=document.getElementById('gastos-pendientes-wrap');
   if(pendWrap){
-    var pendList=gastosGlobales.filter(g=>g.tipo==='Pago personal'&&!g.reposicion_de);
+    var pendList=gastosGlobales.filter(g=>(g.tipo==='Pago personal'||g.tipo==='Por reponer')&&!g.reposicion_de);
     if(pendList.length){
       pendWrap.innerHTML='<div class="card" style="border:2px solid #ffe082;background:#fffde7;padding:14px">'
         +'<div style="font-weight:800;color:#e65100;margin-bottom:10px;font-size:14px">🚨 Pagos personales pendientes de reponer ('+pendList.length+')</div>'
@@ -3837,7 +3837,7 @@ function renderGastosGlobal(){
       +'<td><select class="ig-evento" data-gid="'+g.id+'" style="'+iS+'">'+evsOpts+'</select></td>'
       +'<td>'+estadoStr+'</td>'
       +'<td style="white-space:nowrap">'
-      +(g.tipo==='Pago personal'&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">&#128154;</button> ':'')
+      +(g.tip(g.tipo==='Pago personal'||g.tipo==='Por reponer')&&!g.reposicion_de?'<button class="btn btn-success btn-sm" style="font-size:10px" onclick="abrirReponerGasto('+g.id+')">&#128154;</button> ':'')
       +'<button class="btn btn-secondary btn-sm" style="font-size:10px;margin-right:3px" onclick="abrirEditarGasto('+g.id+')">&#9999;&#65039;</button>'
       +'<button class="btn btn-danger btn-sm" onclick="eliminarGastoGlobal('+g.id+')">&#128465;</button>'
       +'</td>'
@@ -3976,7 +3976,7 @@ function abrirModalReposicion(){
   document.getElementById('rp-detalle-wrap').style.display='none';
   document.getElementById('rp-monto-usd').value='';
   // Poblar gastos ajenos pendientes como checkboxes
-  var lista_ajenos=gastosGlobales.filter(function(g){return (g.es_ajeno||g.tipo==='Pago personal') && !g.reposicion_de;});
+  var lista_ajenos=gastosGlobales.filter(function(g){return (g.es_ajeno||g.tipo==='Pago personal'||g.tipo==='Por reponer') && !g.reposicion_de;});
   var listEl=document.getElementById('rp-gasto-ajeno-list');
   if(!lista_ajenos.length){
     listEl.innerHTML='<span style="color:#999;font-size:13px">No hay gastos pendientes de reponer</span>';
