@@ -178,19 +178,22 @@ async function generarPDF(){
 
   try {
     const { jsPDF } = window.jspdf;
-    // Hoja carta: 215.9 x 279.4 mm
-    const doc = new jsPDF({ unit:'mm', format:'letter' });
+    // Usar puntos (pt): 1pt = 1/72 pulgada | carta = 612x792pt
+    // 1cm = 28.3465pt
+    const doc = new jsPDF({ unit:'pt', format:'letter' });
 
-    // Dimensiones: 2.5cm ancho × 3.2cm alto | 7 cols × 8 filas = 56 por hoja
+    // 2.5cm = 70.87pt | 3.2cm = 90.71pt | 7x8 = 56 por hoja
+    const CM = 28.3465;
     const COLS = 7, ROWS = 8;
-    const W = 25, H = 32;
-    const GAP_X = (215.9 - COLS*W) / (COLS+1);
-    const GAP_Y = (279.4 - ROWS*H) / (ROWS+1);
+    const W = 2.5 * CM, H = 3.2 * CM;  // 70.87 x 90.71 pt
+    const PAGE_W = 612, PAGE_H = 792;
+    const GAP_X = (PAGE_W - COLS*W) / (COLS+1);
+    const GAP_Y = (PAGE_H - ROWS*H) / (ROWS+1);
     const MARGINX = GAP_X;
     const MARGINY = GAP_Y;
-    const QR_SIZE = 17;
+    const QR_SIZE = 1.8 * CM;  // 1.8cm en pt
     const QR_X_OFF = (W - QR_SIZE) / 2;
-    const QR_Y_OFF = 2;
+    const QR_Y_OFF = 3;
 
     const total = listaFiltrada.length;
 
@@ -235,19 +238,19 @@ async function generarPDF(){
       });
 
       // Nombre
-      const nombreBase = y + QR_Y_OFF + QR_SIZE + 3.5;
-      doc.setFontSize(5);
+      const nombreBase = y + QR_Y_OFF + QR_SIZE + 7;
+      doc.setFontSize(6.5);
       doc.setFont('helvetica','normal');
       doc.setTextColor(80,80,80);
-      const lines = doc.splitTextToSize(p.nombre, W - 3).slice(0,2);
+      const lines = doc.splitTextToSize(p.nombre, W - 6).slice(0,2);
       doc.text(lines, x + W/2, nombreBase, { align:'center' });
 
       // Precio GRANDE
-      const precioBase = nombreBase + lines.length * 3 + 2;
-      doc.setFontSize(10);
+      const precioBase = nombreBase + lines.length * 8 + 4;
+      doc.setFontSize(13);
       doc.setFont('helvetica','bold');
       doc.setTextColor(180, 30, 100);
-      doc.text('
+      doc.text('$' + parseFloat(p.precio||0).toFixed(2), x + W/2, precioBase, { align:'center' });
 
       doc.setTextColor(0,0,0);
     }
@@ -294,12 +297,6 @@ cargarProductos();
 </script>
 </body>
 </html>
- + parseFloat(p.precio||0).toFixed(2), x + W/2, precioBase, { align:'center' });
-
-      doc.setTextColor(0,0,0);
-    }
-
-    doc.save('brillitos_qr_etiquetas.pdf');
     estado.textContent = '✅ Listo';
     setTimeout(()=>{ estado.textContent=''; },3000);
 
