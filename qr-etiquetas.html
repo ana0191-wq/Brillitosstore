@@ -181,15 +181,16 @@ async function generarPDF(){
     // Hoja carta: 215.9 x 279.4 mm
     const doc = new jsPDF({ unit:'mm', format:'letter' });
 
-    // Dimensiones: 2.5 pulgadas = 63.5mm
-    // 3 columnas × 4 filas = 12 por hoja
-    const COLS = 3, ROWS = 4;
-    const W = 63.5, H = 65;
-    const MARGINX = (215.9 - COLS*W) / (COLS+1);
-    const MARGINY = (279.4 - ROWS*H) / (ROWS+1);
-    const QR_SIZE = 44;
+    // Dimensiones: 2.5cm ancho × 3.2cm alto | 7 cols × 8 filas = 56 por hoja
+    const COLS = 7, ROWS = 8;
+    const W = 25, H = 32;
+    const GAP_X = (215.9 - COLS*W) / (COLS+1);
+    const GAP_Y = (279.4 - ROWS*H) / (ROWS+1);
+    const MARGINX = GAP_X;
+    const MARGINY = GAP_Y;
+    const QR_SIZE = 17;
     const QR_X_OFF = (W - QR_SIZE) / 2;
-    const QR_Y_OFF = 4;
+    const QR_Y_OFF = 2;
 
     const total = listaFiltrada.length;
 
@@ -203,8 +204,8 @@ async function generarPDF(){
       estado.textContent = `${i+1}/${total}`;
 
       const p = listaFiltrada[i];
-      const x = MARGINX + col * (W + MARGINX);
-      const y = MARGINY + pageRow * (H + MARGINY);
+      const x = MARGINX + col * (W + GAP_X);
+      const y = MARGINY + pageRow * (H + GAP_Y);
 
       // Fondo blanco + borde rosa redondeado
       doc.setFillColor(255, 255, 255);
@@ -234,19 +235,66 @@ async function generarPDF(){
       });
 
       // Nombre
-      const nombreBase = y + QR_Y_OFF + QR_SIZE + 4;
-      doc.setFontSize(7.5);
-      doc.setFont('helvetica','bold');
-      doc.setTextColor(60,60,60);
-      const lines = doc.splitTextToSize(p.nombre, W - 6).slice(0,2);
+      const nombreBase = y + QR_Y_OFF + QR_SIZE + 3.5;
+      doc.setFontSize(5);
+      doc.setFont('helvetica','normal');
+      doc.setTextColor(80,80,80);
+      const lines = doc.splitTextToSize(p.nombre, W - 3).slice(0,2);
       doc.text(lines, x + W/2, nombreBase, { align:'center' });
 
       // Precio GRANDE
-      const precioBase = nombreBase + lines.length * 4 + 3;
-      doc.setFontSize(18);
+      const precioBase = nombreBase + lines.length * 3 + 2;
+      doc.setFontSize(10);
       doc.setFont('helvetica','bold');
       doc.setTextColor(180, 30, 100);
-      doc.text('$' + parseFloat(p.precio||0).toFixed(2), x + W/2, precioBase, { align:'center' });
+      doc.text('
+
+      doc.setTextColor(0,0,0);
+    }
+
+    doc.save('brillitos_qr_etiquetas.pdf');
+    estado.textContent = '✅ Listo';
+    setTimeout(()=>{ estado.textContent=''; },3000);
+
+  } catch(e){
+    alert('Error generando PDF: '+e.message);
+    estado.textContent = '';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '📄 Descargar PDF Carta';
+}
+
+// ─── IMPRIMIR DIRECTO ──────────────────────────────────────────────────────
+function imprimirHojas(){
+  const win = window.open('','_blank');
+  win.document.write(`<html><head><title>QR Brillitos</title><style>
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:sans-serif;background:#fff}
+    @page{size:letter;margin:8mm}
+    .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1.5mm;padding:0}
+    .item{display:flex;flex-direction:column;align-items:center;border:0.5px solid #e0aacc;border-radius:2mm;padding:1.5mm;break-inside:avoid;width:25mm;height:32mm;justify-content:center}
+    .item img{width:17mm;height:17mm}
+    .name{font-size:5pt;font-weight:400;text-align:center;margin-top:1mm;color:#555;line-height:1.2;max-height:8mm;overflow:hidden}
+    .price{font-size:10pt;font-weight:900;color:#c2185b;margin-top:1mm}
+  </style></head><body><div class="grid">`);
+  listaFiltrada.forEach(p=>{
+    win.document.write(`<div class="item">
+      <img src="${qrUrl(p.id,200)}" crossorigin="anonymous">
+      <div class="name">${p.nombre}</div>
+      <div class="price">$${parseFloat(p.precio||0).toFixed(2)}</div>
+    </div>`);
+  });
+  win.document.write('</div></body></html>');
+  win.document.close();
+  setTimeout(()=>win.print(), 1200);
+}
+
+cargarProductos();
+</script>
+</body>
+</html>
+ + parseFloat(p.precio||0).toFixed(2), x + W/2, precioBase, { align:'center' });
 
       doc.setTextColor(0,0,0);
     }
