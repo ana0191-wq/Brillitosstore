@@ -1838,7 +1838,7 @@ function abrirImprimirQR(){
 
 function renderQRGrid(){
   const q = (document.getElementById('qr-search-filter')?.value||'').toLowerCase();
-  const lista = productos.filter(p=>p.activo!==false && (!q || (p.nombre||'').toLowerCase().includes(q)));
+  const lista = productos.filter(p=>p.activo!==false && (p.stock===null||p.stock===undefined||p.stock>0) && (!q || (p.nombre||'').toLowerCase().includes(q)));
   const qrItems = lista.map(p=>
     '<div class="qr-print-item" onclick="verQRProducto('+p.id+');cerrarModal(&quot;modal-imprimir-qr&quot;)" title="Ver QR grande">'+
     '<img src="'+qrUrl(p.id,90)+'" alt="QR" loading="lazy">'+
@@ -1851,7 +1851,7 @@ function renderQRGrid(){
 
 function imprimirQRGrid(){
   const q = (document.getElementById('qr-search-filter')?.value||'').toLowerCase();
-  const lista = productos.filter(p=>p.activo!==false && (!q || (p.nombre||'').toLowerCase().includes(q)));
+  const lista = productos.filter(p=>p.activo!==false && (p.stock===null||p.stock===undefined||p.stock>0) && (!q || (p.nombre||'').toLowerCase().includes(q)));
   const win = window.open('','_blank');
   win.document.write('<html><head><title>QR Brillitos</title><style>');
   win.document.write('body{font-family:sans-serif;padding:20px}'); win.document.write('.price{font-size:13px;font-weight:800;color:#c2185b;margin:2px 0}');
