@@ -4242,13 +4242,41 @@ function exportarGastosCSV(){
 
 // ===== ENTREGAS =====
 function renderEntregas(){
-  const pend=ventas.filter(v=>v.estado==='Pendiente'||v.estado==='Pagado');
-  const grupos={'Altavista (Sábados)':[],'Plaza Atlántico (L-V 5:30pm)':[],'Centro Día (L-V 10am)':[],'Envío Nacional':[],'Entrega directa':[]};
-  pend.forEach(v=>{ const k=v.tipo_entrega||'Entrega directa'; if(grupos[k]) grupos[k].push(v); });
-  document.getElementById('grupos-entrega').innerHTML=Object.entries(grupos).map(([punto,vts])=>
-    '<div class="card"><div class="card-title">'+punto+' <span style="background:var(--pink);color:white;border-radius:10px;padding:2px 7px;font-size:11px">'+vts.length+'</span></div>'
-    +(vts.length?vts.map(v=>'<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><strong>'+(v.cliente_nombre||'—')+'</strong> · <strong style="color:var(--pink)">$'+parseFloat(v.total||0).toFixed(2)+'</strong><br><small style="color:var(--gray)">'+(v.venta_items||[]).map(i=>i.producto_nombre).join(', ')+'</small><br><small><span class="badge badge-'+(v.estado||'').toLowerCase()+'">'+(v.estado||'')+'</span></small></div>').join(''):'<div style="color:var(--gray);font-size:13px;padding:7px 0">Sin entregas ✅</div>')
-    +'</div>').join('');
+  var el=document.getElementById('grupos-entrega'); if(!el) return;
+  var cols={'Pendiente':'#f59e0b','Pagado':'#3b82f6','Entregado':'#10b981','Cancelado':'#ef4444'};
+  var ems={'Pendiente':'⏳','Pagado':'💳','Entregado':'✅','Cancelado':'❌'};
+  var vEnt=ventas.filter(function(v){return v.estado==='Pendiente'||v.estado==='Pagado';}).map(function(v){
+    return {_t:'venta',_f:v.fecha_entrega||v.fecha_venta||v.creado_en||'',id:v.id,
+      dest:v.cliente_nombre||'—',desc:(v.venta_items||[]).map(function(i){return i.producto_nombre;}).join(', '),
+      punto:v.tipo_entrega||'Entrega directa',total:'$'+parseFloat(v.total||0).toFixed(2),
+      estado:v.estado,hora:'',quien:'',notas:''};
+  });
+  var sEnt=entregasSueltas.map(function(e){
+    return {_t:'suelta',_f:e.fecha||'',id:e.id,dest:e.destinatario||'—',
+      desc:e.direccion||'',punto:'',total:'',estado:e.estado||'Pendiente',
+      hora:e.hora?e.hora.slice(0,5):'',quien:e.quien||'Ana',notas:e.notas||''};
+  });
+  var todas=vEnt.concat(sEnt).sort(function(a,b){if(!a._f)return 1;if(!b._f)return -1;return a._f.localeCompare(b._f);});
+  if(!todas.length){el.innerHTML='<div style="color:var(--gray);font-size:13px;padding:10px 0">No hay entregas pendientes ✅</div>';return;}
+  el.innerHTML=todas.map(function(e){
+    var c=cols[e.estado]||'#888'; var em=ems[e.estado]||'📦';
+    var fd=e._f?new Date(e._f.slice(0,10)+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short'}):'—';
+    var tag=e._t==='venta'
+      ?'<span style="background:#ede9fe;color:#7c3aed;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600">🛒 Venta</span>'
+      :'<span style="background:#fce7f3;color:#be185d;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600">🗓️ Agendada</span>';
+    var acc=e._t==='suelta'
+      ?'<button onclick="editarEntregaSuelta('+e.id+')" style="background:var(--purple);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">✏️</button>'
+       +'<button onclick="eliminarEntregaSuelta('+e.id+')" style="background:#fee2e2;color:#ef4444;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">🗑️</button>'
+      :'<button onclick="abrirEditarVenta('+e.id+')" style="background:var(--purple);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">✏️</button>';
+    return '<div style="background:white;border:1px solid var(--border);border-left:4px solid '+c+';border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">'
+      +'<div style="font-size:22px">'+em+'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap"><span style="font-size:14px;font-weight:700;color:#1e293b">'+e.dest+'</span>'+tag+'</div>'
+      +(e.desc?'<div style="font-size:12px;color:var(--gray);margin-top:2px">'+(e._t==='venta'?'📦 ':'📍 ')+e.desc+'</div>':'')
+      +'<div style="font-size:12px;color:var(--gray);margin-top:2px">📅 '+fd+(e.hora?' · ⏰ '+e.hora:'')+(e._t==='venta'?' · 📍 '+e.punto:' · 🚴 '+e.quien)+(e.total?' · 💰 '+e.total:'')+'</div>'
+      +(e.notas?'<div style="font-size:11px;color:#94a3b8;margin-top:2px">📝 '+e.notas+'</div>':'')
+      +'</div><div style="display:flex;flex-direction:column;gap:5px">'+acc+'</div></div>';
+  }).join('');
 }
 
 // ===== ENTREGAS SUELTAS =====
