@@ -1212,10 +1212,11 @@ function handleMOv(e){if(e.target.id==='modal-ov')closeModal();}
 
 function cardAddToCart(id){
   const p=CATALOG.find(x=>x.id===id); if(!p) return;
-  const variants=parseVariants(p.observaciones||'');
-  if(variants.length>0){
-    
-    openModal(p);
+  // Si tiene variantes reales en BD o legacy en observaciones → ir a página del producto
+  const tieneVarsReales = p.variantes && p.variantes.length > 0;
+  const tieneVarsLegacy = parseVariants(p.observaciones||'').length > 0;
+  if(tieneVarsReales || tieneVarsLegacy){
+    openProductPage(p);
   } else {
     addToCart(id);
   }
