@@ -1542,7 +1542,7 @@ async function init(){
   if(!Array.isArray(apartados)) apartados=[];
   if(!Array.isArray(gastosGlobales)) gastosGlobales=[];
 
-  try{ await mostrarBCVDash(); }catch(e){ console.warn('BCV falló:',e); }
+  mostrarBCVDash().catch(e=>{ console.warn('BCV falló:',e); });
   renderProductos();
   renderVentas();
   renderClientes();
