@@ -590,8 +590,70 @@ tr:hover td{background:#fff8fc}
 <!-- ENTREGAS -->
 <div class="page" id="page-entregas">
   <div class="page-header">
-    <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">🚚 Entregas pendientes</div></div>
-  <div class="content"><div class="grid-3" id="grupos-entrega"></div></div>
+    <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button>
+    <div class="page-title">🚚 Entregas</div>
+    <div class="header-actions"><button class="btn btn-primary" onclick="abrirModalEntregaSuelta()">+ Entrega</button></div>
+  </div>
+  <div class="content">
+    <h3 style="font-size:14px;font-weight:700;color:var(--purple);margin-bottom:10px">📦 Desde ventas</h3>
+    <div class="grid-3" id="grupos-entrega"></div>
+    <h3 style="font-size:14px;font-weight:700;color:var(--purple);margin:18px 0 10px">🗓️ Entregas agendadas</h3>
+    <div id="lista-entregas-sueltas"></div>
+  </div>
+</div>
+
+<!-- MODAL ENTREGA SUELTA -->
+<div class="modal-overlay" id="modal-entrega-suelta" style="display:none">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-entrega-suelta-title">🗓️ Nueva Entrega</div>
+      <button class="modal-close" onclick="cerrarModalEntregaSuelta()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="es-id">
+      <div class="form-group">
+        <label class="form-label">👤 Destinatario</label>
+        <input type="text" id="es-destinatario" class="form-control" placeholder="Nombre del cliente o persona">
+      </div>
+      <div class="form-group">
+        <label class="form-label">📍 Dirección</label>
+        <input type="text" id="es-direccion" class="form-control" placeholder="Dirección de entrega">
+      </div>
+      <div style="display:flex;gap:10px">
+        <div class="form-group" style="flex:1">
+          <label class="form-label">📅 Fecha</label>
+          <input type="date" id="es-fecha" class="form-control">
+        </div>
+        <div class="form-group" style="flex:1">
+          <label class="form-label">🕐 Hora</label>
+          <input type="time" id="es-hora" class="form-control">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">🚴 ¿Quién entrega?</label>
+        <select id="es-quien" class="form-control">
+          <option value="Ana">Ana</option>
+          <option value="Luisma">Luisma</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📌 Estado</label>
+        <select id="es-estado" class="form-control">
+          <option value="Pendiente">⏳ Pendiente</option>
+          <option value="Entregado">✅ Entregado</option>
+          <option value="Cancelado">❌ Cancelado</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">📝 Notas</label>
+        <textarea id="es-notas" class="form-control" rows="2" placeholder="Notas adicionales..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="cerrarModalEntregaSuelta()">Cancelar</button>
+      <button class="btn btn-primary" onclick="guardarEntregaSuelta()">💾 Guardar</button>
+    </div>
+  </div>
 </div>
 
 <!-- REPORTES -->
@@ -1556,6 +1618,7 @@ async function init(){
   verificarApartadosVencidos();
   iniciarVozReconocimiento();
   renderPOS();
+  cargarEntregasSueltas();
 }
 
 // ===== SCANNER QR / CÓDIGO DE BARRAS =====
@@ -1849,7 +1912,7 @@ function irA(p){
   else if(p==='clientes') renderClientes();
   else if(p==='eventos') renderEventos();
   else if(p==='gastos') renderGastosGlobal();
-  else if(p==='entregas') renderEntregas();
+  else if(p==='entregas'){ renderEntregas(); cargarEntregasSueltas(); }
   else if(p==='reportes'){ document.getElementById('reporte-mes').value=new Date().toISOString().slice(0,7); cargarReporte(); }
 }
 
@@ -4186,6 +4249,116 @@ function renderEntregas(){
     '<div class="card"><div class="card-title">'+punto+' <span style="background:var(--pink);color:white;border-radius:10px;padding:2px 7px;font-size:11px">'+vts.length+'</span></div>'
     +(vts.length?vts.map(v=>'<div style="padding:6px 0;border-bottom:1px solid var(--border);font-size:13px"><strong>'+(v.cliente_nombre||'—')+'</strong> · <strong style="color:var(--pink)">$'+parseFloat(v.total||0).toFixed(2)+'</strong><br><small style="color:var(--gray)">'+(v.venta_items||[]).map(i=>i.producto_nombre).join(', ')+'</small><br><small><span class="badge badge-'+(v.estado||'').toLowerCase()+'">'+(v.estado||'')+'</span></small></div>').join(''):'<div style="color:var(--gray);font-size:13px;padding:7px 0">Sin entregas ✅</div>')
     +'</div>').join('');
+}
+
+// ===== ENTREGAS SUELTAS =====
+let entregasSueltas = [];
+
+async function cargarEntregasSueltas(){
+  const data = await sbGet('entregas_sueltas','select=*&order=fecha.asc,hora.asc');
+  entregasSueltas = Array.isArray(data) ? data : [];
+  renderEntregasSueltas();
+}
+
+function renderEntregasSueltas(){
+  const el = document.getElementById('lista-entregas-sueltas');
+  if(!el) return;
+  if(!entregasSueltas.length){
+    el.innerHTML = '<div style="color:var(--gray);font-size:13px;padding:10px 0">No hay entregas agendadas ✅</div>';
+    return;
+  }
+  const colores = { 'Pendiente':'#f59e0b', 'Entregado':'#10b981', 'Cancelado':'#ef4444' };
+  const emojis = { 'Pendiente':'⏳', 'Entregado':'✅', 'Cancelado':'❌' };
+  el.innerHTML = entregasSueltas.map(e => {
+    const color = colores[e.estado] || '#888';
+    const em = emojis[e.estado] || '';
+    const fecha = e.fecha ? new Date(e.fecha+'T12:00:00').toLocaleDateString('es-VE',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+    const hora = e.hora ? e.hora.slice(0,5) : '';
+    return '<div style="background:white;border:1px solid var(--border);border-left:4px solid '+color+';border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">'
+      +'<div style="font-size:22px">'+em+'</div>'
+      +'<div style="flex:1;min-width:0">'
+      +'<div style="font-size:14px;font-weight:700;color:#1e293b">'+(e.destinatario||'—')+'</div>'
+      +'<div style="font-size:12px;color:var(--gray);margin-top:2px">📍 '+(e.direccion||'—')+'</div>'
+      +'<div style="font-size:12px;color:var(--gray);margin-top:2px">📅 '+fecha+(hora?' · ⏰ '+hora:'')+'  🚴 '+(e.quien||'Ana')+'</div>'
+      +(e.notas?'<div style="font-size:11px;color:#94a3b8;margin-top:3px">📝 '+e.notas+'</div>':'')
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;gap:5px">'
+      +'<button onclick="editarEntregaSuelta('+e.id+')" style="background:var(--purple);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">✏️</button>'
+      +'<button onclick="eliminarEntregaSuelta('+e.id+')" style="background:#fee2e2;color:#ef4444;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">🗑️</button>'
+      +'</div>'
+      +'</div>';
+  }).join('');
+}
+
+function abrirModalEntregaSuelta(){
+  document.getElementById('es-id').value = '';
+  document.getElementById('es-destinatario').value = '';
+  document.getElementById('es-direccion').value = '';
+  document.getElementById('es-fecha').value = new Date().toISOString().slice(0,10);
+  document.getElementById('es-hora').value = '';
+  document.getElementById('es-quien').value = 'Ana';
+  document.getElementById('es-estado').value = 'Pendiente';
+  document.getElementById('es-notas').value = '';
+  document.getElementById('modal-entrega-suelta-title').textContent = '🗓️ Nueva Entrega';
+  document.getElementById('modal-entrega-suelta').style.display = 'flex';
+}
+
+function cerrarModalEntregaSuelta(){
+  document.getElementById('modal-entrega-suelta').style.display = 'none';
+}
+
+function editarEntregaSuelta(id){
+  const e = entregasSueltas.find(x => x.id === id);
+  if(!e) return;
+  document.getElementById('es-id').value = e.id;
+  document.getElementById('es-destinatario').value = e.destinatario || '';
+  document.getElementById('es-direccion').value = e.direccion || '';
+  document.getElementById('es-fecha').value = e.fecha || '';
+  document.getElementById('es-hora').value = e.hora ? e.hora.slice(0,5) : '';
+  document.getElementById('es-quien').value = e.quien || 'Ana';
+  document.getElementById('es-estado').value = e.estado || 'Pendiente';
+  document.getElementById('es-notas').value = e.notas || '';
+  document.getElementById('modal-entrega-suelta-title').textContent = '✏️ Editar Entrega';
+  document.getElementById('modal-entrega-suelta').style.display = 'flex';
+}
+
+async function guardarEntregaSuelta(){
+  const id = document.getElementById('es-id').value;
+  const datos = {
+    destinatario: document.getElementById('es-destinatario').value.trim(),
+    direccion: document.getElementById('es-direccion').value.trim(),
+    fecha: document.getElementById('es-fecha').value,
+    hora: document.getElementById('es-hora').value || null,
+    quien: document.getElementById('es-quien').value,
+    estado: document.getElementById('es-estado').value,
+    notas: document.getElementById('es-notas').value.trim() || null
+  };
+  if(!datos.destinatario){ toast('⚠️ Ingresa el destinatario'); return; }
+  if(!datos.fecha){ toast('⚠️ Selecciona la fecha'); return; }
+  try{
+    if(id){
+      await sbPatch('entregas_sueltas', id, datos);
+      toast('✅ Entrega actualizada');
+    } else {
+      await sbPost('entregas_sueltas', datos);
+      toast('✅ Entrega agendada');
+    }
+    cerrarModalEntregaSuelta();
+    await cargarEntregasSueltas();
+  } catch(e){
+    toast('❌ Error: '+e.message);
+  }
+}
+
+async function eliminarEntregaSuelta(id){
+  if(!confirm('¿Eliminar esta entrega?')) return;
+  try{
+    await sbDelete('entregas_sueltas', id);
+    toast('🗑️ Entrega eliminada');
+    await cargarEntregasSueltas();
+  } catch(e){
+    toast('❌ Error: '+e.message);
+  }
 }
 
 // ===== REPORTES =====
