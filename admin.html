@@ -112,7 +112,7 @@ tr:hover td{background:#fff8fc}
 .totales-box{background:var(--pink-light);border-radius:10px;padding:11px;margin-top:9px}
 .total-row{display:flex;justify-content:space-between;font-size:13px;padding:2px 0}
 .total-final{font-size:15px;font-weight:800;color:var(--pink-dark);padding-top:6px;border-top:1px solid var(--pink-mid)}
-.prod-search-results{position:fixed;background:white;border:2px solid var(--pink);border-radius:14px;max-height:260px;overflow-y:auto;z-index:99999;box-shadow:0 8px 24px rgba(233,30,99,.18);min-width:260px}
+.prod-search-results{position:fixed;background:white;border:2px solid var(--pink);border-radius:14px;max-height:260px;overflow-y:auto;z-index:999999;box-shadow:0 8px 24px rgba(233,30,99,.18);min-width:260px}
 .prod-result{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .15s}
 .prod-result:active{background:var(--pink-light)}
 .prod-result-price{float:right;color:var(--pink);font-weight:700}
@@ -2571,17 +2571,19 @@ function buscarProdItem(input,idx,t){
   var resId=t==='v'?'prod-res-'+idx:'apt-prod-res-'+idx;
   var res=document.getElementById(resId);
   if(!res) return;
-  if(!q){res.style.display='none';return;}
+  if(!q){res.style.display='none'; res.innerHTML=''; return;}
   // Posicionar dropdown fixed relativo al input
+  // Mover al body para escapar del z-index del modal
+  if(res.parentNode !== document.body) document.body.appendChild(res);
   var rect=input.getBoundingClientRect();
-  res.style.top=(rect.bottom+window.scrollY+4)+'px';
+  res.style.top=(rect.bottom+4)+'px';
   res.style.left=rect.left+'px';
-  res.style.width=rect.width+'px';
+  res.style.width=Math.max(rect.width, 260)+'px';
   var matches=productos.filter(function(p){return p.nombre&&p.nombre.toLowerCase().includes(q);}).slice(0,8);
   if(!matches.length){res.style.display='none';return;}
   res.style.display='block';
   res.style.position='fixed';
-  res.style.zIndex='99999';
+  res.style.zIndex='999999';
   res.innerHTML='';
   matches.forEach(function(p){
     var div=document.createElement('div');
