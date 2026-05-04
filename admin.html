@@ -2563,31 +2563,19 @@ function poblarEventosSelect(){
 }
 
 function renderItems(){
-  var mob = esMobil();
   document.getElementById('items-lista').innerHTML=ventaItems.map(function(it,i){
-    var inputHtml;
-    if(mob){
-      inputHtml = '<input type="text" value="'+(it.producto_nombre||'')+'" placeholder="Toca para buscar..." readonly'
-        +' onclick="abrirBusquedaBS('+i+',\'v\')" style="cursor:pointer;caret-color:transparent"'
-        +' autocomplete="off">';
-    } else {
-      inputHtml = '<input type="text" value="'+(it.producto_nombre||'')+'" placeholder="Buscar o escribir nombre..."'
-        +' oninput="actualizarItem('+i+',\'nombre\',this.value,\'v\');buscarProdItem(this,'+i+',\'v\')"'
-        +' autocomplete="off">';
-    }
+    var nombreDisplay = it.producto_nombre || '';
+    var btnLabel = nombreDisplay
+      ? '<span style="flex:1;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:700;color:#1e293b;font-size:13px">'+nombreDisplay+'</span><span style="color:var(--pink);font-size:12px;flex-shrink:0">✏️</span>'
+      : '<span style="flex:1;text-align:left;color:#aaa;font-size:13px">Toca para buscar...</span><span style="color:var(--pink)">🔍</span>';
     return '<div class="item-row">'
-      +'<div class="search-wrap">'+inputHtml+'<div class="prod-search-results" id="prod-res-'+i+'" style="display:none"></div></div>'
+      +'<button type="button" onclick="abrirProdPicker('+i+',\'v\')" style="flex:2;min-width:0;display:flex;align-items:center;gap:6px;background:#fff;border:2px solid var(--pink);border-radius:10px;padding:8px 10px;cursor:pointer;font-family:inherit">'+btnLabel+'</button>'
       +'<input type="number" value="'+(parseFloat(it.precio_unitario)||0)+'" min="0" step="0.5" oninput="actualizarItem('+i+',\'precio\',this.value,\'v\')">'
       +'<input type="number" value="'+(parseInt(it.cantidad)||1)+'" min="1" oninput="actualizarItem('+i+',\'cantidad\',this.value,\'v\')">'
       +'<span class="item-subtotal">$'+parseFloat(it.subtotal||0).toFixed(2)+'</span>'
       +'<button class="btn-remove" onclick="quitarItem('+i+',\'v\')">×</button></div>';
   }).join('');
   calcularTotal();
-  if(!mob){
-    document.querySelectorAll('#items-lista .prod-search-results').forEach(function(el){
-      if(el.parentNode!==document.body) document.body.appendChild(el);
-    });
-  }
 }
 function agregarItem(){ ventaItems.push({producto_id:'',producto_nombre:'',precio_unitario:0,cantidad:1,subtotal:0}); renderItems(); }
 function quitarItem(i,t){ if(t==='v'){ventaItems.splice(i,1);renderItems();}else{aptItems.splice(i,1);renderAptItems();} }
