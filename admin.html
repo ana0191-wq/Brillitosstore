@@ -4352,14 +4352,31 @@ function cerrarProdPicker(){
   document.getElementById('modal-prod-picker').classList.remove('open');
 }
 
+function usarNombreLibre(){
+  var nombre = (document.getElementById('prod-picker-search').value||'').trim();
+  if(!nombre){ toast('⚠️ Escribe un nombre primero'); return; }
+  var arr = _pickerTipo === 'v' ? ventaItems : aptItems;
+  arr[_pickerIdx].producto_id = null;
+  arr[_pickerIdx].producto_nombre = nombre;
+  arr[_pickerIdx].precio_unitario = arr[_pickerIdx].precio_unitario || 0;
+  arr[_pickerIdx].subtotal = arr[_pickerIdx].precio_unitario * (arr[_pickerIdx].cantidad||1);
+  cerrarProdPicker();
+  if(_pickerTipo === 'v'){ renderItems(); calcularTotal(); }
+  else { renderAptItems(); calcularTotalApt(); }
+  toast('✅ Producto libre agregado');
+}
+
 function filtrarProdPicker(){
   var q = (document.getElementById('prod-picker-search').value||'').toLowerCase().trim();
   var lista = productos.filter(function(p){
     return p.activo !== false && (!q || (p.nombre||'').toLowerCase().includes(q));
   }).slice(0, 60);
   var el = document.getElementById('prod-picker-list');
+  var qOrig = (document.getElementById('prod-picker-search').value||'').trim();
   if(!lista.length){
-    el.innerHTML = '<div class="prod-picker-empty">😔 No se encontraron productos</div>';
+    el.innerHTML = qOrig
+      ? '<div class="prod-picker-empty">😔 No encontrado<br><button onclick="usarNombreLibre()" style="margin-top:12px;background:linear-gradient(135deg,var(--pink),var(--pa));color:white;border:none;border-radius:12px;padding:10px 20px;font-size:14px;font-weight:700;cursor:pointer">✍️ Usar &quot;'+qOrig+'&quot; de todas formas</button></div>'
+      : '<div class="prod-picker-empty">😔 No se encontraron productos</div>';
     return;
   }
   el.innerHTML = lista.map(function(p){
@@ -5478,6 +5495,7 @@ function renderMovimientosBancaAmiga(){
   <div class="prod-picker-sheet">
     <div class="prod-picker-header">
       <input type="text" id="prod-picker-search" placeholder="🔍 Buscar producto..." oninput="filtrarProdPicker()" autocomplete="off">
+      <button onclick="usarNombreLibre()" style="background:var(--pink);color:white;border:none;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">✍️ Usar</button>
       <button onclick="cerrarProdPicker()">✕</button>
     </div>
     <div class="prod-picker-list" id="prod-picker-list"></div>
