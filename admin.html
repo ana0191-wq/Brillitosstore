@@ -2358,7 +2358,7 @@ function renderVentas(lista){
     +'<td style="font-size:11px">'+cuentaNombre(v.cuenta_cobro)+'</td>'
     +(()=>{const colores={Pagado:'background:#e8f5e9;color:#2e7d32',Pendiente:'background:#fff3e0;color:#e65100',Cancelado:'background:#ffebee;color:#c62828',Entregado:'background:#e3f2fd;color:#1565c0'};const cur=v.estado||'Pendiente';const st=colores[cur]||'background:#f5f5f5;color:#333';return '<td><select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarEstadoVenta('+v.id+',this.value)">'+['Pagado','Pendiente','Cancelado','Entregado'].map(s=>'<option value="'+s+'"'+(cur===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td>';})()
     +'<td style="white-space:nowrap">'
-    +'<button class="btn btn-warning btn-sm" onclick="editarVenta('+v.id+')">✏️</button> '
+    +(v.estado!=='Entregado'&&v.estado!=='Cancelado'?'<button class="btn btn-sm" onclick="marcarEntregado(&quot;venta&quot;,'+v.id+')" style="background:#10b981;color:white;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px" title="Marcar entregado">✅</button> ':'')+'<button class="btn btn-warning btn-sm" onclick="editarVenta('+v.id+')">✏️</button> '
     +'<button class="btn btn-blue btn-sm" onclick="verCotizacionVenta('+v.id+')">📄</button> '
     +'<button class="btn btn-warning btn-sm" style="font-size:11px" onclick="cancelarVenta('+v.id+')">↩️</button> <button class="btn btn-danger btn-sm" onclick="eliminarVenta('+v.id+')">🗑️</button>'
     +'</td></tr>').join('');
@@ -4297,10 +4297,14 @@ function renderEntregas(){
     var tag=e._t==='venta'
       ?'<span style="background:#ede9fe;color:#7c3aed;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600">🛒 Venta</span>'
       :'<span style="background:#fce7f3;color:#be185d;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:600">🗓️ Agendada</span>';
+    var btnEntregado = e.estado!=='Entregado'&&e.estado!=='Cancelado'
+      ? '<button onclick="marcarEntregado(&quot;'+e._t+'&quot;,'+e.id+')" style="background:#10b981;color:white;border:none;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer" title="Marcar entregado">✅</button>'
+      : '';
     var acc=e._t==='suelta'
-      ?'<button onclick="editarEntregaSuelta('+e.id+')" style="background:var(--purple);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">✏️</button>'
+      ?btnEntregado
+       +'<button onclick="editarEntregaSuelta('+e.id+')" style="background:var(--purple);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">✏️</button>'
        +'<button onclick="eliminarEntregaSuelta('+e.id+')" style="background:#fee2e2;color:#ef4444;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">🗑️</button>'
-      :'<button onclick="editarVenta('+e.id+')" style="background:var(--purple);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">✏️</button>';
+      :btnEntregado+'<button onclick="editarVenta('+e.id+')" style="background:var(--purple);color:white;border:none;border-radius:8px;padding:5px 10px;font-size:11px;cursor:pointer">✏️</button>';
     return '<div style="background:white;border:1px solid var(--border);border-left:4px solid '+c+';border-radius:12px;padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">'
       +'<div style="font-size:22px">'+em+'</div>'
       +'<div style="flex:1;min-width:0">'
@@ -4310,6 +4314,25 @@ function renderEntregas(){
       +(e.notas?'<div style="font-size:11px;color:#94a3b8;margin-top:2px">📝 '+e.notas+'</div>':'')
       +'</div><div style="display:flex;flex-direction:column;gap:5px">'+acc+'</div></div>';
   }).join('');
+}
+
+// ===== MARCAR ENTREGADO RÁPIDO =====
+async function marcarEntregado(tipo, id){
+  if(!confirm('¿Marcar como Entregado?')) return;
+  if(tipo === 'venta'){
+    await sbPatch('ventas', 'id=eq.'+id, {estado:'Entregado'});
+    var v = ventas.find(function(x){ return x.id==id; });
+    if(v) v.estado = 'Entregado';
+    renderVentas();
+    renderEntregas();
+    toast('✅ Venta marcada como Entregada');
+  } else {
+    await sbPatch('entregas_sueltas', 'id=eq.'+id, {estado:'Entregado'});
+    var e = entregasSueltas.find(function(x){ return x.id==id; });
+    if(e) e.estado = 'Entregado';
+    renderEntregas();
+    toast('✅ Entrega marcada como Entregada');
+  }
 }
 
 // ===== PROD PICKER =====
