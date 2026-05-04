@@ -670,10 +670,13 @@ async function cargarCatalogo() {
         variantes:    variantes.map(function(v){ return Object.assign({},v,{precio: v.precio&&parseFloat(v.precio)>0 ? parseFloat(v.precio) : null}); }),
         imagen:       p.imagen || '',
         imagenes:     p.imagenes || [],
-        esNuevo:      p.es_nuevo || false
+        esNuevo:      p.es_nuevo || false,
+        visible_web:  p.visible_web !== false
       };
     }).filter(function(p) {
       if(!p.nombre) return false;
+      // Solo mostrar si visible_web no es explícitamente false
+      if(p.visible_web === false) return false;
       // Productos con variantes: mostrar si al menos una tiene stock o precio
       if(p.variantes && p.variantes.length > 0){
         return true;

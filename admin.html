@@ -1007,6 +1007,7 @@ tr:hover td{background:#fff8fc}
   <div style="display:flex;gap:16px;margin-top:10px;align-items:center;flex-wrap:wrap">
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-nuevo" style="accent-color:var(--pink)"> 🆕 Nuevo</label>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-activo" checked style="accent-color:var(--pink)"> ✅ Activo</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-visible-web" checked style="accent-color:#db2777"> 🌸 Visible en tienda</label>
     <div id="prod-qr-preview" style="display:none;flex-direction:column;align-items:center;gap:4px;margin-left:auto">
       <img id="prod-qr-img" src="" style="width:72px;height:72px;border-radius:8px;border:1px solid var(--border)">
       <span style="font-size:9px;color:var(--gray)" id="prod-qr-code"></span>
@@ -3194,6 +3195,7 @@ function abrirModalProducto(id=null){
   document.getElementById('p-costo').value=p?p.precio_costo||'':'';
   document.getElementById('p-nuevo').checked=p?p.es_nuevo||false:false;
   document.getElementById('p-activo').checked=p?p.activo!==false:true;
+  var vwEl=document.getElementById('p-visible-web'); if(vwEl) vwEl.checked=p?(p.visible_web!==false):true;
   var _propEl=document.getElementById('p-propietario'); if(_propEl) _propEl.value=p&&p.propietario?p.propietario:'Ana';
   var _visEl=document.getElementById('p-visible-web'); if(_visEl) _visEl.checked=p?p.visible_web!==false:true;
   document.getElementById('margen-wrap').style.display='none';
