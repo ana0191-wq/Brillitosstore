@@ -4370,8 +4370,9 @@ function seleccionarDesdePicker(pid){
 }
 
 // Cerrar al tocar el fondo
-document.getElementById('modal-prod-picker').addEventListener('click', function(e){
-  if(e.target === this) cerrarProdPicker();
+window.addEventListener('DOMContentLoaded', function(){
+  var el = document.getElementById('modal-prod-picker');
+  if(el) el.addEventListener('click', function(e){ if(e.target === this) cerrarProdPicker(); });
 });
 
 // ===== CATÁLOGO PDF =====
