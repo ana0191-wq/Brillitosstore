@@ -2041,12 +2041,24 @@ function cargarDashboard(){
       'bancaamiga_luisma':{emoji:'&#127970;',label:'BancaAmiga Luisma',color:'#3a7d52',bg:'#edf7f1',esBs:true},
       'binance':          {emoji:'&#128311;',label:'Binance/USDT',     color:'#b5651d',bg:'#fef3e8',esBs:false},
       'paypal':           {emoji:'&#129485;',label:'PayPal',           color:'#4a4aaa',bg:'#f0f0fa',esBs:false},
-      'efectivo_usd':     {emoji:'&#128181;',label:'Efectivo $',       color:'#3a6fa8',bg:'#eaf1fb',esBs:false}
+      'efectivo_usd':     {emoji:'&#128181;',label:'Efectivo $',       color:'#3a6fa8',bg:'#eaf1fb',esBs:false},
+      'zelle':            {emoji:'&#128154;',label:'Zelle',              color:'#6b21a8',bg:'#f5f3ff',esBs:false}
     };
     var porCuenta={};
-    ventas.filter(function(v){return v.estado!=='Cancelado';}).forEach(function(v){
+    function normKey(v){
       var esBs=METODOS_BS.indexOf(v.metodo_pago||'')>=0||parseFloat(v.monto_bs||0)>0;
-      var key=esBs?'bancaamiga_luisma':(v.cuenta_cobro||v.metodo_pago||'otro');
+      if(esBs) return 'bancaamiga_luisma';
+      var cc=(v.cuenta_cobro||'').toLowerCase().trim();
+      var mp=(v.metodo_pago||'').toLowerCase().trim();
+      var raw=cc||mp;
+      if(raw.includes('paypal')) return 'paypal';
+      if(raw.includes('binance')||raw.includes('usdt')) return 'binance';
+      if(raw.includes('efectivo') && (raw.includes('$')||raw.includes('usd')||raw.includes('dolar')||raw.includes('dólar'))) return 'efectivo_usd';
+      if(raw.includes('zelle')) return 'zelle';
+      return raw||'otro';
+    }
+    ventas.filter(function(v){return v.estado!=='Cancelado';}).forEach(function(v){
+      var key=normKey(v);
       if(!porCuenta[key]) porCuenta[key]={total:0,bs:0,count:0};
       porCuenta[key].total+=parseFloat(v.total||0);
       porCuenta[key].bs+=parseFloat(v.monto_bs||0);
@@ -2066,8 +2078,7 @@ function cargarDashboard(){
 
     var porCuentaHoy={};
     vH.forEach(function(v){
-      var esBs=METODOS_BS.indexOf(v.metodo_pago||'')>=0||parseFloat(v.monto_bs||0)>0;
-      var key=esBs?'bancaamiga_luisma':(v.cuenta_cobro||v.metodo_pago||'otro');
+      var key=normKey(v);
       if(!porCuentaHoy[key]) porCuentaHoy[key]={total:0,bs:0,count:0};
       porCuentaHoy[key].total+=parseFloat(v.total||0);
       porCuentaHoy[key].bs+=parseFloat(v.monto_bs||0);
