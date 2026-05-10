@@ -4322,14 +4322,14 @@ function renderEntregas(){
 async function marcarEntregado(tipo, id){
   if(!confirm('¿Marcar como Entregado?')) return;
   if(tipo === 'venta'){
-    await sbPatch('ventas', 'id=eq.'+id, {estado:'Entregado'});
+    await sbPatch('ventas', id, {estado:'Entregado'});
     var v = ventas.find(function(x){ return x.id==id; });
     if(v) v.estado = 'Entregado';
     renderVentas();
     renderEntregas();
     toast('✅ Venta marcada como Entregada');
   } else {
-    await sbPatch('entregas_sueltas', 'id=eq.'+id, {estado:'Entregado'});
+    await sbPatch('entregas_sueltas', id, {estado:'Entregado'});
     var e = entregasSueltas.find(function(x){ return x.id==id; });
     if(e) e.estado = 'Entregado';
     renderEntregas();
