@@ -4297,7 +4297,7 @@ function renderEntregas(){
       punto:v.tipo_entrega||'Entrega directa',total:'$'+parseFloat(v.total||0).toFixed(2),
       estado:v.estado,hora:'',quien:'',notas:''};
   });
-  var sEnt=entregasSueltas.map(function(e){
+  var sEnt=entregasSueltas.filter(function(e){return (e.estado||'Pendiente')!=='Entregado'&&(e.estado||'Pendiente')!=='Cancelado';}).map(function(e){
     return {_t:'suelta',_f:e.fecha||'',id:e.id,dest:e.destinatario||'—',
       desc:e.direccion||'',punto:'',total:'',estado:e.estado||'Pendiente',
       hora:e.hora?e.hora.slice(0,5):'',quien:e.quien||'Ana',notas:e.notas||''};
