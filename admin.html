@@ -1955,14 +1955,14 @@ function abrirMovimientosBancaAmiga(){
     if(!esBs) return;
     const bs = parseFloat(v.monto_bs||0);
     if(!bs) return;
-    movs.push({ fecha:v.fecha_venta||v.creado_en||'', tipo:'entrada',
+    movs.push({ fecha:v.fecha_venta||v.created_at||'', tipo:'entrada',
       desc:(v.cliente_nombre||'Cliente')+' — '+(v.numero||''), sub:v.metodo_pago||'Pago Bs', monto:bs });
   });
   (gastosGlobales||[]).filter(g=>g.moneda==='Bs'&&g.tipo!=='Gasto ajeno').forEach(g=>{
     const esRepos = g.tipo==='Reposición';
     const reposEfectivo = esRepos && (g.reposicion_de||'').startsWith('Efectivo');
     if(esRepos && !reposEfectivo) return;
-    movs.push({ fecha:g.fecha||g.creado_en||'', tipo:esRepos?'entrada':'salida',
+    movs.push({ fecha:g.fecha||g.created_at||'', tipo:esRepos?'entrada':'salida',
       desc:g.descripcion||g.tipo, sub:g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''), monto:parseFloat(g.monto||0) });
   });
   movs.sort((a,b)=>(a.fecha?new Date(a.fecha):new Date(0))-(b.fecha?new Date(b.fecha):new Date(0)));
@@ -2001,12 +2001,12 @@ function cargarDashboard(){
   // Ventas del dia
   var vH=ventas.filter(function(v){
     var fv=(v.fecha_venta||'').slice(0,10);
-    var fcVen=v.creado_en?new Date(new Date(v.creado_en).getTime()-4*3600000).toISOString().slice(0,10):'';
+    var fcVen=v.created_at?new Date(new Date(v.created_at).getTime()-4*3600000).toISOString().slice(0,10):'';
     return (fv===hoy||fcVen===hoy)&&v.estado!=='Cancelado';
   });
   // Ventas del mes
   var vM=ventas.filter(function(v){
-    return (v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado';
+    return (v.fecha_venta||v.created_at||'').slice(0,7)===mes&&v.estado!=='Cancelado';
   });
 
   function sumaV(arr){
@@ -2166,7 +2166,7 @@ function cargarDashboard(){
       +'<td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong></td>'
       +'<td style="color:#7b1fa2">'+(parseFloat(v.monto_bs||0)>0?'Bs.'+parseFloat(v.monto_bs).toFixed(2):'—')+'</td>'
       +'<td><span class="badge badge-'+(v.estado||'').toLowerCase()+'">'+(v.estado||'')+'</span></td>'
-      +'<td style="font-size:11px;color:var(--gray)">'+formatFecha(v.fecha_venta||v.creado_en)+'</td>'
+      +'<td style="font-size:11px;color:var(--gray)">'+formatFecha(v.fecha_venta||v.created_at)+'</td>'
       +'</tr>';
   }).join('');
 }
@@ -2362,7 +2362,7 @@ function renderVentas(lista){
     '<tr data-id="'+v.id+'">'
     +'<td><input type="checkbox" class="chk-venta" data-id="'+v.id+'" onchange="onChkVenta()" '+(ventasSeleccionadas.has(v.id)?'checked':'')+' style="width:16px;height:16px;cursor:pointer"></td>'
     +'<td><strong>'+(v.numero||'#'+v.id)+'</strong></td>'
-    +'<td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td>'
+    +'<td>'+formatFecha(v.fecha_venta||v.created_at)+'</td>'
     +'<td>'+(v.cliente_nombre||'—')+'</td>'
     +'<td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td>'
     +'<td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong></td>'
@@ -2512,7 +2512,7 @@ function filtrarVentas(){
     if(est&&v.estado!==est) return false;
     if(canal&&v.canal!==canal) return false;
     if(desde||hasta){
-      const fv=(v.fecha_venta||v.creado_en||'').slice(0,10);
+      const fv=(v.fecha_venta||v.created_at||'').slice(0,10);
       if(desde&&fv<desde) return false;
       if(hasta&&fv>hasta) return false;
     }
@@ -2861,7 +2861,7 @@ function verCotizacion(){
 }
 function verCotizacionVenta(id){
   const v=ventas.find(x=>x.id===id); if(!v) return;
-  mostrarCotizacion({nombre:v.cliente_nombre||'Cliente',metodo:v.metodo_pago,entrega:v.tipo_entrega,envio:parseFloat(v.costo_envio||0),desc:parseFloat(v.descuento||0),subtotal:parseFloat(v.subtotal||0),total:parseFloat(v.total||0),tasa:v.tasa_bcv_usada||0,fecha:formatFecha(v.fecha_venta||v.creado_en),items:v.venta_items||[],numero:v.numero});
+  mostrarCotizacion({nombre:v.cliente_nombre||'Cliente',metodo:v.metodo_pago,entrega:v.tipo_entrega,envio:parseFloat(v.costo_envio||0),desc:parseFloat(v.descuento||0),subtotal:parseFloat(v.subtotal||0),total:parseFloat(v.total||0),tasa:v.tasa_bcv_usada||0,fecha:formatFecha(v.fecha_venta||v.created_at),items:v.venta_items||[],numero:v.numero});
   abrirModal('modal-cotizacion');
 }
 function mostrarCotizacion(d){
@@ -3484,7 +3484,7 @@ async function renderEventos(){
         +'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;background:'+ebg+';color:'+ec+'">'+(v.estado||'—')+'</span>'
         +'</div></div>'
         +'<div style="font-size:12px;color:#666;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">🛍 '+items+'</div>'
-        +'<div style="font-size:11px;color:#aaa;margin-top:3px">'+formatFecha(v.fecha_venta||v.creado_en)+' · '+(v.metodo_pago||'—')+(parseFloat(v.monto_bs||0)>0?' · <span style="color:#7b1fa2">Bs.'+parseFloat(v.monto_bs).toFixed(0)+'</span>':'')+'</div>'
+        +'<div style="font-size:11px;color:#aaa;margin-top:3px">'+formatFecha(v.fecha_venta||v.created_at)+' · '+(v.metodo_pago||'—')+(parseFloat(v.monto_bs||0)>0?' · <span style="color:#7b1fa2">Bs.'+parseFloat(v.monto_bs).toFixed(0)+'</span>':'')+'</div>'
         +'</div>';
     }).join('');
 
@@ -4293,7 +4293,7 @@ function renderEntregas(){
   var cols={'Pendiente':'#f59e0b','Pagado':'#3b82f6','Entregado':'#10b981','Cancelado':'#ef4444'};
   var ems={'Pendiente':'⏳','Pagado':'💳','Entregado':'✅','Cancelado':'❌'};
   var vEnt=ventas.filter(function(v){return v.estado==='Pendiente'||v.estado==='Pagado';}).map(function(v){
-    return {_t:'venta',_f:v.fecha_entrega||v.fecha_venta||v.creado_en||'',id:v.id,
+    return {_t:'venta',_f:v.fecha_entrega||v.fecha_venta||v.created_at||'',id:v.id,
       dest:v.cliente_nombre||'—',desc:(v.venta_items||[]).map(function(i){return i.producto_nombre;}).join(', '),
       punto:v.tipo_entrega||'Entrega directa',total:'$'+parseFloat(v.total||0).toFixed(2),
       estado:v.estado,hora:'',quien:'',notas:''};
@@ -4705,7 +4705,7 @@ async function eliminarEntregaSuelta(id){
 // ===== REPORTES =====
 async function cargarReporte(){
   const mes=document.getElementById('reporte-mes').value; if(!mes)return;
-  const vM=ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
+  const vM=ventas.filter(v=>(v.fecha_venta||v.created_at||'').slice(0,7)===mes&&v.estado!=='Cancelado');
   const total=vM.reduce((s,v)=>s+parseFloat(v.total||0),0);
   const totalBs=vM.reduce((s,v)=>s+parseFloat(v.monto_bs||0),0);
   const gastMes=gastosGlobales.filter(g=>(g.fecha||'').slice(0,7)===mes&&g.tipo!=='Gasto ajeno'&&g.tipo!=='Reposición');
@@ -4781,7 +4781,7 @@ async function cargarReporte(){
   document.getElementById('reporte-top-prods').innerHTML=Object.entries(conteo).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([n,c])=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px"><span>'+n+'</span><strong style="color:var(--pink)">'+c+'</strong></div>').join('');
   const pagos={}; vM.forEach(v=>{pagos[v.metodo_pago||'?']=(pagos[v.metodo_pago||'?']||0)+parseFloat(v.total||0);});
   document.getElementById('reporte-pagos').innerHTML=Object.entries(pagos).map(([m,t])=>'<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:13px"><span>'+m+'</span><strong>$'+t.toFixed(2)+'</strong></div>').join('');
-  document.getElementById('reporte-tabla').innerHTML=vM.map(v=>'<tr><td>'+(v.numero||'#'+v.id)+'</td><td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td><td>'+(v.cliente_nombre||'—')+'</td><td>'+(v.canal||'')+'</td><td style="font-size:11px;max-width:120px">'+(v.venta_items||[]).map(i=>i.producto_nombre).join(', ')+'</td><td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong></td><td style="color:#2e7d32">'+(v.monto_bs>0?'Bs.'+parseFloat(v.monto_bs).toFixed(2):'—')+'</td><td style="font-size:11px">'+(v.tasa_bcv_usada||'—')+'</td><td><span class="badge badge-'+(v.estado||'').toLowerCase()+'">'+(v.estado||'')+'</span></td></tr>').join('');
+  document.getElementById('reporte-tabla').innerHTML=vM.map(v=>'<tr><td>'+(v.numero||'#'+v.id)+'</td><td>'+formatFecha(v.fecha_venta||v.created_at)+'</td><td>'+(v.cliente_nombre||'—')+'</td><td>'+(v.canal||'')+'</td><td style="font-size:11px;max-width:120px">'+(v.venta_items||[]).map(i=>i.producto_nombre).join(', ')+'</td><td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong></td><td style="color:#2e7d32">'+(v.monto_bs>0?'Bs.'+parseFloat(v.monto_bs).toFixed(2):'—')+'</td><td style="font-size:11px">'+(v.tasa_bcv_usada||'—')+'</td><td><span class="badge badge-'+(v.estado||'').toLowerCase()+'">'+(v.estado||'')+'</span></td></tr>').join('');
 }
 
 // ===== EXPORTS =====
@@ -4823,7 +4823,7 @@ async function cambiarCanalMasivoHoy(){
 }
 function exportarVentasCSV(){
   let csv='Número,Fecha Venta,Cliente,Canal,Productos,Total $,Bs,Tasa BCV,Método,Entrega,Estado\n';
-  ventas.forEach(v=>{ const prods=(v.venta_items||[]).map(i=>(i.producto_nombre||'')+'(x'+i.cantidad+')').join(' | '); csv+=[v.numero||v.id,v.fecha_venta||formatFecha(v.creado_en),v.cliente_nombre,v.canal,prods,v.total,v.monto_bs||0,v.tasa_bcv_usada||0,v.metodo_pago,v.tipo_entrega,v.estado].map(x=>'"'+(x||'').toString().replace(/"/g,'""')+'"').join(',')+'\n'; });
+  ventas.forEach(v=>{ const prods=(v.venta_items||[]).map(i=>(i.producto_nombre||'')+'(x'+i.cantidad+')').join(' | '); csv+=[v.numero||v.id,v.fecha_venta||formatFecha(v.created_at),v.cliente_nombre,v.canal,prods,v.total,v.monto_bs||0,v.tasa_bcv_usada||0,v.metodo_pago,v.tipo_entrega,v.estado].map(x=>'"'+(x||'').toString().replace(/"/g,'""')+'"').join(',')+'\n'; });
   descargarCSV(csv,'brillitos_ventas.csv');
 }
 function exportarProductosCSV(){
@@ -5258,7 +5258,7 @@ function renderMovimientosBancaAmiga(){
     const bs = parseFloat(v.monto_bs||0);
     if(!bs) return;
     movs.push({
-      fecha: v.fecha_venta||v.creado_en||'',
+      fecha: v.fecha_venta||v.created_at||'',
       tipo: 'entrada',
       desc: (v.cliente_nombre||'Cliente')+' — '+(v.numero||''),
       sub: v.metodo_pago||'Pago Bs',
@@ -5271,7 +5271,7 @@ function renderMovimientosBancaAmiga(){
     const reposEfectivo = esRepos && (g.reposicion_de||'').startsWith('Efectivo');
     if(esRepos && !reposEfectivo) return;
     movs.push({
-      fecha: g.fecha||g.creado_en||'',
+      fecha: g.fecha||g.created_at||'',
       tipo: esRepos ? 'entrada' : 'salida',
       desc: g.descripcion||g.tipo,
       sub: g.tipo+(g.reposicion_de?' — '+g.reposicion_de.split(' — ')[0]:''),
