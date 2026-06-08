@@ -1607,10 +1607,10 @@ async function init(){
   try{ const fv=document.getElementById('v-fecha-venta'); if(fv) fv.value=hoyVEN(); }catch(e){}
   const results = await Promise.allSettled([
     sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000'),
-    sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500'),
+    sbGet('ventas','select=*,venta_items(*)&order=created_at.desc&limit=500'),
     sbGet('clientes','select=*&order=nombre.asc'),
     sbGet('eventos','select=*&order=fecha.desc'),
-    sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200'),
+    sbGet('apartados','select=*,apartado_items(*)&order=created_at.desc&limit=200'),
     sbGet('gastos_globales','select=*&order=fecha.desc&limit=500'),
     sbGet('categorias','select=*&activo=eq.true&order=nombre.asc')
   ]);
@@ -2286,7 +2286,7 @@ async function _ejecutarCobroPOS(total,tasa,montoBs){
     +(montoBs>0?'<br><strong style="color:#2e7d32">Bs. '+montoBs.toFixed(2)+'</strong> (tasa '+tasa.toFixed(2)+')'  :'')
     +'<br><span style="font-size:12px;color:var(--gray)">'+posCarrito.map(i=>i.nombre+' x'+i.cantidad).join(', ')+'</span>';
   document.getElementById('modal-pos-ok').classList.add('open');
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+  ventas=await sbGet('ventas','select=*,venta_items(*)&order=created_at.desc&limit=500');
   cargarDashboard();
   document.getElementById('pos-cliente').value='';
   toast('✅ Venta registrada');
@@ -2341,7 +2341,7 @@ async function confirmarVentaVoz(){
   const res=await sbPost('ventas',{cliente_nombre:cliente||'Cliente voz',canal,metodo_pago:'Pago Móvil',tipo_entrega:'Entrega directa',estado:'Pendiente',subtotal:total,costo_envio:0,descuento:0,total,fecha_venta:new Date().toISOString().slice(0,10),tasa_bcv_usada:bcvHoy||0,monto_bs:0,numero:'VOZ-'+Date.now()});
   const vid=res[0]&&res[0].id;
   if(vid) for(const it of items) await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,body:JSON.stringify({venta_id:vid,...it})});
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+  ventas=await sbGet('ventas','select=*,venta_items(*)&order=created_at.desc&limit=500');
   cargarDashboard(); document.getElementById('voz-panel').classList.remove('open');
   document.getElementById('voz-resultado').style.display='none'; vozTranscript=''; vozVentaDetectada=null;
   toast('✅ Venta por voz registrada');
@@ -2811,7 +2811,7 @@ async function guardarVenta(){
 
     // Recargar y cerrar
     cerrarModal('modal-venta');
-    ventas   = await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+    ventas   = await sbGet('ventas','select=*,venta_items(*)&order=created_at.desc&limit=500');
     productos = await sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000');
     if(!Array.isArray(ventas))    ventas=[];
     if(!Array.isArray(productos)) productos=[];
@@ -2927,8 +2927,8 @@ async function confirmarConRef(id){
         precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
   await sbPatch('apartados',id,{estado:'Completado',referencia_pago:ref||null,abono:a.total,saldo:0});
   a.estado='Completado';
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
-  apartados=await sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200');
+  ventas=await sbGet('ventas','select=*,venta_items(*)&order=created_at.desc&limit=500');
+  apartados=await sbGet('apartados','select=*,apartado_items(*)&order=created_at.desc&limit=200');
   if(!Array.isArray(ventas)) ventas=[];
   if(!Array.isArray(apartados)) apartados=[];
   renderApartados(); renderVentas(); cargarDashboard();
@@ -3059,7 +3059,7 @@ async function guardarApartado(){
     }
     toast('✅ Apartado creado — stock descontado');
   }
-  apartados=await sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200');
+  apartados=await sbGet('apartados','select=*,apartado_items(*)&order=created_at.desc&limit=200');
   productos=await sbGet('productos','select=*&order=id.desc&limit=1000');
   if(!Array.isArray(apartados)) apartados=[];
   if(!Array.isArray(productos)) productos=[];
@@ -3074,8 +3074,8 @@ async function completarApartado(id){
   const vid=res[0]&&res[0].id;
   if(vid) for(const it of a.apartado_items||[]) await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,body:JSON.stringify({venta_id:vid,producto_id:it.producto_id,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
   await sbPatch('apartados',id,{estado:'Completado'}); a.estado='Completado';
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
-  apartados=await sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200');
+  ventas=await sbGet('ventas','select=*,venta_items(*)&order=created_at.desc&limit=500');
+  apartados=await sbGet('apartados','select=*,apartado_items(*)&order=created_at.desc&limit=200');
   productos=await sbGet('productos','select=*&order=id.desc&limit=1000');
   if(!Array.isArray(ventas)) ventas=[];
   if(!Array.isArray(apartados)) apartados=[];
@@ -3688,7 +3688,7 @@ async function guardarGasto(){
   const monto_bs=moneda==='Bs'?monto:(tasa>0?monto*tasa:0);
   const tipo_gasto=document.querySelector('input[name="g-tipo"]:checked')?.value||'Gasto';
   await sbPost('gastos_globales',{evento_id:parseInt(document.getElementById('g-evento-id').value),descripcion:concepto,categoria:'Stand / Evento',monto,moneda,tasa_bcv:tasa||null,monto_usd,monto_bs,fecha:document.getElementById('g-fecha').value,notas:document.getElementById('g-notas').value,tipo:tipo_gasto,cubierto_por:concepto==='Gasto de Luisma'?(document.querySelector('input[name="g-cubierto"]:checked')?.value||'Luisma'):null});
-  cerrarModal('modal-gasto'); renderEventos(); gastosGlobales=await sbGet('gastos_globales','select=*&order=creado_en.desc'); toast('✅ Gasto registrado — descontado de BancaAmiga Luisma');
+  cerrarModal('modal-gasto'); renderEventos(); gastosGlobales=await sbGet('gastos_globales','select=*&order=created_at.desc'); toast('✅ Gasto registrado — descontado de BancaAmiga Luisma');
 }
 async function eliminarGasto(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('gastos_globales','id=eq.'+id); gastosGlobales=gastosGlobales.filter(g=>g.id!==id); renderGastosGlobal(); cargarDashboard(); toast('🗑️ Eliminado'); }
 
