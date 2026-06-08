@@ -203,12 +203,14 @@ textarea.form-control{resize:vertical;min-height:80px}
 #toast{
   position:fixed;bottom:24px;right:24px;z-index:9999;
   background:var(--text);color:#fff;padding:12px 20px;border-radius:10px;
-  font-size:14px;font-weight:600;box-shadow:var(--sh2);
+  font-size:13px;font-weight:600;box-shadow:var(--sh2);max-width:420px;
   transform:translateY(80px);opacity:0;transition:all .25s;pointer-events:none;
+  line-height:1.4;
 }
-#toast.show{transform:translateY(0);opacity:1}
+#toast.show{transform:translateY(0);opacity:1;pointer-events:auto}
 #toast.success{background:var(--green)}
-#toast.error{background:var(--red)}
+#toast.error{background:var(--red);cursor:pointer}
+#toast.error::after{content:' ×';opacity:.7;font-size:16px;margin-left:4px}
 
 /* ── STOCK WARNING ── */
 .stock-low{color:var(--red);font-weight:700}
@@ -702,7 +704,19 @@ function toast(msg, type=''){
   el.textContent = msg;
   el.className = 'show '+(type||'');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(()=>{ el.className=''; }, 2800);
+  if(type==='error'){
+    // errores persisten hasta que el usuario haga clic
+    el.onclick = ()=>{ el.className=''; el.onclick=null; };
+  } else {
+    el.onclick = null;
+    toastTimer = setTimeout(()=>{ el.className=''; }, 3000);
+  }
+}
+function errMsg(e){
+  try{
+    const body = JSON.parse(e.message);
+    return body.message || body.error || e.message;
+  } catch(_){ return e.message || String(e); }
 }
 
 // ── MODAL ──
@@ -827,7 +841,7 @@ async function loadProductos(){
     const sel = document.getElementById('prod-cat');
     sel.innerHTML = '<option value="">Todas las categorías</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
     renderProductos();
-  } catch(e){ toast('Error cargando productos','error'); console.error(e); }
+  } catch(e){ toast('Productos: '+errMsg(e),'error'); console.error(e); }
 }
 
 function renderProductos(){
@@ -964,7 +978,7 @@ async function saveProducto(){
     toast(id?'Producto actualizado':'Producto creado','success');
     closeModal('modal-prod');
     await loadProductos();
-  } catch(e){ toast('Error: '+e.message,'error'); console.error(e); }
+  } catch(e){ toast('Guardar producto: '+errMsg(e),'error'); console.error(e); }
 }
 
 async function editProducto(id){
@@ -979,7 +993,7 @@ async function toggleActivo(id, activo){
     if(p) p.activo=activo;
     toast(activo?'Producto activado':'Producto desactivado','success');
     renderProductos();
-  } catch(e){ toast('Error','error'); }
+  } catch(e){ toast('Activar/desactivar: '+errMsg(e),'error'); console.error(e); }
 }
 
 // ════════════════════════════════════════
@@ -1027,7 +1041,7 @@ async function adjStock(id, delta){
     p.stock=newStock;
     const el=document.getElementById('stk-'+id);
     if(el){ el.textContent=newStock; el.className='stock-num '+(newStock===0?'stock-low':newStock<=3?'stock-med':'stock-ok'); }
-  } catch(e){ toast('Error','error'); }
+  } catch(e){ toast('Ajustar stock: '+errMsg(e),'error'); console.error(e); }
 }
 
 async function setStock(id){
@@ -1041,7 +1055,7 @@ async function setStock(id){
     p.stock=n;
     renderInventario();
     toast('Stock actualizado','success');
-  } catch(e){ toast('Error','error'); }
+  } catch(e){ toast('Fijar stock: '+errMsg(e),'error'); console.error(e); }
 }
 
 // ════════════════════════════════════════
@@ -1052,7 +1066,7 @@ async function loadApartados(){
     const data = await api('apartados?select=*&order=created_at.desc&limit=200');
     allApartados = data||[];
     renderApartados();
-  } catch(e){ toast('Error cargando apartados','error'); console.error(e); }
+  } catch(e){ toast('Apartados: '+errMsg(e),'error'); console.error(e); }
 }
 
 function renderApartados(){
@@ -1127,7 +1141,7 @@ async function saveEstadoApt(id){
     toast('Estado actualizado','success');
     closeModal('modal-apt');
     renderApartados();
-  } catch(e){ toast('Error','error'); }
+  } catch(e){ toast('Cambiar estado: '+errMsg(e),'error'); console.error(e); }
 }
 
 async function changeEstadoApt(id){
@@ -1143,7 +1157,7 @@ async function loadVentas(){
     allVentas = data||[];
     renderVentasStats();
     renderVentas();
-  } catch(e){ toast('Error cargando ventas','error'); console.error(e); }
+  } catch(e){ toast('Ventas: '+errMsg(e),'error'); console.error(e); }
 }
 
 function renderVentasStats(){
@@ -1221,7 +1235,7 @@ async function loadEventos(){
     const data = await api('eventos?select=*&order=fecha.desc.nullslast,created_at.desc');
     allEventos = data||[];
     renderEventos();
-  } catch(e){ toast('Error cargando eventos','error'); console.error(e); }
+  } catch(e){ toast('Eventos: '+errMsg(e),'error'); console.error(e); }
 }
 
 function renderEventos(){
@@ -1287,7 +1301,7 @@ async function saveEvento(){
     toast(id?'Evento actualizado':'Evento creado','success');
     closeModal('modal-evt');
     renderEventos();
-  } catch(e){ toast('Error: '+e.message,'error'); console.error(e); }
+  } catch(e){ toast('Guardar evento: '+errMsg(e),'error'); console.error(e); }
 }
 
 function editEvento(id){
@@ -1302,7 +1316,7 @@ async function deleteEvento(id){
     allEventos = allEventos.filter(e=>e.id!==id);
     toast('Evento eliminado','success');
     renderEventos();
-  } catch(e){ toast('Error','error'); }
+  } catch(e){ toast('Eliminar evento: '+errMsg(e),'error'); console.error(e); }
 }
 
 // ════════════════════════════════════════
@@ -1314,7 +1328,7 @@ async function loadEntregas(){
     allApartados = data||[];
     renderEntregasStats();
     renderEntregas();
-  } catch(e){ toast('Error cargando entregas','error'); console.error(e); }
+  } catch(e){ toast('Entregas: '+errMsg(e),'error'); console.error(e); }
 }
 
 function renderEntregasStats(){
@@ -1378,7 +1392,7 @@ async function setFechaEntrega(id){
     if(a) a.fecha_entrega=val||null;
     toast('Fecha actualizada','success');
     renderEntregas();
-  } catch(e){ toast('Error','error'); }
+  } catch(e){ toast('Fecha entrega: '+errMsg(e),'error'); console.error(e); }
 }
 
 // ── INIT ──
