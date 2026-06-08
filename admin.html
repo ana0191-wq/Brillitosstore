@@ -632,8 +632,8 @@ function showView(v){
   const ab = document.getElementById('topbar-action');
   if(m.action){ ab.textContent=m.action; ab.style.display='flex'; }
   else ab.style.display='none';
-  if(v==='productos' && !allProductos.length) loadProductos();
-  if(v==='inventario'){ if(!allProductos.length) loadProductos().then(renderInventario); else renderInventario(); }
+  if(v==='productos') loadProductos();
+  if(v==='inventario') loadProductos().then(renderInventario);
   if(v==='apartados' && !allApartados.length) loadApartados();
   if(v==='ventas' && !allVentas.length) loadVentas();
 }
@@ -760,7 +760,7 @@ function renderProductos(){
   `).join('');
 }
 
-function openProductoModal(p=null){
+async function openProductoModal(p=null){
   document.getElementById('modal-prod-title').textContent = p ? 'Editar producto' : 'Nuevo producto';
   document.getElementById('prod-id').value         = p?.id||'';
   document.getElementById('prod-nombre').value     = p?.nombre||'';
@@ -774,11 +774,10 @@ function openProductoModal(p=null){
   document.getElementById('prod-activo').checked   = p ? !!p.activo : true;
   document.getElementById('prod-visible-web').checked = p ? p.visible_web!==false : true;
   document.getElementById('prod-es-nuevo').checked = !!p?.es_nuevo;
-  // Load variants
   const vlist = document.getElementById('variants-list');
   vlist.innerHTML = '';
   if(p?.id){
-    loadVariants(p.id);
+    await loadVariants(p.id);
   }
   openModal('modal-prod');
 }
@@ -857,7 +856,7 @@ async function saveProducto(){
 
     toast(id?'Producto actualizado':'Producto creado','success');
     closeModal('modal-prod');
-    renderProductos();
+    await loadProductos();
   } catch(e){ toast('Error: '+e.message,'error'); console.error(e); }
 }
 
