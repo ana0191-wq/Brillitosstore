@@ -1631,6 +1631,7 @@ async function init(){
   if(!Array.isArray(apartados)) apartados=[];
   if(!Array.isArray(gastosGlobales)) gastosGlobales=[];
 
+  toast('✅ Cargado: '+productos.length+' productos, '+ventas.length+' ventas', 5000);
   mostrarBCVDash().catch(e=>{ console.warn('BCV falló:',e); });
   renderProductos();
   renderVentas();
