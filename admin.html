@@ -299,6 +299,12 @@ textarea.form-control{resize:vertical;min-height:80px}
         <div class="nav-item" data-view="ventas" onclick="showView('ventas')">
           <span class="ico">💰</span><span>Ventas POS</span>
         </div>
+        <div class="nav-item" data-view="eventos" onclick="showView('eventos')">
+          <span class="ico">🎪</span><span>Eventos</span>
+        </div>
+        <div class="nav-item" data-view="entregas" onclick="showView('entregas')">
+          <span class="ico">🚚</span><span>Entregas</span>
+        </div>
       </div>
     </nav>
     <div class="sb-footer">
@@ -449,6 +455,62 @@ textarea.form-control{resize:vertical;min-height:80px}
         </div>
       </div>
 
+      <!-- EVENTOS -->
+      <div class="view" id="view-eventos">
+        <div class="filters-bar">
+          <input class="search-input" type="text" placeholder="Buscar evento..." id="evt-search" oninput="renderEventos()">
+          <select class="filter-select" id="evt-estado" onchange="renderEventos()">
+            <option value="">Todos</option>
+            <option value="activo">Activos</option>
+            <option value="inactivo">Inactivos</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">Eventos <span id="evt-count" style="color:var(--sub);font-weight:500"></span></div>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Nombre</th><th>Fecha</th><th>Lugar</th><th>Estado</th><th>Notas</th><th>Acciones</th></tr></thead>
+              <tbody id="evt-tbody"></tbody>
+            </table>
+          </div>
+          <div id="evt-empty" class="empty-state" style="display:none"><div class="ico">🎪</div><p>No hay eventos registrados</p></div>
+        </div>
+      </div>
+
+      <!-- ENTREGAS -->
+      <div class="view" id="view-entregas">
+        <div class="filters-bar">
+          <input class="search-input" type="text" placeholder="Buscar cliente o #..." id="ent-search" oninput="renderEntregas()">
+          <select class="filter-select" id="ent-estado" onchange="renderEntregas()">
+            <option value="">Todos los estados</option>
+            <option value="Por confirmar">Por confirmar</option>
+            <option value="Pendiente">Pendiente</option>
+            <option value="Pagado">Pagado</option>
+            <option value="Entregado">Entregado</option>
+            <option value="Cancelado">Cancelado</option>
+          </select>
+          <select class="filter-select" id="ent-fecha" onchange="renderEntregas()">
+            <option value="">Todas las fechas</option>
+            <option value="hoy">Hoy</option>
+            <option value="semana">Esta semana</option>
+            <option value="sin_fecha">Sin fecha</option>
+          </select>
+        </div>
+        <div class="stats-grid" id="entregas-stats" style="margin-bottom:16px"></div>
+        <div class="card">
+          <div class="card-header"><div class="card-title">Entregas pendientes</div></div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>#</th><th>Cliente</th><th>Total</th><th>Saldo</th><th>Estado</th><th>Fecha entrega</th><th>Notas</th><th>Acciones</th></tr></thead>
+              <tbody id="ent-tbody"></tbody>
+            </table>
+          </div>
+          <div id="ent-empty" class="empty-state" style="display:none"><div class="ico">🚚</div><p>No hay entregas pendientes</p></div>
+        </div>
+      </div>
+
     </div><!-- /content -->
   </div><!-- /main -->
 </div>
@@ -553,6 +615,45 @@ textarea.form-control{resize:vertical;min-height:80px}
   </div>
 </div>
 
+<!-- MODAL EVENTO -->
+<div class="modal-overlay" id="modal-evt">
+  <div class="modal" style="max-width:480px">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-evt-title">Nuevo evento</div>
+      <div class="modal-close" onclick="closeModal('modal-evt')">×</div>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="evt-id">
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Nombre *</label>
+          <input class="form-control" id="evt-nombre" placeholder="Nombre del evento">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha</label>
+          <input class="form-control" id="evt-fecha" type="date">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Lugar</label>
+        <input class="form-control" id="evt-lugar" placeholder="Ubicación del evento">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas</label>
+        <textarea class="form-control" id="evt-notas" rows="3" placeholder="Observaciones..."></textarea>
+      </div>
+      <label class="form-check" style="margin-top:8px">
+        <input type="checkbox" id="evt-activo" checked>
+        <span>Activo</span>
+      </label>
+    </div>
+    <div class="modal-footer">
+      <button class="topbar-btn btn-ghost" onclick="closeModal('modal-evt')">Cancelar</button>
+      <button class="topbar-btn btn-primary" onclick="saveEvento()">💾 Guardar</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -566,6 +667,7 @@ const HReturn = {...H,'Prefer':'return=representation'};
 let allProductos = [];
 let allApartados = [];
 let allVentas    = [];
+let allEventos   = [];
 let currentView  = 'dashboard';
 
 // ── API ──
@@ -617,6 +719,8 @@ const viewMeta = {
   inventario: {title:'Inventario',   sub:'Control de stock',      action:null},
   apartados:  {title:'Apartados',    sub:'Pedidos online y web',  action:null},
   ventas:     {title:'Ventas POS',   sub:'Historial de ventas',   action:null},
+  eventos:    {title:'Eventos',      sub:'Ferias y puntos de venta', action:'+ Nuevo evento'},
+  entregas:   {title:'Entregas',     sub:'Gestión de entregas',   action:null},
 };
 
 function showView(v){
@@ -636,10 +740,13 @@ function showView(v){
   if(v==='inventario') loadProductos().then(renderInventario);
   if(v==='apartados' && !allApartados.length) loadApartados();
   if(v==='ventas' && !allVentas.length) loadVentas();
+  if(v==='eventos') loadEventos();
+  if(v==='entregas') loadEntregas();
 }
 
 function topbarAction(){
   if(currentView==='productos') openProductoModal();
+  if(currentView==='eventos') openEventoModal();
 }
 
 // ── HELPERS ──
@@ -1104,6 +1211,174 @@ async function viewVenta(id){
   document.getElementById('modal-ven-title').textContent = `Venta ${v.numero||'#'+v.id}`;
   document.getElementById('modal-ven-body').innerHTML = body;
   openModal('modal-ven');
+}
+
+// ════════════════════════════════════════
+// EVENTOS
+// ════════════════════════════════════════
+async function loadEventos(){
+  try{
+    const data = await api('eventos?select=*&order=fecha.desc.nullslast,created_at.desc');
+    allEventos = data||[];
+    renderEventos();
+  } catch(e){ toast('Error cargando eventos','error'); console.error(e); }
+}
+
+function renderEventos(){
+  const q   = (document.getElementById('evt-search')?.value||'').toLowerCase();
+  const est = document.getElementById('evt-estado')?.value||'';
+  let list  = allEventos.filter(e=>{
+    if(q && !(e.nombre||'').toLowerCase().includes(q) && !(e.lugar||'').toLowerCase().includes(q)) return false;
+    if(est==='activo' && !e.activo) return false;
+    if(est==='inactivo' && e.activo) return false;
+    return true;
+  });
+  document.getElementById('evt-count').textContent = `(${list.length})`;
+  const tbody = document.getElementById('evt-tbody');
+  const empty = document.getElementById('evt-empty');
+  if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+  tbody.innerHTML = list.map(e=>`
+    <tr>
+      <td><b>${e.nombre||'—'}</b></td>
+      <td>${e.fecha?fmtDate(e.fecha):'—'}</td>
+      <td>${e.lugar||'—'}</td>
+      <td>${badge(e.activo?'Activo':'Inactivo', e.activo?'green':'gray')}</td>
+      <td style="max-width:200px;font-size:12px;color:var(--sub)">${e.notas||'—'}</td>
+      <td>
+        <button class="action-btn" onclick="editEvento(${e.id})">Editar</button>
+        <button class="action-btn danger" onclick="deleteEvento(${e.id})">Eliminar</button>
+      </td>
+    </tr>
+  `).join('');
+}
+
+function openEventoModal(e=null){
+  document.getElementById('modal-evt-title').textContent = e ? 'Editar evento' : 'Nuevo evento';
+  document.getElementById('evt-id').value     = e?.id||'';
+  document.getElementById('evt-nombre').value = e?.nombre||'';
+  document.getElementById('evt-fecha').value  = e?.fecha||'';
+  document.getElementById('evt-lugar').value  = e?.lugar||'';
+  document.getElementById('evt-notas').value  = e?.notas||'';
+  document.getElementById('evt-activo').checked = e ? !!e.activo : true;
+  openModal('modal-evt');
+}
+
+async function saveEvento(){
+  const id     = document.getElementById('evt-id').value;
+  const nombre = document.getElementById('evt-nombre').value.trim();
+  if(!nombre){ toast('El nombre es obligatorio','error'); return; }
+  const body = {
+    nombre,
+    fecha:   document.getElementById('evt-fecha').value||null,
+    lugar:   document.getElementById('evt-lugar').value.trim()||null,
+    notas:   document.getElementById('evt-notas').value.trim()||null,
+    activo:  document.getElementById('evt-activo').checked,
+  };
+  try{
+    if(id){
+      await apiPatch(`eventos?id=eq.${id}`, body);
+      const idx = allEventos.findIndex(e=>e.id===parseInt(id));
+      if(idx>=0) allEventos[idx]={...allEventos[idx],...body};
+    } else {
+      const res = await apiPost('eventos', body);
+      allEventos.unshift(res?.[0]||body);
+    }
+    toast(id?'Evento actualizado':'Evento creado','success');
+    closeModal('modal-evt');
+    renderEventos();
+  } catch(e){ toast('Error: '+e.message,'error'); console.error(e); }
+}
+
+function editEvento(id){
+  const e = allEventos.find(x=>x.id===id);
+  if(e) openEventoModal(e);
+}
+
+async function deleteEvento(id){
+  if(!confirm('¿Eliminar este evento?')) return;
+  try{
+    await apiDelete(`eventos?id=eq.${id}`);
+    allEventos = allEventos.filter(e=>e.id!==id);
+    toast('Evento eliminado','success');
+    renderEventos();
+  } catch(e){ toast('Error','error'); }
+}
+
+// ════════════════════════════════════════
+// ENTREGAS
+// ════════════════════════════════════════
+async function loadEntregas(){
+  try{
+    const data = await api('apartados?select=*&order=fecha_entrega.asc.nullslast,created_at.desc&limit=300');
+    allApartados = data||[];
+    renderEntregasStats();
+    renderEntregas();
+  } catch(e){ toast('Error cargando entregas','error'); console.error(e); }
+}
+
+function renderEntregasStats(){
+  const hoy = new Date().toISOString().slice(0,10);
+  const pendientes = allApartados.filter(a=>a.estado==='Pendiente'||a.estado==='Por confirmar');
+  const hoyList    = allApartados.filter(a=>a.fecha_entrega===hoy);
+  const vencidas   = allApartados.filter(a=>a.fecha_entrega&&a.fecha_entrega<hoy&&a.estado!=='Entregado'&&a.estado!=='Cancelado');
+  document.getElementById('entregas-stats').innerHTML = `
+    <div class="stat-card orange"><div class="stat-card-label">Pendientes</div><div class="stat-card-value">${pendientes.length}</div><div class="stat-card-sub">Por entregar</div></div>
+    <div class="stat-card blue"><div class="stat-card-label">Entregas hoy</div><div class="stat-card-value">${hoyList.length}</div><div class="stat-card-sub">${hoy}</div></div>
+    <div class="stat-card pink"><div class="stat-card-label">Vencidas</div><div class="stat-card-value">${vencidas.length}</div><div class="stat-card-sub">Fecha pasada</div></div>
+  `;
+}
+
+function renderEntregas(){
+  const q   = (document.getElementById('ent-search')?.value||'').toLowerCase();
+  const est = document.getElementById('ent-estado')?.value||'';
+  const fil = document.getElementById('ent-fecha')?.value||'';
+  const hoy = new Date().toISOString().slice(0,10);
+  const semFin = new Date(Date.now()+7*86400000).toISOString().slice(0,10);
+
+  let list = allApartados.filter(a=>{
+    if(q && !((a.cliente_nombre||'').toLowerCase().includes(q)||(a.numero||'').toLowerCase().includes(q))) return false;
+    if(est && a.estado!==est) return false;
+    if(fil==='hoy'     && a.fecha_entrega!==hoy) return false;
+    if(fil==='semana'  && !(a.fecha_entrega&&a.fecha_entrega>=hoy&&a.fecha_entrega<=semFin)) return false;
+    if(fil==='sin_fecha' && a.fecha_entrega) return false;
+    return true;
+  });
+
+  const tbody = document.getElementById('ent-tbody');
+  const empty = document.getElementById('ent-empty');
+  if(!list.length){ tbody.innerHTML=''; empty.style.display='block'; return; }
+  empty.style.display='none';
+
+  tbody.innerHTML = list.map(a=>{
+    const vencida = a.fecha_entrega && a.fecha_entrega < hoy && a.estado!=='Entregado' && a.estado!=='Cancelado';
+    return `
+    <tr>
+      <td><b>${a.numero||'#'+a.id}</b></td>
+      <td>${a.cliente_nombre||'—'}</td>
+      <td>${fmt(a.total)}</td>
+      <td class="${(a.saldo||0)>0?'stock-low':'stock-ok'}">${fmt(a.saldo)}</td>
+      <td>${estadoBadge(a.estado)}</td>
+      <td style="white-space:nowrap;${vencida?'color:var(--red);font-weight:700':''}">${a.fecha_entrega?fmtDate(a.fecha_entrega):'<span style="color:var(--sub)">Sin fecha</span>'}</td>
+      <td style="max-width:160px;font-size:12px;color:var(--sub)">${a.notas||'—'}</td>
+      <td>
+        <button class="action-btn" onclick="viewApartado(${a.id})">Ver</button>
+        <button class="action-btn" onclick="setFechaEntrega(${a.id})">Fecha</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function setFechaEntrega(id){
+  const a = allApartados.find(x=>x.id===id);
+  const val = prompt(`Fecha de entrega para "${a?.cliente_nombre||'#'+id}" (YYYY-MM-DD):`, a?.fecha_entrega||'');
+  if(val===null) return;
+  try{
+    await apiPatch(`apartados?id=eq.${id}`,{fecha_entrega:val||null});
+    if(a) a.fecha_entrega=val||null;
+    toast('Fecha actualizada','success');
+    renderEntregas();
+  } catch(e){ toast('Error','error'); }
 }
 
 // ── INIT ──
