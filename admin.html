@@ -2781,6 +2781,7 @@ async function guardarVenta(){
         }
       }
       toast('✅ Venta actualizada 🌸');
+    restoreBtn();
 
     } else {
       // ── NUEVA venta ──
@@ -2811,6 +2812,7 @@ async function guardarVenta(){
     }
 
     // Recargar y cerrar
+    restoreBtn();
     cerrarModal('modal-venta');
     ventas   = await sbGet('ventas','select=*,venta_items(*)&order=created_at.desc&limit=500');
     productos = await sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000');
@@ -2963,7 +2965,7 @@ function renderApartados(){
       +'</div>';
   })()
       +(items?'<div style="font-size:13px;margin-top:5px;color:#444">'+items+'</div>':'')
-      +(abono>0?'<div style="font-size:12px;color:#2e7d32;margin-top:4px">✅ Abono: $'+abono.toFixed(2)+'</div>':'')
+      +'<div style="font-size:12px;color:#2e7d32;margin-top:4px">'+(abono>0?'✅ Apartó: $'+abono.toFixed(2):'⏳ Sin abono')+'</div>'
       +(a.referencia_pago?'<div style="font-size:12px;color:#2e7d32;margin-top:3px;font-weight:600">🧾 Ref: '+a.referencia_pago+'</div>':'')
       +(a.notas?'<div style="font-size:11px;color:var(--gray);margin-top:3px;font-style:italic">📝 '+a.notas+'</div>':'')
       +'</div>'
@@ -3229,7 +3231,8 @@ async function guardarProducto(){
   var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:document.getElementById('p-categoria').value.trim(),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,observaciones:document.getElementById('p-observaciones').value.trim(),es_nuevo:document.getElementById('p-nuevo').checked,activo:document.getElementById('p-activo').checked,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
   var prodId=editProdId;
   if(editProdId){
-    await sbPatch('productos',editProdId,data);
+    const rProd = await sbPatch('productos',editProdId,data);
+    if(!rProd || !rProd.ok){ return; }
     var idx2=productos.findIndex(function(p){return p.id===editProdId;});
     if(idx2>=0) productos[idx2]=Object.assign({},productos[idx2],data);
     toast('✅ Actualizado');
