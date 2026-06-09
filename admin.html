@@ -983,7 +983,7 @@ tr:hover td{background:#fff8fc}
         🌐 Visible en tienda web
       </label>
     </div>
-    <div class="form-group form-full"><label>🎨 Variantes <span style="font-size:11px;color:#888;font-weight:400">(nombre, stock, precio por variante)</span></label><div id="variantes-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div><button type="button" onclick="agregarVarianteRow()" style="background:var(--pink-light);color:var(--pink);border:1.5px dashed var(--pink);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;width:100%">➕ Agregar variante</button><input type="hidden" id="p-observaciones" value=""></div>
+    <div class="form-group form-full"><label>🎨 Variantes <span style="font-size:11px;color:#888;font-weight:400">(nombre, stock, precio por variante)</span></label><div id="variantes-lista" style="display:flex;flex-direction:column;gap:8px;margin-bottom:8px"></div><button type="button" onclick="agregarVarianteRow()" style="background:var(--pink-light);color:var(--pink);border:1.5px dashed var(--pink);border-radius:10px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;width:100%">➕ Agregar variante</button></div>
   </div>
   <div class="section-title">📷 Fotos</div>
   <div style="display:flex;gap:8px;margin-bottom:4px">
@@ -3204,7 +3204,6 @@ function abrirModalProducto(id=null){
   poblarCatsModal(p?p.categoria||'':'', p?p.subcategoria||'':'');
   // Setear campos de texto (categoria/subcategoria se manejan via poblarCatsModal)
   ['nombre','precio','stock','descripcion'].forEach(f=>document.getElementById('p-'+f).value=p?p[f]||'':'');
-  document.getElementById('p-observaciones').value=p?p.observaciones||'':'';
   var pvList=p?(p.producto_variantes||[]).filter(function(v){return v.activo!==false;}):[]; renderVariantesModal(pvList);
   document.getElementById('p-costo').value=p?p.precio_costo||'':'';
   document.getElementById('p-nuevo').checked=p?p.es_nuevo||false:false;
@@ -3259,7 +3258,6 @@ function abrirModalProductoRapido(){
   document.getElementById('p-stock').value='1';
   try{document.getElementById('p-categoria').value='';}catch(e){}
   try{document.getElementById('p-descripcion').value='';}catch(e){}
-  try{document.getElementById('p-observaciones').value='';}catch(e){}
   try{document.getElementById('p-nuevo').checked=true;}catch(e){}
   try{document.getElementById('p-activo').checked=true;
     var _propEl2=document.getElementById('p-propietario'); if(_propEl2) _propEl2.value='Ana';
