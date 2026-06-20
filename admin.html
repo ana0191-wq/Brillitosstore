@@ -689,10 +689,13 @@ tr:hover td{background:#fff8fc}
     <div class="header-actions"><button class="btn btn-success" onclick="exportarVentasCSV()">📊 Excel</button></div>
   </div>
   <div class="content">
-    <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center">
+    <div style="display:flex;gap:10px;margin-bottom:14px;align-items:center;flex-wrap:wrap">
       <label style="font-size:13px;font-weight:600">Mes:</label>
       <input type="month" id="reporte-mes" style="padding:7px 11px;border:2px solid var(--border);border-radius:10px;font-size:13px;outline:none" onchange="cargarReporte()">
+      <label style="font-size:13px;font-weight:600;margin-left:8px">Año:</label>
+      <select id="reporte-anio" style="padding:7px 11px;border:2px solid var(--border);border-radius:10px;font-size:13px;outline:none;cursor:pointer" onchange="cargarReporteAnual()"></select>
     </div>
+    <div id="reporte-anual" style="margin-bottom:16px"></div>
     <div class="grid-4" id="reporte-stats"></div>
     <div id="reporte-pe"></div>
     <div class="grid-2">
@@ -1642,6 +1645,7 @@ async function init(){
   cargarDashboard();
   poblarEventosSelect();
   poblarEventosGastoGlobal();
+  poblarSelectorAnio(); cargarReporteAnual();
   poblarMesesFiltroGasto(); poblarFiltroEventosGasto();
   verificarApartadosVencidos();
   iniciarVozReconocimiento();
@@ -4701,6 +4705,66 @@ async function eliminarEntregaSuelta(id){
 }
 
 // ===== REPORTES =====
+async function getSalesByMonth(year){
+  try{
+    const rows=await sbGet('monthly_sales_summary','year=eq.'+year+'&order=month_num.asc');
+    return Array.isArray(rows)?rows:[];
+  }catch(e){return[];}
+}
+async function getSalesByYear(){
+  try{
+    const rows=await sbGet('yearly_sales_summary','order=year.desc');
+    return Array.isArray(rows)?rows:[];
+  }catch(e){return[];}
+}
+function poblarSelectorAnio(){
+  var sel=document.getElementById('reporte-anio'); if(!sel)return;
+  var anioActual=new Date().getFullYear();
+  sel.innerHTML='';
+  for(var y=anioActual;y>=anioActual-4;y--){
+    var opt=document.createElement('option');
+    opt.value=y; opt.textContent=y;
+    sel.appendChild(opt);
+  }
+}
+async function cargarReporteAnual(){
+  var year=document.getElementById('reporte-anio')?.value||new Date().getFullYear();
+  var el=document.getElementById('reporte-anual'); if(!el)return;
+  el.innerHTML='<div style="color:var(--gray);font-size:13px">Cargando resumen anual...</div>';
+  var rows=await getSalesByMonth(parseInt(year));
+  if(!rows.length){
+    // fallback: calcular desde ventas en memoria
+    var meses={};
+    ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,4)==String(year)&&v.estado!=='Cancelado').forEach(v=>{
+      var m=(v.fecha_venta||v.creado_en||'').slice(5,7);
+      if(!meses[m])meses[m]={count:0,total:0};
+      meses[m].count++; meses[m].total+=parseFloat(v.total||0);
+    });
+    rows=Object.keys(meses).sort().map(m=>({month_num:parseInt(m),sales_count:meses[m].count,total_sales:meses[m].total}));
+  }
+  var nombres=['','Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var totalAnual=rows.reduce((s,r)=>s+parseFloat(r.total_sales||0),0);
+  var countAnual=rows.reduce((s,r)=>s+parseInt(r.sales_count||0),0);
+  var html='<div style="background:linear-gradient(135deg,#fdeef6,#fff0f8);border-radius:14px;padding:16px;border-left:4px solid var(--pink)">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">'
+    +'<div style="font-size:13px;font-weight:800;color:var(--pink-dark)">📅 Resumen '+year+'</div>'
+    +'<div style="font-size:13px;font-weight:700;color:var(--pink)">Total: $'+totalAnual.toFixed(2)+' · '+countAnual+' ventas</div>'
+    +'</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:8px">';
+  if(rows.length){
+    rows.forEach(r=>{
+      html+='<div style="background:white;border-radius:10px;padding:10px;text-align:center">'
+        +'<div style="font-size:11px;font-weight:700;color:var(--gray)">'+(nombres[r.month_num]||r.month_num)+'</div>'
+        +'<div style="font-size:16px;font-weight:800;color:var(--pink)">$'+parseFloat(r.total_sales||0).toFixed(0)+'</div>'
+        +'<div style="font-size:10px;color:var(--gray)">'+r.sales_count+' ventas</div>'
+        +'</div>';
+    });
+  } else {
+    html+='<div style="color:var(--gray);font-size:13px;grid-column:1/-1;text-align:center;padding:10px">Sin ventas en '+year+'</div>';
+  }
+  html+='</div></div>';
+  el.innerHTML=html;
+}
 async function cargarReporte(){
   const mes=document.getElementById('reporte-mes').value; if(!mes)return;
   const vM=ventas.filter(v=>(v.fecha_venta||v.creado_en||'').slice(0,7)===mes&&v.estado!=='Cancelado');
