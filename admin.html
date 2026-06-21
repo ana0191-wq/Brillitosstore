@@ -1659,6 +1659,8 @@ let scannerActive = false;
 
 function codigoProd(id){ return 'BRILL-'+id; }
 function qrUrl(id,size=150){ return 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&color=c2185b&data='+encodeURIComponent(codigoProd(id)); }
+function codigoVariante(prodId,varId){ return 'BRILL-'+prodId+'-V'+varId; }
+function qrUrlFromCode(code,size=150){ return 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&color=c2185b&data='+encodeURIComponent(code); }
 
 function abrirScanner(){
   if(typeof Html5Qrcode === 'undefined'){ toast('⚠️ Librería de scanner no cargó — revisa conexión'); return; }
@@ -1707,7 +1709,7 @@ function onScanExito(decoded){
   setTimeout(()=>{ _scanLocked=false; _lastScanCode=null; }, 3500);
 
   const prod = productos.find(p =>
-    codigoProd(p.id) === decoded ||
+    codigoProd(p.id) === decoded || decoded.startsWith('BRILL-'+p.id+'-V') ||
     String(p.id) === decoded ||
     (p.codigo && p.codigo === decoded)
   );
@@ -1868,16 +1870,29 @@ function abrirImprimirQR(){
 }
 
 function renderQRGrid(){
-  const q = (document.getElementById('qr-search-filter')?.value||'').toLowerCase();
-  const lista = productos.filter(p=>p.activo!==false && (p.stock===null||p.stock===undefined||p.stock>0) && (!q || (p.nombre||'').toLowerCase().includes(q)));
-  const qrItems = lista.map(p=>
-    '<div class="qr-print-item" onclick="verQRProducto('+p.id+');cerrarModal(&quot;modal-imprimir-qr&quot;)" title="Ver QR grande">'+
-    '<img src="'+qrUrl(p.id,90)+'" alt="QR" loading="lazy">'+
-    '<span>'+p.nombre+'</span>'+
-    '<small>'+codigoProd(p.id)+' · $'+parseFloat(p.precio||0).toFixed(2)+'</small></div>');
-  document.getElementById('qr-grid-container').innerHTML = lista.length
-    ? qrItems.join('')
-    : '<div style="color:var(--gray);font-size:13px;text-align:center;grid-column:1/-1">Sin productos</div>';
+  const q=(document.getElementById('qr-search-filter')?.value||'').toLowerCase();
+  const prods=productos.filter(p=>p.activo!==false&&(p.stock===null||p.stock===undefined||p.stock>0)&&(!q||(p.nombre||'').toLowerCase().includes(q)));
+  var items=[];
+  prods.forEach(function(p){
+    var vars=(p.producto_variantes||p.variantes||[]).filter(function(v){return v.activo!==false;});
+    if(vars.length){
+      vars.forEach(function(v){
+        var code=v.qr_code||codigoVariante(p.id,v.id);
+        items.push('<div class="qr-print-item" onclick="verQRProducto('+p.id+');cerrarModal(&quot;modal-imprimir-qr&quot;)" title="Ver QR grande">'
+          +'<img src="'+qrUrlFromCode(code,90)+'" alt="QR" loading="lazy">'
+          +'<span>'+p.nombre+' — '+v.nombre+'</span>'
+          +'<small>'+code+' · $'+parseFloat(v.precio||p.precio||0).toFixed(2)+'</small></div>');
+      });
+    } else {
+      items.push('<div class="qr-print-item" onclick="verQRProducto('+p.id+');cerrarModal(&quot;modal-imprimir-qr&quot;)" title="Ver QR grande">'
+        +'<img src="'+qrUrl(p.id,90)+'" alt="QR" loading="lazy">'
+        +'<span>'+p.nombre+'</span>'
+        +'<small>'+codigoProd(p.id)+' · $'+parseFloat(p.precio||0).toFixed(2)+'</small></div>');
+    }
+  });
+  document.getElementById('qr-grid-container').innerHTML=items.length
+    ?items.join('')
+    :'<div style="color:var(--gray);font-size:13px;text-align:center;grid-column:1/-1">Sin productos</div>';
 }
 
 function imprimirQRGrid(){
@@ -5131,7 +5146,7 @@ async function guardarVariantesProducto(prodId){
       );
     } else if(!v._delete && !v.id && v.nombre && v.nombre.trim()){
       ops.push(
-        sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true,imagen:v.imagen||null})
+        sbPost('producto_variantes',{producto_id:prodId,nombre:v.nombre.trim(),precio:parseFloat(v.precio)||0,stock:parseInt(v.stock)||0,activo:true,imagen:v.imagen||null,qr_code:'BRILL-'+prodId+'-V'+Date.now()+Math.floor(Math.random()*1000)})
           .then(function(r){ if(r&&r.length>0) creadas++; else errores++; })
           .catch(function(e){ errores++; toast('❌ Error creando variante "'+v.nombre+'": '+e.message); })
       );
