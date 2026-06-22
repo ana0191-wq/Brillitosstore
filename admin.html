@@ -982,7 +982,7 @@ tr:hover td{background:#fff8fc}
     </div>
     <div class="form-group" style="display:flex;align-items:center;padding-top:10px">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;margin:0;font-size:14px">
-        <input type="checkbox" id="p-visible-web" checked style="width:17px;height:17px;accent-color:var(--pink)">
+        <input type="checkbox" id="p-visible-web-dup" checked style="width:17px;height:17px;accent-color:var(--pink)">
         🌐 Visible en tienda web
       </label>
     </div>
@@ -3250,7 +3250,7 @@ async function guardarProducto(){
   var nombre=document.getElementById('p-nombre').value.trim();
   var precio=parseFloat(document.getElementById('p-precio').value);
   if(!nombre||isNaN(precio)){toast('⚠️ Nombre y precio obligatorios');return;}
-  var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,activo:document.getElementById('p-activo').checked,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
+  var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,activo:document.getElementById('p-activo')?document.getElementById('p-activo').checked:true,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
   var prodId=editProdId;
   if(editProdId){
     await sbPatch('productos',editProdId,data);
