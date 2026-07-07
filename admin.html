@@ -404,7 +404,7 @@ tr:hover td{background:#fff8fc}
     <div style="display:flex;gap:7px;margin-bottom:8px;flex-wrap:wrap">
       <input style="flex:1;min-width:150px;padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Buscar..." id="search-ventas" oninput="filtrarVentas()">
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-estado-venta" onchange="filtrarVentas()">
-        <option value="">Todos los estados</option><option value="Pendiente">Pendiente</option><option value="Pagado">Pagado</option><option value="Entregado">Entregado</option><option value="Cancelado">Cancelado</option>
+        <option value="">Todos los estados</option><option value="Pendiente">Pendiente</option><option value="Pagado">Pagado</option><option value="Entregado">Entregado</option><option value="Cancelado">Cancelado</option><option value="Cotización">Cotización</option>
       </select>
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-canal-venta" onchange="filtrarVentas()">
         <option value="">Todos los canales</option><option>WhatsApp</option><option>Instagram</option><option>Evento</option><option>Web</option><option>POS</option>
@@ -2397,9 +2397,9 @@ function renderVentas(lista){
     +'<td style="color:#2e7d32">'+(parseFloat(v.monto_bs||0)>0?'Bs.'+parseFloat(v.monto_bs).toFixed(2):'—')+'</td>'
     +'<td style="font-size:12px">'+(v.metodo_pago||'')+'</td>'
     +'<td style="font-size:11px">'+cuentaNombre(v.cuenta_cobro)+'</td>'
-    +(()=>{const colores={Pagado:'background:#e8f5e9;color:#2e7d32',Pendiente:'background:#fff3e0;color:#e65100',Cancelado:'background:#ffebee;color:#c62828',Entregado:'background:#e3f2fd;color:#1565c0'};const cur=v.estado||'Pendiente';const st=colores[cur]||'background:#f5f5f5;color:#333';return '<td><select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarEstadoVenta('+v.id+',this.value)">'+['Pagado','Pendiente','Cancelado','Entregado'].map(s=>'<option value="'+s+'"'+(cur===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td>';})()
+    +(()=>{const colores={Pagado:'background:#e8f5e9;color:#2e7d32',Pendiente:'background:#fff3e0;color:#e65100',Cancelado:'background:#ffebee;color:#c62828',Entregado:'background:#e3f2fd;color:#1565c0',Cotización:'background:#f3e8ff;color:#7c3aed'};const cur=v.estado||'Pendiente';const st=colores[cur]||'background:#f5f5f5;color:#333';return '<td><select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarEstadoVenta('+v.id+',this.value)">'+['Cotización','Pendiente','Pagado','Entregado','Cancelado'].map(s=>'<option value="'+s+'"'+(cur===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td>';})()
     +'<td style="white-space:nowrap">'
-    +(v.estado!=='Entregado'&&v.estado!=='Cancelado'?'<button class="btn btn-sm" onclick="marcarEntregado(&quot;venta&quot;,'+v.id+')" style="background:#10b981;color:white;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px" title="Marcar entregado">✅</button> ':'')+'<button class="btn btn-warning btn-sm" onclick="editarVenta('+v.id+')">✏️</button> '
+    +(v.estado!=='Entregado'&&v.estado!=='Cancelado'?'<button class="btn btn-sm" onclick="marcarEntregado(&quot;venta&quot;,'+v.id+')" style="background:#10b981;color:white;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px" title="Marcar entregado">✅</button> ':'')+(v.estado==='Cotización'?'<button class="btn btn-sm" style="background:#7c3aed;color:white;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px" onclick="editarCotizacion('+v.id+')">✏️ Editar</button> ':'<button class="btn btn-warning btn-sm" onclick="editarVenta('+v.id+')">✏️</button> ')
     +'<button class="btn btn-blue btn-sm" onclick="verCotizacionVenta('+v.id+')">📄</button> '
     +'<button class="btn btn-warning btn-sm" style="font-size:11px" onclick="cancelarVenta('+v.id+')">↩️</button> <button class="btn btn-danger btn-sm" onclick="eliminarVenta('+v.id+')">🗑️</button>'
     +'</td></tr>').join('');
@@ -2597,6 +2597,23 @@ function abrirModalVenta(v=null){
   abrirModal('modal-venta');
 }
 function editarVenta(id){ const v=ventas.find(x=>x.id===id); if(v) abrirModalVenta(v); }
+function editarCotizacion(id){
+  const v=ventas.find(x=>x.id===id); if(!v) return;
+  abrirModalVenta(v);
+  // Cambiar título y estado para dejar claro que es cotización
+  setTimeout(()=>{
+    document.getElementById('modal-venta-title').textContent='✏️ Editar Cotización';
+    // Asegurar estado Cotización en el select si existe, si no agregarlo
+    const sel=document.getElementById('v-estado');
+    if(sel && !Array.from(sel.options).some(o=>o.value==='Cotización')){
+      const opt=document.createElement('option'); opt.value='Cotización'; opt.textContent='Cotización'; sel.appendChild(opt);
+    }
+    if(sel) sel.value='Cotización';
+    // Cambiar el botón Guardar para que diga Actualizar cotización
+    const btnG=document.querySelector('#modal-venta .modal-footer .btn-primary, #modal-venta [onclick*="guardarVenta"]');
+    if(btnG) btnG.textContent='💾 Actualizar cotización';
+  },80);
+}
 function toggleEventoWrap(){ poblarEventosSelect(); }
 function poblarEventosSelect(){
   const sel=document.getElementById('v-evento');
