@@ -882,9 +882,12 @@ tr:hover td{background:#fff8fc}
 <div class="modal">
   <h2>📄 Cotización</h2>
   <div id="cotizacion-contenido"></div>
-  <div class="modal-footer">
+  <div class="modal-footer" style="flex-wrap:wrap;gap:6px">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-cotizacion')">Cerrar</button>
     <button class="btn btn-success" onclick="copiarCotizacion()">📋 Copiar</button>
+    <button class="btn btn-primary" onclick="descargarCotizacionImagen()">🖼️ Imagen</button>
+    <button class="btn" style="background:#10b981;color:white" onclick="guardarCotizacion()">💾 Guardar cotización</button>
+    <button id="btn-cancelar-cot" class="btn" style="background:#ef4444;color:white;display:none" onclick="cancelarCotizacion()">❌ Cancelar cotización</button>
   </div>
 </div>
 </div>
@@ -2889,21 +2892,127 @@ function verCotizacionVenta(id){
   mostrarCotizacion({nombre:v.cliente_nombre||'Cliente',metodo:v.metodo_pago,entrega:v.tipo_entrega,envio:parseFloat(v.costo_envio||0),desc:parseFloat(v.descuento||0),subtotal:parseFloat(v.subtotal||0),total:parseFloat(v.total||0),tasa:v.tasa_bcv_usada||0,fecha:formatFecha(v.fecha_venta||v.creado_en),items:v.venta_items||[],numero:v.numero});
   abrirModal('modal-cotizacion');
 }
+
+// ===== COTIZACIÓN MEJORADA =====
+var _cotizacionData = null;
+var _cotizacionVentaId = null;
+
 function mostrarCotizacion(d){
-  document.getElementById('cotizacion-contenido').innerHTML=
-    '<div id="cot-print" style="background:#fff;border:1px solid #f0d6e8;border-radius:10px;padding:16px;font-size:13px">'
-    +'<div style="display:flex;justify-content:space-between;margin-bottom:12px"><div><div style="font-size:17px;font-weight:800;color:#e91e8c">🌸 Brillitos</div><div style="font-size:11px;color:#888">Tu tienda kawaii favorita</div></div><div style="text-align:right"><div style="font-weight:700">'+(d.numero||'Cotización')+'</div><div style="font-size:11px;color:#888">'+d.fecha+'</div></div></div>'
-    +'<div style="margin-bottom:9px"><strong>Para:</strong> '+d.nombre+'<br><strong>Pago:</strong> '+d.metodo+'<br><strong>Entrega:</strong> '+d.entrega+'</div>'
-    +'<table style="width:100%;border-collapse:collapse;margin:9px 0"><thead><tr style="background:#fce4f0"><th style="padding:6px;text-align:left;font-size:11px">Producto</th><th style="padding:6px;font-size:11px">P.Unit</th><th style="padding:6px;font-size:11px">Cant.</th><th style="padding:6px;font-size:11px">Sub</th></tr></thead><tbody>'
-    +d.items.map(i=>'<tr><td style="padding:6px;border-bottom:1px solid #f0d6e8">'+(i.producto_nombre||'—')+'</td><td style="padding:6px;border-bottom:1px solid #f0d6e8">$'+parseFloat(i.precio_unitario||0).toFixed(2)+'</td><td style="padding:6px;border-bottom:1px solid #f0d6e8">'+(i.cantidad||1)+'</td><td style="padding:6px;border-bottom:1px solid #f0d6e8">$'+parseFloat(i.subtotal||0).toFixed(2)+'</td></tr>').join('')
-    +'</tbody></table><div style="text-align:right">'
-    +(d.envio>0?'<div>Envío: $'+d.envio.toFixed(2)+'</div>':'')
-    +(d.desc>0?'<div>Desc: -$'+d.desc.toFixed(2)+'</div>':'')
-    +'<div style="font-size:15px;font-weight:800;color:#e91e8c;margin-top:4px">TOTAL: $'+d.total.toFixed(2)+'</div>'
-    +(d.tasa>0?'<div style="color:#2e7d32;font-size:12px">Bs: '+(d.total*d.tasa).toFixed(2)+' (tasa '+parseFloat(d.tasa).toFixed(2)+')</div>':'')
-    +'</div><div style="margin-top:12px;padding-top:8px;border-top:1px solid #f0d6e8;font-size:11px;color:#888;text-align:center">¡Gracias por tu compra en Brillitos! 🌸</div></div>';
+  _cotizacionData = d;
+  _cotizacionVentaId = d.ventaId || null;
+  const tasa = d.tasa || bcvHoy || 484.74;
+  const bs = d.total * tasa;
+  // Texto corto con pago móvil
+  const items = (d.items||[]).map(i=>'• '+(i.producto_nombre||'—')+' x'+(i.cantidad||1)+' $'+parseFloat(i.subtotal||0).toFixed(2)).join('\n');
+  const html =
+    '<div id="cot-print" style="background:#fff;border:2px solid #f9a8d4;border-radius:14px;padding:18px;font-family:Arial,sans-serif;max-width:420px">'+
+    '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">'+
+      '<div style="font-size:18px;font-weight:900;color:#e91e8c">🌸 Brillitos</div>'+
+      '<div style="font-size:11px;color:#888;text-align:right">'+(d.numero||'Cotización')+'<br>'+d.fecha+'</div>'+
+    '</div>'+
+    '<div style="font-size:12px;margin-bottom:8px;color:#333">'+
+      '<b>Para:</b> '+d.nombre+'&nbsp;&nbsp;<b>Vía:</b> '+(d.metodo||'—')+'<br>'+
+      '<b>Entrega:</b> '+(d.entrega||'—')+
+    '</div>'+
+    '<div style="border-top:1px solid #fce7f3;border-bottom:1px solid #fce7f3;padding:8px 0;margin:8px 0;font-size:12px">'+
+    (d.items||[]).map(i=>'<div style="display:flex;justify-content:space-between"><span>'+(i.producto_nombre||'—')+' x'+(i.cantidad||1)+'</span><span>$'+parseFloat(i.subtotal||0).toFixed(2)+'</span></div>').join('')+
+    '</div>'+
+    (d.envio>0?'<div style="font-size:12px;text-align:right">Envío: $'+d.envio.toFixed(2)+'</div>':'')+
+    (d.desc>0?'<div style="font-size:12px;text-align:right;color:#e91e8c">Desc: -$'+d.desc.toFixed(2)+'</div>':'')+
+    '<div style="text-align:right;font-size:16px;font-weight:900;color:#e91e8c;margin-top:6px">TOTAL: $'+d.total.toFixed(2)+'</div>'+
+    (tasa>0?'<div style="text-align:right;font-size:12px;color:#2e7d32">Bs. '+bs.toFixed(2)+' (Tasa: '+tasa.toFixed(2)+')</div>':'')+
+    '<div style="margin-top:12px;padding:10px;background:#fdf2f8;border-radius:10px;font-size:11px;color:#555">'+
+      (()=>{
+      const m=(d.metodo||'').toLowerCase();
+      const lineas=[];
+      if(m.includes('móvil')||m.includes('movil')||m.includes('bcv')||m.includes('bs')) lineas.push('💳 <b>Pago Móvil:</b> Bancamiga 0172 · <b>0424-9372490</b> · C.I: <b>V-26239265</b>');
+      if(m.includes('binance')) lineas.push('🔷 <b>Binance/USDT:</b> ana0191@gmail.com');
+      if(m.includes('paypal')) lineas.push('🅿️ <b>PayPal:</b> ana0191@gmail.com');
+      if(m.includes('zelle')) lineas.push('💚 <b>Zelle:</b> ana0191@gmail.com');
+      if(m.includes('efectivo')) lineas.push('💵 <b>Efectivo</b>');
+      return lineas.length ? lineas.join('<br>') : '💳 <b>Pago Móvil:</b> Bancamiga 0172 · <b>0424-9372490</b> · C.I: <b>V-26239265</b>';
+    })()+
+    '</div>'+
+    '<div style="text-align:center;font-size:10px;color:#bbb;margin-top:10px">¡Gracias por elegir Brillitos! 🌸</div>'+
+    '</div>';
+  document.getElementById('cotizacion-contenido').innerHTML = html;
+  // Mostrar botón cancelar solo si es cotización guardada
+  const btnC = document.getElementById('btn-cancelar-cot');
+  if(btnC) btnC.style.display = _cotizacionVentaId ? 'inline-flex' : 'none';
 }
+
+async function guardarCotizacion(){
+  if(!_cotizacionData){ toast('⚠️ Abre una cotización primero'); return; }
+  const d = _cotizacionData;
+  const tasa = d.tasa || bcvHoy || 484.74;
+  const cntV = await sbGet('ventas','select=id&limit=1&order=id.desc');
+  const lastId = (Array.isArray(cntV)&&cntV[0]&&cntV[0].id)||0;
+  const num = 'COT-'+new Date().getFullYear()+'-'+String(lastId+1).padStart(3,'0');
+  const res = await sbPost('ventas',{
+    numero:num, cliente_nombre:d.nombre||'—', canal:d.canal||'WhatsApp',
+    metodo_pago:d.metodo||'Pago Móvil', tipo_entrega:d.entrega||'—',
+    estado:'Cotización', subtotal:d.subtotal||d.total, costo_envio:d.envio||0,
+    descuento:d.desc||0, total:d.total, fecha_venta:new Date().toISOString().slice(0,10),
+    tasa_bcv_usada:tasa, monto_bs:(d.total*tasa)
+  });
+  const vid = res&&res[0]&&res[0].id;
+  if(!vid){ toast('❌ Error al guardar'); return; }
+  for(const it of (d.items||[])){
+    await sbPost('venta_items',{venta_id:vid, producto_id:it.producto_id||null,
+      producto_nombre:it.producto_nombre, precio_unitario:it.precio_unitario||it.precio_unitario,
+      cantidad:it.cantidad||1, subtotal:it.subtotal});
+  }
+  _cotizacionVentaId = vid;
+  _cotizacionData.ventaId = vid;
+  _cotizacionData.numero = num;
+  ventas = await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+  if(!Array.isArray(ventas)) ventas=[];
+  renderVentas(); cargarDashboard();
+  const btnC = document.getElementById('btn-cancelar-cot');
+  if(btnC) btnC.style.display = 'inline-flex';
+  toast('✅ Guardada como '+num);
+}
+
+async function cancelarCotizacion(){
+  if(!_cotizacionVentaId){ toast('⚠️ No hay cotización guardada'); return; }
+  if(!confirm('¿Cancelar esta cotización? El stock se restaurará.')) return;
+  const v = ventas.find(x=>x.id===_cotizacionVentaId);
+  // Devolver stock
+  if(v) for(const it of (v.venta_items||[])){
+    if(it.producto_id){
+      const p = productos.find(x=>x.id==it.producto_id);
+      if(p){ const ns=(p.stock||0)+parseInt(it.cantidad||1); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
+    }
+  }
+  await sbPatch('ventas',_cotizacionVentaId,{estado:'Cancelado'});
+  _cotizacionVentaId = null;
+  ventas = await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+  if(!Array.isArray(ventas)) ventas=[];
+  renderVentas(); renderProductos(); cargarDashboard();
+  const btnC = document.getElementById('btn-cancelar-cot');
+  if(btnC) btnC.style.display = 'none';
+  toast('🗑️ Cotización cancelada — stock restaurado');
+}
+
+async function descargarCotizacionImagen(){
+  const el = document.getElementById('cot-print');
+  if(!el){ toast('⚠️ Genera una cotización primero'); return; }
+  if(typeof html2canvas === 'undefined'){
+    // Cargar html2canvas dinámicamente
+    await new Promise((res,rej)=>{ const s=document.createElement('script'); s.src='https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'; s.onload=res; s.onerror=rej; document.head.appendChild(s); });
+  }
+  try{
+    const canvas = await html2canvas(el, {scale:2, backgroundColor:'#ffffff', useCORS:true});
+    const a = document.createElement('a');
+    a.download = 'cotizacion-brillitos.png';
+    a.href = canvas.toDataURL('image/png');
+    a.click();
+    toast('🖼️ Imagen descargada');
+  } catch(e){ toast('❌ Error al generar imagen: '+e.message); console.error(e); }
+}
+
 function copiarCotizacion(){ navigator.clipboard.writeText(document.getElementById('cot-print').innerText); toast('📋 Copiado'); }
+
 
 // ===== APARTADOS =====
 async function confirmarPedidoWeb(id){
