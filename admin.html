@@ -2862,6 +2862,7 @@ async function guardarVenta(){
       data.numero = 'V-'+new Date().getFullYear()+'-'+String(lastVId+1).padStart(3,'0');
       const res = await sbPost('ventas', data);
       const vid = res[0]&&res[0].id;
+      if(!vid){ restoreBtn(); toast('❌ Error al crear la venta', 5000); return; }
       if(vid){
         for(const it of ventaItems){
           await fetch(SB+'/rest/v1/venta_items',{
@@ -2884,6 +2885,7 @@ async function guardarVenta(){
     }
 
     // Recargar y cerrar
+    restoreBtn();
     cerrarModal('modal-venta');
     ventas   = await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
     productos = await sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000');
