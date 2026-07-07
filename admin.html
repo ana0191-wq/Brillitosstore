@@ -4533,26 +4533,59 @@ function filtrarProdPicker(){
     var stock = (p.stock > 0) ? '<span class="pi-stock" style="color:#2e7d32;background:#e8f5e9;padding:1px 7px;border-radius:8px">'+p.stock+' disp.</span>'
       : '<span class="pi-stock" style="color:#e65100;background:#fff3e0;padding:1px 7px;border-radius:8px">Sin stock</span>';
     var precio = '$'+parseFloat(p.precio||0).toFixed(parseFloat(p.precio||0)%1===0?0:2);
-    return '<div class="prod-picker-item" onclick="seleccionarDesdePicker('+p.id+')">'
+    var vars=(p.producto_variantes||[]).filter(function(v){return v.activo!==false;});
+    var hasVars=vars.length>0;
+    var varBadge=hasVars?'<span style="font-size:10px;background:#ede9fe;color:#7c3aed;padding:1px 6px;border-radius:6px;margin-left:4px">'+vars.length+' opciones</span>':'';
+    var onclick=hasVars?'abrirVariantesPicker('+p.id+')':'seleccionarDesdePicker('+p.id+')';
+    return '<div class="prod-picker-item" onclick="'+onclick+'">'
       +imgHtml
-      +'<div class="pi-info"><div class="pi-nombre">'+p.nombre+'</div>'+stock+'</div>'
+      +'<div class="pi-info"><div class="pi-nombre">'+p.nombre+varBadge+'</div>'+stock+'</div>'
       +'<div class="pi-precio">'+precio+'</div>'
       +'</div>';
   }).join('');
 }
 
-function seleccionarDesdePicker(pid){
+function seleccionarDesdePicker(pid, varId){
   var p = productos.find(function(x){ return x.id === pid; });
   if(!p) return;
+  var v = varId ? (p.producto_variantes||[]).find(function(x){ return x.id===varId; }) : null;
   var arr = _pickerTipo === 'v' ? ventaItems : aptItems;
   arr[_pickerIdx].producto_id = p.id;
-  arr[_pickerIdx].producto_nombre = p.nombre;
-  arr[_pickerIdx].precio_unitario = parseFloat(p.precio||0);
+  arr[_pickerIdx].producto_nombre = p.nombre + (v?' - '+v.nombre:'');
+  arr[_pickerIdx].precio_unitario = v ? parseFloat(v.precio||p.precio||0) : parseFloat(p.precio||0);
   arr[_pickerIdx].subtotal = arr[_pickerIdx].precio_unitario * (arr[_pickerIdx].cantidad||1);
   _prodMap[p.id] = p;
   cerrarProdPicker();
   if(_pickerTipo === 'v'){ renderItems(); calcularTotal(); }
   else { renderAptItems(); calcularTotalApt(); }
+}
+
+function abrirVariantesPicker(pid){
+  var p = productos.find(function(x){ return x.id === pid; });
+  if(!p) return;
+  var vars = (p.producto_variantes||[]).filter(function(v){ return v.activo!==false; });
+  if(!vars.length){ seleccionarDesdePicker(pid); return; }
+  var img = p.imagen||(p.imagenes&&p.imagenes[0])||'';
+  var imgHtml = img ? '<img src="'+img+'" style="width:50px;height:50px;object-fit:cover;border-radius:10px">' : '<div style="width:50px;height:50px;background:#fce7f3;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px">📦</div>';
+  var el = document.getElementById('prod-picker-list');
+  el.innerHTML =
+    '<div style="padding:10px 16px 6px;display:flex;align-items:center;gap:10px;border-bottom:2px solid #fce7f3">'+
+      '<button onclick="filtrarProdPicker()" style="background:none;border:none;font-size:18px;cursor:pointer;color:var(--pink)">←</button>'+
+      imgHtml+
+      '<div><div style="font-weight:800;font-size:14px">'+p.nombre+'</div><div style="font-size:11px;color:#888">Elige una opción</div></div>'+
+    '</div>'+
+    vars.map(function(v){
+      var stk = v.stock>0
+        ? '<span style="font-size:11px;color:#2e7d32;background:#e8f5e9;padding:1px 7px;border-radius:8px">'+v.stock+' disp.</span>'
+        : '<span style="font-size:11px;color:#e65100;background:#fff3e0;padding:1px 7px;border-radius:8px">Sin stock</span>';
+      var precio = '$'+parseFloat(v.precio||p.precio||0).toFixed(2);
+      var vimg = v.imagen ? '<img src="'+v.imagen+'" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0">' : imgHtml;
+      return '<div class="prod-picker-item" onclick="seleccionarDesdePicker('+p.id+','+v.id+')">'+
+        vimg+
+        '<div class="pi-info"><div class="pi-nombre">'+v.nombre+'</div>'+stk+'</div>'+
+        '<div class="pi-precio">'+precio+'</div>'+
+        '</div>';
+    }).join('');
 }
 
 // Cerrar al tocar el fondo
