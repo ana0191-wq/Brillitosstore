@@ -206,7 +206,12 @@ tr:hover td{background:#fff8fc}
   .qr-print-window{display:block!important;padding:10px}
   .qr-print-grid{grid-template-columns:repeat(4,1fr)}
 }
+.prod-photo-cell{width:132px;min-width:132px;padding:8px!important;vertical-align:middle}
+.prod-table-img,.prod-table-placeholder{width:120px;height:120px;object-fit:cover;border-radius:14px;display:flex;align-items:center;justify-content:center;background:var(--pink-light);font-size:34px}
 @media(max-width:700px){
+  .prod-photo-cell{width:88px;min-width:88px;padding:6px!important}
+  .prod-table-img,.prod-table-placeholder{width:80px;height:80px;border-radius:11px;font-size:24px}
+
   .app{flex-direction:column;width:100vw;overflow-x:hidden}
   .sidebar{display:none}
   .main{width:100vw!important;min-width:0;overflow-x:hidden}
@@ -3327,7 +3332,7 @@ function renderProductos(lista){
     const margen=p.precio_costo>0?(((p.precio-p.precio_costo)/p.precio)*100).toFixed(0)+'%':'—';
     const aptStock=apartados.filter(a=>a.estado==='Activo'&&(a.apartado_items||[]).some(i=>i.producto_id==p.id)).length;
     return '<tr>'
-      +'<td>'+(p.imagen?'<img src="'+p.imagen+'" style="width:36px;height:36px;object-fit:cover;border-radius:8px" onerror="this.style.display=\'none\'">':'<div style="width:36px;height:36px;background:var(--pink-light);border-radius:8px;display:flex;align-items:center;justify-content:center">🌸</div>')+'</td>'
+      +'<td class="prod-photo-cell">'+(p.imagen?'<img src="'+p.imagen+'" class="prod-table-img" onerror="this.style.display=\'none\'">':'<div class="prod-table-placeholder">🌸</div>')+'</td>'
       +'<td>'+(p.propietario==='Mamá'?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fce4ec;color:#c2185b;margin-right:4px">Mamá</span>':'')+'<strong>'+(p.nombre||'')+'</strong>'+(p.visible_web===false?'<span style="font-size:10px;margin-left:4px;color:#bbb" title="Oculto en web">🚫🌐</span>':'')+'</td>'
       +'<td>'+(p.categoria||'')+'</td>'
       +'<td>'+(p.precio_costo>0?'$'+parseFloat(p.precio_costo).toFixed(2):'—')+'</td>'
