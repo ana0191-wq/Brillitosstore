@@ -136,8 +136,8 @@ tr:hover td{background:#fff8fc}
 .pos-card{background:white;border-radius:12px;padding:12px;cursor:pointer;text-align:center;box-shadow:0 2px 8px rgba(0,0,0,0.07);transition:all 0.15s;border:2px solid transparent;user-select:none}
 .pos-card:active{transform:scale(0.95);border-color:var(--pink);background:var(--pink-light)}
 .pos-card.sin-stock{opacity:0.5}
-.pos-card-img{width:80px;height:80px;object-fit:cover;border-radius:10px;margin-bottom:7px}
-.pos-card-placeholder{width:80px;height:80px;background:var(--pink-light);border-radius:10px;margin:0 auto 7px;display:flex;align-items:center;justify-content:center;font-size:28px}
+.pos-card-img{width:120px;height:120px;object-fit:cover;border-radius:10px;margin-bottom:7px}
+.pos-card-placeholder{width:120px;height:120px;background:var(--pink-light);border-radius:10px;margin:0 auto 7px;display:flex;align-items:center;justify-content:center;font-size:28px}
 .pos-card-nombre{font-size:12px;font-weight:600;line-height:1.3;margin-bottom:4px}
 .pos-card-precio{font-size:14px;font-weight:800;color:var(--pink)}
 .pos-card-stock{font-size:10px;color:var(--gray)}
@@ -246,8 +246,8 @@ tr:hover td{background:#fff8fc}
 .prod-picker-list{overflow-y:auto;flex:1;padding:8px 0}
 .prod-picker-item{display:flex;align-items:center;gap:12px;padding:10px 16px;cursor:pointer;border-bottom:1px solid #fdf2f8;transition:background .15s}
 .prod-picker-item:active{background:#fdf2f8}
-.prod-picker-item img{width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0}
-.prod-picker-item .pi-noimg{width:44px;height:44px;border-radius:10px;background:#fce7f3;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.prod-picker-item img{width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0}
+.prod-picker-item .pi-noimg{width:72px;height:72px;border-radius:10px;background:#fce7f3;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
 .prod-picker-item .pi-info{flex:1;min-width:0}
 .prod-picker-item .pi-nombre{font-size:14px;font-weight:700;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .prod-picker-item .pi-stock{font-size:11px;font-weight:600;margin-top:2px}
@@ -893,7 +893,7 @@ tr:hover td{background:#fff8fc}
     <button class="btn btn-success" onclick="copiarCotizacion()">📋 Copiar</button>
     <button class="btn btn-primary" onclick="descargarCotizacionImagen()">🖼️ Imagen</button>
     <button class="btn" style="background:#10b981;color:white" onclick="guardarCotizacion()">💾 Guardar cotización</button>
-    <button id="btn-cancelar-cot" class="btn" style="background:#ef4444;color:white;display:none" onclick="cancelarCotizacion()">❌ Cancelar cotización</button>
+    <button id="btn-confirmar-cot" class="btn" style="background:#10b981;color:white;display:none" onclick="confirmarCotizacion()">✅ Confirmar pago</button><button id="btn-cancelar-cot" class="btn" style="background:#ef4444;color:white;display:none" onclick="cancelarCotizacion()">❌ Cancelar cotización</button>
   </div>
 </div>
 </div>
@@ -2968,7 +2968,7 @@ function mostrarCotizacion(d){
       '<b>Entrega:</b> '+(d.entrega||'—')+
     '</div>'+
     '<div style="border-top:1px solid #fce7f3;border-bottom:1px solid #fce7f3;padding:8px 0;margin:8px 0;font-size:12px">'+
-    (d.items||[]).map(i=>'<div style="display:flex;justify-content:space-between"><span>'+(i.producto_nombre||'—')+' x'+(i.cantidad||1)+'</span><span>$'+parseFloat(i.subtotal||0).toFixed(2)+'</span></div>').join('')+
+    (d.items||[]).map(i=>{ var p=productos.find(x=>x.id==i.producto_id)||{}; var img=i.imagen||p.imagen||(p.imagenes&&p.imagenes[0])||''; return '<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid #fce7f3">'+(img?'<img src="'+img+'" crossorigin="anonymous" style="width:72px;height:72px;object-fit:cover;border-radius:10px;flex-shrink:0" onerror="this.style.display=\'none\'">':'<div style="width:72px;height:72px;background:#fdf2f8;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:28px">🌸</div>')+'<span style="flex:1">'+(i.producto_nombre||'—')+'<br><small>x'+(i.cantidad||1)+'</small></span><b>$'+parseFloat(i.subtotal||0).toFixed(2)+'</b></div>'; }).join('')+
     '</div>'+
     (d.envio>0?'<div style="font-size:12px;text-align:right">Envío: $'+d.envio.toFixed(2)+'</div>':'')+
     (d.desc>0?'<div style="font-size:12px;text-align:right;color:#e91e8c">Desc: -$'+d.desc.toFixed(2)+'</div>':'')+
@@ -2992,6 +2992,8 @@ function mostrarCotizacion(d){
   // Mostrar botón cancelar solo si es cotización guardada
   const btnC = document.getElementById('btn-cancelar-cot');
   if(btnC) btnC.style.display = _cotizacionVentaId ? 'inline-flex' : 'none';
+  const btnP = document.getElementById('btn-confirmar-cot');
+  if(btnP) btnP.style.display = _cotizacionVentaId ? 'inline-flex' : 'none';
 }
 
 async function guardarCotizacion(){
@@ -3026,17 +3028,21 @@ async function guardarCotizacion(){
   toast('✅ Guardada como '+num);
 }
 
+async function confirmarCotizacion(){
+  if(!_cotizacionVentaId){ toast('⚠️ Guarda la cotización primero'); return; }
+  if(!confirm('¿Confirmar pago? Se descontará el stock y la cotización quedará como Pagada.')) return;
+  const v=ventas.find(x=>x.id===_cotizacionVentaId); if(!v) return;
+  for(const it of (v.venta_items||[])) if(it.producto_id){ const p=productos.find(x=>x.id==it.producto_id); if(p){ const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; } }
+  await sbPatch('ventas',_cotizacionVentaId,{estado:'Pagado'}); v.estado='Pagado';
+  _cotizacionVentaId=null; cerrarModal('modal-cotizacion'); renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
+  toast('✅ Cotización confirmada como Pagada — stock descontado');
+}
+
 async function cancelarCotizacion(){
   if(!_cotizacionVentaId){ toast('⚠️ No hay cotización guardada'); return; }
   if(!confirm('¿Cancelar esta cotización? El stock se restaurará.')) return;
   const v = ventas.find(x=>x.id===_cotizacionVentaId);
-  // Devolver stock
-  if(v) for(const it of (v.venta_items||[])){
-    if(it.producto_id){
-      const p = productos.find(x=>x.id==it.producto_id);
-      if(p){ const ns=(p.stock||0)+parseInt(it.cantidad||1); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
-    }
-  }
+  // Una cotización sin confirmar no descuenta stock; no hay nada que devolver.
   await sbPatch('ventas',_cotizacionVentaId,{estado:'Cancelado'});
   _cotizacionVentaId = null;
   ventas = await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
@@ -3044,7 +3050,7 @@ async function cancelarCotizacion(){
   renderVentas(); renderProductos(); cargarDashboard();
   const btnC = document.getElementById('btn-cancelar-cot');
   if(btnC) btnC.style.display = 'none';
-  toast('🗑️ Cotización cancelada — stock restaurado');
+  toast('🗑️ Cotización cancelada');
 }
 
 async function descargarCotizacionImagen(){
@@ -4637,7 +4643,7 @@ function filtrarProdPicker(){
   el.innerHTML = lista.map(function(p){
     var img = p.imagen || (p.imagenes && p.imagenes[0]) || '';
     var imgHtml = img
-      ? '<img src="'+img+'" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0">'
+      ? '<img src="'+img+'" style="width:72px;height:72px;object-fit:cover;border-radius:12px;flex-shrink:0">'
       : '<div class="pi-noimg">📦</div>';
     var stock = (p.stock > 0) ? '<span class="pi-stock" style="color:#2e7d32;background:#e8f5e9;padding:1px 7px;border-radius:8px">'+p.stock+' disp.</span>'
       : '<span class="pi-stock" style="color:#e65100;background:#fff3e0;padding:1px 7px;border-radius:8px">Sin stock</span>';
@@ -4688,7 +4694,7 @@ function abrirVariantesPicker(pid){
         ? '<span style="font-size:11px;color:#2e7d32;background:#e8f5e9;padding:1px 7px;border-radius:8px">'+v.stock+' disp.</span>'
         : '<span style="font-size:11px;color:#e65100;background:#fff3e0;padding:1px 7px;border-radius:8px">Sin stock</span>';
       var precio = '$'+parseFloat(v.precio||p.precio||0).toFixed(2);
-      var vimg = v.imagen ? '<img src="'+v.imagen+'" style="width:44px;height:44px;object-fit:cover;border-radius:10px;flex-shrink:0">' : imgHtml;
+      var vimg = v.imagen ? '<img src="'+v.imagen+'" style="width:72px;height:72px;object-fit:cover;border-radius:12px;flex-shrink:0">' : imgHtml;
       return '<div class="prod-picker-item" onclick="seleccionarDesdePicker('+p.id+','+v.id+')">'+
         vimg+
         '<div class="pi-info"><div class="pi-nombre">'+v.nombre+'</div>'+stk+'</div>'+
