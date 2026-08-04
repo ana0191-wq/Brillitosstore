@@ -3182,6 +3182,28 @@ function renderApartados(){
       +'</div></div>';
   }).join(''):'<div class="card" style="text-align:center;color:var(--gray);padding:30px">No hay apartados 🌸</div>';
 }
+function apartarProductoDesdeLista(id){
+  const p=productos.find(x=>x.id==id);
+  if(!p) return;
+  const disponible=parseInt(p.stock||0);
+  if(disponible<=0){ toast('⚠️ Este producto no tiene stock disponible'); return; }
+  abrirModalApartado();
+  aptItems=[{producto_id:p.id,producto_nombre:p.nombre,precio_unitario:parseFloat(p.precio||0),cantidad:1,subtotal:parseFloat(p.precio||0)}];
+  renderAptItems();
+  toast('📌 '+p.nombre+' agregado al apartado');
+}
+function stockSuficienteApartado(items){
+  const pedidos={};
+  for(const it of items||[]){ if(it.producto_id) pedidos[it.producto_id]=(pedidos[it.producto_id]||0)+parseInt(it.cantidad||0); }
+  for(const pid in pedidos){
+    const p=productos.find(x=>x.id==pid);
+    if(!p || p.activo===false || p.donado_en || pedidos[pid]>parseInt(p.stock||0)){
+      const n=p?p.nombre:'Producto'; const disp=p?parseInt(p.stock||0):0;
+      toast('⚠️ Stock insuficiente para '+n+' (disponible: '+disp+')'); return false;
+    }
+  }
+  return true;
+}
 function abrirModalApartado(id=null){
   editAptId=id; aptItems=id?(apartados.find(x=>x.id===id)?.apartado_items||[]).map(i=>({...i})):[];
   const a=id?apartados.find(x=>x.id===id):null;
@@ -3220,6 +3242,7 @@ function calcularTotalApt(){ document.getElementById('apt-total').textContent='$
 async function guardarApartado(){
   const nombre=document.getElementById('apt-cliente-search').value.trim();
   if(!nombre||!aptItems.length){ toast('⚠️ Nombre y al menos un producto'); return; }
+  if(!stockSuficienteApartado(aptItems)){ return; }
   const total=aptItems.reduce((s,i)=>s+parseFloat(i.subtotal||0),0);
   const adelanto=parseFloat(document.getElementById('apt-adelanto').value)||0;
   const metodoApt=document.getElementById('apt-metodo')?document.getElementById('apt-metodo').value:'Pago Movil';
@@ -3345,7 +3368,7 @@ function renderProductos(lista){
       +'<td><input type="number" value="'+(p.stock||0)+'" min="0" style="width:52px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px" onchange="actualizarStockProd('+p.id+',this.value)"></td>'
       +'<td><button onclick="verQRProducto('+p.id+')" style="background:none;border:none;cursor:pointer;font-size:18px;padding:2px" title="Ver QR">🔲</button></td>'
       +'<td>'+(aptStock>0?'<span class="badge badge-pendiente">📌'+aptStock+'</span>':'—')+'</td>'
-      +'<td style="white-space:nowrap;display:flex;gap:4px;align-items:center">'+"<button class='btn btn-sm' style='font-size:10px;padding:2px 7px;background:"+(p.propietario==='Mamá'?'#fce4ec;color:#c2185b;border-color:#f48fb1':'#f5f5f5;color:#555;border-color:#ddd')+";border:1.5px solid;border-radius:8px;font-weight:700' onclick='togglePropietario("+p.id+")'title='Cambiar propietario'>"+(p.propietario==='Mamá'?'Mamá':'Mío')+"</button>"+(p.donado_en?"<span style='font-size:10px;color:#6d28d9;font-weight:700;padding:4px'>🎁</span>":"<button class='btn btn-sm' style='background:#ede9fe;color:#6d28d9;border:none;padding:4px 7px;font-size:12px' onclick='donarProducto("+p.id+")' title='Marcar como donado'>🎁</button>")+"<button class='btn btn-warning btn-sm' onclick='abrirModalProducto("+p.id+")'>✏️</button>"+"<button class='btn btn-danger btn-sm' onclick='eliminarProd("+p.id+")'>🗑️</button>"+'</td>'
+      +'<td style="white-space:nowrap;display:flex;gap:4px;align-items:center">'+"<button class='btn btn-sm' style='font-size:10px;padding:2px 7px;background:"+(p.propietario==='Mamá'?'#fce4ec;color:#c2185b;border-color:#f48fb1':'#f5f5f5;color:#555;border-color:#ddd')+";border:1.5px solid;border-radius:8px;font-weight:700' onclick='togglePropietario("+p.id+")'title='Cambiar propietario'>"+(p.propietario==='Mamá'?'Mamá':'Mío')+"</button>"+(p.donado_en?"<span style='font-size:10px;color:#6d28d9;font-weight:700;padding:4px'>🎁</span>":"<button class='btn btn-sm' style='background:#ede9fe;color:#6d28d9;border:none;padding:4px 7px;font-size:12px' onclick='donarProducto("+p.id+")' title='Marcar como donado'>🎁</button>")+"<button class='btn btn-sm' style='background:#14b8a6;color:white;border:none' onclick='apartarProductoDesdeLista("+p.id+")' title='Apartar desde stock'>📌</button>"+"<button class='btn btn-warning btn-sm' onclick='abrirModalProducto("+p.id+")'>✏️</button>"+"<button class='btn btn-danger btn-sm' onclick='eliminarProd("+p.id+")'>🗑️</button>"+'</td>'
       +'</tr>';
   }).join('');
   if(l.length>100){const tr=document.createElement('tr');tr.innerHTML='<td colspan="10" style="text-align:center;padding:8px;color:#aaa;font-size:12px">Mostrando 100 de '+l.length+' — usa el buscador 🔍</td>';tbody.appendChild(tr);}
