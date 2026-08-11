@@ -676,15 +676,15 @@ async function cargarCatalogo() {
         visible_web:  p.visible_web !== false
       };
     }).filter(function(p) {
-      if(!p.nombre) return false;
-      // Solo mostrar si visible_web no es explícitamente false
-      if(p.visible_web === false) return false;
-      // Productos con variantes: mostrar si al menos una tiene stock o precio
+      if(!p.nombre || p.visible_web === false) return false;
+      // La tienda solo muestra productos con foto principal o galería.
+      if(!p.imagen && !(p.imagenes && p.imagenes.length)) return false;
+      // Con variantes: basta una variante activa con stock real.
       if(p.variantes && p.variantes.length > 0){
-        return true;
+        return p.variantes.some(function(v){ return parseInt(v.stock||0) > 0; });
       }
-      // Productos sin variantes: solo necesitan precio > 0
-      return p.precio > 0;
+      // Sin variantes: stock y precio deben ser positivos.
+      return p.stock > 0 && p.precio > 0;
     });
     
     // Actualizar contador
@@ -913,7 +913,7 @@ function applyFilters(){
   }
   const rEl=document.getElementById('price-range');
   if(rEl && maxPrice<parseFloat(rEl.max)) res=res.filter(p=>p.precio===null||p.precio<=maxPrice);
-  res=res.filter(p=>(p.stock===null||p.stock===undefined||p.stock>0));
+  res=res.filter(function(p){ return p.variantes&&p.variantes.length ? p.variantes.some(function(v){return parseInt(v.stock||0)>0;}) : p.stock>0; });
   if(sortMode==='az') res=[...res].sort((a,b)=>a.nombre.localeCompare(b.nombre));
   else if(sortMode==='za') res=[...res].sort((a,b)=>b.nombre.localeCompare(a.nombre));
   else if(sortMode==='price-asc') res=[...res].sort((a,b)=>(a.precio!==null?a.precio:999)-(b.precio!==null?b.precio:999));
