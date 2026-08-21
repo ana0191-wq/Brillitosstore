@@ -1720,6 +1720,19 @@ let scannerActive = false;
 function codigoProd(id){ return 'BRILL-'+id; }
 function qrUrl(id,size=150){ return 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&color=c2185b&data='+encodeURIComponent(codigoProd(id)); }
 function codigoVariante(prodId,varId){ return 'BRILL-'+prodId+'-V'+varId; }
+function normalizarCodigoQR(code){ return String(code||'').trim().toUpperCase(); }
+function resolverCodigoQR(code){
+  var buscado=normalizarCodigoQR(code);
+  for(var i=0;i<productos.length;i++){
+    var p=productos[i], vars=p.producto_variantes||p.variantes||[];
+    if(normalizarCodigoQR(codigoProd(p.id))===buscado || normalizarCodigoQR(p.codigo)===buscado || String(p.id)===String(code).trim()) return {producto:p,variante:null};
+    for(var j=0;j<vars.length;j++){
+      var v=vars[j];
+      if(normalizarCodigoQR(codigoVariante(p.id,v.id))===buscado || normalizarCodigoQR(v.qr_code)===buscado) return {producto:p,variante:v};
+    }
+  }
+  return null;
+}
 function qrUrlFromCode(code,size=150){ return 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&color=c2185b&data='+encodeURIComponent(code); }
 
 function abrirScanner(){
@@ -1768,17 +1781,15 @@ function onScanExito(decoded){
   _lastScanCode = decoded;
   setTimeout(()=>{ _scanLocked=false; _lastScanCode=null; }, 3500);
 
-  const prod = productos.find(p =>
-    codigoProd(p.id) === decoded || decoded.startsWith('BRILL-'+p.id+'-V') ||
-    String(p.id) === decoded ||
-    (p.codigo && p.codigo === decoded)
-  );
-  if(prod && prod.activo !== false){
+  const hallado = resolverCodigoQR(decoded);
+  const prod = hallado&&hallado.producto;
+  if(prod && prod.activo !== false && (!hallado.variante || hallado.variante.activo!==false)){
     beep();
-    document.getElementById('scan-status').textContent = '✅ ' + prod.nombre + ' — agregado';
+    var detalleQR=hallado.variante?' — '+hallado.variante.nombre:'';
+    document.getElementById('scan-status').textContent = '✅ ' + prod.nombre + detalleQR + ' — agregado';
     document.getElementById('scan-status').className = 'scanner-status ok';
     cerrarScanner();
-    agregarAlCarrito(prod.id);
+    agregarAlCarrito(prod.id, hallado.variante&&hallado.variante.id);
     if(!irA_queEstoyEn || irA_queEstoyEn !== 'pos') irA('pos');
   } else if(prod && prod.activo === false){
     document.getElementById('scan-status').textContent = '⚠️ Producto inactivo: ' + prod.nombre;
@@ -1916,7 +1927,7 @@ async function descargarPDFQR(){
       doc.setTextColor(0,0,0);doc.text(lines.slice(0,3),tx,y+4.1,{maxWidth:infoW,lineHeightFactor:1.03});
       // Código: banda exclusiva central.
       doc.setFillColor(245,245,245);doc.roundedRect(tx,y+12.4,infoW,3.0,.5,.5,'F');
-      doc.setFont('courier','bold');doc.setFontSize(3.15);doc.setTextColor(45,45,45);doc.text(e.code,tx+infoW/2,y+14.55,{align:'center',maxWidth:infoW-1});
+      doc.setFont('courier','bold');var codeSize=5.15;doc.setFontSize(codeSize);while(doc.getTextWidth(e.code)>infoW-1&&codeSize>3.15){codeSize-=.2;doc.setFontSize(codeSize);}doc.setTextColor(45,45,45);doc.text(e.code,tx+infoW/2,y+14.55,{align:'center',maxWidth:infoW-1});
       // Precio: banda exclusiva inferior.
       if(e.precio!==null){
         doc.setFillColor(255,225,50);doc.roundedRect(tx,y+16.3,infoW,6.6,1,1,'F');
@@ -2303,15 +2314,18 @@ function renderProductosPOS(lista){
     +'<div class="pos-card-precio">$'+parseFloat(p.precio||0).toFixed(2)+'</div>'
     +'<div class="pos-card-stock">Stock: '+stockPOS(p)+'</div></div>').join('') || '<div style="grid-column:1/-1;text-align:center;color:var(--gray);padding:28px">No hay productos con stock disponible.</div>';
 }
-function agregarAlCarrito(pid){
+function agregarAlCarrito(pid,varianteId){
   const p=productos.find(x=>x.id===pid); if(!p)return;
-  const disponible=stockPOS(p), idx=posCarrito.findIndex(x=>x.id===pid), actual=idx>=0?posCarrito[idx].cantidad:0;
-  if(disponible<=0){ toast('⚠️ '+p.nombre+' está agotado'); renderPOS(); return; }
-  if(actual>=disponible){ toast('⚠️ Solo quedan '+disponible+' unidad'+(disponible!==1?'es':'')+' de '+p.nombre); return; }
-  if(idx>=0){ posCarrito[idx].cantidad++; posCarrito[idx].subtotal=posCarrito[idx].cantidad*p.precio; }
-  else posCarrito.push({id:pid,nombre:p.nombre,precio:parseFloat(p.precio),cantidad:1,subtotal:parseFloat(p.precio)});
-  renderCarrito();
-  if(navigator.vibrate) navigator.vibrate(30);
+  const v=varianteId?(p.producto_variantes||p.variantes||[]).find(x=>String(x.id)===String(varianteId)):null;
+  if(varianteId&&!v){ toast('⚠️ Variante no encontrada'); return; }
+  const disponible=v?Math.max(0,parseInt(v.stock,10)||0):stockPOS(p);
+  const idx=posCarrito.findIndex(x=>x.id===pid&&String(x.variante_id||'')===String(varianteId||'')), actual=idx>=0?posCarrito[idx].cantidad:0;
+  const nombre=v?p.nombre+' — '+v.nombre:p.nombre, precio=parseFloat(v&&v.precio!=null?v.precio:p.precio)||0;
+  if(disponible<=0){ toast('⚠️ '+nombre+' está agotado'); renderPOS(); return; }
+  if(actual>=disponible){ toast('⚠️ Solo quedan '+disponible+' unidad'+(disponible!==1?'es':'')+' de '+nombre); return; }
+  if(idx>=0){ posCarrito[idx].cantidad++; posCarrito[idx].subtotal=posCarrito[idx].cantidad*precio; }
+  else posCarrito.push({id:pid,variante_id:v?v.id:null,nombre:nombre,precio:precio,cantidad:1,subtotal:precio});
+  renderCarrito(); if(navigator.vibrate) navigator.vibrate(30);
 }
 function renderCarrito(){
   const el=document.getElementById('pos-items');
