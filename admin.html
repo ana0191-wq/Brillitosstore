@@ -1073,8 +1073,12 @@ tr:hover td{background:#fff8fc}
   <p style="font-size:12px;color:var(--gray);margin-bottom:4px">Toca un QR para verlo grande. Usa el botón 🖨️ para imprimir todos en hoja.</p>
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
     <input id="qr-search-filter" style="flex:1;min-width:120px;padding:7px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Filtrar..." oninput="renderQRGrid()">
+    <select id="qr-label-size" onchange="actualizarTamanoQR()" style="padding:7px 10px;border:2px solid var(--border);border-radius:20px;font-size:12px;background:white;outline:none;color:#6d2850;font-weight:700">
+      <option value="25">2.5 cm</option><option value="35" selected>3.5 cm</option><option value="50">5 cm</option><option value="custom">Personalizado…</option>
+    </select>
+    <input id="qr-label-custom" type="number" min="20" max="80" step="1" placeholder="mm" style="display:none;width:62px;padding:7px 8px;border:2px solid var(--border);border-radius:20px;font-size:12px;outline:none" oninput="actualizarTamanoQR()">
     <button class="btn btn-secondary" onclick="imprimirQRGrid()">🖨️ Imprimir</button>
-    <button class="btn btn-primary" onclick="descargarPDFQR()">📄 PDF 2.5×2.5cm</button>
+    <button class="btn btn-primary" id="btn-pdf-qr" onclick="descargarPDFQR()">📄 PDF 3.5×3.5cm</button>
   </div>
   <div id="qr-grid-container" class="qr-print-grid"></div>
   <div class="modal-footer">
@@ -1820,6 +1824,22 @@ function imprimirQRSingle(){
   setTimeout(()=>win.print(), 500);
 }
 
+// QR: tamaño de etiquetas (mm)
+function getTamanoEtiquetaQR(){
+  var sel=document.getElementById('qr-label-size');
+  var custom=document.getElementById('qr-label-custom');
+  if(!sel) return 35;
+  if(sel.value==='custom') return Math.max(20,Math.min(80,parseInt(custom&&custom.value)||35));
+  return parseInt(sel.value)||35;
+}
+function actualizarTamanoQR(){
+  var sel=document.getElementById('qr-label-size');
+  var custom=document.getElementById('qr-label-custom');
+  if(custom) custom.style.display=sel&&sel.value==='custom'?'inline-block':'none';
+  var mm=getTamanoEtiquetaQR();
+  var b=document.getElementById('btn-pdf-qr'); if(b) b.textContent='📄 PDF '+(mm/10).toFixed(mm%10?1:0)+'×'+(mm/10).toFixed(mm%10?1:0)+'cm';
+}
+
 // QR: modal imprimir todos
 async function descargarPDFQR(){
   const btn = event.target;
@@ -1831,8 +1851,8 @@ async function descargarPDFQR(){
     const q = (document.getElementById('qr-search-filter')?.value||'').toLowerCase();
     const lista = productos.filter(p=>p.activo!==false && (!q||(p.nombre||'').toLowerCase().includes(q)));
 
-    // Tamaño celda 2.5x2.5cm = 25x25mm, margen 10mm, gap 3mm
-    const W=25, H=28, GAP=3, MARGINX=10, MARGINY=10;
+    // Etiqueta configurable: QR ocupa la mayor parte y el precio queda destacado.
+    const W=getTamanoEtiquetaQR(), H=W+12, GAP=3, MARGINX=10, MARGINY=10;
     const cols = Math.floor((210 - MARGINX*2 + GAP) / (W + GAP)); // ~6 columnas en A4
     let col=0, row=0;
 
@@ -1872,11 +1892,12 @@ async function descargarPDFQR(){
       });
 
       // Nombre (truncado) y precio
-      doc.setFontSize(5.5);
+      doc.setFontSize(Math.max(5.5, W*0.22));
       doc.setFont('helvetica','bold');
       const nombre = p.nombre.length>28 ? p.nombre.substring(0,26)+'…' : p.nombre;
       doc.text(nombre, nx + W/2, ny + W + 2, {align:'center', maxWidth: W});
-      doc.setFontSize(6);
+      doc.setFontSize(Math.max(9, W*0.38));
+      doc.setFont('helvetica','bold');
       doc.setTextColor(180,30,100);
       doc.text('$'+parseFloat(p.precio||0).toFixed(2), nx + W/2, ny + W + 5.5, {align:'center'});
       doc.setTextColor(0,0,0);
@@ -1934,11 +1955,12 @@ function imprimirQRGrid(){
   const lista = productos.filter(p=>p.activo!==false && (p.stock===null||p.stock===undefined||p.stock>0) && (!q || (p.nombre||'').toLowerCase().includes(q)));
   const win = window.open('','_blank');
   win.document.write('<html><head><title>QR Brillitos</title><style>');
-  win.document.write('body{font-family:sans-serif;padding:20px}'); win.document.write('.price{font-size:13px;font-weight:800;color:#c2185b;margin:2px 0}');
+  var mm=getTamanoEtiquetaQR(), px=Math.round(mm*3.78), cols=mm>=50?3:(mm>=35?4:6);
+  win.document.write('body{font-family:sans-serif;padding:12px}.price{font-size:'+Math.max(18,Math.round(px*.20))+'px;font-weight:900;color:#c2185b;margin:4px 0;line-height:1}');
   win.document.write('h1{color:#c2185b;font-size:18px;text-align:center}');
-  win.document.write('.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}');
-  win.document.write('.item{display:flex;flex-direction:column;align-items:center;border:1px dashed #ccc;padding:8px;border-radius:8px}');
-  win.document.write('img{width:80px;height:80px}.name{font-size:10px;font-weight:700;text-align:center;margin-top:4px}.code{font-family:monospace;font-size:8px;color:#888}');
+  win.document.write('.grid{display:grid;grid-template-columns:repeat('+cols+',1fr);gap:8px;margin-top:12px}');
+  win.document.write('.item{display:flex;flex-direction:column;align-items:center;border:1px dashed #ccc;padding:6px;border-radius:8px;min-height:'+Math.round(px*1.38)+'px}');
+  win.document.write('img{width:'+px+'px;height:'+px+'px}.name{font-size:'+Math.max(9,Math.round(px*.10))+'px;font-weight:700;text-align:center;margin-top:4px}.code{font-family:monospace;font-size:'+Math.max(7,Math.round(px*.075))+'px;color:#888}');
   win.document.write('</style></head><body>');
   win.document.write('<h1>🌸 Brillitos Store — Etiquetas QR</h1><div class="grid">');
   lista.forEach(p=>{
