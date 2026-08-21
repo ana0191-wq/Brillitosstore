@@ -1912,13 +1912,15 @@ async function descargarPDFQR(){
       var tx=x+textX;
       // Bloque derecho: cada elemento tiene una franja fija dentro de 35 × 25 mm.
       doc.setFont('helvetica','bold');doc.setFontSize(4.1);doc.setTextColor(194,24,91);doc.text('BRILLITOS',tx,y+4.2);
-      doc.setTextColor(0,0,0);doc.setFontSize(5.3);
-      var nombre=e.nombre.length>19?e.nombre.slice(0,17)+'…':e.nombre;
-      var lines=doc.splitTextToSize(nombre,tw);doc.text(lines.slice(0,2),tx,y+8.6,{maxWidth:tw});
-      doc.setFillColor(245,245,245);doc.roundedRect(tx,y+13.2,tw,3.2,.5,.5,'F');doc.setFont('courier','bold');doc.setFontSize(3.8);doc.setTextColor(45,45,45);doc.text(e.code,tx+tw/2,y+15.55,{align:'center',maxWidth:tw-1});
+      // Nombre completo: sin corte de caracteres. Se reserva el bloque superior entero para hasta 4 líneas.
+      var tx=x+15.2,tw=18.0;doc.setTextColor(0,0,0);var nombre=e.nombre||'';var nameSize=4.25;
+      doc.setFontSize(nameSize);var lines=doc.splitTextToSize(nombre,tw);
+      while(lines.length>4&&nameSize>2.0){nameSize-=.2;doc.setFontSize(nameSize);lines=doc.splitTextToSize(nombre,tw);}
+      doc.text(lines,tx,y+4.1,{maxWidth:tw,lineHeightFactor:1.02});
+      doc.setFillColor(245,245,245);doc.roundedRect(tx,y+14.2,tw,2.8,.5,.5,'F');doc.setFont('courier','bold');doc.setFontSize(3.35);doc.setTextColor(45,45,45);doc.text(e.code,tx+tw/2,y+16.15,{align:'center',maxWidth:tw-1});
       if(e.precio!==null){
-        doc.setFillColor(255,225,50);doc.roundedRect(tx,y+17.3,tw,6.3,1,1,'F');
-        doc.setFont('helvetica','bold');doc.setFontSize(8.8);doc.setTextColor(20,20,20);doc.text('$'+e.precio.toFixed(2),tx+tw/2,y+22.0,{align:'center'});
+        doc.setFillColor(255,225,50);doc.roundedRect(tx,y+17.6,tw,5.5,1,1,'F');
+        doc.setFont('helvetica','bold');doc.setFontSize(7.7);doc.setTextColor(20,20,20);doc.text('$'+e.precio.toFixed(2),tx+tw/2,y+21.8,{align:'center'});
       }
       col++;if(col>=cols){col=0;row++;} actualizarProgresoQR(i+1,total,'Armando PDF');
     });
