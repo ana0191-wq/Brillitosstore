@@ -1841,82 +1841,35 @@ function actualizarTamanoQR(){
 }
 
 // QR: modal imprimir todos
+function etiquetasQRSeleccionadas(){
+  var q=(document.getElementById('qr-search-filter')?.value||'').toLowerCase();
+  var out=[];
+  productos.filter(function(p){return p.activo!==false&&(!q||(p.nombre||'').toLowerCase().includes(q));}).forEach(function(p){
+    var vs=(p.producto_variantes||p.variantes||[]).filter(function(v){return v.activo!==false&&parseInt(v.stock||0)>0;});
+    if(vs.length) vs.forEach(function(v){out.push({code:v.qr_code||codigoVariante(p.id,v.id),nombre:p.nombre+' — '+v.nombre,precio:parseFloat(v.precio||p.precio||0)});});
+    else if(parseInt(p.stock||0)>0) out.push({code:codigoProd(p.id),nombre:p.nombre,precio:parseFloat(p.precio||0)});
+  });
+  return out;
+}
+function cargarQRBase64(code){
+  return new Promise(function(resolve){var img=new Image();img.crossOrigin='anonymous';img.onload=function(){try{var c=document.createElement('canvas');c.width=c.height=160;var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,160,160);x.drawImage(img,0,0,160,160);resolve(c.toDataURL('image/png'));}catch(e){resolve(null);}};img.onerror=function(){resolve(null);};img.src=qrUrlFromCode(code,160);});
+}
 async function descargarPDFQR(){
-  const btn = event.target;
-  btn.disabled = true;
-  btn.textContent = '⏳ Generando...';
-  try {
-    const {jsPDF} = window.jspdf;
-    const doc = new jsPDF({unit:'mm', format:'a4'});
-    const q = (document.getElementById('qr-search-filter')?.value||'').toLowerCase();
-    const lista = productos.filter(p=>p.activo!==false && (!q||(p.nombre||'').toLowerCase().includes(q)));
-
-    // Etiqueta configurable: QR ocupa la mayor parte y el precio queda destacado.
-    const W=getTamanoEtiquetaQR(), H=W+12, GAP=3, MARGINX=10, MARGINY=10;
-    const cols = Math.floor((210 - MARGINX*2 + GAP) / (W + GAP)); // ~6 columnas en A4
-    let col=0, row=0;
-
-    for(let i=0; i<lista.length; i++){
-      const p = lista[i];
-      const x = MARGINX + col*(W+GAP);
-      const y = MARGINY + row*(H+GAP);
-
-      // Nueva página si no cabe
-      if(y + H > 287){
-        doc.addPage();
-        col=0; row=0;
-      }
-      const nx = MARGINX + col*(W+GAP);
-      const ny = MARGINY + row*(H+GAP);
-
-      // Cargar imagen QR
-      const qrSrc = qrUrl(p.id, 200);
-      await new Promise((resolve)=>{
-        const img = new Image();
-        img.crossOrigin='anonymous';
-        img.onload = function(){
-          try{
-            const canvas = document.createElement('canvas');
-            canvas.width=200; canvas.height=200;
-            const ctx2=canvas.getContext('2d');
-            ctx2.fillStyle='#ffffff';
-            ctx2.fillRect(0,0,200,200);
-            ctx2.drawImage(img,0,0,200,200);
-            const imgData=canvas.toDataURL('image/png');
-            doc.addImage(imgData,'PNG', nx, ny, W, W);
-          }catch(e){}
-          resolve();
-        };
-        img.onerror=resolve;
-        img.src=qrSrc;
-      });
-
-      // Nombre (truncado) y precio
-      doc.setFontSize(Math.max(5.5, W*0.22));
-      doc.setFont('helvetica','bold');
-      const nombre = p.nombre.length>28 ? p.nombre.substring(0,26)+'…' : p.nombre;
-      doc.text(nombre, nx + W/2, ny + W + 2, {align:'center', maxWidth: W});
-      doc.setFontSize(Math.max(9, W*0.38));
-      doc.setFont('helvetica','bold');
-      doc.setTextColor(180,30,100);
-      doc.text('$'+parseFloat(p.precio||0).toFixed(2), nx + W/2, ny + W + 5.5, {align:'center'});
-      doc.setTextColor(0,0,0);
-
-      // Borde suave
-      doc.setDrawColor(220,180,220);
-      doc.setLineWidth(0.2);
-      doc.rect(nx-1, ny-1, W+2, H+2);
-
-      col++;
-      if(col>=cols){ col=0; row++; }
-    }
-
+  var btn=event.target, mm=getTamanoEtiquetaQR(), etiquetas=etiquetasQRSeleccionadas();
+  btn.disabled=true; btn.textContent='⏳ Preparando '+etiquetas.length+' etiquetas...';
+  try{
+    var base64s=await Promise.all(etiquetas.map(function(e){return cargarQRBase64(e.code);}));
+    var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}), W=mm,H=W+12,GAP=3,M=10,cols=Math.max(1,Math.floor((210-M*2+GAP)/(W+GAP))),col=0,row=0;
+    etiquetas.forEach(function(e,i){
+      var x=M+col*(W+GAP),y=M+row*(H+GAP); if(y+H>287){doc.addPage();col=0;row=0;x=M;y=M;}
+      if(base64s[i]) doc.addImage(base64s[i],'PNG',x,y,W,W);
+      doc.setFont('helvetica','bold');doc.setFontSize(Math.max(5.5,W*.22));doc.setTextColor(0,0,0);doc.text(e.nombre.length>28?e.nombre.slice(0,26)+'…':e.nombre,x+W/2,y+W+2,{align:'center',maxWidth:W});
+      doc.setFontSize(Math.max(9,W*.38));doc.setTextColor(180,30,100);doc.text('$'+e.precio.toFixed(2),x+W/2,y+W+6,{align:'center'});doc.setDrawColor(220,180,220);doc.rect(x-1,y-1,W+2,H+2);
+      col++;if(col>=cols){col=0;row++;}
+    });
     doc.save('brillitos_qr_etiquetas.pdf');
-  } catch(e){
-    alert('Error generando PDF: '+e.message);
-  }
-  btn.disabled=false;
-  btn.textContent='📄 PDF 2.5×2.5cm';
+  }catch(e){alert('Error generando PDF: '+e.message);}
+  btn.disabled=false;actualizarTamanoQR();
 }
 
 function abrirImprimirQR(){
@@ -1951,24 +1904,10 @@ function renderQRGrid(){
 }
 
 function imprimirQRGrid(){
-  const q = (document.getElementById('qr-search-filter')?.value||'').toLowerCase();
-  const lista = productos.filter(p=>p.activo!==false && (p.stock===null||p.stock===undefined||p.stock>0) && (!q || (p.nombre||'').toLowerCase().includes(q)));
-  const win = window.open('','_blank');
-  win.document.write('<html><head><title>QR Brillitos</title><style>');
-  var mm=getTamanoEtiquetaQR(), px=Math.round(mm*3.78), cols=mm>=50?3:(mm>=35?4:6);
-  win.document.write('body{font-family:sans-serif;padding:12px}.price{font-size:'+Math.max(18,Math.round(px*.20))+'px;font-weight:900;color:#c2185b;margin:4px 0;line-height:1}');
-  win.document.write('h1{color:#c2185b;font-size:18px;text-align:center}');
-  win.document.write('.grid{display:grid;grid-template-columns:repeat('+cols+',1fr);gap:8px;margin-top:12px}');
-  win.document.write('.item{display:flex;flex-direction:column;align-items:center;border:1px dashed #ccc;padding:6px;border-radius:8px;min-height:'+Math.round(px*1.38)+'px}');
-  win.document.write('img{width:'+px+'px;height:'+px+'px}.name{font-size:'+Math.max(9,Math.round(px*.10))+'px;font-weight:700;text-align:center;margin-top:4px}.code{font-family:monospace;font-size:'+Math.max(7,Math.round(px*.075))+'px;color:#888}');
-  win.document.write('</style></head><body>');
-  win.document.write('<h1>🌸 Brillitos Store — Etiquetas QR</h1><div class="grid">');
-  lista.forEach(p=>{
-    win.document.write('<div class="item"><img src="'+qrUrl(p.id,80)+'"><span class="name">'+p.nombre+'</span><span class="price">$'+parseFloat(p.precio||0).toFixed(2)+'</span><span class="code">'+codigoProd(p.id)+'</span></div>');
-  });
-  win.document.write('</div></body></html>');
-  win.document.close();
-  setTimeout(()=>win.print(),800);
+  var etiquetas=etiquetasQRSeleccionadas(), win=window.open('','_blank'), mm=getTamanoEtiquetaQR(),px=Math.round(mm*3.78),cols=mm>=50?3:(mm>=35?4:6);
+  win.document.write('<html><head><title>Etiquetas Brillitos</title><style>@page{margin:8mm}body{font-family:sans-serif}.grid{display:grid;grid-template-columns:repeat('+cols+',1fr);gap:7px}.item{display:flex;flex-direction:column;align-items:center;border:1px dashed #ccc;padding:5px}.item img{width:'+px+'px;height:'+px+'px}.name{font-size:'+Math.max(9,Math.round(px*.10))+'px;font-weight:700;text-align:center;margin-top:3px}.price{font-size:'+Math.max(18,Math.round(px*.20))+'px;font-weight:900;color:#c2185b;line-height:1}.code{font-size:8px;color:#777}</style></head><body><div class="grid">');
+  etiquetas.forEach(function(e){win.document.write('<div class="item"><img src="'+qrUrlFromCode(e.code,160)+'"><span class="name">'+e.nombre+'</span><span class="price">$'+e.precio.toFixed(2)+'</span><span class="code">'+e.code+'</span></div>');});
+  win.document.write('</div></body></html>');win.document.close();setTimeout(function(){win.print();},350);
 }
 
 // Trackear página activa para scanner
