@@ -658,6 +658,10 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
         📷 Escanear producto
       </button>
       <div style="font-size:.85rem;color:#888;text-align:center">También puedes buscar<br>por nombre en Productos</div>
+      <div id="scan-history-wrap" style="width:100%;max-width:380px;display:none">
+        <div style="font-size:.78rem;font-weight:800;color:#7a7a9a;text-transform:uppercase;letter-spacing:.5px;margin:2px 0 8px">Últimos escaneados</div>
+        <div id="scan-history-list" style="display:flex;flex-direction:column;gap:8px"></div>
+      </div>
     </div>
   </div>
 
@@ -867,6 +871,7 @@ const CUENTAS=[
 
 let prods=[],carrito=[],bcv=0,metodo='Pago Móvil',cat='Todas';
 let scanner=null,scanActivo=false,scanLock=false,lastCode=null,pendiente=null;
+let scanHistory=[];
 
 const $=id=>document.getElementById(id);
 function hoy(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset()-240);return d.toISOString().slice(0,10);}
@@ -1568,11 +1573,22 @@ function onScan(decoded){
   setTimeout(()=>{scanLock=false;lastCode=null;},3000);
   const hallado=resolverQR(decoded), p=hallado&&hallado.producto;
   if(p&&p.activo!==false&&(!hallado.variante||hallado.variante.activo!==false)){
-    beepScan();agregar(p.id,hallado.variante&&hallado.variante.id);toast('✅ '+p.nombre+(hallado.variante?' — '+hallado.variante.nombre:'')+' 🌸');
+    beepScan();agregar(p.id,hallado.variante&&hallado.variante.id);registrarEscaneo(p,hallado.variante);toast('✅ '+p.nombre+(hallado.variante?' — '+hallado.variante.nombre:'')+' 🌸');
   } else if(p)toast('⚠️ Producto o variante inactiva');
   else toast('❓ No encontrado: '+decoded);
 }
 function buscarManual(){const v=$('inp-manual').value.trim();if(v)onScan(v);}
+function registrarEscaneo(p,v){
+  var item={id:p.id,varianteId:v?v.id:null,nombre:v?p.nombre+' — '+v.nombre:p.nombre,precio:parseFloat(v&&v.precio>0?v.precio:p.precio||0),foto:p.imagen||p.foto||(Array.isArray(p.imagenes)?p.imagenes[0]:'')||''};
+  scanHistory=scanHistory.filter(function(x){return String(x.id)!==String(item.id)||String(x.varianteId||'')!==String(item.varianteId||'');});
+  scanHistory.unshift(item); scanHistory=scanHistory.slice(0,6); renderHistorialEscaneos();
+}
+function renderHistorialEscaneos(){
+  var wrap=$('scan-history-wrap'),list=$('scan-history-list'); if(!wrap||!list)return;
+  wrap.style.display=scanHistory.length?'block':'none';
+  list.innerHTML=scanHistory.map(function(x,i){var img=x.foto?'<img src="'+x.foto+'" style="width:42px;height:42px;border-radius:12px;object-fit:cover;background:#fdf0f7">':'<div style="width:42px;height:42px;border-radius:12px;background:#fdf0f7;display:grid;place-items:center;font-size:20px">🌸</div>';return '<button onclick="irAProductoEscaneado('+i+')" style="display:flex;align-items:center;gap:10px;width:100%;padding:8px 10px;background:#fff;border:1px solid #f2b8d8;border-radius:14px;text-align:left;box-shadow:0 2px 8px rgba(214,58,138,.08)">'+img+'<span style="flex:1;min-width:0"><span style="display:block;font-size:.85rem;font-weight:800;color:#222;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+x.nombre+'</span><span style="font-size:.75rem;color:#d63a8a;font-weight:800">$'+x.precio.toFixed(2)+' · Ver producto</span></span><span style="color:#d63a8a;font-size:20px">›</span></button>';}).join('');
+}
+function irAProductoEscaneado(i){var x=scanHistory[i],p=x&&prods.find(function(y){return String(y.id)===String(x.id);});if(!p)return;switchPosTab('prods');var input=$('search-inp');if(input){input.value=p.nombre||'';renderProds();setTimeout(function(){var card=document.querySelector('.pcard[data-id="'+p.id+'"]');if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.style.outline='3px solid #d63a8a';setTimeout(function(){card.style.outline='';},1500);}},100);}}
 
 function switchPosTab(tab){
   document.getElementById('tab-prods').classList.toggle('active', tab==='prods');
@@ -1668,7 +1684,7 @@ init();
 <script id="version-status-script">
 (function(){
   var chip=document.getElementById('version-status-chip'), text=chip&&chip.querySelector('.vs-text'); if(!chip||!text)return;
-  var localVersion='v1787349248';
+  var localVersion='v1787350679';
   function versionActual(){return new URLSearchParams(location.search).get('v')||'';}
   function mostrar(clase,mensaje,titulo){chip.className=clase||'';text.textContent=mensaje;chip.title=titulo||mensaje;}
   window.verificarVersionApp=function(){
