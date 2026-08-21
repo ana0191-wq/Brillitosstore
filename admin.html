@@ -1905,10 +1905,11 @@ async function descargarPDFQR(){
     var listos=0;
     var base64s=await Promise.all(etiquetas.map(function(e){return cargarQRBase64(e.code).then(function(r){listos++;actualizarProgresoQR(listos,total,'Cargando QR');return r;});}));
     // Mismo formato horizontal de la vista previa/Imprimir.
-    var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}), h=mm,w=Math.round(mm*2.25),M=6,cols=Math.max(1,Math.floor((210-M*2)/w)),qr=Math.max(14,h-4),textX=qr+4,col=0,row=0;
+    var PAGE_W=216,PAGE_H=279,M=2,baseH=mm,baseW=Math.round(mm*2.25),cols=Math.max(1,Math.floor((PAGE_W-M*2)/baseW)),rows=Math.max(1,Math.floor((PAGE_H-M*2)/baseH)),w=(PAGE_W-M*2)/cols,h=(PAGE_H-M*2)/rows,qr=Math.max(12,Math.min(h-4,w*.43)),textX=qr+4,col=0,row=0;
+    var doc=new window.jspdf.jsPDF({unit:'mm',format:[PAGE_W,PAGE_H],orientation:'portrait'});
     etiquetas.forEach(function(e,i){
       var x=M+col*w,y=M+row*h;
-      if(y+h>291){doc.addPage();col=0;row=0;x=M;y=M;}
+      if(row>=rows){doc.addPage([PAGE_W,PAGE_H],'portrait');col=0;row=0;x=M;y=M;}
       // Cuadrícula continua: una línea compartida entre etiquetas.
       doc.setDrawColor(170,170,170);doc.setLineWidth(.25);doc.rect(x,y,w,h);
       if(base64s[i]) doc.addImage(base64s[i],'PNG',x+2,y+2,qr,qr);
@@ -1963,9 +1964,9 @@ function renderQRGrid(){
 function imprimirQRGrid(){
   var etiquetas=etiquetasQRSeleccionadas(), win=window.open('','_blank'), mm=getTamanoEtiquetaQR();
   // Etiqueta horizontal estilo precio: QR izquierda, datos y precio a la derecha.
-  var h=mm, w=Math.round(mm*2.25), cols=Math.max(1,Math.floor(194/w)), qr=Math.max(14,h-4), border=.25;
+  var pageW=212,pageH=275,h=mm,w=Math.round(mm*2.25),cols=Math.max(1,Math.floor(pageW/w)),rows=Math.max(1,Math.floor(pageH/h)),w=pageW/cols,h=pageH/rows,qr=Math.max(12,Math.min(h-4,w*.43)),border=.25;
   win.document.write('<html><head><title>Etiquetas Brillitos</title><style>');
-  win.document.write('@page{size:A4 portrait;margin:6mm}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,sans-serif}.grid{display:grid;grid-template-columns:repeat('+cols+','+w+'mm);grid-auto-rows:'+h+'mm;gap:0;align-content:start}.item{width:'+w+'mm;height:'+h+'mm;display:grid;grid-template-columns:'+(qr+2)+'mm 1fr;gap:1mm;overflow:hidden;border-right:'+border+'mm solid #aaa;border-bottom:'+border+'mm solid #aaa;padding:2mm;background:#fff}.item:nth-child(-n+'+cols+'){border-top:'+border+'mm solid #aaa}.item:nth-child('+cols+'n+1){border-left:'+border+'mm solid #aaa}.item img{width:'+qr+'mm;height:'+qr+'mm;object-fit:contain;align-self:center}.info{height:100%;min-width:0;display:flex;flex-direction:column;justify-content:space-between}.brand{font-size:'+Math.max(6,Math.round(h*.15))+'px;font-weight:800;color:#c2185b;text-transform:uppercase;letter-spacing:.2px}.name{font-size:'+Math.max(8,Math.round(h*.22))+'px;font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.code{font-family:monospace;font-size:'+Math.max(7,Math.round(h*.15))+'px;font-weight:800;color:#333;background:#f5f5f5;border-radius:1mm;padding:.5mm 1mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}.priceBox{background:#fff0b8;border-radius:2mm;padding:1mm 1.5mm;min-height:'+Math.round(h*.32)+'mm;display:flex;align-items:center;justify-content:center}.price{font-size:'+Math.max(16,Math.round(h*.52))+'px;font-weight:900;line-height:1;color:#111;white-space:nowrap}</style></head><body><div class="grid">');
+  win.document.write('@page{size:Letter portrait;margin:2mm}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,sans-serif}.grid{display:grid;grid-template-columns:repeat('+cols+','+w+'mm);grid-auto-rows:'+h+'mm;gap:0;align-content:start}.item{width:'+w+'mm;height:'+h+'mm;display:grid;grid-template-columns:'+(qr+2)+'mm 1fr;gap:1mm;overflow:hidden;border-right:'+border+'mm solid #aaa;border-bottom:'+border+'mm solid #aaa;padding:2mm;background:#fff}.item:nth-child(-n+'+cols+'){border-top:'+border+'mm solid #aaa}.item:nth-child('+cols+'n+1){border-left:'+border+'mm solid #aaa}.item img{width:'+qr+'mm;height:'+qr+'mm;object-fit:contain;align-self:center}.info{height:100%;min-width:0;display:flex;flex-direction:column;justify-content:space-between}.brand{font-size:'+Math.max(6,Math.round(h*.15))+'px;font-weight:800;color:#c2185b;text-transform:uppercase;letter-spacing:.2px}.name{font-size:'+Math.max(8,Math.round(h*.22))+'px;font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.code{font-family:monospace;font-size:'+Math.max(7,Math.round(h*.15))+'px;font-weight:800;color:#333;background:#f5f5f5;border-radius:1mm;padding:.5mm 1mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}.priceBox{background:#fff0b8;border-radius:2mm;padding:1mm 1.5mm;min-height:'+Math.round(h*.32)+'mm;display:flex;align-items:center;justify-content:center}.price{font-size:'+Math.max(16,Math.round(h*.52))+'px;font-weight:900;line-height:1;color:#111;white-space:nowrap}</style></head><body><div class="grid">');
   etiquetas.forEach(function(e){var pr=e.precio!==null?'$'+e.precio.toFixed(2):'&nbsp;';win.document.write('<div class="item"><img src="'+qrUrlFromCode(e.code,160)+'"><div class="info"><div class="brand">Brillitos</div><div class="name">'+e.nombre+'</div><div class="code">'+e.code+'</div><div class="priceBox"><span class="price">'+pr+'</span></div></div></div>');});
   win.document.write('</div></body></html>');win.document.close();setTimeout(function(){win.print();},500);
 }
@@ -2005,6 +2006,9 @@ function irA(p){
   });
   // Cerrar menú móvil si está abierto
   cerrarMobNav();
+  // El acceso a Tienda se mantiene disponible; se oculta solamente mientras se usa POS.
+  const fabTienda=document.getElementById('fab-tienda');
+  if(fabTienda) fabTienda.style.display=p==='pos'?'none':'flex';
   // Cargar contenido
   if(p==='dashboard') cargarDashboard();
   else if(p==='pos') renderPOS();
@@ -5943,6 +5947,8 @@ function renderMovimientosBancaAmiga(){
 </div>
 
 <!-- MODAL PICKER PRODUCTOS -->
+<a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
+
 <div id="modal-prod-picker">
   <div class="prod-picker-sheet">
     <div class="prod-picker-header">
