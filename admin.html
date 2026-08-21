@@ -327,7 +327,7 @@ tr:hover td{background:#fff8fc}
     <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button>
     <div class="page-title">📊 Dashboard</div>
     <div class="header-actions">
-      <button class="btn btn-purple" onclick="irA('pos')">🏪 POS</button>
+      <button class="btn btn-purple" onclick="irA('pos')" title="Abrir punto de venta con stock sincronizado">🏪 Abrir POS</button>
       <a href="pos2.html" target="_blank" style="display:inline-flex;align-items:center;height:36px;padding:0 14px;border-radius:20px;background:linear-gradient(135deg,var(--pink),var(--pink-dark));color:white;font-size:13px;font-weight:700;text-decoration:none;box-shadow:0 2px 8px rgba(214,58,138,.3)">🚀 POS App</a>
       <button class="btn btn-secondary" onclick="irA('productos');abrirModalProducto()">+ Producto</button>
       <button class="btn btn-primary" onclick="irA('ventas');abrirModalVenta()">+ Venta</button>
@@ -2251,9 +2251,29 @@ function cargarDashboard(){
 
 
 // ===== POS =====
+// Una sola regla para POS: solo se vende el stock real del producto.
+function stockPOS(p){ return Math.max(0,parseInt(p&&p.stock,10)||0); }
+function productosDisponiblesPOS(lista){ return (lista||[]).filter(function(p){ return p&&p.activo!==false&&stockPOS(p)>0; }); }
+async function validarStockPOSActual(){
+  var ids=[...new Set(posCarrito.map(function(i){return i.id;}))];
+  if(!ids.length) return true;
+  var actuales=await sbGet('productos','select=id,stock,activo&id=in.('+ids.join(',')+')');
+  if(!actuales.length){ toast('⚠️ No se pudo verificar el stock. Revisa conexión e intenta de nuevo.'); return false; }
+  var porId={}; actuales.forEach(function(p){porId[p.id]=p;});
+  for(var i=0;i<posCarrito.length;i++){
+    var it=posCarrito[i], actual=porId[it.id], disponible=stockPOS(actual);
+    if(!actual||actual.activo===false||it.cantidad>disponible){
+      toast('⚠️ Stock insuficiente para '+it.nombre+'. Disponible: '+disponible);
+      if(actual){ var local=productos.find(function(x){return x.id===it.id;}); if(local) local.stock=disponible; }
+      renderPOS(); renderCarrito(); return false;
+    }
+  }
+  actuales.forEach(function(a){var local=productos.find(function(x){return x.id===a.id;});if(local){local.stock=stockPOS(a);local.activo=a.activo;}});
+  return true;
+}
 // abrirModalProductoRapido → ver definición completa más abajo
 function renderPOS(){
-  const activos = productos.filter(p=>p.activo!==false);
+  const activos = productosDisponiblesPOS(productos);
   const cats = ['Todas',...new Set(activos.map(p=>p.categoria).filter(Boolean)).values()].sort();
   document.getElementById('pos-cats').innerHTML = cats.map((c,i)=>
     '<div class="pos-cat'+(i===0?' active':'')+'" onclick="filtrarPOScat(this,\''+c+'\')">'+c+'</div>').join('');
@@ -2263,12 +2283,12 @@ function renderPOS(){
 function filtrarPOScat(el,cat){
   document.querySelectorAll('.pos-cat').forEach(x=>x.classList.remove('active'));
   el.classList.add('active');
-  const activos=productos.filter(p=>p.activo!==false);
+  const activos=productosDisponiblesPOS(productos);
   renderProductosPOS(cat==='Todas'?activos:activos.filter(p=>p.categoria===cat));
 }
 function filtrarPOS(){
   const q = document.getElementById('pos-search').value.toLowerCase();
-  const activos=productos.filter(p=>p.activo!==false);
+  const activos=productosDisponiblesPOS(productos);
   renderProductosPOS(q?activos.filter(p=>p.nombre&&p.nombre.toLowerCase().includes(q)):activos);
 }
 function renderProductosPOS(lista){
@@ -2277,16 +2297,18 @@ function renderProductosPOS(lista){
     if(!a.es_nuevo&&b.es_nuevo) return 1;
     return (b.id||0)-(a.id||0);
   });
-  document.getElementById('pos-grid').innerHTML = listaOrd.map(p=>
-    '<div class="pos-card'+(p.stock<=0?' sin-stock':'')+'" onclick="agregarAlCarrito('+p.id+')">'
+  document.getElementById('pos-grid').innerHTML = productosDisponiblesPOS(listaOrd).map(p=>
+    '<div class="pos-card" onclick="agregarAlCarrito('+p.id+')">'
     +(p.imagen?'<img class="pos-card-img" src="'+p.imagen+'" onerror="this.style.display=\'none\'">':'<div class="pos-card-placeholder">🌸</div>')
     +'<div class="pos-card-nombre">'+p.nombre+(p.propietario==='Mamá'?' <span style="font-size:9px;background:#fce4ec;color:#c2185b;padding:1px 4px;border-radius:5px;font-weight:700">Mamá</span>':'')+'</div>'
     +'<div class="pos-card-precio">$'+parseFloat(p.precio||0).toFixed(2)+'</div>'
-    +'<div class="pos-card-stock">'+(p.stock>0?'Stock: '+p.stock:'Sin stock')+'</div></div>').join('');
+    +'<div class="pos-card-stock">Stock: '+stockPOS(p)+'</div></div>').join('') || '<div style="grid-column:1/-1;text-align:center;color:var(--gray);padding:28px">No hay productos con stock disponible.</div>';
 }
 function agregarAlCarrito(pid){
   const p=productos.find(x=>x.id===pid); if(!p)return;
-  const idx=posCarrito.findIndex(x=>x.id===pid);
+  const disponible=stockPOS(p), idx=posCarrito.findIndex(x=>x.id===pid), actual=idx>=0?posCarrito[idx].cantidad:0;
+  if(disponible<=0){ toast('⚠️ '+p.nombre+' está agotado'); renderPOS(); return; }
+  if(actual>=disponible){ toast('⚠️ Solo quedan '+disponible+' unidad'+(disponible!==1?'es':'')+' de '+p.nombre); return; }
   if(idx>=0){ posCarrito[idx].cantidad++; posCarrito[idx].subtotal=posCarrito[idx].cantidad*p.precio; }
   else posCarrito.push({id:pid,nombre:p.nombre,precio:parseFloat(p.precio),cantidad:1,subtotal:parseFloat(p.precio)});
   renderCarrito();
@@ -2311,10 +2333,11 @@ function renderCarrito(){
   document.getElementById('pos-total').textContent='$'+total.toFixed(2);
 }
 function cambiarCantidadPOS(i,delta){
-  posCarrito[i].cantidad+=delta;
-  if(posCarrito[i].cantidad<=0) posCarrito.splice(i,1);
-  else posCarrito[i].subtotal=posCarrito[i].cantidad*posCarrito[i].precio;
-  renderCarrito();
+  var it=posCarrito[i]; if(!it)return;
+  var p=productos.find(function(x){return x.id===it.id;}), siguiente=it.cantidad+delta;
+  if(siguiente<=0){ posCarrito.splice(i,1); renderCarrito(); return; }
+  if(delta>0&&siguiente>stockPOS(p)){ toast('⚠️ Stock máximo disponible: '+stockPOS(p)); return; }
+  it.cantidad=siguiente; it.subtotal=it.cantidad*it.precio; renderCarrito();
 }
 function vaciarCarrito(){ posCarrito=[]; renderCarrito(); }
 function selMetodoPOS(el,m){
@@ -2323,6 +2346,7 @@ function selMetodoPOS(el,m){
 }
 async function cobrarPOS(){
   if(!posCarrito.length){ toast('⚠️ El carrito está vacío'); return; }
+  if(!await validarStockPOSActual()) return;
   const total=posCarrito.reduce((s,i)=>s+i.subtotal,0);
   const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(posMetodoActual);
   if(esBs){ abrirModalBs(total,(tasa,bs)=>_ejecutarCobroPOS(total,tasa,bs)); return; }
