@@ -1120,7 +1120,7 @@ async function init(){
   $('loading-sub').textContent='Cargando productos...';
   try{
     const data=await GET('productos','select=*&order=id.desc&limit=500');
-    prods=Array.isArray(data)?data.filter(p=>p.activo!==false):[];
+    prods=Array.isArray(data)?data.filter(p=>p.activo!==false&&parseInt(p.stock||0)>0):[];
     $('loading-sub').textContent='Cargando tasa BCV...';
     try{
       const r=await fetch('https://ve.dolarapi.com/v1/dolares/oficial',{signal:AbortSignal.timeout(6000)});
@@ -1162,7 +1162,7 @@ function selCat(el,c){
 // ── PRODUCTOS ──
 function renderProds(){
   const q=$('search-inp').value.toLowerCase().trim();
-  let lista=[...prods];
+  let lista=prods.filter(p=>p.activo!==false&&parseInt(p.stock||0)>0);
   if(cat!=='Todas')lista=lista.filter(p=>(p.categoria||'').trim()===cat);
   if(q)lista=lista.filter(p=>(p.nombre||'').toLowerCase().includes(q));
   lista.sort((a,b)=>{
@@ -1214,7 +1214,7 @@ function agregar(pid){
   const stk=parseInt(p.stock||0);
   const i=carrito.findIndex(x=>x.id===pid);
   if(i>=0){
-    if(carrito[i].cantidad>=stk&&stk>0){toast('⚠️ Stock máximo');return;}
+    if(stk<=0||carrito[i].cantidad>=stk){toast('⚠️ Stock máximo disponible: '+Math.max(0,stk));return;}
     carrito[i].cantidad++;carrito[i].sub=carrito[i].cantidad*carrito[i].precio;
   }else{
     if(stk<=0){toast('⚠️ Agotado');return;}
@@ -1232,7 +1232,7 @@ function chgQty(i,d){
   carrito[i].cantidad+=d;
   if(carrito[i].cantidad<=0)carrito.splice(i,1);
   else{
-    if(carrito[i].cantidad>stk&&stk>0){carrito[i].cantidad=stk;toast('⚠️ Stock máximo');}
+    if(carrito[i].cantidad>stk){carrito[i].cantidad=stk;if(stk<=0){carrito.splice(i,1);}toast('⚠️ Stock máximo');}
     carrito[i].sub=carrito[i].cantidad*carrito[i].precio;
   }
   renderCarrito();renderProds();
@@ -1324,8 +1324,15 @@ function poblarCuentas(m){
   }else{$('sel-cuenta').innerHTML='';wrap.classList.remove('show');}
 }
 
-function confirmar(){
+async function confirmar(){
   if(!carrito.length){toast('⚠️ Carrito vacío');return;}
+  const ids=[...new Set(carrito.map(i=>i.id))];
+  try{
+    const actuales=await GET('productos','select=id,stock,activo&id=in.('+ids.join(',')+')');
+    const porId={};actuales.forEach(p=>porId[p.id]=p);
+    for(const it of carrito){const real=porId[it.id],disp=Math.max(0,parseInt(real&&real.stock||0));if(!real||real.activo===false||it.cantidad>disp){toast('⚠️ Stock actualizado: '+it.nombre+' · disponible '+disp);if(real){const local=prods.find(p=>p.id===it.id);if(local)local.stock=disp;}renderProds();renderCarrito();return;}}
+    actuales.forEach(real=>{const local=prods.find(p=>p.id===real.id);if(local)local.stock=Math.max(0,parseInt(real.stock||0));});
+  }catch(e){toast('⚠️ No se pudo verificar stock. Revisa conexión.');return;}
   const sub=carrito.reduce((s,i)=>s+i.sub,0);
   const desc=parseFloat($('inp-desc').value)||0;
   const total=Math.max(0,sub-desc);

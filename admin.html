@@ -1088,7 +1088,7 @@ tr:hover td{background:#fff8fc}
   <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
     <input id="qr-search-filter" style="flex:1;min-width:120px;padding:7px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Filtrar..." oninput="renderQRGrid()">
     <select id="qr-label-size" onchange="actualizarTamanoQR()" style="padding:7px 10px;border:2px solid var(--border);border-radius:20px;font-size:12px;background:white;outline:none;color:#6d2850;font-weight:700">
-      <option value="25">2.5 cm</option><option value="35" selected>3.5 cm</option><option value="50">5 cm</option><option value="custom">Personalizado…</option>
+      <option value="35x25" selected>3.5 × 2.5 cm</option>
     </select>
     <input id="qr-label-custom" type="number" min="20" max="80" step="1" placeholder="mm" style="display:none;width:62px;padding:7px 8px;border:2px solid var(--border);border-radius:20px;font-size:12px;outline:none" oninput="actualizarTamanoQR()">
     <button class="btn btn-secondary" onclick="imprimirQRGrid()">🖨️ Imprimir</button>
@@ -1847,28 +1847,23 @@ function imprimirQRSingle(){
 }
 
 // QR: tamaño de etiquetas (mm)
-function getTamanoEtiquetaQR(){
-  var sel=document.getElementById('qr-label-size');
-  var custom=document.getElementById('qr-label-custom');
-  if(!sel) return 35;
-  if(sel.value==='custom') return Math.max(20,Math.min(80,parseInt(custom&&custom.value)||35));
-  return parseInt(sel.value)||35;
-}
+function getTamanoEtiquetaQR(){ return 25; }
+function getAnchoEtiquetaQR(){ return 35; }
 function renderPreviewEtiquetaQR(){
   var box=document.getElementById('qr-label-preview'); if(!box) return;
-  var mm=getTamanoEtiquetaQR(), h=Math.min(145,Math.max(72,Math.round(mm*2.7))), w=Math.round(h*2.25), qr=Math.round(h*.72);
+  var h=100,w=140,qr=72;
   var ejemplo=etiquetasQRSeleccionadas()[0]||{code:'BRILL-123',nombre:'Nombre del producto',precio:9.99};
   var precio=ejemplo.precio!==null&&ejemplo.precio!==undefined?'$'+parseFloat(ejemplo.precio).toFixed(2):'';
   box.style.cssText='width:'+w+'px;height:'+h+'px;display:grid;grid-template-columns:'+(qr+8)+'px 1fr;gap:5px;padding:7px;border:1.5px solid #aaa;background:#fff;overflow:hidden';
   box.innerHTML='<img src="'+qrUrlFromCode(ejemplo.code,160)+'" style="width:'+qr+'px;height:'+qr+'px;object-fit:contain;align-self:center"><div style="min-width:0;display:flex;flex-direction:column;justify-content:space-between"><div style="font-size:10px;font-weight:900;color:#c2185b;text-transform:uppercase">Brillitos</div><div style="font-size:'+Math.max(10,Math.round(h*.12))+'px;font-weight:800;line-height:1.05;max-height:'+Math.round(h*.28)+'px;overflow:hidden">'+ejemplo.nombre+'</div><div style="font-family:monospace;font-size:10px;font-weight:800;color:#333;background:#f5f5f5;border-radius:4px;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+ejemplo.code+'</div><div style="background:#fff0b8;border-radius:5px;padding:3px 5px;text-align:center;font-size:'+Math.max(17,Math.round(h*.22))+'px;font-weight:900;line-height:1">'+precio+'</div></div>';
-  var size=document.getElementById('qr-preview-size'); if(size) size.textContent=(mm/10).toFixed(mm%10?1:0)+' × '+((mm*2.25)/10).toFixed(1)+' cm';
+  var size=document.getElementById('qr-preview-size'); if(size) size.textContent='3.5 × 2.5 cm';
 }
 function actualizarTamanoQR(){
   var sel=document.getElementById('qr-label-size');
   var custom=document.getElementById('qr-label-custom');
   if(custom) custom.style.display=sel&&sel.value==='custom'?'inline-block':'none';
   var mm=getTamanoEtiquetaQR();
-  var b=document.getElementById('btn-pdf-qr'); if(b) b.textContent='📄 PDF '+(mm/10).toFixed(mm%10?1:0)+'×'+(mm/10).toFixed(mm%10?1:0)+'cm';
+  var b=document.getElementById('btn-pdf-qr'); if(b) b.textContent='📄 PDF 3.5×2.5cm';
   renderPreviewEtiquetaQR();
 }
 
@@ -1877,11 +1872,12 @@ function etiquetasQRSeleccionadas(){
   var q=(document.getElementById('qr-search-filter')?.value||'').toLowerCase(), out=[];
   productos.filter(function(p){return p.activo!==false&&(!q||(p.nombre||'').toLowerCase().includes(q));}).forEach(function(p){
     var vs=(p.producto_variantes||p.variantes||[]).filter(function(v){return v.activo!==false&&parseInt(v.stock||0)>0;});
+    var tieneVariantes=(p.producto_variantes||p.variantes||[]).filter(function(v){return v.activo!==false;}).length>0;
     if(vs.length) vs.forEach(function(v){
       var precio=(v.precio!==null&&v.precio!==undefined&&v.precio!==''&&parseFloat(v.precio)>0)?parseFloat(v.precio):((p.precio!==null&&p.precio!==undefined&&parseFloat(p.precio)>0)?parseFloat(p.precio):null);
       out.push({code:v.qr_code||codigoVariante(p.id,v.id),nombre:p.nombre+' — '+v.nombre,precio:precio});
     });
-    else if(parseInt(p.stock||0)>0){
+    else if(!tieneVariantes&&parseInt(p.stock||0)>0){
       var precioP=(p.precio!==null&&p.precio!==undefined&&p.precio!==''&&parseFloat(p.precio)>0)?parseFloat(p.precio):null;
       out.push({code:codigoProd(p.id),nombre:p.nombre,precio:precioP});
     }
@@ -1905,7 +1901,7 @@ async function descargarPDFQR(){
     var listos=0;
     var base64s=await Promise.all(etiquetas.map(function(e){return cargarQRBase64(e.code).then(function(r){listos++;actualizarProgresoQR(listos,total,'Cargando QR');return r;});}));
     // Mismo formato horizontal de la vista previa/Imprimir.
-    var PAGE_W=216,PAGE_H=279,M=2,baseH=mm,baseW=Math.round(mm*2.25),cols=Math.max(1,Math.floor((PAGE_W-M*2)/baseW)),rows=Math.max(1,Math.floor((PAGE_H-M*2)/baseH)),w=(PAGE_W-M*2)/cols,h=(PAGE_H-M*2)/rows,qr=Math.max(12,Math.min(h-4,w*.43)),textX=qr+4,col=0,row=0;
+    var PAGE_W=216,PAGE_H=279,M=2,w=getAnchoEtiquetaQR(),h=getTamanoEtiquetaQR(),cols=Math.floor((PAGE_W-M*2)/w),rows=Math.floor((PAGE_H-M*2)/h),qr=21,textX=qr+4,col=0,row=0;
     var doc=new window.jspdf.jsPDF({unit:'mm',format:[PAGE_W,PAGE_H],orientation:'portrait'});
     etiquetas.forEach(function(e,i){
       var x=M+col*w,y=M+row*h;
@@ -1964,7 +1960,7 @@ function renderQRGrid(){
 function imprimirQRGrid(){
   var etiquetas=etiquetasQRSeleccionadas(), win=window.open('','_blank'), mm=getTamanoEtiquetaQR();
   // Etiqueta horizontal estilo precio: QR izquierda, datos y precio a la derecha.
-  var pageW=212,pageH=275,h=mm,w=Math.round(mm*2.25),cols=Math.max(1,Math.floor(pageW/w)),rows=Math.max(1,Math.floor(pageH/h)),w=pageW/cols,h=pageH/rows,qr=Math.max(12,Math.min(h-4,w*.43)),border=.25;
+  var pageW=212,pageH=275,h=getTamanoEtiquetaQR(),w=getAnchoEtiquetaQR(),cols=Math.floor(pageW/w),rows=Math.floor(pageH/h),qr=21,border=.25;
   win.document.write('<html><head><title>Etiquetas Brillitos</title><style>');
   win.document.write('@page{size:Letter portrait;margin:2mm}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,sans-serif}.grid{display:grid;grid-template-columns:repeat('+cols+','+w+'mm);grid-auto-rows:'+h+'mm;gap:0;align-content:start}.item{width:'+w+'mm;height:'+h+'mm;display:grid;grid-template-columns:'+(qr+2)+'mm 1fr;gap:1mm;overflow:hidden;border-right:'+border+'mm solid #aaa;border-bottom:'+border+'mm solid #aaa;padding:2mm;background:#fff}.item:nth-child(-n+'+cols+'){border-top:'+border+'mm solid #aaa}.item:nth-child('+cols+'n+1){border-left:'+border+'mm solid #aaa}.item img{width:'+qr+'mm;height:'+qr+'mm;object-fit:contain;align-self:center}.info{height:100%;min-width:0;display:flex;flex-direction:column;justify-content:space-between}.brand{font-size:'+Math.max(6,Math.round(h*.15))+'px;font-weight:800;color:#c2185b;text-transform:uppercase;letter-spacing:.2px}.name{font-size:'+Math.max(8,Math.round(h*.22))+'px;font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.code{font-family:monospace;font-size:'+Math.max(7,Math.round(h*.15))+'px;font-weight:800;color:#333;background:#f5f5f5;border-radius:1mm;padding:.5mm 1mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}.priceBox{background:#fff0b8;border-radius:2mm;padding:1mm 1.5mm;min-height:'+Math.round(h*.32)+'mm;display:flex;align-items:center;justify-content:center}.price{font-size:'+Math.max(16,Math.round(h*.52))+'px;font-weight:900;line-height:1;color:#111;white-space:nowrap}</style></head><body><div class="grid">');
   etiquetas.forEach(function(e){var pr=e.precio!==null?'$'+e.precio.toFixed(2):'&nbsp;';win.document.write('<div class="item"><img src="'+qrUrlFromCode(e.code,160)+'"><div class="info"><div class="brand">Brillitos</div><div class="name">'+e.nombre+'</div><div class="code">'+e.code+'</div><div class="priceBox"><span class="price">'+pr+'</span></div></div></div>');});
