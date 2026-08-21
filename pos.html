@@ -413,6 +413,26 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     z-index:200;display:flex;flex-direction:column;overflow:hidden;
   }
   .cart.open{transform:translateY(0)!important;display:flex!important;flex-direction:column!important}
+  /* Carrito móvil: lista y cobro siempre visibles. Las opciones extra se despliegan bajo demanda. */
+  .cart.open{height:100dvh!important;border-radius:20px 20px 0 0}
+  .cart-head{padding:8px 16px 5px!important;min-height:48px}
+  .cart-head-title{font-size:20px!important}.cart-cnt{font-size:12px!important}
+  .cart-cliente{padding:0 16px 6px!important}.cart-cliente input{height:34px!important}
+  .cart-cliente select{display:none!important}
+  .cart-items{flex:1 1 auto!important;min-height:170px!important;max-height:none!important;padding:6px 16px 10px!important;overflow-y:auto!important}
+  .citem{background:#fff;border:1px solid var(--border);border-radius:14px;padding:10px!important;margin-bottom:8px;box-shadow:0 1px 3px rgba(0,0,0,.035)}
+  .cart-summary{padding:7px 16px!important;border-top:1px solid var(--border);background:#fff}
+  .sum-row{display:none}.sum-total{margin:0!important;padding:0!important;border:none!important}.sum-total-lbl{font-size:15px!important}.sum-total-val{font-size:25px!important}.sum-bs{font-size:10px!important;margin-top:0!important}
+  .payment-toggle{display:flex;width:calc(100% - 32px);margin:5px 16px 0;padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:var(--bg);color:var(--text);font-size:11px;font-weight:700;justify-content:space-between;align-items:center}
+  .payment-toggle span:last-child{color:var(--pk-d);font-weight:600}
+  .cart-payment-panel{display:none;max-height:34vh;overflow-y:auto;background:#fff;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .cart-payment-panel.open{display:block}
+  .cart-met{padding:8px 16px!important}.cart-met-lbl{margin-bottom:5px!important}.met-btn{height:32px!important}
+  .cart-cuenta{padding:0 16px 7px!important}.cart-bs{padding:0 16px 7px!important}
+  .cart-footer{display:grid!important;grid-template-columns:1fr 1fr;gap:7px!important;padding:7px 16px calc(10px + env(safe-area-inset-bottom))!important;background:#fff;flex-shrink:0}
+  .cart-footer .apt-btn{height:39px!important;margin:0!important}.cart-footer .cobrar-btn{grid-column:1/-1;height:52px!important}
+  #papelito-btn{display:block!important}
+
   /* La lista conserva un espacio propio: los controles de pago no pueden aplastarla. */
   .cart-items{flex:0 1 auto;min-height:150px;max-height:31vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 14px 12px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
   .cart-summary{padding:7px 16px}.sum-total{margin-top:6px;padding-top:6px}.sum-total-val{font-size:24px}
@@ -693,6 +713,8 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
       <div class="sum-bs" id="ct-bs"></div>
     </div>
 
+    <button type="button" class="payment-toggle" id="payment-toggle" onclick="toggleOpcionesPago()"><span>💳 Opciones de pago</span><span id="payment-toggle-state">Pago Móvil · ▾</span></button>
+    <div class="cart-payment-panel" id="cart-payment-panel">
     <div class="cart-met">
       <div class="cart-met-lbl">Método de pago</div>
       <div class="met-chips">
@@ -737,11 +759,11 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
         <input type="number" id="inp-bs" step="0.01" placeholder="Auto">
       </div>
     </div>
+    </div>
 
     <div class="cart-footer">
-      <button class="apt-btn" onclick="abrirApartado()">📌 Guardar como apartado</button>
+      <button class="apt-btn" onclick="abrirApartado()">📌 Apartado</button>
       <button class="apt-btn" id="papelito-btn" onclick="mostrarPedido()" style="background:#fff3e0;color:#e65100;border:1.5px solid #ffcc80" disabled>🧾 Ver pedido</button>
-      <button class="apt-btn" id="printer-btn" onclick="conectarImpresora()" style="background:#e8f5e9;color:#2e7d32;border:1.5px solid #a5d6a7" title="Conectar impresora GB01">🖨️</button>
       <button class="cobrar-btn" id="cobrar-btn" onclick="confirmar()" disabled>Cobrar $0.00</button>
     </div>
   </div>
@@ -1141,6 +1163,13 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 
 document.addEventListener('touchstart',function ia(){getAudioCtx();document.removeEventListener('touchstart',ia);},{once:true});
+function toggleOpcionesPago(){
+  var panel=$('cart-payment-panel'), state=$('payment-toggle-state');
+  if(!panel) return;
+  var abierto=panel.classList.toggle('open');
+  if(state) state.textContent=(abierto?'Cerrar opciones · ▴':(metodo||'Pago Móvil')+' · ▾');
+}
+
 // ── INIT ──
 async function init(){
   $('loading-sub').textContent='Cargando productos...';
@@ -1341,7 +1370,7 @@ function calcBs(){
 }
 
 function selMet(el,m){
-  metodo=m;
+  metodo=m; var _pst=$('payment-toggle-state'); if(_pst&&!$('cart-payment-panel').classList.contains('open'))_pst.textContent=metodo+' · ▾';
   document.querySelectorAll('.met-btn').forEach(b=>b.classList.remove('active'));
   if(el)el.classList.add('active');
   const esBs=['Pago Móvil','BCV','Efectivo Bs'].includes(m);
@@ -1639,7 +1668,7 @@ init();
 <script id="version-status-script">
 (function(){
   var chip=document.getElementById('version-status-chip'), text=chip&&chip.querySelector('.vs-text'); if(!chip||!text)return;
-  var localVersion='v1787338252';
+  var localVersion='v1787349248';
   function versionActual(){return new URLSearchParams(location.search).get('v')||'';}
   function mostrar(clase,mensaje,titulo){chip.className=clase||'';text.textContent=mensaje;chip.title=titulo||mensaje;}
   window.verificarVersionApp=function(){
