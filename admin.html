@@ -1080,6 +1080,10 @@ tr:hover td{background:#fff8fc}
     <button class="btn btn-secondary" onclick="imprimirQRGrid()">🖨️ Imprimir</button>
     <button class="btn btn-primary" id="btn-pdf-qr" onclick="descargarPDFQR()">📄 PDF 3.5×3.5cm</button>
   </div>
+  <div id="qr-pdf-progress" style="display:none;margin:8px 0;background:#fce7f3;border-radius:10px;overflow:hidden;border:1px solid #f9a8d4">
+    <div id="qr-pdf-progress-bar" style="height:8px;width:0;background:linear-gradient(90deg,#ec4899,#c026d3);transition:width .2s"></div>
+    <div id="qr-pdf-progress-text" style="padding:6px 10px;font-size:12px;color:#9d174d;font-weight:700">Preparando etiquetas…</div>
+  </div>
   <div id="qr-grid-container" class="qr-print-grid"></div>
   <div class="modal-footer">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-imprimir-qr')">Cerrar</button>
@@ -1842,36 +1846,49 @@ function actualizarTamanoQR(){
 
 // QR: modal imprimir todos
 function etiquetasQRSeleccionadas(){
-  var q=(document.getElementById('qr-search-filter')?.value||'').toLowerCase();
-  var out=[];
+  var q=(document.getElementById('qr-search-filter')?.value||'').toLowerCase(), out=[];
   productos.filter(function(p){return p.activo!==false&&(!q||(p.nombre||'').toLowerCase().includes(q));}).forEach(function(p){
     var vs=(p.producto_variantes||p.variantes||[]).filter(function(v){return v.activo!==false&&parseInt(v.stock||0)>0;});
-    if(vs.length) vs.forEach(function(v){out.push({code:v.qr_code||codigoVariante(p.id,v.id),nombre:p.nombre+' — '+v.nombre,precio:parseFloat(v.precio||p.precio||0)});});
-    else if(parseInt(p.stock||0)>0) out.push({code:codigoProd(p.id),nombre:p.nombre,precio:parseFloat(p.precio||0)});
+    if(vs.length) vs.forEach(function(v){
+      var precio=(v.precio!==null&&v.precio!==undefined&&v.precio!==''&&parseFloat(v.precio)>0)?parseFloat(v.precio):((p.precio!==null&&p.precio!==undefined&&parseFloat(p.precio)>0)?parseFloat(p.precio):null);
+      out.push({code:v.qr_code||codigoVariante(p.id,v.id),nombre:p.nombre+' — '+v.nombre,precio:precio});
+    });
+    else if(parseInt(p.stock||0)>0){
+      var precioP=(p.precio!==null&&p.precio!==undefined&&p.precio!==''&&parseFloat(p.precio)>0)?parseFloat(p.precio):null;
+      out.push({code:codigoProd(p.id),nombre:p.nombre,precio:precioP});
+    }
   });
   return out;
 }
 function cargarQRBase64(code){
   return new Promise(function(resolve){var img=new Image();img.crossOrigin='anonymous';img.onload=function(){try{var c=document.createElement('canvas');c.width=c.height=160;var x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,160,160);x.drawImage(img,0,0,160,160);resolve(c.toDataURL('image/png'));}catch(e){resolve(null);}};img.onerror=function(){resolve(null);};img.src=qrUrlFromCode(code,160);});
 }
+function actualizarProgresoQR(actual,total,texto){
+  var wrap=document.getElementById('qr-pdf-progress'),bar=document.getElementById('qr-pdf-progress-bar'),txt=document.getElementById('qr-pdf-progress-text');
+  if(wrap) wrap.style.display='block';
+  if(bar) bar.style.width=(total?Math.round(actual*100/total):0)+'%';
+  if(txt) txt.textContent=(texto||'Generando etiquetas')+' '+actual+' de '+total+' ('+(total?Math.round(actual*100/total):0)+'%)';
+}
 async function descargarPDFQR(){
-  var btn=event.target, mm=getTamanoEtiquetaQR(), etiquetas=etiquetasQRSeleccionadas();
-  btn.disabled=true; btn.textContent='⏳ Preparando '+etiquetas.length+' etiquetas...';
+  var btn=event.target, mm=getTamanoEtiquetaQR(), etiquetas=etiquetasQRSeleccionadas(), total=etiquetas.length;
+  if(!total){toast('⚠️ No hay productos con stock para imprimir');return;}
+  btn.disabled=true; actualizarProgresoQR(0,total,'Cargando QR');
   try{
-    var base64s=await Promise.all(etiquetas.map(function(e){return cargarQRBase64(e.code);}));
-    var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}), W=mm,H=W+12,GAP=3,M=10,cols=Math.max(1,Math.floor((210-M*2+GAP)/(W+GAP))),col=0,row=0;
+    var listos=0;
+    var base64s=await Promise.all(etiquetas.map(function(e){return cargarQRBase64(e.code).then(function(r){listos++;actualizarProgresoQR(listos,total,'Cargando QR');return r;});}));
+    var doc=new window.jspdf.jsPDF({unit:'mm',format:'a4'}), pad=1, qrW=mm-(pad*2), textH=14, W=mm,H=mm+textH,GAP=3,M=10,cols=Math.max(1,Math.floor((210-M*2+GAP)/(W+GAP))),col=0,row=0;
     etiquetas.forEach(function(e,i){
       var x=M+col*(W+GAP),y=M+row*(H+GAP); if(y+H>287){doc.addPage();col=0;row=0;x=M;y=M;}
-      if(base64s[i]) doc.addImage(base64s[i],'PNG',x,y,W,W);
-      doc.setFont('helvetica','bold');doc.setFontSize(Math.max(5.5,W*.22));doc.setTextColor(0,0,0);doc.text(e.nombre.length>28?e.nombre.slice(0,26)+'…':e.nombre,x+W/2,y+W+2,{align:'center',maxWidth:W});
-      doc.setFontSize(Math.max(9,W*.38));doc.setTextColor(180,30,100);doc.text('$'+e.precio.toFixed(2),x+W/2,y+W+6,{align:'center'});doc.setDrawColor(220,180,220);doc.rect(x-1,y-1,W+2,H+2);
-      col++;if(col>=cols){col=0;row++;}
+      if(base64s[i]) doc.addImage(base64s[i],'PNG',x+pad,y+pad,qrW,qrW);
+      doc.setFont('helvetica','bold');doc.setFontSize(Math.max(5,W*.19));doc.setTextColor(0,0,0);doc.text(e.nombre.length>31?e.nombre.slice(0,29)+'…':e.nombre,x+W/2,y+mm+3,{align:'center',maxWidth:W-2});
+      if(e.precio!==null){doc.setFontSize(Math.max(9,W*.32));doc.setTextColor(180,30,100);doc.text('$'+e.precio.toFixed(2),x+W/2,y+mm+8,{align:'center'});}
+      doc.setDrawColor(220,180,220);doc.rect(x,y,W,H);
+      col++;if(col>=cols){col=0;row++;} actualizarProgresoQR(i+1,total,'Armando PDF');
     });
-    doc.save('brillitos_qr_etiquetas.pdf');
+    doc.save('brillitos_qr_etiquetas.pdf'); actualizarProgresoQR(total,total,'PDF listo');
   }catch(e){alert('Error generando PDF: '+e.message);}
   btn.disabled=false;actualizarTamanoQR();
 }
-
 function abrirImprimirQR(){
   renderQRGrid();
   abrirModal('modal-imprimir-qr');
@@ -1904,15 +1921,12 @@ function renderQRGrid(){
 }
 
 function imprimirQRGrid(){
-  var etiquetas=etiquetasQRSeleccionadas(), win=window.open('','_blank'), mm=getTamanoEtiquetaQR();
-  // La etiqueta es física: QR + zona fija para nombre/precio/código.
-  var textH=15, labelH=mm+textH, cols=Math.max(1,Math.floor(190/(mm+3)));
+  var etiquetas=etiquetasQRSeleccionadas(), win=window.open('','_blank'), mm=getTamanoEtiquetaQR(), pad=1, textH=14, labelH=mm+textH, cols=Math.max(1,Math.floor(190/(mm+3))), qr=Math.max(10,mm-(pad*2));
   win.document.write('<html><head><title>Etiquetas Brillitos</title><style>');
-  win.document.write('@page{size:A4 portrait;margin:8mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.grid{display:grid;grid-template-columns:repeat('+cols+','+mm+'mm);grid-auto-rows:'+labelH+'mm;gap:3mm;align-content:start}.item{width:'+mm+'mm;height:'+labelH+'mm;display:flex;flex-direction:column;align-items:center;overflow:hidden;border:.25mm dashed #d9c4d2;padding:1mm;background:#fff}.item img{width:'+mm+'mm;height:'+mm+'mm;max-width:100%;object-fit:contain;flex:0 0 '+mm+'mm}.name{height:5mm;overflow:hidden;font-size:'+Math.max(7,Math.round(mm*.25))+'px;line-height:1.15;font-weight:700;text-align:center;margin-top:.5mm;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.price{height:5mm;font-size:'+Math.max(15,Math.round(mm*.50))+'px;font-weight:900;color:#c2185b;line-height:1;text-align:center;white-space:nowrap}.code{height:3mm;overflow:hidden;font-family:monospace;font-size:'+Math.max(6,Math.round(mm*.15))+'px;color:#777;white-space:nowrap;max-width:100%;text-overflow:ellipsis}</style></head><body><div class="grid">');
-  etiquetas.forEach(function(e){win.document.write('<div class="item"><img src="'+qrUrlFromCode(e.code,160)+'"><span class="name">'+e.nombre+'</span><span class="price">$'+e.precio.toFixed(2)+'</span><span class="code">'+e.code+'</span></div>');});
+  win.document.write('@page{size:A4 portrait;margin:8mm}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif}.grid{display:grid;grid-template-columns:repeat('+cols+','+mm+'mm);grid-auto-rows:'+labelH+'mm;gap:3mm;align-content:start}.item{width:'+mm+'mm;height:'+labelH+'mm;display:flex;flex-direction:column;align-items:center;overflow:hidden;border:.25mm dashed #d9c4d2;padding:'+pad+'mm;background:#fff}.item img{width:'+qr+'mm;height:'+qr+'mm;object-fit:contain;flex:0 0 '+qr+'mm}.name{height:5mm;overflow:hidden;font-size:'+Math.max(7,Math.round(mm*.22))+'px;line-height:1.1;font-weight:700;text-align:center;margin-top:.5mm;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.price{height:5mm;font-size:'+Math.max(14,Math.round(mm*.42))+'px;font-weight:900;color:#c2185b;line-height:1;text-align:center;white-space:nowrap}.code{height:2.5mm;overflow:hidden;font-family:monospace;font-size:'+Math.max(6,Math.round(mm*.13))+'px;color:#777;white-space:nowrap;max-width:100%;text-overflow:ellipsis}</style></head><body><div class="grid">');
+  etiquetas.forEach(function(e){var pr=e.precio!==null?'$'+e.precio.toFixed(2):'&nbsp;';win.document.write('<div class="item"><img src="'+qrUrlFromCode(e.code,160)+'"><span class="name">'+e.nombre+'</span><span class="price">'+pr+'</span><span class="code">'+e.code+'</span></div>');});
   win.document.write('</div></body></html>');win.document.close();setTimeout(function(){win.print();},500);
 }
-
 // Trackear página activa para scanner
 let irA_queEstoyEn = 'dashboard';
 
