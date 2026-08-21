@@ -413,7 +413,12 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
     z-index:200;display:flex;flex-direction:column;overflow:hidden;
   }
   .cart.open{transform:translateY(0)!important;display:flex!important;flex-direction:column!important}
-  .cart-items{padding:8px 14px 12px}.citem{grid-template-columns:48px minmax(0,1fr) auto;column-gap:9px}.citem-img,.citem-ph{width:48px;height:48px}.citem-price{min-width:54px;font-size:13px}
+  /* La lista conserva un espacio propio: los controles de pago no pueden aplastarla. */
+  .cart-items{flex:0 1 auto;min-height:150px;max-height:31vh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:8px 14px 12px;border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .cart-summary{padding:7px 16px}.sum-total{margin-top:6px;padding-top:6px}.sum-total-val{font-size:24px}
+  .cart-met{padding:6px 16px}.cart-met-lbl{margin-bottom:4px}.met-chips{gap:5px}.met-btn{height:31px;padding:0 9px;font-size:10px}
+  .cart-cuenta{padding:0 16px 4px}.cart-bs{padding:0 16px 4px}.cart-footer{padding:5px 16px 10px;gap:5px}.apt-btn{height:33px}.cobrar-btn{height:48px}
+  .citem{grid-template-columns:48px minmax(0,1fr) auto;column-gap:9px}.citem-img,.citem-ph{width:48px;height:48px}.citem-price{min-width:54px;font-size:13px}
   .cart-handle{display:flex!important;justify-content:center;padding:10px 0 4px;flex-shrink:0;cursor:pointer}
   .cart-handle-bar{width:40px;height:4px;border-radius:2px;background:var(--pk-m)}
   .topbar{padding:10px 12px 8px;gap:8px;width:100%;box-sizing:border-box;flex-wrap:nowrap}
@@ -1634,7 +1639,7 @@ init();
 <script id="version-status-script">
 (function(){
   var chip=document.getElementById('version-status-chip'), text=chip&&chip.querySelector('.vs-text'); if(!chip||!text)return;
-  var localVersion='v1787333947';
+  var localVersion='v1787338252';
   function versionActual(){return new URLSearchParams(location.search).get('v')||'';}
   function mostrar(clase,mensaje,titulo){chip.className=clase||'';text.textContent=mensaje;chip.title=titulo||mensaje;}
   window.verificarVersionApp=function(){
