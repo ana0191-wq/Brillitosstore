@@ -1080,6 +1080,10 @@ tr:hover td{background:#fff8fc}
     <button class="btn btn-secondary" onclick="imprimirQRGrid()">🖨️ Imprimir</button>
     <button class="btn btn-primary" id="btn-pdf-qr" onclick="descargarPDFQR()">📄 PDF 3.5×3.5cm</button>
   </div>
+  <div style="margin:10px 0 8px;padding:10px;background:#fafafa;border:1px solid #f3e8f0;border-radius:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px"><strong style="font-size:12px;color:#7a2454">Vista previa de impresión</strong><span id="qr-preview-size" style="font-size:11px;color:#888"></span></div>
+    <div style="display:flex;justify-content:center;overflow:auto;padding:5px"><div id="qr-label-preview"></div></div>
+  </div>
   <div id="qr-pdf-progress" style="display:none;margin:8px 0;background:#fce7f3;border-radius:10px;overflow:hidden;border:1px solid #f9a8d4">
     <div id="qr-pdf-progress-bar" style="height:8px;width:0;background:linear-gradient(90deg,#ec4899,#c026d3);transition:width .2s"></div>
     <div id="qr-pdf-progress-text" style="padding:6px 10px;font-size:12px;color:#9d174d;font-weight:700">Preparando etiquetas…</div>
@@ -1836,12 +1840,22 @@ function getTamanoEtiquetaQR(){
   if(sel.value==='custom') return Math.max(20,Math.min(80,parseInt(custom&&custom.value)||35));
   return parseInt(sel.value)||35;
 }
+function renderPreviewEtiquetaQR(){
+  var box=document.getElementById('qr-label-preview'); if(!box) return;
+  var mm=getTamanoEtiquetaQR(), h=Math.min(145,Math.max(72,Math.round(mm*2.7))), w=Math.round(h*2.25), qr=Math.round(h*.72);
+  var ejemplo=etiquetasQRSeleccionadas()[0]||{code:'BRILL-123',nombre:'Nombre del producto',precio:9.99};
+  var precio=ejemplo.precio!==null&&ejemplo.precio!==undefined?'$'+parseFloat(ejemplo.precio).toFixed(2):'';
+  box.style.cssText='width:'+w+'px;height:'+h+'px;display:grid;grid-template-columns:'+(qr+8)+'px 1fr;gap:5px;padding:7px;border:1.5px solid #aaa;background:#fff;overflow:hidden';
+  box.innerHTML='<img src="'+qrUrlFromCode(ejemplo.code,160)+'" style="width:'+qr+'px;height:'+qr+'px;object-fit:contain;align-self:center"><div style="min-width:0;display:flex;flex-direction:column;justify-content:space-between"><div style="font-size:10px;font-weight:900;color:#c2185b;text-transform:uppercase">Brillitos</div><div style="font-size:'+Math.max(10,Math.round(h*.12))+'px;font-weight:800;line-height:1.05;max-height:'+Math.round(h*.28)+'px;overflow:hidden">'+ejemplo.nombre+'</div><div style="font-family:monospace;font-size:8px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+ejemplo.code+'</div><div style="background:#fff0b8;border-radius:5px;padding:3px 5px;text-align:center;font-size:'+Math.max(17,Math.round(h*.22))+'px;font-weight:900;line-height:1">'+precio+'</div></div>';
+  var size=document.getElementById('qr-preview-size'); if(size) size.textContent=(mm/10).toFixed(mm%10?1:0)+' × '+((mm*2.25)/10).toFixed(1)+' cm';
+}
 function actualizarTamanoQR(){
   var sel=document.getElementById('qr-label-size');
   var custom=document.getElementById('qr-label-custom');
   if(custom) custom.style.display=sel&&sel.value==='custom'?'inline-block':'none';
   var mm=getTamanoEtiquetaQR();
   var b=document.getElementById('btn-pdf-qr'); if(b) b.textContent='📄 PDF '+(mm/10).toFixed(mm%10?1:0)+'×'+(mm/10).toFixed(mm%10?1:0)+'cm';
+  renderPreviewEtiquetaQR();
 }
 
 // QR: modal imprimir todos
@@ -1892,6 +1906,7 @@ async function descargarPDFQR(){
 function abrirImprimirQR(){
   renderQRGrid();
   abrirModal('modal-imprimir-qr');
+  actualizarTamanoQR();
 }
 
 function renderQRGrid(){
