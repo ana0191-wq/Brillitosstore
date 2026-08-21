@@ -1851,7 +1851,7 @@ function getTamanoEtiquetaQR(){ return 25; }
 function getAnchoEtiquetaQR(){ return 35; }
 function renderPreviewEtiquetaQR(){
   var box=document.getElementById('qr-label-preview'); if(!box) return;
-  var h=100,w=140,qr=72;
+  var h=100,w=140,qr=56;
   var ejemplo=etiquetasQRSeleccionadas()[0]||{code:'BRILL-123',nombre:'Nombre del producto',precio:9.99};
   var precio=ejemplo.precio!==null&&ejemplo.precio!==undefined?'$'+parseFloat(ejemplo.precio).toFixed(2):'';
   box.style.cssText='width:'+w+'px;height:'+h+'px;display:grid;grid-template-columns:'+(qr+8)+'px 1fr;gap:5px;padding:7px;border:1.5px solid #aaa;background:#fff;overflow:hidden';
@@ -1901,23 +1901,24 @@ async function descargarPDFQR(){
     var listos=0;
     var base64s=await Promise.all(etiquetas.map(function(e){return cargarQRBase64(e.code).then(function(r){listos++;actualizarProgresoQR(listos,total,'Cargando QR');return r;});}));
     // Mismo formato horizontal de la vista previa/Imprimir.
-    var PAGE_W=216,PAGE_H=279,M=2,w=getAnchoEtiquetaQR(),h=getTamanoEtiquetaQR(),cols=Math.floor((PAGE_W-M*2)/w),rows=Math.floor((PAGE_H-M*2)/h),qr=21,textX=qr+4,col=0,row=0;
+    var PAGE_W=216,PAGE_H=279,M=2,w=getAnchoEtiquetaQR(),h=getTamanoEtiquetaQR(),cols=Math.floor((PAGE_W-M*2)/w),rows=Math.floor((PAGE_H-M*2)/h),qr=14,px=1.5,textX=17,tw=16.5,col=0,row=0;
     var doc=new window.jspdf.jsPDF({unit:'mm',format:[PAGE_W,PAGE_H],orientation:'portrait'});
     etiquetas.forEach(function(e,i){
       var x=M+col*w,y=M+row*h;
       if(row>=rows){doc.addPage([PAGE_W,PAGE_H],'portrait');col=0;row=0;x=M;y=M;}
       // Cuadrícula continua: una línea compartida entre etiquetas.
       doc.setDrawColor(170,170,170);doc.setLineWidth(.25);doc.rect(x,y,w,h);
-      if(base64s[i]) doc.addImage(base64s[i],'PNG',x+2,y+2,qr,qr);
-      var tx=x+textX,tw=w-textX-2;
-      doc.setFont('helvetica','bold');doc.setFontSize(Math.max(6,h*.15));doc.setTextColor(194,24,91);doc.text('BRILLITOS',tx,y+5);
-      doc.setTextColor(0,0,0);doc.setFontSize(Math.max(7,h*.20));
-      var nombre=e.nombre.length>34?e.nombre.slice(0,32)+'…':e.nombre;
-      var lines=doc.splitTextToSize(nombre,tw);doc.text(lines.slice(0,2),tx,y+10,{maxWidth:tw});
-      doc.setFillColor(245,245,245);doc.roundedRect(tx,y+h-14,tw,3.8,.6,.6,'F');doc.setFont('courier','bold');doc.setFontSize(Math.max(6.5,h*.15));doc.setTextColor(45,45,45);doc.text(e.code,tx+tw/2,y+h-11.2,{align:'center',maxWidth:tw-1});
+      if(base64s[i]) doc.addImage(base64s[i],'PNG',x+px,y+(h-qr)/2,qr,qr);
+      var tx=x+textX;
+      // Bloque derecho: cada elemento tiene una franja fija dentro de 35 × 25 mm.
+      doc.setFont('helvetica','bold');doc.setFontSize(4.1);doc.setTextColor(194,24,91);doc.text('BRILLITOS',tx,y+4.2);
+      doc.setTextColor(0,0,0);doc.setFontSize(5.3);
+      var nombre=e.nombre.length>19?e.nombre.slice(0,17)+'…':e.nombre;
+      var lines=doc.splitTextToSize(nombre,tw);doc.text(lines.slice(0,2),tx,y+8.6,{maxWidth:tw});
+      doc.setFillColor(245,245,245);doc.roundedRect(tx,y+13.2,tw,3.2,.5,.5,'F');doc.setFont('courier','bold');doc.setFontSize(3.8);doc.setTextColor(45,45,45);doc.text(e.code,tx+tw/2,y+15.55,{align:'center',maxWidth:tw-1});
       if(e.precio!==null){
-        doc.setFillColor(255,240,184);doc.roundedRect(tx,y+h-9,tw,7,1,1,'F');
-        doc.setFont('helvetica','bold');doc.setFontSize(Math.max(12,h*.42));doc.setTextColor(20,20,20);doc.text('$'+e.precio.toFixed(2),tx+tw/2,y+h-3.2,{align:'center'});
+        doc.setFillColor(255,225,50);doc.roundedRect(tx,y+17.3,tw,6.3,1,1,'F');
+        doc.setFont('helvetica','bold');doc.setFontSize(8.8);doc.setTextColor(20,20,20);doc.text('$'+e.precio.toFixed(2),tx+tw/2,y+22.0,{align:'center'});
       }
       col++;if(col>=cols){col=0;row++;} actualizarProgresoQR(i+1,total,'Armando PDF');
     });
