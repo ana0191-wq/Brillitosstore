@@ -1910,7 +1910,7 @@ async function descargarPDFQR(){
       if(base64s[i]) doc.addImage(base64s[i],'PNG',x+qrX,y+(h-qr)/2,qr,qr);
       var tx=x+infoX;
       // Nombre: área exclusiva superior (máx. 3 líneas); el tamaño baja solo si es necesario.
-      var nombre=e.nombre||'', nameSize=3.9; doc.setFont('helvetica','bold'); doc.setFontSize(nameSize);
+      var nombre=e.nombre||'', nameSize=5.9; doc.setFont('helvetica','bold'); doc.setFontSize(nameSize);
       var lines=doc.splitTextToSize(nombre,infoW);
       while(lines.length>3&&nameSize>2.2){nameSize-=.2;doc.setFontSize(nameSize);lines=doc.splitTextToSize(nombre,infoW);}
       doc.setTextColor(0,0,0);doc.text(lines.slice(0,3),tx,y+4.1,{maxWidth:infoW,lineHeightFactor:1.03});
@@ -1920,7 +1920,7 @@ async function descargarPDFQR(){
       // Precio: banda exclusiva inferior.
       if(e.precio!==null){
         doc.setFillColor(255,225,50);doc.roundedRect(tx,y+16.3,infoW,6.6,1,1,'F');
-        doc.setFont('helvetica','bold');doc.setFontSize(7.0);doc.setTextColor(20,20,20);doc.text('$'+e.precio.toFixed(2),tx+infoW/2,y+21.3,{align:'center'});
+        if(parseFloat(e.precio)>0){ doc.setFont('helvetica','bold');doc.setFontSize(7.0);doc.setTextColor(20,20,20);doc.text('$'+e.precio.toFixed(2),tx+infoW/2,y+21.3,{align:'center'}); }
       }
       col++;if(col>=cols){col=0;row++;} actualizarProgresoQR(i+1,total,'Armando PDF');
     });
@@ -3007,6 +3007,8 @@ function verCotizacionVenta(id){
   abrirModal('modal-cotizacion');
 }
 
+function numeroVentaUnico(prefijo){ var d=new Date(); return prefijo+'-'+d.getFullYear()+'-'+d.getTime().toString(36)+'-'+Math.random().toString(36).slice(2,6).toUpperCase(); }
+
 // ===== COTIZACIÓN MEJORADA =====
 var _cotizacionData = null;
 var _cotizacionVentaId = null;
@@ -3061,9 +3063,7 @@ async function guardarCotizacion(){
   if(!_cotizacionData){ toast('⚠️ Abre una cotización primero'); return; }
   const d = _cotizacionData;
   const tasa = d.tasa || bcvHoy || 484.74;
-  const cntV = await sbGet('ventas','select=id&limit=1&order=id.desc');
-  const lastId = (Array.isArray(cntV)&&cntV[0]&&cntV[0].id)||0;
-  const num = 'COT-'+new Date().getFullYear()+'-'+String(lastId+1).padStart(3,'0');
+  const num = numeroVentaUnico('COT');
   const res = await sbPost('ventas',{
     numero:num, cliente_nombre:d.nombre||'—', canal:d.canal||'WhatsApp',
     metodo_pago:d.metodo||'Pago Móvil', tipo_entrega:d.entrega||'—',
@@ -3147,7 +3147,7 @@ async function confirmarPedidoWeb(id){
       if(p){ const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
     }
   }
-  await sbPatch('apartados',id,{estado:'Pagado',referencia_pago:ref||null,abono:a.total,saldo:0});
+  await sbPatch('apartados',id,{estado:'Pagado',abono:a.total,saldo:0});
   a.estado='Pendiente';
   renderApartados(); renderProductos(); renderPOS(); cargarDashboard();
   toast('✅ Pedido confirmado — stock descontado');
@@ -3167,9 +3167,7 @@ async function confirmarConRef(id){
   const a=apartados.find(x=>x.id===id); if(!a) return;
   if(!confirm('¿Confirmar pago'+( ref?' con ref: '+ref:'')+' y convertir en venta?')) return;
   // Crear venta
-  const cntV=await sbGet('ventas','select=id&limit=1&order=id.desc');
-  const lastVId=(Array.isArray(cntV)&&cntV[0]&&cntV[0].id)||0;
-  const num='V-'+new Date().getFullYear()+'-'+String(lastVId+1).padStart(3,'0');
+  const num=numeroVentaUnico('V');
   const res=await sbPost('ventas',{numero:num,cliente_id:a.cliente_id||null,cliente_nombre:a.cliente_nombre,
     canal:a.canal||'Evento',metodo_pago:a.metodo_pago||'Pago Móvil',estado:'Pagado',
     subtotal:a.total,costo_envio:0,descuento:0,total:a.total,
@@ -3180,7 +3178,7 @@ async function confirmarConRef(id){
     await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,
       body:JSON.stringify({venta_id:vid,producto_id:it.producto_id,producto_nombre:it.producto_nombre,
         precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
-  await sbPatch('apartados',id,{estado:'Completado',referencia_pago:ref||null,abono:a.total,saldo:0});
+  await sbPatch('apartados',id,{estado:'Completado',abono:a.total,saldo:0});
   a.estado='Completado';
   ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
   apartados=await sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200');
@@ -3356,9 +3354,7 @@ async function guardarApartado(){
 }
 async function completarApartado(id){
   const a=apartados.find(x=>x.id===id); if(!a||!confirm('¿Convertir en venta?')) return;
-  const cntV2=await sbGet('ventas','select=id&limit=1&order=id.desc');
-  const lastVId2=(Array.isArray(cntV2)&&cntV2[0]&&cntV2[0].id)||0;
-  const num='V-'+new Date().getFullYear()+'-'+String(lastVId2+1).padStart(3,'0');
+  const num=numeroVentaUnico('V');
   const res=await sbPost('ventas',{numero:num,cliente_id:a.cliente_id,cliente_nombre:a.cliente_nombre,canal:'WhatsApp',metodo_pago:'Pago Móvil',tipo_entrega:'Entrega directa',estado:'Pagado',subtotal:a.total,costo_envio:0,descuento:0,total:a.total,fecha_venta:new Date().toISOString().slice(0,10),tasa_bcv_usada:bcvHoy||0,monto_bs:0});
   const vid=res[0]&&res[0].id;
   if(vid) for(const it of a.apartado_items||[]) await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,body:JSON.stringify({venta_id:vid,producto_id:it.producto_id,producto_nombre:it.producto_nombre,precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
