@@ -852,7 +852,7 @@ function resolverQR(code){
   var buscado=normQR(code);
   for(var i=0;i<prods.length;i++){
     var p=prods[i], vars=p.producto_variantes||p.variantes||[];
-    if(normQR(codProd(p.id))===buscado || normQR(p.codigo)===buscado || String(p.id)===String(code).trim()) return {producto:p,variante:null};
+    if(normQR(codProd(p.id))===buscado || normQR(p.codigo)===buscado || (p.codigo&&('BRILL-'+normQR(p.codigo))===buscado) || String(p.id)===String(code).trim()) return {producto:p,variante:null};
     for(var j=0;j<vars.length;j++){
       var v=vars[j];
       if(normQR(codVar(p.id,v.id))===buscado || normQR(v.qr_code)===buscado) return {producto:p,variante:v};
@@ -1134,7 +1134,10 @@ async function init(){
   $('loading-sub').textContent='Cargando productos...';
   try{
     const data=await GET('productos','select=*,producto_variantes(*)&order=id.desc&limit=500');
-    prods=Array.isArray(data)?data.filter(p=>p.activo!==false&&parseInt(p.stock||0)>0):[];
+    prods=Array.isArray(data)?data.filter(p=>{
+      var vars=p.producto_variantes||p.variantes||[];
+      return p.activo!==false&&(parseInt(p.stock||0)>0||vars.some(v=>v.activo!==false&&parseInt(v.stock||0)>0));
+    }):[];
     $('loading-sub').textContent='Cargando tasa BCV...';
     try{
       const r=await fetch('https://ve.dolarapi.com/v1/dolares/oficial',{signal:AbortSignal.timeout(6000)});

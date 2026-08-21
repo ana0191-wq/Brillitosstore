@@ -1718,14 +1718,16 @@ let scannerInstance = null;
 let scannerActive = false;
 
 function codigoProd(id){ return 'BRILL-'+id; }
+function codigoEstableProducto(p){ var c=p&&p.codigo&&String(p.codigo).trim(); return c?(normalizarCodigoQR(c).startsWith('BRILL-')?normalizarCodigoQR(c):'BRILL-'+normalizarCodigoQR(c)):codigoProd(p&&p.id); }
 function qrUrl(id,size=150){ return 'https://api.qrserver.com/v1/create-qr-code/?size='+size+'x'+size+'&color=c2185b&data='+encodeURIComponent(codigoProd(id)); }
+function qrUrlProducto(p,size=150){ return qrUrlFromCode(codigoEstableProducto(p),size); }
 function codigoVariante(prodId,varId){ return 'BRILL-'+prodId+'-V'+varId; }
 function normalizarCodigoQR(code){ return String(code||'').trim().toUpperCase(); }
 function resolverCodigoQR(code){
   var buscado=normalizarCodigoQR(code);
   for(var i=0;i<productos.length;i++){
     var p=productos[i], vars=p.producto_variantes||p.variantes||[];
-    if(normalizarCodigoQR(codigoProd(p.id))===buscado || normalizarCodigoQR(p.codigo)===buscado || String(p.id)===String(code).trim()) return {producto:p,variante:null};
+    if(normalizarCodigoQR(codigoEstableProducto(p))===buscado || normalizarCodigoQR(codigoProd(p.id))===buscado || normalizarCodigoQR(p.codigo)===buscado || (p.codigo&&('BRILL-'+normalizarCodigoQR(p.codigo))===buscado) || String(p.id)===String(code).trim()) return {producto:p,variante:null};
     for(var j=0;j<vars.length;j++){
       var v=vars[j];
       if(normalizarCodigoQR(codigoVariante(p.id,v.id))===buscado || normalizarCodigoQR(v.qr_code)===buscado) return {producto:p,variante:v};
@@ -1836,8 +1838,8 @@ function beep(){
 function verQRProducto(id){
   const p = productos.find(x=>x.id===id); if(!p) return;
   document.getElementById('qr-single-nombre').textContent = p.nombre;
-  document.getElementById('qr-single-img').src = qrUrl(id, 220);
-  document.getElementById('qr-single-code').textContent = codigoProd(id);
+  document.getElementById('qr-single-img').src = qrUrlProducto(productos.find(function(x){return x.id===id;}), 220);
+  document.getElementById('qr-single-code').textContent = codigoEstableProducto(productos.find(function(x){return x.id===id;}));
   document.getElementById('qr-single-precio').textContent = '$'+parseFloat(p.precio||0).toFixed(2);
   document.getElementById('modal-qr-single').classList.add('open');
 }
@@ -1890,7 +1892,7 @@ function etiquetasQRSeleccionadas(){
     });
     else if(!tieneVariantes&&parseInt(p.stock||0)>0){
       var precioP=(p.precio!==null&&p.precio!==undefined&&p.precio!==''&&parseFloat(p.precio)>0)?parseFloat(p.precio):null;
-      out.push({code:codigoProd(p.id),nombre:p.nombre,precio:precioP});
+      out.push({code:codigoEstableProducto(p),nombre:p.nombre,precio:precioP});
     }
   });
   return out;
@@ -3555,8 +3557,8 @@ function abrirModalProducto(id=null){
   // Mostrar QR del producto si existe
   const qrWrap = document.getElementById('prod-qr-preview');
   if(p && p.id){
-    document.getElementById('prod-qr-img').src = qrUrl(p.id, 72);
-    document.getElementById('prod-qr-code').textContent = codigoProd(p.id);
+    document.getElementById('prod-qr-img').src = qrUrlProducto(p, 72);
+    document.getElementById('prod-qr-code').textContent = codigoEstableProducto(p);
     qrWrap.style.display = 'flex';
   } else { qrWrap.style.display = 'none'; }
   abrirModal('modal-producto');
