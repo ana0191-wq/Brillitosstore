@@ -572,6 +572,11 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   pointer-events:none;
 }
 </style>
+
+<style id="version-status-style">
+#version-status-chip{position:fixed;right:14px;bottom:14px;z-index:99999;display:flex;align-items:center;gap:6px;max-width:210px;padding:7px 10px;border:1px solid rgba(194,24,91,.22);border-radius:999px;background:rgba(255,255,255,.96);box-shadow:0 4px 14px rgba(55,20,55,.16);color:#5b4358;font:600 11px/1.2 Arial,sans-serif;cursor:default;backdrop-filter:blur(7px)}
+#version-status-chip .vs-dot{width:7px;height:7px;border-radius:50%;background:#2e9b57;box-shadow:0 0 0 3px rgba(46,155,87,.14);flex:none}#version-status-chip.update{cursor:pointer;color:#9c1559;border-color:#e569a5;background:#fff5fa}#version-status-chip.update .vs-dot{background:#e38a18;box-shadow:0 0 0 3px rgba(227,138,24,.14)}#version-status-chip.loading .vs-dot{background:#999;box-shadow:none}@media(max-width:600px){#version-status-chip{right:10px;bottom:76px;font-size:10px;padding:6px 9px}}
+</style>
 </head>
 <body>
 
@@ -1615,6 +1620,26 @@ document.addEventListener('click',e=>{
 });
 
 init();
+</script>
+
+<div id="version-status-chip" class="loading" aria-live="polite" title="Comprobando versión"><span class="vs-dot"></span><span class="vs-text">Comprobando versión…</span></div>
+
+<script id="version-status-script">
+(function(){
+  var chip=document.getElementById('version-status-chip'), text=chip&&chip.querySelector('.vs-text'); if(!chip||!text)return;
+  var localVersion='v1787332054';
+  function versionActual(){return new URLSearchParams(location.search).get('v')||'';}
+  function mostrar(clase,mensaje,titulo){chip.className=clase||'';text.textContent=mensaje;chip.title=titulo||mensaje;}
+  window.verificarVersionApp=function(){
+    mostrar('loading','Comprobando versión…');
+    fetch('version.json?cb='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error();return r.json();}).then(function(data){
+      var remota=data.version||'', cargada=versionActual();
+      if(cargada && cargada!==remota){mostrar('update','↻ Nueva versión lista','Toca para actualizar');chip.onclick=function(){var u=new URL(location.href);u.searchParams.set('v',remota);location.replace(u.toString());};}
+      else {mostrar('','● Actualizado · '+(remota||localVersion),'Versión actual: '+(remota||localVersion));chip.onclick=null;}
+    }).catch(function(){mostrar('loading','● Versión local','No se pudo comprobar GitHub Pages');chip.onclick=null;});
+  };
+  window.addEventListener('load',function(){setTimeout(window.verificarVersionApp,500);});
+})();
 </script>
 </body>
 </html>
