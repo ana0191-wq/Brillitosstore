@@ -234,11 +234,25 @@ tr:hover td{background:#fff8fc}
   .pos-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .pos-card{padding:9px}
   .pos-card-img,.pos-card-placeholder{width:100%;height:clamp(120px,38vw,170px)}
+  #page-pos .page-header{position:sticky;top:0;z-index:20;background:#f0e8f4}
+  .pos-productos{padding:10px;min-width:0}
+  .pos-cats{flex-wrap:nowrap;overflow-x:auto;padding:2px 0 7px;margin:8px 0;scrollbar-width:none}
+  .pos-cat{white-space:nowrap;flex:0 0 auto;padding:7px 11px}
+  .pos-carrito{position:static;min-height:0;max-height:none;box-shadow:none}
+  .pos-carrito-footer{position:sticky;bottom:0;background:#fff;z-index:2}
+  .pos-metodos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+  .pos-metodo{margin:0!important;text-align:center;font-size:11px;padding:7px 4px}
   .prod-picker-item{gap:10px;padding:10px 12px}
   .prod-picker-item img,.prod-picker-item .pi-noimg{width:clamp(78px,23vw,104px);height:clamp(78px,23vw,104px)}
   .prod-picker-item .pi-nombre{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 }
 
+
+@media(min-width:701px) and (max-width:980px){
+  .pos-layout{grid-template-columns:minmax(0,1fr) 300px}
+  .pos-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:10px}
+  .pos-card-img,.pos-card-placeholder{height:140px}
+}
 @keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
 
 .bs-item{display:flex;align-items:center;gap:12px;padding:13px 16px;cursor:pointer;border-bottom:1px solid #fdf2f8;transition:background .1s;-webkit-tap-highlight-color:transparent}
@@ -1846,7 +1860,7 @@ function renderPreviewEtiquetaQR(){
   var ejemplo=etiquetasQRSeleccionadas()[0]||{code:'BRILL-123',nombre:'Nombre del producto',precio:9.99};
   var precio=ejemplo.precio!==null&&ejemplo.precio!==undefined?'$'+parseFloat(ejemplo.precio).toFixed(2):'';
   box.style.cssText='width:'+w+'px;height:'+h+'px;display:grid;grid-template-columns:'+(qr+8)+'px 1fr;gap:5px;padding:7px;border:1.5px solid #aaa;background:#fff;overflow:hidden';
-  box.innerHTML='<img src="'+qrUrlFromCode(ejemplo.code,160)+'" style="width:'+qr+'px;height:'+qr+'px;object-fit:contain;align-self:center"><div style="min-width:0;display:flex;flex-direction:column;justify-content:space-between"><div style="font-size:10px;font-weight:900;color:#c2185b;text-transform:uppercase">Brillitos</div><div style="font-size:'+Math.max(10,Math.round(h*.12))+'px;font-weight:800;line-height:1.05;max-height:'+Math.round(h*.28)+'px;overflow:hidden">'+ejemplo.nombre+'</div><div style="font-family:monospace;font-size:8px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+ejemplo.code+'</div><div style="background:#fff0b8;border-radius:5px;padding:3px 5px;text-align:center;font-size:'+Math.max(17,Math.round(h*.22))+'px;font-weight:900;line-height:1">'+precio+'</div></div>';
+  box.innerHTML='<img src="'+qrUrlFromCode(ejemplo.code,160)+'" style="width:'+qr+'px;height:'+qr+'px;object-fit:contain;align-self:center"><div style="min-width:0;display:flex;flex-direction:column;justify-content:space-between"><div style="font-size:10px;font-weight:900;color:#c2185b;text-transform:uppercase">Brillitos</div><div style="font-size:'+Math.max(10,Math.round(h*.12))+'px;font-weight:800;line-height:1.05;max-height:'+Math.round(h*.28)+'px;overflow:hidden">'+ejemplo.nombre+'</div><div style="font-family:monospace;font-size:10px;font-weight:800;color:#333;background:#f5f5f5;border-radius:4px;padding:2px 4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+ejemplo.code+'</div><div style="background:#fff0b8;border-radius:5px;padding:3px 5px;text-align:center;font-size:'+Math.max(17,Math.round(h*.22))+'px;font-weight:900;line-height:1">'+precio+'</div></div>';
   var size=document.getElementById('qr-preview-size'); if(size) size.textContent=(mm/10).toFixed(mm%10?1:0)+' × '+((mm*2.25)/10).toFixed(1)+' cm';
 }
 function actualizarTamanoQR(){
@@ -1903,7 +1917,7 @@ async function descargarPDFQR(){
       doc.setTextColor(0,0,0);doc.setFontSize(Math.max(7,h*.20));
       var nombre=e.nombre.length>34?e.nombre.slice(0,32)+'…':e.nombre;
       var lines=doc.splitTextToSize(nombre,tw);doc.text(lines.slice(0,2),tx,y+10,{maxWidth:tw});
-      doc.setFont('courier','normal');doc.setFontSize(Math.max(5,h*.10));doc.setTextColor(110,110,110);doc.text(e.code,tx,y+h-11,{maxWidth:tw});
+      doc.setFillColor(245,245,245);doc.roundedRect(tx,y+h-14,tw,3.8,.6,.6,'F');doc.setFont('courier','bold');doc.setFontSize(Math.max(6.5,h*.15));doc.setTextColor(45,45,45);doc.text(e.code,tx+tw/2,y+h-11.2,{align:'center',maxWidth:tw-1});
       if(e.precio!==null){
         doc.setFillColor(255,240,184);doc.roundedRect(tx,y+h-9,tw,7,1,1,'F');
         doc.setFont('helvetica','bold');doc.setFontSize(Math.max(12,h*.42));doc.setTextColor(20,20,20);doc.text('$'+e.precio.toFixed(2),tx+tw/2,y+h-3.2,{align:'center'});
@@ -1951,7 +1965,7 @@ function imprimirQRGrid(){
   // Etiqueta horizontal estilo precio: QR izquierda, datos y precio a la derecha.
   var h=mm, w=Math.round(mm*2.25), cols=Math.max(1,Math.floor(194/w)), qr=Math.max(14,h-4), border=.25;
   win.document.write('<html><head><title>Etiquetas Brillitos</title><style>');
-  win.document.write('@page{size:A4 portrait;margin:6mm}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,sans-serif}.grid{display:grid;grid-template-columns:repeat('+cols+','+w+'mm);grid-auto-rows:'+h+'mm;gap:0;align-content:start}.item{width:'+w+'mm;height:'+h+'mm;display:grid;grid-template-columns:'+(qr+2)+'mm 1fr;gap:1mm;overflow:hidden;border-right:'+border+'mm solid #aaa;border-bottom:'+border+'mm solid #aaa;padding:2mm;background:#fff}.item:nth-child(-n+'+cols+'){border-top:'+border+'mm solid #aaa}.item:nth-child('+cols+'n+1){border-left:'+border+'mm solid #aaa}.item img{width:'+qr+'mm;height:'+qr+'mm;object-fit:contain;align-self:center}.info{height:100%;min-width:0;display:flex;flex-direction:column;justify-content:space-between}.brand{font-size:'+Math.max(6,Math.round(h*.15))+'px;font-weight:800;color:#c2185b;text-transform:uppercase;letter-spacing:.2px}.name{font-size:'+Math.max(8,Math.round(h*.22))+'px;font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.code{font-family:monospace;font-size:'+Math.max(5,Math.round(h*.11))+'px;color:#777;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.priceBox{background:#fff0b8;border-radius:2mm;padding:1mm 1.5mm;min-height:'+Math.round(h*.32)+'mm;display:flex;align-items:center;justify-content:center}.price{font-size:'+Math.max(16,Math.round(h*.52))+'px;font-weight:900;line-height:1;color:#111;white-space:nowrap}</style></head><body><div class="grid">');
+  win.document.write('@page{size:A4 portrait;margin:6mm}*{box-sizing:border-box}html,body{margin:0;padding:0;font-family:Arial,sans-serif}.grid{display:grid;grid-template-columns:repeat('+cols+','+w+'mm);grid-auto-rows:'+h+'mm;gap:0;align-content:start}.item{width:'+w+'mm;height:'+h+'mm;display:grid;grid-template-columns:'+(qr+2)+'mm 1fr;gap:1mm;overflow:hidden;border-right:'+border+'mm solid #aaa;border-bottom:'+border+'mm solid #aaa;padding:2mm;background:#fff}.item:nth-child(-n+'+cols+'){border-top:'+border+'mm solid #aaa}.item:nth-child('+cols+'n+1){border-left:'+border+'mm solid #aaa}.item img{width:'+qr+'mm;height:'+qr+'mm;object-fit:contain;align-self:center}.info{height:100%;min-width:0;display:flex;flex-direction:column;justify-content:space-between}.brand{font-size:'+Math.max(6,Math.round(h*.15))+'px;font-weight:800;color:#c2185b;text-transform:uppercase;letter-spacing:.2px}.name{font-size:'+Math.max(8,Math.round(h*.22))+'px;font-weight:800;line-height:1.1;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}.code{font-family:monospace;font-size:'+Math.max(7,Math.round(h*.15))+'px;font-weight:800;color:#333;background:#f5f5f5;border-radius:1mm;padding:.5mm 1mm;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}.priceBox{background:#fff0b8;border-radius:2mm;padding:1mm 1.5mm;min-height:'+Math.round(h*.32)+'mm;display:flex;align-items:center;justify-content:center}.price{font-size:'+Math.max(16,Math.round(h*.52))+'px;font-weight:900;line-height:1;color:#111;white-space:nowrap}</style></head><body><div class="grid">');
   etiquetas.forEach(function(e){var pr=e.precio!==null?'$'+e.precio.toFixed(2):'&nbsp;';win.document.write('<div class="item"><img src="'+qrUrlFromCode(e.code,160)+'"><div class="info"><div class="brand">Brillitos</div><div class="name">'+e.nombre+'</div><div class="code">'+e.code+'</div><div class="priceBox"><span class="price">'+pr+'</span></div></div></div>');});
   win.document.write('</div></body></html>');win.document.close();setTimeout(function(){win.print();},500);
 }
@@ -5744,7 +5758,7 @@ function renderMovimientosBancaAmiga(){
 }
 </script>
 
-<a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
+
 
 <div id="modal-cats" class="modal-overlay" style="display:none" onclick="if(event.target===this)cerrarModal('modal-cats')"><div class="modal-box" style="max-width:480px;max-height:85vh;overflow-y:auto"><div class="modal-title">&#9881; Categorias y Subcategorias</div><div style="margin-bottom:12px"><label style="font-size:12px;font-weight:700;color:#666;display:block;margin-bottom:6px">Nueva categoria</label><div style="display:flex;gap:8px"><input id="gc-nueva-cat" type="text" placeholder="Ej: Peluches" style="flex:1;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px"><button onclick="gcAgregarCat()" style="background:var(--pink);color:white;border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer">+ Agregar</button></div></div><div style="margin-bottom:14px"><label style="font-size:12px;font-weight:700;color:#666;display:block;margin-bottom:6px">Nueva subcategoria</label><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="gc-cat-para-sub" style="flex:1;min-width:130px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:white"></select><input id="gc-nueva-sub" type="text" placeholder="Ej: Chiikawa" style="flex:2;min-width:110px;padding:9px 12px;border:1.5px solid var(--border);border-radius:10px;font-size:14px"><button onclick="gcAgregarSub()" style="background:var(--pink);color:white;border:none;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer">+ Agregar</button></div></div><div id="gc-lista" style="max-height:280px;overflow-y:auto;display:flex;flex-direction:column;gap:6px"></div><div style="margin-top:16px;text-align:right"><button onclick="cerrarModal('modal-cats')" class="btn btn-secondary">Cerrar</button></div></div></div>
 
