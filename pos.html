@@ -833,8 +833,8 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
 <div class="toast" id="toast"></div>
 
 <script>
-const SB  = 'https://jzhayqzmrpfesmhdxyaf.supabase.co';
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6aGF5cXptcnBmZXNtaGR4eWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDI0NjAsImV4cCI6MjA5NjUxODQ2MH0._xMDStHXilbIisOF6vKIpxMLhQsFx0UMTgj79RN1PKU';
+const SB  = 'https://xavqokyzdmqzguicjsrq.supabase.co';
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU';
 const H   = {apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'};
 const CUENTAS=[
   {id:'bancaamiga',label:'Bancamiga',tipo:'Pago Móvil',  tlf:'04249372490',cuenta:'26.239.265',banco:'Bancamiga'},
@@ -1090,6 +1090,15 @@ async function compartirPedido(){
 }
 
 async function GET(t,q){const r=await fetch(`${SB}/rest/v1/${t}?${q}`,{headers:H});return r.ok?r.json():[];}
+async function cargarCatalogoCompleto(){
+  var todos=[],desde=0,tamano=500,lote=[];
+  do{
+    lote=await GET('productos','select=*,producto_variantes(*)&order=id.desc&limit='+tamano+'&offset='+desde);
+    if(Array.isArray(lote)) todos=todos.concat(lote);
+    desde+=tamano;
+  }while(Array.isArray(lote)&&lote.length===tamano);
+  return todos;
+}
 function fetchTimeout(url,opts,ms=10000){
   const ctrl=new AbortController();
   const tid=setTimeout(()=>ctrl.abort(),ms);
@@ -1138,7 +1147,7 @@ document.addEventListener('touchstart',function ia(){getAudioCtx();document.remo
 async function init(){
   $('loading-sub').textContent='Cargando productos...';
   try{
-    const data=await GET('productos','select=*,producto_variantes(*)&order=id.desc&limit=500');
+    const data=await cargarCatalogoCompleto();
     prods=Array.isArray(data)?data.filter(p=>{
       var vars=p.producto_variantes||p.variantes||[];
       return p.activo!==false&&(parseInt(p.stock||0)>0||vars.some(v=>v.activo!==false&&parseInt(v.stock||0)>0));
@@ -1627,7 +1636,7 @@ init();
 <script id="version-status-script">
 (function(){
   var chip=document.getElementById('version-status-chip'), text=chip&&chip.querySelector('.vs-text'); if(!chip||!text)return;
-  var localVersion='v1787332092';
+  var localVersion='v1787333449';
   function versionActual(){return new URLSearchParams(location.search).get('v')||'';}
   function mostrar(clase,mensaje,titulo){chip.className=clase||'';text.textContent=mensaje;chip.title=titulo||mensaje;}
   window.verificarVersionApp=function(){
