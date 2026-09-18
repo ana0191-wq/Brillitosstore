@@ -592,10 +592,10 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <input type="hidden" id="pp-pct" value="5.4">
         <input type="hidden" id="pp-fix" value="0.30">
         <div class="subtotal-row"><span class="label">Comisión PayPal</span><span class="val" id="pp-fee">$0.00</span></div>
-        <div class="subtotal-row"><span class="label">Total a cobrar al cliente</span><span class="val highlight" id="pp-total">$0.00</span></div>
-        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Tú recibirás aprox.</span><span class="val" id="pp-recv" style="font-size:.72rem">$0.00</span></div>
+        <div class="subtotal-row"><span class="label">Total a enviar por PayPal</span><span class="val highlight" id="pp-total">$0.00</span></div>
+        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Monto de tu compra</span><span class="val" id="pp-recv" style="font-size:.72rem">$0.00</span></div>
         <div class="pp-note" style="margin-bottom:8px">📧 PayPal: <strong>ana0191@gmail.com</strong></div>
-        <button class="pay-action blue" onclick="sendWA('paypal')">💬 Enviar con total PayPal</button>
+        <button class="pay-action blue" onclick="sendWA('paypal')">📸 Ya pagué por PayPal · Enviar comprobante</button>
       </div>
       <div class="pay-section" id="sec-bnc">
         <div class="subtotal-row"><span class="label">Subtotal en USD</span><span class="val" id="bnc-sub">$0.00</span></div>
@@ -608,7 +608,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <div class="subtotal-row"><span class="label">Total a cobrar en USDT</span><span class="val highlight" id="bnc-total">0.00 USDT</span></div>
         <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Equivale a</span><span class="val" id="bnc-usd" style="font-size:.72rem">$0.00</span></div>
         <div class="pp-note" style="margin-bottom:8px">📧 Binance Pay: <strong>ana0191@gmail.com</strong></div>
-        <button class="pay-action yellow" onclick="sendWA('binance')">💬 Enviar con total Binance</button>
+        <button class="pay-action yellow" onclick="sendWA('binance')">📸 Ya pagué por Binance · Enviar comprobante</button>
       </div>
       <div class="pay-section" id="sec-wa">
         <div class="subtotal-row"><span class="label">Subtotal</span><span class="val highlight" id="wa-sub">$0.00</span></div>
@@ -1558,13 +1558,13 @@ async function sendWA(method){
     const pct=parseFloat(document.getElementById('pp-pct').value)||5.4;
     const fix=parseFloat(document.getElementById('pp-fix').value)||0.30;
     const charge=(sub+fix)/(1-pct/100);
-    payLine='\n🅿️ *Pago por PayPal*\nEnviar a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\nComisión PayPal ('+pct+'% + '+fix+'): '+(charge-sub).toFixed(2)+'\n💰 *Total a pagar: '+charge.toFixed(2)+' USD*';
+    payLine='\n🅿️ *Pago por PayPal*\nEnvía a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\nComisión PayPal ('+pct+'% + '+fix+'): '+(charge-sub).toFixed(2)+'\n💰 *Total a enviar: '+charge.toFixed(2)+' USD*';
   } else if(method==='binance'){
     const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
     const pct=parseFloat(document.getElementById('bnc-pct').value)||0;
     const fee=sub*(pct/100);
     const total=(sub+fee)/rate;
-    payLine='\n₿ *Pago por Binance Pay (USDT)*\nEnviar a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\n💰 *Total a pagar: '+total.toFixed(4)+' USDT*';
+    payLine='\n₿ *Pago por Binance Pay (USDT)*\nEnvía a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\n💰 *Total a enviar: '+total.toFixed(4)+' USDT*';
   } else if(method==='bolivares'){
     const rate=parseFloat(document.getElementById('bs-rate').value)||40;
     const bs=sub*rate;
