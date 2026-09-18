@@ -3747,20 +3747,10 @@ async function marcarProductoVendidoRapido(id){
     if(disponible<=0){toast('⚠️ Este producto ya no tiene stock');return;}
   }
 
-  let cantidad=1;
-  if(disponible>1){
-    const txt=prompt('Hay '+disponible+' unidad'+(disponible!==1?'es':'')+' disponible'+(disponible!==1?'s':'')+'.\n¿Cuántas se vendieron?','1');
-    if(txt===null||txt==='') return;
-    cantidad=parseInt(txt,10);
-    if(!cantidad||cantidad<1||cantidad>disponible){toast('⚠️ Cantidad inválida');return;}
-  }
-
+  const cantidad=1;
   const precioBase=variante&&parseFloat(variante.precio)>0?parseFloat(variante.precio):parseFloat(p.precio||0);
   const precioUnit=precioConDescuentoAdmin(precioBase,p);
-  const total=Math.round(precioUnit*cantidad*100)/100;
   const nombre=variante?p.nombre+' — '+variante.nombre:p.nombre;
-
-  if(!confirm('Marcar '+cantidad+' × “'+nombre+'” como vendido por $'+total.toFixed(2)+'?')) return;
 
   const ventaData={
     cliente_nombre:'Venta rápida',
@@ -3768,10 +3758,10 @@ async function marcarProductoVendidoRapido(id){
     metodo_pago:'Sin registrar',
     tipo_entrega:'Sin registrar',
     estado:'Pagado',
-    subtotal:total,
+    subtotal:precioUnit,
     costo_envio:0,
-    descuento:Math.max(0,(precioBase-precioUnit)*cantidad),
-    total:total,
+    descuento:Math.max(0,precioBase-precioUnit),
+    total:precioUnit,
     fecha_venta:hoyVEN(),
     tasa_bcv_usada:0,
     monto_bs:0,
@@ -3786,25 +3776,25 @@ async function marcarProductoVendidoRapido(id){
     if(!vid){toast('❌ No se pudo crear la venta rápida');return;}
 
     const itemResp=await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,body:JSON.stringify({
-      venta_id:vid,producto_id:p.id,producto_nombre:nombre,precio_unitario:precioUnit,cantidad:cantidad,subtotal:total
+      venta_id:vid,producto_id:p.id,producto_nombre:nombre,precio_unitario:precioUnit,cantidad:1,subtotal:precioUnit
     })});
     if(!itemResp.ok){toast('⚠️ Se creó la venta, pero falló el detalle del producto',6000);return;}
 
     let agotado=false;
     if(variante){
-      const nuevo=Math.max(0,disponible-cantidad);
+      const nuevo=Math.max(0,disponible-1);
       const rr=await sbPatch('producto_variantes',variante.id,{stock:nuevo});
       if(!rr||!rr.ok){toast('⚠️ Venta creada, pero no pude actualizar el stock de la variante',6000);return;}
       variante.stock=nuevo;
       agotado=todasVars.every(v=>(parseInt(v.stock,10)||0)<=0);
     }else{
-      const nuevo=Math.max(0,disponible-cantidad);
+      const nuevo=Math.max(0,disponible-1);
       p.stock=nuevo;
       agotado=nuevo===0;
     }
 
     const vendidosPrev=Math.max(0,parseInt(p.stock_vendido,10)||0);
-    const prodData={stock_vendido:vendidosPrev+cantidad};
+    const prodData={stock_vendido:vendidosPrev+1};
     if(!variante) prodData.stock=p.stock;
 
     if(agotado){
@@ -3814,6 +3804,7 @@ async function marcarProductoVendidoRapido(id){
       prodData.activo=false;
       prodData.en_remate=false;
     }
+
     const pr=await sbPatch('productos',p.id,prodData);
     if(!pr||!pr.ok){toast('⚠️ Venta creada, pero no pude actualizar el estado del producto',6000);return;}
     Object.assign(p,prodData);
@@ -3823,7 +3814,7 @@ async function marcarProductoVendidoRapido(id){
     renderPOS();
     renderVentas();
     cargarDashboard();
-    toast(agotado?'✅ VENDIDO y retirado del inventario: '+nombre:'✅ Venta registrada · quedan '+(disponible-cantidad)+' de '+nombre,5000);
+    toast(agotado?'✅ VENDIDO y retirado del inventario: '+nombre:'✅ Venta registrada · queda'+((disponible-1)===1?' ':'n ')+(disponible-1)+' de '+nombre,5000);
   }catch(e){
     console.error('Venta rápida:',e);
     toast('❌ Error registrando la venta rápida',6000);
