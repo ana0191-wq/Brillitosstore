@@ -1443,8 +1443,8 @@ tr:hover td{background:#fff8fc}
 console.log('✅ Brillitos admin cargado v6c');
 const SB = "https://xavqokyzdmqzguicjsrq.supabase.co";
 window.SB = SB;
-const KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
-const H = {'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Accept':'application/json','Accept-Profile':'public','X-Client-Info':'brillitos-admin/1.0'};
+const KEY = "sb_publishable_3-T6uev-fVXw7TB_kbrogA_m-MKct3v";
+const H = {'apikey':KEY,'Content-Type':'application/json','Accept':'application/json'};
 const BUNNY_STORAGE = "https://storage.bunnycdn.com/brillitos";
 const BUNNY_KEY = "d5221d2d-53eb-4513-a919885f03f0-5a1f-4857";
 const BUNNY_CDN = "https://Brillitos.b-cdn.net";
@@ -1497,13 +1497,35 @@ let mbsCallback=null;
 let reconocimiento=null, vozTranscript='', vozVentaDetectada=null;
 
 // ===== API SUPABASE =====
+async function apiFetch(url, options){
+  options=options||{};
+  var ultimoError=null;
+  for(var intento=1; intento<=2; intento++){
+    var ctrl=new AbortController();
+    var tid=setTimeout(function(){ctrl.abort();},12000);
+    try{
+      var opts=Object.assign({cache:'no-store',credentials:'omit'},options,{signal:ctrl.signal});
+      var r=await fetch(url,opts);
+      clearTimeout(tid);
+      return r;
+    }catch(e){
+      clearTimeout(tid);
+      ultimoError=e;
+      console.error('apiFetch intento '+intento+' falló:', e);
+      if(intento===1) await new Promise(function(resolve){setTimeout(resolve,650);});
+    }
+  }
+  var msg=(ultimoError&&ultimoError.name==='AbortError')
+    ?'La conexión con Supabase tardó demasiado'
+    :'No se pudo conectar con Supabase';
+  toast('❌ '+msg+'. Revisa internet y vuelve a intentar.',8000);
+  return null;
+}
 async function sbGet(t,q=''){
   try{
-    const ctrl = new AbortController();
-    const tid = setTimeout(()=>ctrl.abort(), 10000);
     const headers = {...H, 'Prefer':'return=representation'};
-    const r = await fetch(SB+'/rest/v1/'+t+'?'+q, {headers:headers, signal:ctrl.signal});
-    clearTimeout(tid);
+    const r = await apiFetch(SB+'/rest/v1/'+t+'?'+q, {headers:headers});
+    if(!r) return [];
     if(!r.ok){ const e=await r.text(); console.error('sbGet error',t,r.status,e); return []; }
     const txt = await r.text();
     if(!txt || txt==='null') return [];
@@ -1515,7 +1537,8 @@ async function sbGet(t,q=''){
   }
 }
 async function sbPost(t,d){
-  const r=await fetch(SB+'/rest/v1/'+t,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(d)});
+  const r=await apiFetch(SB+'/rest/v1/'+t,{method:'POST',headers:{...H,'Prefer':'return=representation'},body:JSON.stringify(d)});
+  if(!r) return [];
   if(!r.ok){
     const e=await r.text();
     const msg=(() => { try { return JSON.parse(e).message||e; } catch(_){ return e; } })();
@@ -1523,26 +1546,27 @@ async function sbPost(t,d){
     toast('❌ Error ('+r.status+'): '+msg.slice(0,150), 8000);
     return [];
   }
-  return r.json();
+  try{return await r.json();}catch(_){return [];}
 }
 async function sbPatch(t,id,d){
   const url=SB+'/rest/v1/'+t+'?id=eq.'+id;
-  const r=await fetch(url,{
+  const r=await apiFetch(url,{
     method:'PATCH',
-    headers:{...H,'Content-Type':'application/json','Prefer':'return=minimal'},
+    headers:{...H,'Prefer':'return=minimal'},
     body:JSON.stringify(d)
   });
+  if(!r) return null;
   if(!r.ok){
     const e=await r.text();
     console.error('sbPatch ERROR',t,id,r.status,e);
     const ep = (() => { try { return JSON.parse(e).message||e; } catch(_){ return e; } })();
-    console.error('sbPatch detail', t, id, r.status, e);
     toast('❌ Error al guardar ('+r.status+'): '+ep.slice(0,120), 6000);
   }
   return r;
 }
 async function sbDelete(t,f){
-  const r=await fetch(SB+'/rest/v1/'+t+'?'+f,{method:'DELETE',headers:H});
+  const r=await apiFetch(SB+'/rest/v1/'+t+'?'+f,{method:'DELETE',headers:H});
+  if(!r) return null;
   if(!r.ok){ const e=await r.text(); console.error('sbDelete error',t,f,r.status,e); }
   return r;
 }
@@ -2599,7 +2623,7 @@ async function aplicarCambioMasivo(){
   const resumen=Object.entries(cambios).map(([k,v])=>k+': '+v).join(', ');
   if(!confirm('Aplicar a '+ids.length+' venta(s): '+resumen)) return;
   try{
-    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+    const H={'apikey':KEY,'Content-Type':'application/json','Prefer':'return=representation'};
     const res=await fetch(SB+'/rest/v1/ventas?id=in.('+ids.join(',')+')',
       {method:'PATCH',headers:H,body:JSON.stringify(cambios)});
     if(!res.ok){const t=await res.text();toast('Error '+res.status+': '+t.slice(0,60));return;}
@@ -2645,7 +2669,7 @@ async function poblarEventosMasivo(){
   const sel=document.getElementById('masiva-evento');
   if(sel&&sel.options.length<=1){
     try{
-      const H={'apikey':KEY,'Authorization':'Bearer '+KEY};
+      const H={'apikey':KEY};
       const r=await fetch(SB+'/rest/v1/eventos?select=id,nombre&order=fecha.desc&limit=20',{headers:H});
       const evs=await r.json();
       evs.forEach(e=>{const o=document.createElement('option');o.value=e.id;o.textContent='🎪 '+e.nombre;sel.appendChild(o);});
@@ -3905,13 +3929,15 @@ async function guardarProducto(){
   var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,en_remate:document.getElementById('p-remate')?document.getElementById('p-remate').checked:false,activo:document.getElementById('p-activo')?document.getElementById('p-activo').checked:true,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
   var prodId=editProdId;
   if(editProdId){
-    await sbPatch('productos',editProdId,data);
+    var up=await sbPatch('productos',editProdId,data);
+    if(!up||!up.ok) return;
     var idx2=productos.findIndex(function(p){return p.id===editProdId;});
     if(idx2>=0) productos[idx2]=Object.assign({},productos[idx2],data);
     toast('✅ Actualizado');
   } else {
     var res=await sbPost('productos',data);
-    if(res[0]){prodId=res[0].id;productos.push(res[0]);}
+    if(!res||!res[0]) return;
+    prodId=res[0].id;productos.push(res[0]);
     toast('✅ Agregado');
   }
   if(prodId){
@@ -5600,7 +5626,7 @@ async function cargarReporte(){
 // ===== EXPORTS =====
 async function asignarEventoMasivoHoy(){
   try{
-    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+    const H={'apikey':KEY,'Content-Type':'application/json','Prefer':'return=representation'};
     const r=await fetch(SB+'/rest/v1/eventos?select=id,nombre,fecha&order=fecha.desc&limit=20',{headers:H});
     const evs=await r.json();
     if(!evs||!evs.length){toast('No hay eventos registrados');return;}
@@ -5626,7 +5652,7 @@ async function cambiarCanalMasivoHoy(){
   const hoy=new Date().toISOString().slice(0,10);
   if(!confirm('Cambiar canal de todas las ventas de '+hoy+' a "'+nuevo+'"?')) return;
   try{
-    const H={'apikey':KEY,'Authorization':'Bearer '+KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+    const H={'apikey':KEY,'Content-Type':'application/json','Prefer':'return=representation'};
     const res=await fetch(SB+'/rest/v1/ventas?created_at=gte.'+hoy+'T00:00:00&created_at=lte.'+hoy+'T23:59:59',
       {method:'PATCH',headers:H,body:JSON.stringify({canal:nuevo})});
     if(!res.ok){toast('❌ Error '+res.status);return;}
