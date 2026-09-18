@@ -492,7 +492,7 @@ tr:hover td{background:#fff8fc}
       </div>
     </div>
     <div class="card" style="padding:0"><div class="table-wrap">
-      <table id="tabla-ventas"><thead><tr><th style="width:32px"><input type="checkbox" id="chk-all-ventas" onchange="toggleAllVentas(this)" title="Seleccionar todas"></th><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Estado</th><th></th></tr></thead>
+      <table id="tabla-ventas"><thead><tr><th style="width:32px"><input type="checkbox" id="chk-all-ventas" onchange="toggleAllVentas(this)" title="Seleccionar todas"></th><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Productos</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Cuenta</th><th>Estado</th><th></th></tr></thead>
       <tbody id="tbody-ventas"></tbody></table>
     </div></div>
   </div>
@@ -2546,9 +2546,128 @@ async function confirmarVentaVoz(){
 }
 
 // ===== VENTAS =====
+const PUBLIC_STORE_URL='https://www.brillitosstore.com/';
+function escVentaHtml(v){
+  return String(v==null?'':v).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function renderVentaProductos(v){
+  const items=Array.isArray(v&&v.venta_items)?v.venta_items:[];
+  if(!items.length) return '<span style="color:#aaa;font-size:11px">Sin detalle</span>';
+  return '<div style="display:flex;flex-direction:column;gap:5px;min-width:190px;max-width:300px">'+items.map(function(it){
+    const p=productos.find(function(x){return x.id==it.producto_id;})||{};
+    const vars=p.producto_variantes||p.variantes||[];
+    const vr=it.variante_id?vars.find(function(x){return x.id==it.variante_id;}):null;
+    const variante=it.variante_nombre||(vr&&vr.nombre)||'';
+    const img=it.imagen_url||p.imagen||((p.imagenes&&p.imagenes[0])||'');
+    const url=it.producto_id?PUBLIC_STORE_URL+'?p='+encodeURIComponent(it.producto_id):'';
+    return '<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid #f5e7ef">'
+      +(img?'<a href="'+url+'" target="_blank" rel="noopener" style="flex-shrink:0"><img src="'+escVentaHtml(img)+'" style="width:36px;height:36px;object-fit:cover;border-radius:8px;border:1px solid #f3d1e2" onerror="this.style.display=\'none\'"></a>':'<div style="width:36px;height:36px;border-radius:8px;background:#fff0f6;display:flex;align-items:center;justify-content:center;flex-shrink:0">🌸</div>')
+      +'<div style="min-width:0;flex:1"><div style="font-size:11px;font-weight:800;line-height:1.2">'+escVentaHtml(it.producto_nombre||p.nombre||'Producto')+'</div>'
+      +(variante?'<div style="font-size:10px;color:#7c3aed">🎨 '+escVentaHtml(variante)+'</div>':'')
+      +'<div style="font-size:10px;color:#777">x'+parseInt(it.cantidad||1)+(url?' · <a href="'+url+'" target="_blank" rel="noopener" style="color:var(--pink);font-weight:700;text-decoration:none">Ver producto ↗</a>':'')+'</div></div>'
+      +'</div>';
+  }).join('')+'</div>';
+}
+function infoStockVentaItem(it){
+  const p=productos.find(function(x){return x.id==it.producto_id;});
+  if(!p) return {p:null,v:null,stock:0};
+  if(it.variante_id){
+    const vars=p.producto_variantes||p.variantes||[];
+    const v=vars.find(function(x){return x.id==it.variante_id;});
+    return {p:p,v:v||null,stock:v?Math.max(0,parseInt(v.stock,10)||0):0};
+  }
+  return {p:p,v:null,stock:Math.max(0,parseInt(p.stock,10)||0)};
+}
+function validarStockVenta(v){
+  for(const it of (v.venta_items||[])){
+    if(!it.producto_id) continue;
+    const inf=infoStockVentaItem(it);
+    const cant=Math.max(1,parseInt(it.cantidad||1));
+    if(!inf.p){toast('⚠️ Ya no existe el producto: '+(it.producto_nombre||''));return false;}
+    if(it.variante_id&&!inf.v){toast('⚠️ Ya no existe la variante de '+(it.producto_nombre||inf.p.nombre));return false;}
+    if(inf.stock<cant){toast('⚠️ Stock insuficiente para '+(it.producto_nombre||inf.p.nombre)+' (disponible: '+inf.stock+')');return false;}
+  }
+  return true;
+}
+async function sincronizarArchivoPorStock(p){
+  if(!p) return;
+  const vars=(p.producto_variantes||p.variantes||[]).filter(function(v){return v.activo!==false;});
+  const tieneStock=vars.length?vars.some(function(v){return (parseInt(v.stock,10)||0)>0;}):(parseInt(p.stock,10)||0)>0;
+  if(!tieneStock){
+    const ahora=new Date().toISOString();
+    const data={archivado_en:p.archivado_en||ahora,motivo_archivo:'Agotado',visible_web:false,activo:false,en_remate:false,vendido_en:p.vendido_en||ahora};
+    const r=await sbPatch('productos',p.id,data);
+    if(r&&r.ok) Object.assign(p,data);
+  }else if(p.archivado_en&&p.motivo_archivo==='Agotado'&&!p.donado_en){
+    const data={archivado_en:null,motivo_archivo:null,vendido_en:null,activo:true,visible_web:true};
+    const r=await sbPatch('productos',p.id,data);
+    if(r&&r.ok) Object.assign(p,data);
+  }
+}
+async function ajustarStockVentaItem(it,delta){
+  if(!it||!it.producto_id) return true;
+  const inf=infoStockVentaItem(it);
+  if(!inf.p) return false;
+  if(it.variante_id){
+    if(!inf.v) return false;
+    const ns=Math.max(0,inf.stock+delta);
+    const r=await sbPatch('producto_variantes',inf.v.id,{stock:ns});
+    if(!r||!r.ok) return false;
+    inf.v.stock=ns;
+  }else{
+    const ns=Math.max(0,inf.stock+delta);
+    const r=await sbPatch('productos',inf.p.id,{stock:ns});
+    if(!r||!r.ok) return false;
+    inf.p.stock=ns;
+  }
+  await sincronizarArchivoPorStock(inf.p);
+  return true;
+}
+async function aplicarStockVenta(v){
+  if(!v||v.stock_aplicado!==false) return true;
+  if(!validarStockVenta(v)) return false;
+  for(const it of (v.venta_items||[])){
+    const ok=await ajustarStockVentaItem(it,-Math.max(1,parseInt(it.cantidad||1)));
+    if(!ok){toast('❌ No se pudo actualizar el stock');return false;}
+  }
+  const r=await sbPatch('ventas',v.id,{stock_aplicado:true});
+  if(!r||!r.ok) return false;
+  v.stock_aplicado=true;
+  return true;
+}
+async function restaurarStockVenta(v){
+  if(!v||v.stock_aplicado===false) return true;
+  for(const it of (v.venta_items||[])){
+    const ok=await ajustarStockVentaItem(it,Math.max(1,parseInt(it.cantidad||1)));
+    if(!ok){toast('❌ No se pudo restaurar el stock');return false;}
+  }
+  const r=await sbPatch('ventas',v.id,{stock_aplicado:false});
+  if(!r||!r.ok) return false;
+  v.stock_aplicado=false;
+  return true;
+}
 async function cambiarEstadoVenta(id, nuevoEstado){
-  await sbPatch('ventas',id,{estado:nuevoEstado});
-  const v=ventas.find(x=>x.id==id); if(v) v.estado=nuevoEstado;
+  const v=ventas.find(function(x){return x.id==id;});
+  if(!v) return;
+  const anterior=v.estado||'Pendiente';
+  if(anterior===nuevoEstado) return;
+  const debeAplicar=v.stock_aplicado===false&&(
+    nuevoEstado==='Pagado'||nuevoEstado==='Entregado'||(nuevoEstado==='Pendiente'&&v.canal!=='Web')
+  );
+  const debeRestaurar=v.stock_aplicado!==false&&(
+    nuevoEstado==='Cancelado'||nuevoEstado==='Cotización'||(nuevoEstado==='Pendiente'&&v.canal==='Web')
+  );
+  if(debeAplicar){
+    const ok=await aplicarStockVenta(v);
+    if(!ok){renderVentas();return;}
+  }else if(debeRestaurar){
+    const ok=await restaurarStockVenta(v);
+    if(!ok){renderVentas();return;}
+  }
+  const r=await sbPatch('ventas',id,{estado:nuevoEstado,stock_aplicado:v.stock_aplicado!==false});
+  if(!r||!r.ok){renderVentas();return;}
+  v.estado=nuevoEstado;
+  renderVentas();renderProductos();renderPOS();cargarDashboard();
   toast('✅ Estado actualizado a '+nuevoEstado);
 }
 function renderVentas(lista){
@@ -2562,6 +2681,7 @@ function renderVentas(lista){
     +'<td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td>'
     +'<td>'+(v.cliente_nombre||'—')+'</td>'
     +'<td><span class="badge badge-'+(v.canal||'').toLowerCase()+'">'+(v.canal||'')+'</span></td>'
+    +'<td>'+renderVentaProductos(v)+'</td>'
     +'<td><strong>$'+parseFloat(v.total||0).toFixed(2)+'</strong></td>'
     +'<td style="color:#2e7d32">'+(parseFloat(v.monto_bs||0)>0?'Bs.'+parseFloat(v.monto_bs).toFixed(2):'—')+'</td>'
     +'<td style="font-size:12px">'+(v.metodo_pago||'')+'</td>'
@@ -2990,18 +3110,15 @@ async function guardarVenta(){
       cuenta_cobro:  cuentaEl ? cuentaEl.value||null : null,
       referencia_pago: (document.getElementById('v-referencia')||{}).value||null
     };
+    const ventaExistente=editVentaId?ventas.find(x=>x.id===editVentaId):null;
+    data.stock_aplicado=ventaExistente?ventaExistente.stock_aplicado!==false:data.estado!=='Cancelado';
 
     if(editVentaId){
       // ── EDITAR venta existente ──
       // 1. Restaurar stock anterior
       const vAnterior = ventas.find(x=>x.id===editVentaId);
-      if(vAnterior && vAnterior.estado!=='Cancelado'){
-        for(const it of (vAnterior.venta_items||[])){
-          if(it.producto_id){
-            const p = productos.find(x=>x.id==it.producto_id);
-            if(p){ const ns=(p.stock||0)+parseInt(it.cantidad||1); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
-          }
-        }
+      if(vAnterior && vAnterior.stock_aplicado!==false){
+        for(const it of (vAnterior.venta_items||[])) await ajustarStockVentaItem(it,Math.max(1,parseInt(it.cantidad||1)));
       }
       // 2. PATCH venta
       const rPatch = await sbPatch('ventas', editVentaId, data);
@@ -3015,18 +3132,16 @@ async function guardarVenta(){
         await fetch(SB+'/rest/v1/venta_items',{
           method:'POST', headers:H,
           body:JSON.stringify({venta_id:editVentaId, producto_id:it.producto_id||null,
-            producto_nombre:it.producto_nombre, precio_unitario:it.precio_unitario,
-            cantidad:it.cantidad, subtotal:it.subtotal})
+            producto_nombre:it.producto_nombre,variante_id:it.variante_id||null,
+            imagen_url:(productos.find(x=>x.id==it.producto_id)||{}).imagen||null,
+            precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})
         });
       }
       // 4. Descontar stock nuevo
-      if(data.estado!=='Cancelado'){
-        for(const it of ventaItems){
-          if(it.producto_id){
-            const p = productos.find(x=>x.id==it.producto_id);
-            if(p){ const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
-          }
-        }
+      if(data.stock_aplicado!==false){
+        const temporal={venta_items:ventaItems,stock_aplicado:false};
+        if(!validarStockVenta(temporal)){restoreBtn();return;}
+        for(const it of ventaItems) await ajustarStockVentaItem(it,-Math.max(1,parseInt(it.cantidad||1)));
       }
       toast('✅ Venta actualizada 🌸');
 
@@ -3043,17 +3158,15 @@ async function guardarVenta(){
           await fetch(SB+'/rest/v1/venta_items',{
             method:'POST', headers:H,
             body:JSON.stringify({venta_id:vid, producto_id:it.producto_id||null,
-              producto_nombre:it.producto_nombre, precio_unitario:it.precio_unitario,
-              cantidad:it.cantidad, subtotal:it.subtotal})
+              producto_nombre:it.producto_nombre,variante_id:it.variante_id||null,
+              imagen_url:(productos.find(x=>x.id==it.producto_id)||{}).imagen||null,
+              precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})
           });
         }
-        if(data.estado!=='Cancelado'){
-          for(const it of ventaItems){
-            if(it.producto_id){
-              const p = productos.find(x=>x.id==it.producto_id);
-              if(p){ const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
-            }
-          }
+        if(data.stock_aplicado!==false){
+          const temporal={venta_items:ventaItems,stock_aplicado:false};
+          if(!validarStockVenta(temporal)){restoreBtn();return;}
+          for(const it of ventaItems) await ajustarStockVentaItem(it,-Math.max(1,parseInt(it.cantidad||1)));
         }
       }
       toast('✅ Venta registrada 🌸');
@@ -3077,14 +3190,17 @@ async function guardarVenta(){
 async function cancelarVenta(id){
   const v=ventas.find(x=>x.id===id); if(!v) return;
   if(v.estado==='Cancelado'){ toast('Ya está cancelada'); return; }
-  if(!confirm('¿Cancelar esta venta? Se restaurará el stock.')) return;
-  for(const it of (v.venta_items||[])){
-    if(it.producto_id){const p=productos.find(x=>x.id==it.producto_id);if(p){const ns=(p.stock||0)+parseInt(it.cantidad||1);await sbPatch('productos',p.id,{stock:ns});p.stock=ns;}}
+  const msg=v.stock_aplicado===false?'¿Cancelar esta venta? El inventario no se ha descontado.':'¿Cancelar esta venta? Se restaurará el stock.';
+  if(!confirm(msg)) return;
+  if(v.stock_aplicado!==false){
+    const ok=await restaurarStockVenta(v);
+    if(!ok)return;
   }
-  await sbPatch('ventas',id,{estado:'Cancelado'});
-  v.estado='Cancelado';
-  renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
-  toast('↩️ Venta cancelada — stock restaurado');
+  const r=await sbPatch('ventas',id,{estado:'Cancelado',stock_aplicado:false});
+  if(!r||!r.ok)return;
+  v.estado='Cancelado';v.stock_aplicado=false;
+  renderVentas();renderProductos();renderPOS();cargarDashboard();
+  toast('↩️ Venta cancelada');
 }
 async function eliminarVenta(id){
   const v=ventas.find(x=>x.id===id);
@@ -3177,14 +3293,15 @@ async function guardarCotizacion(){
     metodo_pago:d.metodo||'Pago Móvil', tipo_entrega:d.entrega||'—',
     estado:'Cotización', subtotal:d.subtotal||d.total, costo_envio:d.envio||0,
     descuento:d.desc||0, total:d.total, fecha_venta:new Date().toISOString().slice(0,10),
-    tasa_bcv_usada:tasa, monto_bs:(d.total*tasa)
+    tasa_bcv_usada:tasa, monto_bs:(d.total*tasa), stock_aplicado:false
   });
   const vid = res&&res[0]&&res[0].id;
   if(!vid){ toast('❌ Error al guardar'); return; }
   for(const it of (d.items||[])){
     await sbPost('venta_items',{venta_id:vid, producto_id:it.producto_id||null,
-      producto_nombre:it.producto_nombre, precio_unitario:it.precio_unitario||it.precio_unitario,
-      cantidad:it.cantidad||1, subtotal:it.subtotal});
+      producto_nombre:it.producto_nombre,variante_id:it.variante_id||null,
+      imagen_url:(productos.find(x=>x.id==it.producto_id)||{}).imagen||null,
+      precio_unitario:it.precio_unitario,cantidad:it.cantidad||1,subtotal:it.subtotal});
   }
   _cotizacionVentaId = vid;
   _cotizacionData.ventaId = vid;
@@ -3201,12 +3318,13 @@ async function confirmarCotizacion(){
   if(!_cotizacionVentaId){ toast('⚠️ Guarda la cotización primero'); return; }
   if(!confirm('¿Confirmar pago? Se descontará el stock y la cotización quedará como Pagada.')) return;
   const v=ventas.find(x=>x.id===_cotizacionVentaId); if(!v) return;
-  for(const it of (v.venta_items||[])) if(it.producto_id){ const p=productos.find(x=>x.id==it.producto_id); if(p){ const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; } }
-  await sbPatch('ventas',_cotizacionVentaId,{estado:'Pagado'}); v.estado='Pagado';
-  _cotizacionVentaId=null; cerrarModal('modal-cotizacion'); renderVentas(); renderProductos(); renderPOS(); cargarDashboard();
+  const ok=await aplicarStockVenta(v);
+  if(!ok)return;
+  await sbPatch('ventas',_cotizacionVentaId,{estado:'Pagado',stock_aplicado:true});
+  v.estado='Pagado';v.stock_aplicado=true;
+  _cotizacionVentaId=null;cerrarModal('modal-cotizacion');renderVentas();renderProductos();renderPOS();cargarDashboard();
   toast('✅ Cotización confirmada como Pagada — stock descontado');
 }
-
 async function cancelarCotizacion(){
   if(!_cotizacionVentaId){ toast('⚠️ No hay cotización guardada'); return; }
   if(!confirm('¿Cancelar esta cotización? El stock se restaurará.')) return;
@@ -3245,56 +3363,66 @@ function copiarCotizacion(){ navigator.clipboard.writeText(document.getElementBy
 // ===== APARTADOS =====
 async function confirmarPedidoWeb(id){
   const ref=prompt('Referencia de pago (opcional):','');
-  if(ref===null) return; // canceló
-  if(!confirm('¿Confirmar este pedido y descontar stock?')) return;
+  if(ref===null) return;
   const a=apartados.find(x=>x.id===id); if(!a) return;
-  // Descontar stock
-  for(const it of (a.apartado_items||[])){
-    if(it.producto_id){
-      const p=productos.find(x=>x.id==it.producto_id);
-      if(p){ const ns=Math.max(0,(p.stock||0)-parseInt(it.cantidad||1)); await sbPatch('productos',p.id,{stock:ns}); p.stock=ns; }
+  const items=(a.apartado_items||[]).map(function(it){
+    const p=productos.find(function(x){return x.id==it.producto_id;})||{};
+    return Object.assign({},it,{imagen_url:p.imagen||((p.imagenes&&p.imagenes[0])||null)});
+  });
+  const temporal={venta_items:items,stock_aplicado:false};
+  if(!validarStockVenta(temporal)) return;
+  if(!confirm('¿Confirmar este pedido como venta pagada y descontar el stock?')) return;
+
+  const num=numeroVentaUnico('WEB');
+  const res=await sbPost('ventas',{
+    numero:num,cliente_id:a.cliente_id||null,cliente_nombre:a.cliente_nombre||'Cliente web',
+    canal:'Web',metodo_pago:a.metodo_pago||'Pago Móvil',estado:'Pagado',
+    subtotal:parseFloat(a.total||0),costo_envio:0,descuento:0,total:parseFloat(a.total||0),
+    fecha_venta:new Date(Date.now()-(4*60*60*1000)).toISOString().slice(0,10),
+    referencia_pago:ref||null,tasa_bcv_usada:a.tasa_bcv_usada||0,monto_bs:a.monto_bs||0,
+    moneda_pago:a.moneda_pago||((a.metodo_pago||'').includes('Móvil')?'Bs':'USD'),
+    cuenta_cobro:a.cuenta_cobro||null,notas:'Pedido web convertido a venta desde Apartados',stock_aplicado:false
+  });
+  const vid=res[0]&&res[0].id;
+  if(!vid){toast('❌ No se pudo crear la venta');return;}
+  try{
+    for(const it of items){
+      const ir=await sbPost('venta_items',{
+        venta_id:vid,producto_id:it.producto_id||null,producto_nombre:it.producto_nombre,
+        variante_id:it.variante_id||null,variante_nombre:it.variante_nombre||null,imagen_url:it.imagen_url||null,
+        precio_unitario:it.precio_unitario,cantidad:it.cantidad||1,subtotal:it.subtotal
+      });
+      if(!ir.length) throw new Error('No se pudo guardar un producto de la venta');
     }
+    const ventaNueva={id:vid,venta_items:items,stock_aplicado:false};
+    const ok=await aplicarStockVenta(ventaNueva);
+    if(!ok) throw new Error('No se pudo descontar el inventario');
+    await sbPatch('ventas',vid,{estado:'Pagado',stock_aplicado:true});
+    await sbPatch('apartados',id,{estado:'Completado',abono:a.total,saldo:0});
+  }catch(err){
+    await sbDelete('venta_items','venta_id=eq.'+vid);
+    await sbDelete('ventas','id=eq.'+vid);
+    toast('❌ '+err.message);
+    return;
   }
-  await sbPatch('apartados',id,{estado:'Pagado',abono:a.total,saldo:0});
-  a.estado='Pendiente';
-  renderApartados(); renderProductos(); renderPOS(); cargarDashboard();
-  toast('✅ Pedido confirmado — stock descontado');
+  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
+  apartados=await sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200');
+  productos=await sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000');
+  if(!Array.isArray(ventas)) ventas=[];
+  if(!Array.isArray(apartados)) apartados=[];
+  if(!Array.isArray(productos)) productos=[];
+  renderApartados();renderVentas();renderProductos();renderPOS();cargarDashboard();
+  toast('✅ Pedido web convertido en venta pagada');
 }
 async function rechazarPedidoWeb(id){
   if(!confirm('¿Rechazar y eliminar este pedido? No afecta el stock.')) return;
   await sbDelete('apartado_items','apartado_id=eq.'+id);
   await sbDelete('apartados','id=eq.'+id);
   apartados=apartados.filter(a=>a.id!==id);
-  renderApartados(); cargarDashboard();
+  renderApartados();cargarDashboard();
   toast('🗑️ Pedido rechazado');
 }
-
-async function confirmarConRef(id){
-  const ref=prompt('Número de referencia del pago:','');
-  if(ref===null) return;
-  const a=apartados.find(x=>x.id===id); if(!a) return;
-  if(!confirm('¿Confirmar pago'+( ref?' con ref: '+ref:'')+' y convertir en venta?')) return;
-  // Crear venta
-  const num=numeroVentaUnico('V');
-  const res=await sbPost('ventas',{numero:num,cliente_id:a.cliente_id||null,cliente_nombre:a.cliente_nombre,
-    canal:a.canal||'Evento',metodo_pago:a.metodo_pago||'Pago Móvil',estado:'Pagado',
-    subtotal:a.total,costo_envio:0,descuento:0,total:a.total,
-    fecha_venta:new Date().toISOString().slice(0,10),
-    referencia_pago:ref||null,tasa_bcv_usada:a.tasa_bcv_usada||0,monto_bs:a.monto_bs||0});
-  const vid=res[0]&&res[0].id;
-  if(vid) for(const it of a.apartado_items||[])
-    await fetch(SB+'/rest/v1/venta_items',{method:'POST',headers:H,
-      body:JSON.stringify({venta_id:vid,producto_id:it.producto_id,producto_nombre:it.producto_nombre,
-        precio_unitario:it.precio_unitario,cantidad:it.cantidad,subtotal:it.subtotal})});
-  await sbPatch('apartados',id,{estado:'Completado',abono:a.total,saldo:0});
-  a.estado='Completado';
-  ventas=await sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500');
-  apartados=await sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200');
-  if(!Array.isArray(ventas)) ventas=[];
-  if(!Array.isArray(apartados)) apartados=[];
-  renderApartados(); renderVentas(); cargarDashboard();
-  toast('✅ Pago confirmado → Venta creada 🌸');
-}
+async function confirmarConRef(id){return confirmarPedidoWeb(id);}
 
 function renderApartados(){
   const filtro=document.getElementById('filtro-estado-apt').value;
@@ -6513,7 +6641,7 @@ function renderMovimientosBancaAmiga(){
 </div>
 
 <!-- MODAL PICKER PRODUCTOS -->
-<a href="https://ana0191-wq.github.io/Brillitosstore/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
+<a href="https://www.brillitosstore.com/" target="_blank" id="fab-tienda" style="position:fixed;bottom:80px;left:16px;z-index:9999;background:linear-gradient(135deg,#ff6eb4,#ff4fa3);color:#fff;border-radius:50px;padding:10px 16px;font-size:13px;font-weight:700;box-shadow:0 4px 15px rgba(255,79,163,.4);text-decoration:none;display:flex;align-items:center;gap:6px;white-space:nowrap;-webkit-tap-highlight-color:transparent">🛍️ Tienda</a>
 
 <div id="modal-prod-picker">
   <div class="prod-picker-sheet">
