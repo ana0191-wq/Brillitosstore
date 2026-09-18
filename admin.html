@@ -3433,7 +3433,10 @@ function renderApartados(){
     const saldo=total-abono;
     const dias=a.fecha_entrega?Math.ceil((new Date(a.fecha_entrega)-new Date())/(86400000)):null;
     const pronto=dias!==null&&dias<=3&&(a.estado==='Pendiente'||a.estado==='Activo');
-    const items=(a.apartado_items||[]).map(i=>(i.producto_nombre||'?')+' x'+i.cantidad).join(', ');
+    const items=(a.apartado_items||[]).map(function(i){
+      const url=i.producto_id?PUBLIC_STORE_URL+'?p='+encodeURIComponent(i.producto_id):'';
+      return escVentaHtml(i.producto_nombre||'?')+' x'+i.cantidad+(url?' · <a href="'+url+'" target="_blank" rel="noopener" style="color:var(--pink);font-weight:700;text-decoration:none">Ver producto ↗</a>':'');
+    }).join('<br>');
     return '<div class="apartado-card apt-selectable" data-id="'+a.id+'" onclick="toggleAptCheck(event,'+a.id+')" style="cursor:pointer;position:relative">'+'<input type="checkbox" class="apt-check" data-id="'+a.id+'" style="display:none;position:absolute;top:12px;right:12px;width:20px;height:20px;accent-color:var(--pink);z-index:2" onclick="event.stopPropagation()" onchange="updateAptCount()">'
       +'<div class="apartado-card '+(a.estado||'').toLowerCase()+'" style="background:#fff;border-radius:14px;padding:14px 16px;margin-bottom:10px;box-shadow:0 2px 8px rgba(0,0,0,.06);border-left:4px solid '+(a.estado==='Por confirmar'?'#ff9800':a.estado==='Pendiente'||a.estado==='Activo'?'var(--pink)':a.estado==='Completado'?'#2e7d32':'#ccc')+'">'
       +'<div style="display:flex;justify-content:space-between;align-items:start;gap:10px">'
