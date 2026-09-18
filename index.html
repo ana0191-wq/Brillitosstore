@@ -604,8 +604,10 @@ input[type=range]{accent-color:var(--pk);width:120px}
           <label>1 USDT vale (USD):</label>
           <input type="number" id="bnc-rate" value="1" step="0.001" min="0.001" oninput="calcBNC()">
         </div>
-        <div class="pp-note">💡 USDT es estable: 1 USDT ≈ $1 USD.</div>
-        <div class="subtotal-row"><span class="label">Total a cobrar en USDT</span><span class="val highlight" id="bnc-total">0.00 USDT</span></div>
+        <div class="pp-note">🎉 Pagando con Binance tienes <strong>10% de descuento automático</strong>.</div>
+        <input type="hidden" id="bnc-discount-pct" value="10">
+        <div class="subtotal-row"><span class="label">Descuento Binance (10%)</span><span class="val" id="bnc-discount" style="color:#16a34a">-$0.00</span></div>
+        <div class="subtotal-row"><span class="label">Total a enviar en USDT</span><span class="val highlight" id="bnc-total">0.00 USDT</span></div>
         <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Equivale a</span><span class="val" id="bnc-usd" style="font-size:.72rem">$0.00</span></div>
         <div class="pp-note" style="margin-bottom:8px">📧 Binance Pay: <strong>ana0191@gmail.com</strong></div>
         <button class="pay-action yellow" onclick="sendWA('binance')">📸 Ya pagué por Binance · Enviar comprobante</button>
@@ -1525,12 +1527,16 @@ function calcPP(){
 function calcBNC(){
   const sub=cartSubtotal();
   const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
-  const total=sub/rate;
+  const pct=parseFloat(document.getElementById('bnc-discount-pct').value)||10;
+  const discount=sub*(pct/100);
+  const discounted=Math.max(0,sub-discount);
+  const total=discounted/rate;
+  const discountEl=document.getElementById('bnc-discount');
+  if(discountEl) discountEl.textContent='-$'+discount.toFixed(2);
   document.getElementById('bnc-total').textContent=total.toFixed(2)+' USDT';
-  const feeEl=document.getElementById('bnc-fee');
-  if(feeEl) feeEl.textContent='';
+  const usdEl=document.getElementById('bnc-usd');
+  if(usdEl) usdEl.textContent='$'+discounted.toFixed(2);
 }
-
 function calcBS(){
   const sub=cartSubtotal();
   const rate=parseFloat(document.getElementById('bs-rate').value)||40;
@@ -1561,10 +1567,11 @@ async function sendWA(method){
     payLine='\n🅿️ *Pago por PayPal*\nEnvía a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\nComisión PayPal ('+pct+'% + '+fix+'): '+(charge-sub).toFixed(2)+'\n💰 *Total a enviar: '+charge.toFixed(2)+' USD*';
   } else if(method==='binance'){
     const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
-    const pct=parseFloat(document.getElementById('bnc-pct').value)||0;
-    const fee=sub*(pct/100);
-    const total=(sub+fee)/rate;
-    payLine='\n₿ *Pago por Binance Pay (USDT)*\nEnvía a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\n💰 *Total a enviar: '+total.toFixed(4)+' USDT*';
+    const pct=parseFloat(document.getElementById('bnc-discount-pct').value)||10;
+    const discount=sub*(pct/100);
+    const discounted=Math.max(0,sub-discount);
+    const total=discounted/rate;
+    payLine='\n₿ *Pago por Binance Pay (USDT)*\nEnvía a: ana0191@gmail.com\nSubtotal: $'+sub.toFixed(2)+'\n🎉 Descuento Binance ('+pct+'%): -$'+discount.toFixed(2)+'\n💰 *Total a enviar: '+total.toFixed(2)+' USDT*';
   } else if(method==='bolivares'){
     const rate=parseFloat(document.getElementById('bs-rate').value)||40;
     const bs=sub*rate;
@@ -1577,15 +1584,17 @@ async function sendWA(method){
   const url=num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
   // ── Guardar pedido en Supabase como "Por confirmar" ──
   try{
+    const binancePct=method==='binance'?(parseFloat(document.getElementById('bnc-discount-pct').value)||10):0;
+    const totalPedido=method==='binance'?Math.max(0,sub-(sub*binancePct/100)):sub;
     const aptData={
       cliente_nombre: 'Web — '+(method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance':'Consulta'),
       canal: 'Web',
       metodo_pago: method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance/USDT':'Consulta',
       estado: 'Por confirmar',
-      total: sub,
+      total: totalPedido,
       abono: 0,
-      saldo: sub,
-      notas: 'Pedido desde la web — pendiente de confirmación',
+      saldo: totalPedido,
+      notas: method==='binance'?'Pedido desde la web — Binance con 10% de descuento — pendiente de confirmación':'Pedido desde la web — pendiente de confirmación',
       numero: 'WEB-'+Date.now()
     };
     const r=await fetch(SUPABASE_URL+'/rest/v1/apartados',{
