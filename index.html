@@ -757,6 +757,23 @@ function nonNegativeMoney(v){
 function discountRules(){
   return Array.isArray(STORE_CONFIG.descuento_reglas)?STORE_CONFIG.descuento_reglas:[];
 }
+function storeDateToday(){
+  return new Date(Date.now()-(4*60*60*1000)).toISOString().slice(0,10);
+}
+function ruleWithinSchedule(r){
+  if(!r) return false;
+  var today=storeDateToday();
+  if(r.fecha_inicio&&today<r.fecha_inicio) return false;
+  if(r.fecha_fin&&today>r.fecha_fin) return false;
+  return true;
+}
+function promoDateText(s){
+  if(!s) return '';
+  var p=String(s).split('-');
+  var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  if(p.length!==3) return s;
+  return parseInt(p[2],10)+' de '+meses[(parseInt(p[1],10)||1)-1];
+}
 function normalizeCat(s){
   return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
 }
@@ -776,7 +793,7 @@ function ruleMatchesProduct(r,p){
 function getDiscountRule(p,basePrice){
   var base=nonNegativeMoney(basePrice!==undefined?basePrice:(p&&p.precio));
   var candidates=discountRules().filter(function(r){
-    return r&&r.activo!==false&&clampDiscountPct(r.porcentaje)>0&&base>=nonNegativeMoney(r.monto_minimo)&&ruleMatchesProduct(r,p);
+    return r&&r.activo!==false&&ruleWithinSchedule(r)&&clampDiscountPct(r.porcentaje)>0&&base>=nonNegativeMoney(r.monto_minimo)&&ruleMatchesProduct(r,p);
   });
   if(!candidates.length) return null;
   candidates.sort(function(a,b){
@@ -1015,16 +1032,20 @@ function init(){
 function renderDiscountBanner(){
   var el=document.getElementById('discount-banner');
   if(!el) return;
-  var active=discountRules().filter(function(r){return r&&r.activo!==false&&clampDiscountPct(r.porcentaje)>0;});
+  var active=discountRules().filter(function(r){
+    return r&&r.activo!==false&&ruleWithinSchedule(r)&&clampDiscountPct(r.porcentaje)>0;
+  });
   if(!active.length){ el.style.display='none'; return; }
   var preview=active.slice(0,3).map(function(r){
     var min=nonNegativeMoney(r.monto_minimo);
-    return '<strong>'+clampDiscountPct(r.porcentaje)+'% off</strong>'+(min>0?' desde $'+min.toFixed(2):'')+' · '+(r.nombre||'Promoción');
+    var when='';
+    if(r.fecha_fin) when=' · hasta el '+promoDateText(r.fecha_fin);
+    else if(r.fecha_inicio) when=' · desde el '+promoDateText(r.fecha_inicio);
+    return '<strong>'+clampDiscountPct(r.porcentaje)+'% de descuento</strong>'+(min>0?' desde $'+min.toFixed(2):'')+' · '+(r.nombre||'Promoción')+when;
   }).join(' &nbsp;|&nbsp; ');
   el.innerHTML='🏷️ '+preview+(active.length>3?' &nbsp;+'+(active.length-3)+' promociones más':'');
   el.style.display='block';
 }
-
 function buildCats(){
   const cats=[...new Set(CATALOG.map(p=>p.categoria).filter(Boolean))].sort();
   document.getElementById('stat-cats').textContent=cats.length;
