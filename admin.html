@@ -2400,7 +2400,7 @@ function renderProductosPOS(lista){
     '<div class="pos-card" onclick="agregarAlCarrito('+p.id+')">'
     +(p.imagen?'<img class="pos-card-img" src="'+p.imagen+'" onerror="this.style.display=\'none\'">':'<div class="pos-card-placeholder">🌸</div>')
     +'<div class="pos-card-nombre">'+p.nombre+(p.propietario==='Mamá'?' <span style="font-size:9px;background:#fce4ec;color:#c2185b;padding:1px 4px;border-radius:5px;font-weight:700">Mamá</span>':'')+'</div>'
-    +'<div class="pos-card-precio">$'+parseFloat(p.precio||0).toFixed(2)+'</div>'
+    +'<div class="pos-card-precio">'+(remateActivo(p,p.precio)?'<span style="text-decoration:line-through;color:#999;font-size:10px">$'+parseFloat(p.precio||0).toFixed(2)+'</span> 🔥 $'+precioConDescuentoAdmin(p.precio,p).toFixed(2):'$'+precioConDescuentoAdmin(p.precio,p).toFixed(2))+'</div>'
     +'<div class="pos-card-stock">Stock: '+stockPOS(p)+'</div></div>').join('') || '<div style="grid-column:1/-1;text-align:center;color:var(--gray);padding:28px">No hay productos con stock disponible.</div>';
 }
 function agregarAlCarrito(pid,varianteId){
@@ -2409,7 +2409,7 @@ function agregarAlCarrito(pid,varianteId){
   if(varianteId&&!v){ toast('⚠️ Variante no encontrada'); return; }
   const disponible=v?Math.max(0,parseInt(v.stock,10)||0):stockPOS(p);
   const idx=posCarrito.findIndex(x=>x.id===pid&&String(x.variante_id||'')===String(varianteId||'')), actual=idx>=0?posCarrito[idx].cantidad:0;
-  const nombre=v?p.nombre+' — '+v.nombre:p.nombre, precio=parseFloat(v&&v.precio!=null?v.precio:p.precio)||0;
+  const nombre=v?p.nombre+' — '+v.nombre:p.nombre, precioBase=parseFloat(v&&v.precio!=null?v.precio:p.precio)||0, precio=precioConDescuentoAdmin(precioBase,p);
   if(disponible<=0){ toast('⚠️ '+nombre+' está agotado'); renderPOS(); return; }
   if(actual>=disponible){ toast('⚠️ Solo quedan '+disponible+' unidad'+(disponible!==1?'es':'')+' de '+nombre); return; }
   if(idx>=0){ posCarrito[idx].cantidad++; posCarrito[idx].subtotal=posCarrito[idx].cantidad*precio; }
@@ -3763,16 +3763,21 @@ async function togglePropietario(id){
 async function toggleRemateProducto(id){
   const p=productos.find(x=>x.id===id);
   if(!p||p.vendido_en) return;
-  if(p.en_remate){
+  const normal=parseFloat(p.precio)||0;
+  const remActual=parseFloat(p.precio_remate)||0;
+  const remValido=p.en_remate&&remActual>0&&remActual<normal;
+
+  if(remValido){
     const r=await sbPatch('productos',id,{en_remate:false});
     if(!r||!r.ok){toast('❌ No se pudo actualizar Remate');return;}
     p.en_remate=false;
     refrescarProductosConFiltros();
+    renderPOS();
     toast('✅ Producto retirado de Remate');
     return;
   }
-  const normal=parseFloat(p.precio)||0;
-  const sugerido=parseFloat(p.precio_remate)>0?parseFloat(p.precio_remate):(normal*0.8);
+
+  const sugerido=remActual>0&&remActual<normal?remActual:(normal*0.8);
   const txt=prompt('Precio normal: $'+normal.toFixed(2)+'\n¿Cuál será el precio de remate?',sugerido.toFixed(2));
   if(txt===null||txt==='') return;
   const rem=parseFloat(txt);
@@ -3782,6 +3787,7 @@ async function toggleRemateProducto(id){
   p.en_remate=true;
   p.precio_remate=rem;
   refrescarProductosConFiltros();
+  renderPOS();
   toast('🔥 Remate activado a $'+rem.toFixed(2));
 }
 async function marcarProductoVendidoRapido(id){
