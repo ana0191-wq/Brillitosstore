@@ -690,6 +690,7 @@ async function cargarCatalogo() {
         imagenes:     p.imagenes || [],
         esNuevo:      p.es_nuevo || false,
         enRemate:     p.en_remate || false,
+        precioRemate: parseFloat(p.precio_remate) || 0,
         visible_web:  p.visible_web !== false
       };
     }).filter(function(p) {
@@ -760,16 +761,30 @@ function getDiscountRule(p,basePrice){
   return candidates[0];
 }
 function getDiscountPct(p,basePrice){
+  var original=parseFloat(basePrice)||0;
+  var rem=parseFloat(p&&p.precioRemate)||0;
+  if(p&&p.enRemate&&rem>0&&original>0&&rem<original) return 0;
   var r=getDiscountRule(p,basePrice);
   return r?clampDiscountPct(r.porcentaje):0;
 }
 function getPriceInfo(p, basePrice){
   var original=parseFloat(basePrice)||0;
+  var rem=parseFloat(p&&p.precioRemate)||0;
+  if(p&&p.enRemate&&rem>0&&original>0&&rem<original){
+    return {
+      original:original,
+      final:Math.round(rem*100)/100,
+      pct:Math.round((1-rem/original)*100),
+      rule:null,
+      clearance:true,
+      discounted:true
+    };
+  }
   var rule=getDiscountRule(p,original);
   var pct=rule?clampDiscountPct(rule.porcentaje):0;
   var final=original;
   if(original>0 && pct>0) final=Math.round(original*(1-pct/100)*100)/100;
-  return {original:original, final:final, pct:pct, rule:rule, discounted:original>0&&pct>0&&final<original};
+  return {original:original, final:final, pct:pct, rule:rule, clearance:false, discounted:original>0&&pct>0&&final<original};
 }
 function cardPriceHtml(p, basePrice){
   var info=getPriceInfo(p,basePrice);
@@ -1117,8 +1132,8 @@ function buildCard(p,idx){
   const nuevoBadge=p.esNuevo
     ?'<div style="position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#ff6eb4,#ff3d9a);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:4;box-shadow:0 2px 8px rgba(255,61,154,.45);animation:pulsenuevo 1.4s infinite">✨ NUEVO</div>'
     :'';
-  const saleBadge=priceInfo.discounted?'<div class="sale-badge" title="'+((priceInfo.rule&&priceInfo.rule.nombre)||'Promoción')+'">-'+priceInfo.pct+'%</div>':'';
-  const remateBadge=p.enRemate?'<div style="position:absolute;bottom:8px;right:8px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-size:.7rem;font-weight:900;padding:4px 10px;border-radius:20px;z-index:4;box-shadow:0 2px 8px rgba(185,28,28,.35)">🔥 REMATE</div>':'';
+  const saleBadge=priceInfo.discounted&&!priceInfo.clearance?'<div class="sale-badge" title="'+((priceInfo.rule&&priceInfo.rule.nombre)||'Promoción')+'">-'+priceInfo.pct+'%</div>':'';
+  const remateBadge=priceInfo.clearance?'<div style="position:absolute;bottom:8px;right:8px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-size:.7rem;font-weight:900;padding:4px 10px;border-radius:20px;z-index:4;box-shadow:0 2px 8px rgba(185,28,28,.35)">🔥 REMATE</div>':'';
   const unicoBadge=(p.stock===1)
     ?'<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#ff6b35,#e53e3e);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(229,62,62,.4)">¡Único!</div>'
     :(p.stock>1&&p.stock<=3)
@@ -1841,7 +1856,7 @@ function openProductPage(p) {
   const badgesEl = document.getElementById('pp-badges');
   let badges = '';
   if(p.esNuevo) badges += '<span style="background:linear-gradient(135deg,#ff6eb4,#ff3d9a);color:white;font-size:.75rem;font-weight:800;padding:4px 12px;border-radius:20px;">✨ NUEVO</span>';
-  if(p.enRemate) badges += '<span style="background:#fee2e2;color:#b91c1c;font-size:.75rem;font-weight:900;padding:4px 12px;border-radius:20px;">🔥 REMATE</span>';
+  if(getPriceInfo(p,p.precio).clearance) badges += '<span style="background:#fee2e2;color:#b91c1c;font-size:.75rem;font-weight:900;padding:4px 12px;border-radius:20px;">🔥 REMATE</span>';
   if(p.categoria) badges += '<span style="background:var(--pk-light,#ffd6ec);color:var(--pk);font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:20px;">'+p.categoria+'</span>';
   if(p.subcategoria) badges += '<span style="background:#f0f0f0;color:#666;font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:20px;">'+p.subcategoria+'</span>';
   var _ppDiscount=getDiscountPct(p,p.precio); if(_ppDiscount>0) badges += '<span style="background:#fee2e2;color:#be123c;font-size:.75rem;font-weight:900;padding:4px 12px;border-radius:20px;">🏷️ -'+_ppDiscount+'%</span>';
