@@ -532,6 +532,29 @@ tr:hover td{background:#fff8fc}
     </div>
   </div>
   <div class="content">
+    <div class="card" style="margin-bottom:12px;padding:14px 16px;border:1.5px solid #f8bbd0;background:linear-gradient(135deg,#fff,#fff5fa)">
+      <div style="display:flex;justify-content:space-between;gap:14px;align-items:center;flex-wrap:wrap">
+        <div>
+          <div style="font-weight:900;color:var(--pink);font-size:14px">🏷️ Descuento general de la tienda</div>
+          <div style="font-size:11px;color:#777;margin-top:3px">Se aplica a productos cuyo precio alcance el mínimo indicado, excepto los que tengan un descuento específico.</div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;font-weight:700;cursor:pointer">
+            <input type="checkbox" id="desc-general-activo" style="width:17px;height:17px;accent-color:var(--pink)"> Activo
+          </label>
+          <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:10px;background:white;overflow:hidden">
+            <input type="number" id="desc-general-pct" min="0" max="100" step="1" value="0" style="width:72px;border:0;padding:8px 9px;font-size:13px;outline:none;text-align:right">
+            <span style="padding-right:10px;color:#777;font-weight:800">%</span>
+          </div>
+          <div style="display:flex;align-items:center;border:1.5px solid var(--border);border-radius:10px;background:white;overflow:hidden">
+            <span style="padding-left:10px;color:#777;font-size:12px;font-weight:800">Desde $</span>
+            <input type="number" id="desc-general-min-precio" min="0" step="0.5" value="0" style="width:78px;border:0;padding:8px 9px;font-size:13px;outline:none;text-align:right" title="Precio mínimo del producto o variante para recibir el descuento">
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="guardarDescuentoGeneral()">Guardar promoción</button>
+        </div>
+      </div>
+      <div id="desc-general-estado" style="font-size:11px;color:#777;margin-top:8px"></div>
+    </div>
     <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
       <input style="flex:1;min-width:150px;padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Buscar..." id="search-prods" oninput="filtrarProds()">
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-propietario-prod" onchange="filtrarProds()"><option value="">Todos</option><option value="Ana">Míos</option><option value="Mamá">Mamá</option><option value="Donado">🎁 Donados</option></select><select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-cat-prod" onchange="filtrarProds()">
@@ -540,7 +563,7 @@ tr:hover td{background:#fff8fc}
     </div>
     <div id="resumen-donaciones" style="display:none;margin:0 0 12px;padding:12px 15px;border-radius:12px;background:#f5f3ff;border:1px solid #ddd6fe;color:#4c1d95;font-size:13px"></div>
     <div class="card" style="padding:0"><div class="table-wrap">
-      <table><thead><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Costo</th><th>Precio</th><th>Margen</th><th>Stock</th><th>QR</th><th>Aptd</th><th></th></tr></thead>
+      <table><thead><tr><th>Foto</th><th>Nombre</th><th>Categoría</th><th>Costo</th><th>Precio</th><th>Descuento</th><th>Margen</th><th>Stock</th><th>QR</th><th>Aptd</th><th></th></tr></thead>
       <tbody id="tbody-prods"></tbody></table>
     </div></div>
   </div>
@@ -1005,6 +1028,17 @@ tr:hover td{background:#fff8fc}
     <div class="form-group form-full"><label>Nombre *</label><input type="text" id="p-nombre"></div>
     <div class="form-group"><label>Precio venta ($)</label><input type="number" id="p-precio" step="0.5" min="0" oninput="calcularMargen()"></div>
     <div class="form-group"><label>Precio costo ($)</label><input type="number" id="p-costo" step="0.5" min="0" oninput="calcularMargen()"></div>
+    <div class="form-group">
+      <label>🏷️ Descuento específico (%) <span style="font-size:11px;color:#888;font-weight:400">(opcional)</span></label>
+      <input type="number" id="p-descuento-pct" min="0" max="100" step="1" value="0" placeholder="0 = usar descuento general">
+    </div>
+    <div class="form-group">
+      <label>Aplicar descuento desde ($)</label>
+      <input type="number" id="p-descuento-min-precio" min="0" step="0.5" value="0" placeholder="0 = sin mínimo">
+    </div>
+    <div class="form-group form-full" style="margin-top:-6px">
+      <div style="font-size:11px;color:#888">Si colocas un descuento específico, reemplaza al general para este producto y solo se aplica cuando el precio del producto o variante alcanza este mínimo.</div>
+    </div>
     <div class="form-group form-full" id="margen-wrap" style="display:none">
       <div style="background:var(--pink-light);padding:10px 12px;border-radius:10px;font-size:13px;border:1px solid #f8bbd0">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap"><span>💡 <strong>Precio recomendado:</strong> <span id="precio-sug"></span></span><span id="margen-actual" style="color:#777"></span></div>
@@ -1406,6 +1440,7 @@ const BUNNY_CDN = "https://Brillitos.b-cdn.net";
 
 // ===== ESTADO =====
 let productos=[], ventas=[], clientes=[], eventos=[], apartados=[], gastosEvento=[], gastosGlobales=[];
+let tiendaConfig={id:1,descuento_general_activo:false,descuento_general_pct:0,descuento_general_min_precio:0};
 let editVentaId=null, editProdId=null, editClienteId=null, editEventoId=null, editAptId=null;
 let ventaItems=[], aptItems=[], fotosSubidas=[];
 let bcvHoy=0, bcvCache={};
@@ -1680,7 +1715,8 @@ async function init(){
     sbGet('eventos','select=*&order=fecha.desc'),
     sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200'),
     sbGet('gastos_globales','select=*&order=fecha.desc&limit=500'),
-    sbGet('categorias','select=*&activo=eq.true&order=nombre.asc')
+    sbGet('categorias','select=*&activo=eq.true&order=nombre.asc'),
+    sbGet('configuracion_tienda','select=*&id=eq.1&limit=1')
   ]);
   productos = results[0].status==='fulfilled'?results[0].value:[];
   ventas    = results[1].status==='fulfilled'?results[1].value:[];
@@ -1690,6 +1726,9 @@ async function init(){
   console.log('📦 productos:',productos.length,'ventas:',ventas.length,'clientes:',clientes.length,'status0:',results[0].status,'status1:',results[1].status);
   gastosGlobales = results[5].status==='fulfilled'&&Array.isArray(results[5].value)?results[5].value:[];
   var catData=results[6]&&results[6].status==='fulfilled'?results[6].value:[];
+  var cfgData=results[7]&&results[7].status==='fulfilled'?results[7].value:[];
+  if(Array.isArray(cfgData)&&cfgData[0]) tiendaConfig=Object.assign({},tiendaConfig,cfgData[0]);
+  renderDescuentoGeneral();
   if(Array.isArray(catData)){dbCategorias=catData.filter(function(c){return c.tipo==='categoria';}).map(function(c){return c.nombre;});dbSubcategorias=catData.filter(function(c){return c.tipo==='subcategoria';}).map(function(c){return c.nombre;});dbSubcategorias.forEach(function(s){Object.keys(CAT_SUBCAT_MAP).forEach(function(cat){if(!CAT_SUBCAT_MAP[cat].includes(s))CAT_SUBCAT_MAP[cat].push(s);});});}
   // Limpiar errores de Supabase (respuestas con "code")
   if(!Array.isArray(productos)) productos=[];
@@ -3418,6 +3457,60 @@ async function cancelarApartado(id){
   toast('✅ Apartado cancelado — stock restaurado 🌸');
 }
 
+// ===== DESCUENTOS TIENDA =====
+function clampDescuento(v){
+  var n=parseFloat(v)||0;
+  return Math.max(0,Math.min(100,n));
+}
+function dineroNoNegativo(v){
+  var n=parseFloat(v)||0;
+  return Math.max(0,n);
+}
+function descuentoEfectivoPct(p,precioBase){
+  var base=dineroNoNegativo(precioBase!==undefined?precioBase:(p&&p.precio));
+  var esp=clampDescuento(p&&p.descuento_pct);
+  if(esp>0){
+    var minEsp=dineroNoNegativo(p&&p.descuento_min_precio);
+    return base>=minEsp?esp:0;
+  }
+  if(!tiendaConfig.descuento_general_activo) return 0;
+  var minGen=dineroNoNegativo(tiendaConfig.descuento_general_min_precio);
+  return base>=minGen?clampDescuento(tiendaConfig.descuento_general_pct):0;
+}
+function precioConDescuentoAdmin(precio,p){
+  var base=parseFloat(precio)||0, pct=descuentoEfectivoPct(p,base);
+  return Math.round(base*(1-pct/100)*100)/100;
+}
+function renderDescuentoGeneral(){
+  var chk=document.getElementById('desc-general-activo');
+  var inp=document.getElementById('desc-general-pct');
+  var minInp=document.getElementById('desc-general-min-precio');
+  var est=document.getElementById('desc-general-estado');
+  if(chk) chk.checked=!!tiendaConfig.descuento_general_activo;
+  if(inp) inp.value=clampDescuento(tiendaConfig.descuento_general_pct);
+  if(minInp) minInp.value=dineroNoNegativo(tiendaConfig.descuento_general_min_precio);
+  if(est){
+    var pct=clampDescuento(tiendaConfig.descuento_general_pct);
+    var minimo=dineroNoNegativo(tiendaConfig.descuento_general_min_precio);
+    est.innerHTML=tiendaConfig.descuento_general_activo&&pct>0
+      ? '✅ Promoción activa: <strong>'+pct+'% de descuento</strong>'+(minimo>0?' en productos desde <strong>$'+minimo.toFixed(2)+'</strong>':' en todos los productos')+'. Los descuentos específicos reemplazan esta regla.'
+      : 'Promoción general inactiva. Los descuentos específicos de productos sí pueden seguir activos.';
+  }
+}
+async function guardarDescuentoGeneral(){
+  var activo=!!(document.getElementById('desc-general-activo')&&document.getElementById('desc-general-activo').checked);
+  var pct=clampDescuento(document.getElementById('desc-general-pct')?document.getElementById('desc-general-pct').value:0);
+  var minimo=dineroNoNegativo(document.getElementById('desc-general-min-precio')?document.getElementById('desc-general-min-precio').value:0);
+  if(activo&&pct<=0){toast('⚠️ Coloca un porcentaje mayor que 0 o desactiva la promoción');return;}
+  var data={descuento_general_activo:activo,descuento_general_pct:pct,descuento_general_min_precio:minimo,updated_at:new Date().toISOString()};
+  var r=await sbPatch('configuracion_tienda',1,data);
+  if(!r||!r.ok){toast('❌ No se pudo guardar el descuento general. Revisa que la migración de descuentos esté aplicada.',7000);return;}
+  tiendaConfig=Object.assign({},tiendaConfig,data);
+  renderDescuentoGeneral();
+  renderProductos();
+  toast(activo?'🏷️ Descuento general activado':'✅ Descuento general desactivado');
+}
+
 // ===== PRODUCTOS =====
 function renderProductos(lista){
   const base=lista||productos;
@@ -3432,14 +3525,16 @@ function renderProductos(lista){
   const visible=l;
   const tbody=document.getElementById('tbody-prods');
   tbody.innerHTML=visible.map(p=>{
-    const margen=p.precio_costo>0?(((p.precio-p.precio_costo)/p.precio)*100).toFixed(0)+'%':'—';
+    const precioEf=precioConDescuentoAdmin(p.precio,p);
+    const margen=p.precio_costo>0&&precioEf>0?(((precioEf-p.precio_costo)/precioEf)*100).toFixed(0)+'%':'—';
     const aptStock=apartados.filter(a=>a.estado==='Activo'&&(a.apartado_items||[]).some(i=>i.producto_id==p.id)).length;
     return '<tr>'
       +'<td class="prod-photo-cell">'+(p.imagen?'<img src="'+p.imagen+'" class="prod-table-img" onerror="this.style.display=\'none\'">':'<div class="prod-table-placeholder">🌸</div>')+'</td>'
       +'<td>'+(p.donado_en?'<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:9px;background:#ede9fe;color:#6d28d9;margin-right:5px">🎁 Donado</span>':(p.propietario==='Mamá'?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fce4ec;color:#c2185b;margin-right:4px">Mamá</span>':''))+'<strong>'+(p.nombre||'')+'</strong>'+(p.visible_web===false?'<span style="font-size:10px;margin-left:4px;color:#bbb" title="Oculto en web">🚫🌐</span>':'')+'</td>'
       +'<td>'+(p.categoria||'')+'</td>'
       +'<td>'+(p.precio_costo>0?'$'+parseFloat(p.precio_costo).toFixed(2):'—')+'</td>'
-      +'<td><strong>$'+parseFloat(p.precio||0).toFixed(2)+'</strong></td>'
+      +'<td><strong>$'+parseFloat(p.precio||0).toFixed(2)+'</strong>'+(descuentoEfectivoPct(p,p.precio)>0?'<div style="font-size:10px;color:#c2185b">Oferta: $'+precioConDescuentoAdmin(p.precio,p).toFixed(2)+'</div>':'')+'</td>'
+      +'<td>'+(parseFloat(p.descuento_pct||0)>0?'<span style="display:inline-block;background:#fff0f6;color:#c2185b;border:1px solid #f8bbd0;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:800">'+clampDescuento(p.descuento_pct)+'% específico'+(dineroNoNegativo(p.descuento_min_precio)>0?' desde $'+dineroNoNegativo(p.descuento_min_precio).toFixed(2):'')+'</span>':(descuentoEfectivoPct(p,p.precio)>0?'<span style="display:inline-block;background:#f5f3ff;color:#6d28d9;border:1px solid #ddd6fe;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:800">'+descuentoEfectivoPct(p,p.precio)+'% general</span>':'—'))+'</td>'
       +'<td style="color:var(--green);font-weight:700">'+margen+'</td>'
       +'<td><input type="number" value="'+(p.stock||0)+'" min="0" style="width:52px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px" onchange="actualizarStockProd('+p.id+',this.value)"></td>'
       +'<td><button onclick="verQRProducto('+p.id+')" style="background:none;border:none;cursor:pointer;font-size:18px;padding:2px" title="Ver QR">🔲</button></td>'
@@ -3551,6 +3646,8 @@ function abrirModalProducto(id=null){
   ['nombre','precio','stock','descripcion'].forEach(f=>document.getElementById('p-'+f).value=p?p[f]||'':'');
   var pvList=p?(p.producto_variantes||[]).filter(function(v){return v.activo!==false;}):[]; renderVariantesModal(pvList);
   document.getElementById('p-costo').value=p?p.precio_costo||'':'';
+  var _dp=document.getElementById('p-descuento-pct'); if(_dp) _dp.value=p?clampDescuento(p.descuento_pct):0;
+  var _dmin=document.getElementById('p-descuento-min-precio'); if(_dmin) _dmin.value=p?dineroNoNegativo(p.descuento_min_precio):0;
   document.getElementById('p-nuevo').checked=p?p.es_nuevo||false:false;
   document.getElementById('p-activo').checked=p?p.activo!==false:true;
   var vwEl=document.getElementById('p-visible-web'); if(vwEl) vwEl.checked=p?(p.visible_web!==false):true;
@@ -3572,7 +3669,7 @@ async function guardarProducto(){
   var nombre=document.getElementById('p-nombre').value.trim();
   var precio=parseFloat(document.getElementById('p-precio').value);
   if(!nombre||isNaN(precio)){toast('⚠️ Nombre y precio obligatorios');return;}
-  var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,activo:document.getElementById('p-activo')?document.getElementById('p-activo').checked:true,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
+  var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,descuento_pct:clampDescuento(document.getElementById('p-descuento-pct')?document.getElementById('p-descuento-pct').value:0),descuento_min_precio:dineroNoNegativo(document.getElementById('p-descuento-min-precio')?document.getElementById('p-descuento-min-precio').value:0),stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,activo:document.getElementById('p-activo')?document.getElementById('p-activo').checked:true,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
   var prodId=editProdId;
   if(editProdId){
     await sbPatch('productos',editProdId,data);
@@ -3599,6 +3696,8 @@ function abrirModalProductoRapido(){
   document.getElementById('p-nombre').value='';
   document.getElementById('p-precio').value='';
   document.getElementById('p-costo').value='';
+  var _dpq=document.getElementById('p-descuento-pct'); if(_dpq) _dpq.value='0';
+  var _dminq=document.getElementById('p-descuento-min-precio'); if(_dminq) _dminq.value='0';
   document.getElementById('p-stock').value='1';
   try{document.getElementById('p-categoria').value='';}catch(e){}
   try{document.getElementById('p-descripcion').value='';}catch(e){}
@@ -6004,7 +6103,7 @@ function renderMovimientosBancaAmiga(){
 <script id="version-status-script">
 (function(){
   var chip=document.getElementById('version-status-chip'), text=chip&&chip.querySelector('.vs-text'); if(!chip||!text)return;
-  var localVersion='v1787338252';
+  var localVersion='v1789694917';
   function versionActual(){return new URLSearchParams(location.search).get('v')||'';}
   function mostrar(clase,mensaje,titulo){chip.className=clase||'';text.textContent=mensaje;chip.title=titulo||mensaje;}
   window.verificarVersionApp=function(){
