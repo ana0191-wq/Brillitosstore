@@ -534,20 +534,31 @@ input[type=range]{accent-color:var(--pk);width:120px}
   </div>
   <div class="pay-panel">
     <div class="pay-tabs">
-      <button class="pay-tab active" onclick="switchTab('wa')" id="tab-wa">💬 WhatsApp</button>
+      <button class="pay-tab active" onclick="switchTab('bs')" id="tab-bs">🇻🇪 Pago móvil</button>
       <button class="pay-tab" onclick="switchTab('pp')" id="tab-pp">🅿️ PayPal</button>
       <button class="pay-tab" onclick="switchTab('bnc')" id="tab-bnc">₿ Binance</button>
-      <button class="pay-tab" onclick="switchTab('bs')" id="tab-bs">🇻🇪 Bs</button>
+      <button class="pay-tab" onclick="switchTab('wa')" id="tab-wa">💬 Consultar</button>
     </div>
     <div class="pay-content">
-      <div class="pay-section active" id="sec-wa">
-        <div class="subtotal-row"><span class="label">Subtotal</span><span class="val highlight" id="wa-sub">$0.00</span></div>
-        <div class="subtotal-row" style="margin-bottom:10px"><span class="label" style="font-size:.75rem;color:#aaa">+ costos de envío según tu zona</span></div>
-        <div class="wa-num-row">
-          <label>WhatsApp:</label>
-          <input type="tel" id="wa-num" placeholder="+58 4XX XXX XXXX" value="+584249006350">
+      <div class="pay-section active" id="sec-bs">
+        <div style="background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;margin-bottom:10px">
+          <div style="font-size:.9rem;font-weight:900;color:#9a3412;margin-bottom:9px">Pago móvil</div>
+          <div style="display:grid;grid-template-columns:86px 1fr;gap:7px 10px;font-size:.82rem;align-items:center">
+            <span style="color:#777;font-weight:700">Cédula</span><strong style="font-size:.9rem">V-26.239.265</strong>
+            <span style="color:#777;font-weight:700">Celular</span><strong style="font-size:.9rem">0424-9372490</strong>
+            <span style="color:#777;font-weight:700">Banco</span><strong style="font-size:.9rem">Bancamiga · 0172</strong>
+            <span style="color:#777;font-weight:700">Monto</span><strong id="bs-total" style="font-size:1.08rem;color:#c2410c">Bs. 0.00</strong>
+          </div>
         </div>
-        <button class="pay-action green" onclick="sendWA()">💬 Enviar pedido por WhatsApp</button>
+        <div class="subtotal-row"><span class="label">Total productos</span><span class="val" id="bs-sub">$0.00</span></div>
+        <div class="bs-row" style="margin-top:7px">
+          <label>Tasa BCV:</label>
+          <input type="number" id="bs-rate" value="40" step="0.01" min="0.01" oninput="calcBS()">
+          <button id="bs-refresh-btn" onclick="fetchBCVRates()" title="Actualizar tasa BCV" style="background:var(--pk);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.8rem">↻</button>
+        </div>
+        <div class="bs-note" id="bs-note-usd">⏳ Cargando tasa BCV…</div>
+        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Tasa usada</span><span class="val" id="bs-used-rate" style="font-size:.72rem">—</span></div>
+        <button class="pay-action pk" onclick="sendWA('bolivares')">📸 Ya pagué · Enviar comprobante</button>
       </div>
       <div class="pay-section" id="sec-pp">
         <div class="subtotal-row"><span class="label">Subtotal productos</span><span class="val" id="pp-sub">$0.00</span></div>
@@ -558,7 +569,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <div class="subtotal-row"><span class="label">Comisión PayPal</span><span class="val" id="pp-fee">$0.00</span></div>
         <div class="subtotal-row"><span class="label">Total a cobrar al cliente</span><span class="val highlight" id="pp-total">$0.00</span></div>
         <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Tú recibirás aprox.</span><span class="val" id="pp-recv" style="font-size:.72rem">$0.00</span></div>
-        <div class="pp-note" style="margin-bottom:8px">📧 Tu PayPal: <strong>ana0191@gmail.com</strong></div>
+        <div class="pp-note" style="margin-bottom:8px">📧 PayPal: <strong>ana0191@gmail.com</strong></div>
         <button class="pay-action blue" onclick="sendWA('paypal')">💬 Enviar con total PayPal</button>
       </div>
       <div class="pay-section" id="sec-bnc">
@@ -571,22 +582,14 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <div class="pp-note">💡 USDT es estable: 1 USDT ≈ $1 USD.</div>
         <div class="subtotal-row"><span class="label">Total a cobrar en USDT</span><span class="val highlight" id="bnc-total">0.00 USDT</span></div>
         <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Equivale a</span><span class="val" id="bnc-usd" style="font-size:.72rem">$0.00</span></div>
-        <div class="pp-note" style="margin-bottom:8px">📧 Tu Binance Pay: <strong>ana0191@gmail.com</strong></div>
+        <div class="pp-note" style="margin-bottom:8px">📧 Binance Pay: <strong>ana0191@gmail.com</strong></div>
         <button class="pay-action yellow" onclick="sendWA('binance')">💬 Enviar con total Binance</button>
       </div>
-      <div class="pay-section" id="sec-bs">
-        <div class="subtotal-row"><span class="label">Subtotal USD</span><span class="val" id="bs-sub">$0.00</span></div>
-        <div class="divider"></div>
-        <div class="bs-row">
-          <label>Tasa BCV (Bs/$):</label>
-          <input type="number" id="bs-rate" value="40" step="0.01" min="0.01" oninput="calcBS()">
-          <button id="bs-refresh-btn" onclick="fetchBCVRates()" title="Actualizar tasa BCV" style="background:var(--pk);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.8rem">↻</button>
-        </div>
-        <div class="bs-note" id="bs-note-usd">⏳ Cargando tasa BCV…</div>
-        <div class="subtotal-row"><span class="label">Total en Bolívares (Bs.)</span><span class="val highlight" id="bs-total">Bs. 0.00</span></div>
-        <div class="subtotal-row" style="margin-bottom:4px"><span class="label" style="font-size:.72rem">Tasa usada</span><span class="val" id="bs-used-rate" style="font-size:.72rem">—</span></div>
-        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Pago móvil</span><span class="val" id="bs-pm" style="font-size:.72rem">04249372490 · Bancamiga</span></div>
-        <button class="pay-action pk" onclick="sendWA('bolivares')">💬 Enviar con total en Bs.</button>
+      <div class="pay-section" id="sec-wa">
+        <div class="subtotal-row"><span class="label">Subtotal</span><span class="val highlight" id="wa-sub">$0.00</span></div>
+        <div class="subtotal-row" style="margin-bottom:10px"><span class="label" style="font-size:.75rem;color:#aaa">+ costos de envío según tu zona</span></div>
+        <input type="hidden" id="wa-num" value="+584249006350">
+        <button class="pay-action green" onclick="sendWA()">💬 Consultar el pedido por WhatsApp</button>
       </div>
     </div>
   </div>
@@ -1431,7 +1434,7 @@ function updateCartUI(){
   calcPP(); calcBNC(); calcBS();
 }
 
-function openCart(){document.getElementById('cart-drw').classList.add('open');document.getElementById('cart-ov').classList.add('open');document.body.style.overflow='hidden';}
+function openCart(){document.getElementById('cart-drw').classList.add('open');document.getElementById('cart-ov').classList.add('open');document.body.style.overflow='hidden';fetchBCVRates();}
 function closeCart(){document.getElementById('cart-drw').classList.remove('open');document.getElementById('cart-ov').classList.remove('open');document.body.style.overflow='';}
 
 
@@ -1503,7 +1506,7 @@ async function sendWA(method){
   } else if(method==='bolivares'){
     const rate=parseFloat(document.getElementById('bs-rate').value)||40;
     const bs=sub*rate;
-    payLine='\n🇻🇪 *Método de pago: Pago Móvil / Bolívares*\n📱 Teléfono: 04249372490 (Bancamiga)\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*\n(Tasa BCV: Bs.'+rate+'/$)\n📸 Enviaré el comprobante por aquí';
+    payLine='\n🇻🇪 *PAGO MÓVIL*\nCédula: V-26.239.265\nCelular: 0424-9372490\nBanco: Bancamiga (0172)\n💰 *Monto: Bs. '+bs.toFixed(2)+'*\nTasa BCV: Bs. '+rate+'/$\n\n📸 Envío el comprobante por aquí.';
   } else {
     payLine=sub>0?'\n💰 Subtotal estimado: $'+sub.toFixed(2)+' USD\n(productos sin precio se consultan aparte)':'\n(Precios a consultar)';
   }
