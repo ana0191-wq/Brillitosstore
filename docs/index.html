@@ -173,8 +173,30 @@ input[type=range]{accent-color:var(--pk);width:120px}
 
 /* ── PRODUCT GRID ── */
 #product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;padding:24px 40px}
-.lm-wrap{text-align:center;padding:16px}
+.lm-wrap{text-align:center;padding:18px 14px 34px}
 .lm-btn{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border:none;border-radius:var(--rb);padding:11px 32px;font-family:var(--fb);font-weight:800;font-size:.9rem;cursor:pointer}
+.pg-wrap{display:flex;justify-content:center;width:100%}
+.pg-shell{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;width:min(100%,760px);margin:0 auto;background:linear-gradient(135deg,#fff,#fff6fb);border:2px solid var(--pk-l);border-radius:24px;padding:12px 14px;box-shadow:0 10px 28px rgba(255,110,180,.16)}
+.pg-center{display:flex;flex:1;min-width:220px;flex-direction:column;align-items:center;gap:7px}
+.pg-pages{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}
+.pg-btn,.pg-nav{font-family:var(--fb);font-weight:900;cursor:pointer;transition:all .18s ease}
+.pg-btn{min-width:42px;height:42px;padding:0 11px;border:2px solid var(--pk-l);border-radius:14px;background:#fff;color:var(--pk);font-size:.92rem;box-shadow:0 4px 10px rgba(255,110,180,.09)}
+.pg-btn:hover{background:var(--pk-p);border-color:var(--pk);transform:translateY(-1px)}
+.pg-btn.pg-active{background:linear-gradient(135deg,var(--pk),var(--pa));border-color:transparent;color:#fff;box-shadow:0 8px 18px rgba(243,135,195,.36);transform:translateY(-1px) scale(1.04)}
+.pg-nav{height:44px;padding:0 16px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;font-size:.86rem;display:inline-flex;align-items:center;gap:7px;box-shadow:0 7px 18px rgba(243,135,195,.28)}
+.pg-nav:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(243,135,195,.34)}
+.pg-nav-ico{font-size:1.15rem;line-height:1}
+.pg-disabled{opacity:.38!important;pointer-events:none!important;box-shadow:none!important;transform:none!important}
+.pg-meta{font-size:.75rem;color:var(--ts);font-weight:700}
+.pg-meta strong{color:var(--pk)}
+.pg-dots{font-weight:900;color:var(--pk);padding:0 2px}
+@media(max-width:560px){
+  .lm-wrap{padding-left:10px;padding-right:10px}
+  .pg-shell{gap:9px;padding:11px 10px;border-radius:20px}
+  .pg-center{order:1;width:100%;min-width:100%}
+  .pg-nav{flex:1;justify-content:center;height:42px;padding:0 12px}
+  .pg-btn{min-width:38px;height:38px;padding:0 9px;border-radius:12px}
+}
 
 /* ── PRODUCT PAGE ── */
 #product-page{background:var(--bg);padding:0 14px 20px}
@@ -277,7 +299,10 @@ input[type=range]{accent-color:var(--pk);width:120px}
 .ci-qty{display:flex;align-items:center;gap:6px;margin-left:auto}
 .ci-qty button{background:var(--pk-p);border:none;border-radius:50%;width:22px;height:22px;font-weight:900;cursor:pointer;color:var(--pk)}
 .ci-qty span{font-size:.82rem;font-weight:800;min-width:18px;text-align:center}
-.ci-del{background:none;border:none;cursor:pointer;color:#e53e3e;font-size:.85rem;margin-left:4px}
+.ci-del{background:#fff1f2;border:1.5px solid #fecdd3;color:#be123c;cursor:pointer;font-size:.72rem;font-weight:900;padding:7px 9px;border-radius:10px;margin-left:4px;font-family:var(--fb);transition:all .15s;white-space:nowrap}
+.ci-del:hover{background:#be123c;color:#fff;border-color:#be123c}
+.cart-clear-btn{background:#fff1f2;border:1.5px solid #fecdd3;color:#be123c;border-radius:999px;padding:7px 11px;cursor:pointer;font-size:.76rem;font-weight:900;font-family:var(--fb);transition:all .15s}
+.cart-clear-btn:hover{background:#be123c;color:#fff;border-color:#be123c}
 .pay-panel{border-top:2px dashed var(--pk-l);padding:12px}
 .pay-tabs{display:flex;gap:4px;margin-bottom:10px;overflow-x:auto}
 .pay-tab{background:#fff;border:2px solid var(--br);border-radius:var(--rb);padding:5px 12px;font-family:var(--fb);font-size:.72rem;font-weight:800;color:var(--ts);cursor:pointer;white-space:nowrap;transition:all .2s}
@@ -512,7 +537,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
   <div class="cart-hdr">
     <span class="cart-ttl">Mi carrito 🛒</span>
     <div style="display:flex;align-items:center;gap:8px">
-      <button id="clear-cart-btn" onclick="clearCart()" title="Vaciar carrito" style="background:none;border:none;cursor:pointer;color:#e53e3e;font-size:.82rem;font-weight:800;font-family:var(--fb)">🗑️ Vaciar</button>
+      <button id="clear-cart-btn" class="cart-clear-btn" onclick="clearCart()" title="Vaciar carrito">🗑️ Vaciar carrito</button>
       <button class="cart-x" onclick="closeCart()">✕</button>
     </div>
   </div>
@@ -876,20 +901,31 @@ function renderPagination(totalPages){
   const wrap=document.getElementById('lm-wrap');
   if(totalPages<=1){wrap.style.display='none';return;}
   wrap.style.display='block';
-  let btns='';
-  
-  btns+=`<button class="pg-btn${currentPage===0?' pg-disabled':''}" onclick="goPage(${currentPage-1})" ${currentPage===0?'disabled':''}>‹</button>`;
-  // Page numbers
+  let pageBtns='';
+
   for(let i=0;i<totalPages;i++){
-    if(totalPages>7&&i>1&&i<totalPages-1&&Math.abs(i-currentPage)>1){
-      if(i===2||i===totalPages-2) btns+='<span class="pg-dots">…</span>';
+    if(totalPages>7&&i>1&&i<totalPages-2&&Math.abs(i-currentPage)>1){
+      if(i===2||i===totalPages-3) pageBtns+='<span class="pg-dots">…</span>';
       continue;
     }
-    btns+=`<button class="pg-btn${i===currentPage?' pg-active':''}" onclick="goPage(${i})">${i+1}</button>`;
+    pageBtns+=`<button class="pg-btn${i===currentPage?' pg-active':''}" onclick="goPage(${i})" aria-label="Ir a la página ${i+1}" ${i===currentPage?'aria-current="page"':''}>${i+1}</button>`;
   }
-  // Next
-  btns+=`<button class="pg-btn${currentPage===totalPages-1?' pg-disabled':''}" onclick="goPage(${currentPage+1})" ${currentPage===totalPages-1?'disabled':''}>›</button>`;
-  wrap.innerHTML=`<div class="pg-wrap">${btns}</div>`;
+
+  wrap.innerHTML=`
+    <div class="pg-wrap">
+      <div class="pg-shell">
+        <button class="pg-nav${currentPage===0?' pg-disabled':''}" onclick="goPage(${currentPage-1})" ${currentPage===0?'disabled':''} aria-label="Página anterior">
+          <span class="pg-nav-ico">‹</span><span>Anterior</span>
+        </button>
+        <div class="pg-center">
+          <div class="pg-pages">${pageBtns}</div>
+          <div class="pg-meta">Página <strong>${currentPage+1}</strong> de <strong>${totalPages}</strong></div>
+        </div>
+        <button class="pg-nav${currentPage===totalPages-1?' pg-disabled':''}" onclick="goPage(${currentPage+1})" ${currentPage===totalPages-1?'disabled':''} aria-label="Página siguiente">
+          <span>Siguiente</span><span class="pg-nav-ico">›</span>
+        </button>
+      </div>
+    </div>`;
 }
 function goPage(p){
   const totalPages=Math.ceil(filtered.length/PAGE);
@@ -1180,7 +1216,11 @@ function addToCart(id, variantOverride){
   const label = variant ? p.nombre+' ('+variant+')' : p.nombre;
   showToast((ex?'Cantidad actualizada':'¡'+label+' agregado!')+' 🌸');
 }
-function clearCart(){cart=[];saveCart();updateCartUI();showToast('Carrito vaciado 🗑️');}
+function clearCart(){
+  if(!cart.length) return;
+  if(!confirm('¿Vaciar todo el carrito?')) return;
+  cart=[];saveCart();updateCartUI();showToast('Carrito vaciado 🗑️');
+}
 function removeFromCart(key){cart=cart.filter(c=>(c._cartKey||String(c.id))!==key);saveCart();updateCartUI();}
 function changeQty(key,delta){
   const ex=cart.find(c=>(c._cartKey||String(c.id))===key); if(!ex) return;
@@ -1204,6 +1244,7 @@ function updateCartUI(){
       const d=document.createElement('div'); d.className='cart-item';
       const catT=(p.categoria||'').replace(/[\u{1F000}-\u{1FFFF}]/gu,'').trim();
       const ck=p._cartKey||String(p.id);
+      const ckSafe=encodeURIComponent(ck);
       d.innerHTML=
         '<img class="ci-img" src="'+(p.imagen||'')+' " alt="'+esc(p.nombre)+'" onerror="imgFallback(this)">'+
         '<div class="ci-info">'+
@@ -1212,12 +1253,12 @@ function updateCartUI(){
         '<div class="ci-cat">'+esc(catT)+'</div>'+
         '<div class="ci-price">'+(p.precio!==null?'$'+(p.precio*(p.qty||1)).toFixed(2)+' '+(p.qty>1?'(x'+p.qty+')':''):'Consultar 💬')+'</div>'+
         '<div class="ci-qty">'+
-        '<button onclick="changeQty(\''+ck+'\', -1)">−</button>'+
-        '<span>'+(p.qty||1)+'</span>'+
-        '<button onclick="changeQty(\''+ck+'\',+1)">+</button>'+
+          '<button onclick="changeQty(decodeURIComponent(\''+ckSafe+'\'),-1)" aria-label="Restar unidad">−</button>'+
+          '<span>'+(p.qty||1)+'</span>'+
+          '<button onclick="changeQty(decodeURIComponent(\''+ckSafe+'\'),1)" aria-label="Sumar unidad">+</button>'+
         '</div>'+
         '</div>'+
-        '<button class="ci-rm" onclick="removeFromCart(\''+ck+'\')" >✕</button>';
+        '<button class="ci-del" onclick="removeFromCart(decodeURIComponent(\''+ckSafe+'\'))" title="Eliminar del carrito">🗑️ Eliminar</button>';
       frag.appendChild(d);
     });
     c.appendChild(frag);
