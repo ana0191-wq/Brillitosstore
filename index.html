@@ -639,7 +639,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 <script>
 // v1777062456
 var CATALOG = [];
-var STORE_CONFIG = {id:1, descuento_general_activo:false, descuento_general_pct:0, descuento_general_min_precio:0};
+var STORE_CONFIG = {id:1, descuento_reglas:[]};
 var SUPABASE_URL = "https://xavqokyzdmqzguicjsrq.supabase.co";
 var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
 
@@ -680,8 +680,6 @@ async function cargarCatalogo() {
         subcategoria: p.subcategoria || '',
         descripcion:  p.descripcion || '',
         precio:       parseFloat(p.precio) || 0,
-        descuento_pct: parseFloat(p.descuento_pct) || 0,
-        descuento_min_precio: parseFloat(p.descuento_min_precio) || 0,
         stock:        parseInt(p.stock) || 0,
         observaciones:p.observaciones || '',
         variantes:    variantes.map(function(v){ return Object.assign({},v,{precio: v.precio&&parseFloat(v.precio)>0 ? parseFloat(v.precio) : null}); }),
@@ -724,23 +722,50 @@ function nonNegativeMoney(v){
   var n=parseFloat(v)||0;
   return Math.max(0,n);
 }
-function getDiscountPct(p,basePrice){
-  var original=nonNegativeMoney(basePrice!==undefined?basePrice:(p&&p.precio));
-  var specific=clampDiscountPct(p&&p.descuento_pct);
-  if(specific>0){
-    var specificMin=nonNegativeMoney(p&&p.descuento_min_precio);
-    return original>=specificMin?specific:0;
+function discountRules(){
+  return Array.isArray(STORE_CONFIG.descuento_reglas)?STORE_CONFIG.descuento_reglas:[];
+}
+function normalizeCat(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+function ruleMatchesProduct(r,p){
+  if(!r||r.activo===false||!p) return false;
+  if(r.alcance==='todos'||!r.alcance) return true;
+  if(r.alcance==='categorias'){
+    var cats=Array.isArray(r.categorias)?r.categorias:[];
+    return cats.some(function(x){return normalizeCat(x)===normalizeCat(p.categoria||'');});
   }
-  if(!STORE_CONFIG.descuento_general_activo) return 0;
-  var generalMin=nonNegativeMoney(STORE_CONFIG.descuento_general_min_precio);
-  return original>=generalMin?clampDiscountPct(STORE_CONFIG.descuento_general_pct):0;
+  if(r.alcance==='productos'){
+    var ids=Array.isArray(r.producto_ids)?r.producto_ids:[];
+    return ids.map(String).includes(String(p.id));
+  }
+  return false;
+}
+function getDiscountRule(p,basePrice){
+  var base=nonNegativeMoney(basePrice!==undefined?basePrice:(p&&p.precio));
+  var candidates=discountRules().filter(function(r){
+    return r&&r.activo!==false&&clampDiscountPct(r.porcentaje)>0&&base>=nonNegativeMoney(r.monto_minimo)&&ruleMatchesProduct(r,p);
+  });
+  if(!candidates.length) return null;
+  candidates.sort(function(a,b){
+    var dp=clampDiscountPct(b.porcentaje)-clampDiscountPct(a.porcentaje);
+    if(dp!==0) return dp;
+    var weight={productos:3,categorias:2,todos:1};
+    return (weight[b.alcance]||0)-(weight[a.alcance]||0);
+  });
+  return candidates[0];
+}
+function getDiscountPct(p,basePrice){
+  var r=getDiscountRule(p,basePrice);
+  return r?clampDiscountPct(r.porcentaje):0;
 }
 function getPriceInfo(p, basePrice){
   var original=parseFloat(basePrice)||0;
-  var pct=getDiscountPct(p,original);
+  var rule=getDiscountRule(p,original);
+  var pct=rule?clampDiscountPct(rule.porcentaje):0;
   var final=original;
   if(original>0 && pct>0) final=Math.round(original*(1-pct/100)*100)/100;
-  return {original:original, final:final, pct:pct, discounted:original>0&&pct>0&&final<original};
+  return {original:original, final:final, pct:pct, rule:rule, discounted:original>0&&pct>0&&final<original};
 }
 function cardPriceHtml(p, basePrice){
   var info=getPriceInfo(p,basePrice);
@@ -944,14 +969,14 @@ function init(){
 function renderDiscountBanner(){
   var el=document.getElementById('discount-banner');
   if(!el) return;
-  var pct=STORE_CONFIG.descuento_general_activo?clampDiscountPct(STORE_CONFIG.descuento_general_pct):0;
-  var minimo=nonNegativeMoney(STORE_CONFIG.descuento_general_min_precio);
-  if(pct>0){
-    el.innerHTML='🏷️ <strong>'+pct+'% DE DESCUENTO'+(minimo>0?' EN PRODUCTOS DESDE $'+minimo.toFixed(2):' GENERAL')+'</strong> · Los productos con promoción especial muestran su propia regla.';
-    el.style.display='block';
-  }else{
-    el.style.display='none';
-  }
+  var active=discountRules().filter(function(r){return r&&r.activo!==false&&clampDiscountPct(r.porcentaje)>0;});
+  if(!active.length){ el.style.display='none'; return; }
+  var preview=active.slice(0,3).map(function(r){
+    var min=nonNegativeMoney(r.monto_minimo);
+    return '<strong>'+clampDiscountPct(r.porcentaje)+'% off</strong>'+(min>0?' desde $'+min.toFixed(2):'')+' · '+(r.nombre||'Promoción');
+  }).join(' &nbsp;|&nbsp; ');
+  el.innerHTML='🏷️ '+preview+(active.length>3?' &nbsp;+'+(active.length-3)+' promociones más':'');
+  el.style.display='block';
 }
 
 function buildCats(){
@@ -1082,7 +1107,7 @@ function buildCard(p,idx){
   const nuevoBadge=p.esNuevo
     ?'<div style="position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#ff6eb4,#ff3d9a);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:4;box-shadow:0 2px 8px rgba(255,61,154,.45);animation:pulsenuevo 1.4s infinite">✨ NUEVO</div>'
     :'';
-  const saleBadge=priceInfo.discounted?'<div class="sale-badge">-'+priceInfo.pct+'%</div>':'';
+  const saleBadge=priceInfo.discounted?'<div class="sale-badge" title="'+((priceInfo.rule&&priceInfo.rule.nombre)||'Promoción')+'">-'+priceInfo.pct+'%</div>':'';
   const unicoBadge=(p.stock===1)
     ?'<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#ff6b35,#e53e3e);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(229,62,62,.4)">¡Único!</div>'
     :(p.stock>1&&p.stock<=3)
