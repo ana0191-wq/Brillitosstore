@@ -1100,12 +1100,20 @@ tr:hover td{background:#fff8fc}
   <div class="upload-previews" id="upload-previews"></div>
   <div style="display:flex;gap:16px;margin-top:10px;align-items:center;flex-wrap:wrap">
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-nuevo" style="accent-color:var(--pink)"> 🆕 Nuevo</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-remate" style="accent-color:#ef4444"> 🔥 En remate</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-remate" style="accent-color:#ef4444" onchange="togglePrecioRemateUI()"> 🔥 En remate</label>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-activo" checked style="accent-color:var(--pink)"> ✅ Activo</label>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-visible-web" checked style="accent-color:#db2777"> 🌸 Visible en tienda</label>
     <div id="prod-qr-preview" style="display:none;flex-direction:column;align-items:center;gap:4px;margin-left:auto">
       <img id="prod-qr-img" src="" style="width:72px;height:72px;border-radius:8px;border:1px solid var(--border)">
       <span style="font-size:9px;color:var(--gray)" id="prod-qr-code"></span>
+    </div>
+  </div>
+  <div id="p-remate-precio-wrap" style="display:none;margin-top:10px;padding:10px 12px;border:1.5px solid #fecaca;background:#fff7f7;border-radius:12px">
+    <label style="display:block;font-size:12px;font-weight:800;color:#b91c1c;margin-bottom:5px">🔥 Precio de remate</label>
+    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+      <span style="font-weight:900;color:#777">$</span>
+      <input type="number" id="p-precio-remate" min="0.01" step="0.01" placeholder="Ej. 3.50" style="width:130px;padding:8px 10px;border:1.5px solid #fca5a5;border-radius:9px;font-size:13px">
+      <span style="font-size:11px;color:#777">Debe ser menor al precio normal.</span>
     </div>
   </div>
   <div class="modal-footer">
@@ -2392,7 +2400,7 @@ function renderProductosPOS(lista){
     '<div class="pos-card" onclick="agregarAlCarrito('+p.id+')">'
     +(p.imagen?'<img class="pos-card-img" src="'+p.imagen+'" onerror="this.style.display=\'none\'">':'<div class="pos-card-placeholder">🌸</div>')
     +'<div class="pos-card-nombre">'+p.nombre+(p.propietario==='Mamá'?' <span style="font-size:9px;background:#fce4ec;color:#c2185b;padding:1px 4px;border-radius:5px;font-weight:700">Mamá</span>':'')+'</div>'
-    +'<div class="pos-card-precio">$'+parseFloat(p.precio||0).toFixed(2)+'</div>'
+    +'<div class="pos-card-precio">'+(remateActivo(p,p.precio)?'<span style="text-decoration:line-through;color:#999;font-size:10px">$'+parseFloat(p.precio||0).toFixed(2)+'</span> 🔥 $'+precioConDescuentoAdmin(p.precio,p).toFixed(2):'$'+precioConDescuentoAdmin(p.precio,p).toFixed(2))+'</div>'
     +'<div class="pos-card-stock">Stock: '+stockPOS(p)+'</div></div>').join('') || '<div style="grid-column:1/-1;text-align:center;color:var(--gray);padding:28px">No hay productos con stock disponible.</div>';
 }
 function agregarAlCarrito(pid,varianteId){
@@ -2401,7 +2409,7 @@ function agregarAlCarrito(pid,varianteId){
   if(varianteId&&!v){ toast('⚠️ Variante no encontrada'); return; }
   const disponible=v?Math.max(0,parseInt(v.stock,10)||0):stockPOS(p);
   const idx=posCarrito.findIndex(x=>x.id===pid&&String(x.variante_id||'')===String(varianteId||'')), actual=idx>=0?posCarrito[idx].cantidad:0;
-  const nombre=v?p.nombre+' — '+v.nombre:p.nombre, precio=parseFloat(v&&v.precio!=null?v.precio:p.precio)||0;
+  const nombre=v?p.nombre+' — '+v.nombre:p.nombre, precioBase=parseFloat(v&&v.precio!=null?v.precio:p.precio)||0, precio=precioConDescuentoAdmin(precioBase,p);
   if(disponible<=0){ toast('⚠️ '+nombre+' está agotado'); renderPOS(); return; }
   if(actual>=disponible){ toast('⚠️ Solo quedan '+disponible+' unidad'+(disponible!==1?'es':'')+' de '+nombre); return; }
   if(idx>=0){ posCarrito[idx].cantidad++; posCarrito[idx].subtotal=posCarrito[idx].cantidad*precio; }
@@ -3535,9 +3543,28 @@ function descuentoEfectivoPct(p,precioBase){
   var r=reglaDescuentoAplicable(p,precioBase);
   return r?clampDescuento(r.porcentaje):0;
 }
+function remateActivo(p,precioBase){
+  var normal=parseFloat(precioBase!==undefined?precioBase:(p&&p.precio))||0;
+  var rem=parseFloat(p&&p.precio_remate)||0;
+  return !!(p&&p.en_remate&&rem>0&&normal>0&&rem<normal);
+}
 function precioConDescuentoAdmin(precio,p){
-  var base=parseFloat(precio)||0, pct=descuentoEfectivoPct(p,base);
+  var base=parseFloat(precio)||0;
+  if(remateActivo(p,base)) return Math.round(parseFloat(p.precio_remate)*100)/100;
+  var pct=descuentoEfectivoPct(p,base);
   return Math.round(base*(1-pct/100)*100)/100;
+}
+function togglePrecioRemateUI(){
+  var ck=document.getElementById('p-remate');
+  var wrap=document.getElementById('p-remate-precio-wrap');
+  if(wrap) wrap.style.display=ck&&ck.checked?'block':'none';
+  if(ck&&ck.checked){
+    var inp=document.getElementById('p-precio-remate');
+    if(inp&&!inp.value){
+      var normal=parseFloat((document.getElementById('p-precio')||{}).value)||0;
+      if(normal>0) inp.value=(normal*0.8).toFixed(2);
+    }
+  }
 }
 function resumenAlcanceRegla(r){
   if(!r) return '';
@@ -3676,15 +3703,15 @@ function renderProductos(lista){
       +'<td>'+(p.vendido_en?'<span style="font-size:10px;font-weight:900;padding:2px 8px;border-radius:9px;background:#dcfce7;color:#166534;margin-right:5px">✅ VENDIDO</span>':(p.donado_en?'<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:9px;background:#ede9fe;color:#6d28d9;margin-right:5px">🎁 Donado</span>':(p.propietario==='Mamá'?'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:8px;background:#fce4ec;color:#c2185b;margin-right:4px">Mamá</span>':'')))+(p.en_remate&&!p.vendido_en?'<span style="font-size:10px;font-weight:800;padding:2px 7px;border-radius:9px;background:#fee2e2;color:#b91c1c;margin-right:5px">🔥 Remate</span>':'')+'<strong>'+(p.nombre||'')+'</strong>'+(p.visible_web===false?'<span style="font-size:10px;margin-left:4px;color:#bbb" title="Oculto en web">🚫🌐</span>':'')+'</td>'
       +'<td>'+(p.categoria||'')+'</td>'
       +'<td>'+(p.precio_costo>0?'$'+parseFloat(p.precio_costo).toFixed(2):'—')+'</td>'
-      +'<td><strong>$'+parseFloat(p.precio||0).toFixed(2)+'</strong>'+(descuentoEfectivoPct(p,p.precio)>0?'<div style="font-size:10px;color:#c2185b">Oferta: $'+precioConDescuentoAdmin(p.precio,p).toFixed(2)+'</div>':'')+'</td>'
-      +'<td>'+(reglaDescuentoAplicable(p,p.precio)?'<span style="display:inline-block;background:#fff0f6;color:#c2185b;border:1px solid #f8bbd0;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:800">'+clampDescuento(reglaDescuentoAplicable(p,p.precio).porcentaje)+'% · '+(reglaDescuentoAplicable(p,p.precio).nombre||'Promoción')+'</span>':'—')+'</td>'
+      +'<td><strong'+(remateActivo(p,p.precio)?' style="text-decoration:line-through;color:#999"':'')+'>$'+parseFloat(p.precio||0).toFixed(2)+'</strong>'+(remateActivo(p,p.precio)?'<div style="font-size:11px;color:#b91c1c;font-weight:900">🔥 $'+parseFloat(p.precio_remate).toFixed(2)+'</div>':(descuentoEfectivoPct(p,p.precio)>0?'<div style="font-size:10px;color:#c2185b">Oferta: $'+precioConDescuentoAdmin(p.precio,p).toFixed(2)+'</div>':''))+'</td>'
+      +'<td>'+(remateActivo(p,p.precio)?'<span style="display:inline-block;background:#fee2e2;color:#b91c1c;border:1px solid #fecaca;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:900">🔥 Remate</span>':(reglaDescuentoAplicable(p,p.precio)?'<span style="display:inline-block;background:#fff0f6;color:#c2185b;border:1px solid #f8bbd0;border-radius:12px;padding:2px 7px;font-size:10px;font-weight:800">'+clampDescuento(reglaDescuentoAplicable(p,p.precio).porcentaje)+'% · '+(reglaDescuentoAplicable(p,p.precio).nombre||'Promoción')+'</span>':'—'))+'</td>'
       +'<td style="color:var(--green);font-weight:700">'+margen+'</td>'
       +'<td>'+(p.vendido_en?'<span style="font-weight:900;color:#166534">0</span>':'<input type="number" value="'+(p.stock||0)+'" min="0" style="width:52px;padding:4px 6px;border:1px solid var(--border);border-radius:6px;text-align:center;font-size:13px" onchange="actualizarStockProd('+p.id+',this.value)">')+'</td>'
       +'<td><button onclick="verQRProducto('+p.id+')" style="background:none;border:none;cursor:pointer;font-size:18px;padding:2px" title="Ver QR">🔲</button></td>'
       +'<td>'+(aptStock>0?'<span class="badge badge-pendiente">📌'+aptStock+'</span>':'—')+'</td>'
-      +'<td style="white-space:nowrap;display:flex;gap:4px;align-items:center">'+(p.vendido_en
-        ?"<span style='font-size:10px;font-weight:900;color:#166534;padding:4px 7px;background:#dcfce7;border-radius:8px'>VENDIDO</span><button class='btn btn-warning btn-sm' onclick='abrirModalProducto("+p.id+")'>✏️</button>"
-        :"<button class='btn btn-sm' style='font-size:10px;padding:2px 7px;background:"+(p.propietario==='Mamá'?'#fce4ec;color:#c2185b;border-color:#f48fb1':'#f5f5f5;color:#555;border-color:#ddd')+";border:1.5px solid;border-radius:8px;font-weight:700' onclick='togglePropietario("+p.id+")' title='Cambiar propietario'>"+(p.propietario==='Mamá'?'Mamá':'Mío')+"</button>"+(p.donado_en?"<span style='font-size:10px;color:#6d28d9;font-weight:700;padding:4px'>🎁</span>":"<button class='btn btn-sm' style='background:#ede9fe;color:#6d28d9;border:none;padding:4px 7px;font-size:12px' onclick='donarProducto("+p.id+")' title='Marcar como donado'>🎁</button>")+"<button class='btn btn-sm' style='background:"+(p.en_remate?'#b91c1c':'#fff7ed')+";color:"+(p.en_remate?'white':'#c2410c')+";border:1px solid #fdba74;font-weight:800' onclick='toggleRemateProducto("+p.id+")' title='"+(p.en_remate?'Quitar de remate':'Poner en remate')+"'>🔥 "+(p.en_remate?'En remate':'Remate')+"</button><button class='btn btn-sm' style='background:#16a34a;color:white;border:none;font-weight:800' onclick='marcarProductoVendidoRapido("+p.id+")' title='Registrar venta rápida y actualizar inventario'>✓ Vendido</button><button class='btn btn-sm' style='background:#14b8a6;color:white;border:none' onclick='apartarProductoDesdeLista("+p.id+")' title='Apartar desde stock'>📌</button><button class='btn btn-warning btn-sm' onclick='abrirModalProducto("+p.id+")'>✏️</button><button class='btn btn-danger btn-sm' onclick='eliminarProd("+p.id+")'>🗑️</button>")+'</td>'
+      +'<td style="white-space:normal;min-width:155px"><div style="display:grid;grid-template-columns:repeat(2,max-content);gap:5px;align-items:center;justify-content:start">'+(p.vendido_en
+        ?"<span style='grid-column:1/-1;font-size:10px;font-weight:900;color:#166534;padding:4px 7px;background:#dcfce7;border-radius:8px'>✅ VENDIDO</span><button class='btn btn-warning btn-sm' onclick='abrirModalProducto("+p.id+")'>✏️ Editar</button>"
+        :"<button class='btn btn-sm' style='background:"+(p.en_remate?'#b91c1c':'#fff7ed')+";color:"+(p.en_remate?'white':'#c2410c')+";border:1px solid #fdba74;font-weight:800;padding:4px 7px' onclick='toggleRemateProducto("+p.id+")'>🔥 Remate</button><button class='btn btn-sm' style='background:#16a34a;color:white;border:none;font-weight:800;padding:4px 7px' onclick='marcarProductoVendidoRapido("+p.id+")'>✓ Vendido</button><button class='btn btn-sm' style='background:#14b8a6;color:white;border:none;padding:4px 7px' onclick='apartarProductoDesdeLista("+p.id+")'>📌 Apartar</button><button class='btn btn-warning btn-sm' onclick='abrirModalProducto("+p.id+")'>✏️ Editar</button><button class='btn btn-sm' style='font-size:10px;padding:4px 7px;background:"+(p.propietario==='Mamá'?'#fce4ec':'#f5f5f5')+";color:"+(p.propietario==='Mamá'?'#c2185b':'#555')+";border:1px solid #ddd' onclick='togglePropietario("+p.id+")'>"+(p.propietario==='Mamá'?'Mamá':'Mío')+"</button>"+(p.donado_en?"<span style='font-size:10px;color:#6d28d9;font-weight:700;padding:4px'>🎁 Donado</span>":"<button class='btn btn-sm' style='background:#ede9fe;color:#6d28d9;border:none;padding:4px 7px' onclick='donarProducto("+p.id+")'>🎁 Donar</button>")+"<button class='btn btn-danger btn-sm' style='grid-column:2' onclick='eliminarProd("+p.id+")'>🗑️</button>")+'</div></td>'
       +'</tr>';
   }).join('');
 
@@ -3736,12 +3763,32 @@ async function togglePropietario(id){
 async function toggleRemateProducto(id){
   const p=productos.find(x=>x.id===id);
   if(!p||p.vendido_en) return;
-  const nuevo=!p.en_remate;
-  const r=await sbPatch('productos',id,{en_remate:nuevo});
+  const normal=parseFloat(p.precio)||0;
+  const remActual=parseFloat(p.precio_remate)||0;
+  const remValido=p.en_remate&&remActual>0&&remActual<normal;
+
+  if(remValido){
+    const r=await sbPatch('productos',id,{en_remate:false});
+    if(!r||!r.ok){toast('❌ No se pudo actualizar Remate');return;}
+    p.en_remate=false;
+    refrescarProductosConFiltros();
+    renderPOS();
+    toast('✅ Producto retirado de Remate');
+    return;
+  }
+
+  const sugerido=remActual>0&&remActual<normal?remActual:(normal*0.8);
+  const txt=prompt('Precio normal: $'+normal.toFixed(2)+'\n¿Cuál será el precio de remate?',sugerido.toFixed(2));
+  if(txt===null||txt==='') return;
+  const rem=parseFloat(txt);
+  if(!rem||rem<=0||rem>=normal){toast('⚠️ El precio de remate debe ser menor al precio normal');return;}
+  const r=await sbPatch('productos',id,{en_remate:true,precio_remate:rem});
   if(!r||!r.ok){toast('❌ No se pudo actualizar Remate');return;}
-  p.en_remate=nuevo;
+  p.en_remate=true;
+  p.precio_remate=rem;
   refrescarProductosConFiltros();
-  toast(nuevo?'🔥 Producto agregado a Remate':'✅ Producto retirado de Remate');
+  renderPOS();
+  toast('🔥 Remate activado a $'+rem.toFixed(2));
 }
 async function marcarProductoVendidoRapido(id){
   const p=productos.find(x=>x.id===id);
@@ -3906,6 +3953,8 @@ function abrirModalProducto(id=null){
   document.getElementById('p-costo').value=p?p.precio_costo||'':'';
   document.getElementById('p-nuevo').checked=p?p.es_nuevo||false:false;
   document.getElementById('p-remate').checked=p?p.en_remate||false:false;
+  document.getElementById('p-precio-remate').value=p&&p.precio_remate?parseFloat(p.precio_remate).toFixed(2):'';
+  togglePrecioRemateUI();
   document.getElementById('p-activo').checked=p?p.activo!==false:true;
   var vwEl=document.getElementById('p-visible-web'); if(vwEl) vwEl.checked=p?(p.visible_web!==false):true;
   var _propEl=document.getElementById('p-propietario'); if(_propEl) _propEl.value=p&&p.propietario?p.propietario:'Ana';
@@ -3926,7 +3975,10 @@ async function guardarProducto(){
   var nombre=document.getElementById('p-nombre').value.trim();
   var precio=parseFloat(document.getElementById('p-precio').value);
   if(!nombre||isNaN(precio)){toast('⚠️ Nombre y precio obligatorios');return;}
-  var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,en_remate:document.getElementById('p-remate')?document.getElementById('p-remate').checked:false,activo:document.getElementById('p-activo')?document.getElementById('p-activo').checked:true,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
+  var enRemate=!!(document.getElementById('p-remate')&&document.getElementById('p-remate').checked);
+  var precioRemate=parseFloat((document.getElementById('p-precio-remate')||{}).value)||0;
+  if(enRemate&&(precioRemate<=0||precioRemate>=precio)){toast('⚠️ El precio de remate debe ser mayor que 0 y menor al precio normal');return;}
+  var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,en_remate:enRemate,precio_remate:enRemate?precioRemate:null,activo:document.getElementById('p-activo')?document.getElementById('p-activo').checked:true,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
   var prodId=editProdId;
   if(editProdId){
     var up=await sbPatch('productos',editProdId,data);
@@ -3959,7 +4011,7 @@ function abrirModalProductoRapido(){
   try{document.getElementById('p-categoria').value='';}catch(e){}
   try{document.getElementById('p-descripcion').value='';}catch(e){}
   try{document.getElementById('p-nuevo').checked=true;}catch(e){}
-  try{document.getElementById('p-remate').checked=false;}catch(e){}
+  try{document.getElementById('p-remate').checked=false;document.getElementById('p-precio-remate').value='';togglePrecioRemateUI();}catch(e){}
   try{document.getElementById('p-activo').checked=true;
     var _propEl2=document.getElementById('p-propietario'); if(_propEl2) _propEl2.value='Ana';
     var _visEl2=document.getElementById('p-visible-web'); if(_visEl2) _visEl2.checked=true;
