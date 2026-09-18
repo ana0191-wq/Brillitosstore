@@ -4023,6 +4023,23 @@ async function guardarProducto(){
   var precioRemate=parseFloat((document.getElementById('p-precio-remate')||{}).value)||0;
   if(enRemate&&(precioRemate<=0||precioRemate>=precio)){toast('⚠️ El precio de remate debe ser mayor que 0 y menor al precio normal');return;}
   var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,en_remate:enRemate,precio_remate:enRemate?precioRemate:null,activo:document.getElementById('p-activo')?document.getElementById('p-activo').checked:true,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
+  var existente=editProdId?productos.find(function(x){return x.id===editProdId;}):null;
+  var variantesConStock=_variantesModal.some(function(v){return !v._delete&&(parseInt(v.stock,10)||0)>0;});
+  if(!(existente&&existente.donado_en)){
+    if(data.stock<=0&&!variantesConStock){
+      data.archivado_en=new Date().toISOString();
+      data.motivo_archivo='Agotado';
+      data.activo=false;
+      data.visible_web=false;
+      data.en_remate=false;
+    }else if(existente&&existente.archivado_en&&existente.motivo_archivo==='Agotado'){
+      data.archivado_en=null;
+      data.motivo_archivo=null;
+      data.vendido_en=null;
+      data.activo=true;
+      data.visible_web=true;
+    }
+  }
   var prodId=editProdId;
   if(editProdId){
     var up=await sbPatch('productos',editProdId,data);
