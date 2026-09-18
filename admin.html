@@ -1100,12 +1100,20 @@ tr:hover td{background:#fff8fc}
   <div class="upload-previews" id="upload-previews"></div>
   <div style="display:flex;gap:16px;margin-top:10px;align-items:center;flex-wrap:wrap">
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-nuevo" style="accent-color:var(--pink)"> 🆕 Nuevo</label>
-    <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-remate" style="accent-color:#ef4444"> 🔥 En remate</label>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-remate" style="accent-color:#ef4444" onchange="togglePrecioRemateUI()"> 🔥 En remate</label>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-activo" checked style="accent-color:var(--pink)"> ✅ Activo</label>
     <label style="display:flex;align-items:center;gap:6px;font-size:13px"><input type="checkbox" id="p-visible-web" checked style="accent-color:#db2777"> 🌸 Visible en tienda</label>
     <div id="prod-qr-preview" style="display:none;flex-direction:column;align-items:center;gap:4px;margin-left:auto">
       <img id="prod-qr-img" src="" style="width:72px;height:72px;border-radius:8px;border:1px solid var(--border)">
       <span style="font-size:9px;color:var(--gray)" id="prod-qr-code"></span>
+    </div>
+  </div>
+  <div id="p-remate-precio-wrap" style="display:none;margin-top:10px;padding:10px 12px;border:1.5px solid #fecaca;background:#fff7f7;border-radius:12px">
+    <label style="display:block;font-size:12px;font-weight:800;color:#b91c1c;margin-bottom:5px">🔥 Precio de remate</label>
+    <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap">
+      <span style="font-weight:900;color:#777">$</span>
+      <input type="number" id="p-precio-remate" min="0.01" step="0.01" placeholder="Ej. 3.50" style="width:130px;padding:8px 10px;border:1.5px solid #fca5a5;border-radius:9px;font-size:13px">
+      <span style="font-size:11px;color:#777">Debe ser menor al precio normal.</span>
     </div>
   </div>
   <div class="modal-footer">
@@ -3535,9 +3543,28 @@ function descuentoEfectivoPct(p,precioBase){
   var r=reglaDescuentoAplicable(p,precioBase);
   return r?clampDescuento(r.porcentaje):0;
 }
+function remateActivo(p,precioBase){
+  var normal=parseFloat(precioBase!==undefined?precioBase:(p&&p.precio))||0;
+  var rem=parseFloat(p&&p.precio_remate)||0;
+  return !!(p&&p.en_remate&&rem>0&&normal>0&&rem<normal);
+}
 function precioConDescuentoAdmin(precio,p){
-  var base=parseFloat(precio)||0, pct=descuentoEfectivoPct(p,base);
+  var base=parseFloat(precio)||0;
+  if(remateActivo(p,base)) return Math.round(parseFloat(p.precio_remate)*100)/100;
+  var pct=descuentoEfectivoPct(p,base);
   return Math.round(base*(1-pct/100)*100)/100;
+}
+function togglePrecioRemateUI(){
+  var ck=document.getElementById('p-remate');
+  var wrap=document.getElementById('p-remate-precio-wrap');
+  if(wrap) wrap.style.display=ck&&ck.checked?'block':'none';
+  if(ck&&ck.checked){
+    var inp=document.getElementById('p-precio-remate');
+    if(inp&&!inp.value){
+      var normal=parseFloat((document.getElementById('p-precio')||{}).value)||0;
+      if(normal>0) inp.value=(normal*0.8).toFixed(2);
+    }
+  }
 }
 function resumenAlcanceRegla(r){
   if(!r) return '';
@@ -3736,12 +3763,32 @@ async function togglePropietario(id){
 async function toggleRemateProducto(id){
   const p=productos.find(x=>x.id===id);
   if(!p||p.vendido_en) return;
-  const nuevo=!p.en_remate;
-  const r=await sbPatch('productos',id,{en_remate:nuevo});
+  const normal=parseFloat(p.precio)||0;
+  const remActual=parseFloat(p.precio_remate)||0;
+  const remValido=p.en_remate&&remActual>0&&remActual<normal;
+
+  if(remValido){
+    const r=await sbPatch('productos',id,{en_remate:false});
+    if(!r||!r.ok){toast('❌ No se pudo actualizar Remate');return;}
+    p.en_remate=false;
+    refrescarProductosConFiltros();
+    renderPOS();
+    toast('✅ Producto retirado de Remate');
+    return;
+  }
+
+  const sugerido=remActual>0&&remActual<normal?remActual:(normal*0.8);
+  const txt=prompt('Precio normal: $'+normal.toFixed(2)+'\n¿Cuál será el precio de remate?',sugerido.toFixed(2));
+  if(txt===null||txt==='') return;
+  const rem=parseFloat(txt);
+  if(!rem||rem<=0||rem>=normal){toast('⚠️ El precio de remate debe ser menor al precio normal');return;}
+  const r=await sbPatch('productos',id,{en_remate:true,precio_remate:rem});
   if(!r||!r.ok){toast('❌ No se pudo actualizar Remate');return;}
-  p.en_remate=nuevo;
+  p.en_remate=true;
+  p.precio_remate=rem;
   refrescarProductosConFiltros();
-  toast(nuevo?'🔥 Producto agregado a Remate':'✅ Producto retirado de Remate');
+  renderPOS();
+  toast('🔥 Remate activado a $'+rem.toFixed(2));
 }
 async function marcarProductoVendidoRapido(id){
   const p=productos.find(x=>x.id===id);
@@ -3906,6 +3953,8 @@ function abrirModalProducto(id=null){
   document.getElementById('p-costo').value=p?p.precio_costo||'':'';
   document.getElementById('p-nuevo').checked=p?p.es_nuevo||false:false;
   document.getElementById('p-remate').checked=p?p.en_remate||false:false;
+  document.getElementById('p-precio-remate').value=p&&p.precio_remate?parseFloat(p.precio_remate).toFixed(2):'';
+  togglePrecioRemateUI();
   document.getElementById('p-activo').checked=p?p.activo!==false:true;
   var vwEl=document.getElementById('p-visible-web'); if(vwEl) vwEl.checked=p?(p.visible_web!==false):true;
   var _propEl=document.getElementById('p-propietario'); if(_propEl) _propEl.value=p&&p.propietario?p.propietario:'Ana';
@@ -3926,7 +3975,10 @@ async function guardarProducto(){
   var nombre=document.getElementById('p-nombre').value.trim();
   var precio=parseFloat(document.getElementById('p-precio').value);
   if(!nombre||isNaN(precio)){toast('⚠️ Nombre y precio obligatorios');return;}
-  var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,en_remate:document.getElementById('p-remate')?document.getElementById('p-remate').checked:false,activo:document.getElementById('p-activo')?document.getElementById('p-activo').checked:true,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
+  var enRemate=!!(document.getElementById('p-remate')&&document.getElementById('p-remate').checked);
+  var precioRemate=parseFloat((document.getElementById('p-precio-remate')||{}).value)||0;
+  if(enRemate&&(precioRemate<=0||precioRemate>=precio)){toast('⚠️ El precio de remate debe ser mayor que 0 y menor al precio normal');return;}
+  var data={nombre:nombre,precio:precio,precio_costo:parseFloat(document.getElementById('p-costo').value)||0,stock:parseInt(document.getElementById('p-stock').value)||0,categoria:stripEmojis(document.getElementById('p-categoria').value),subcategoria:document.getElementById('p-subcategoria').value.trim(),descripcion:document.getElementById('p-descripcion').value.trim(),imagen:fotosSubidas[0]||'',imagenes:fotosSubidas,es_nuevo:document.getElementById('p-nuevo').checked,en_remate:enRemate,precio_remate:enRemate?precioRemate:null,activo:document.getElementById('p-activo')?document.getElementById('p-activo').checked:true,propietario:document.getElementById('p-propietario')?document.getElementById('p-propietario').value||'Ana':'Ana',visible_web:document.getElementById('p-visible-web')?document.getElementById('p-visible-web').checked:true};
   var prodId=editProdId;
   if(editProdId){
     var up=await sbPatch('productos',editProdId,data);
@@ -3959,7 +4011,7 @@ function abrirModalProductoRapido(){
   try{document.getElementById('p-categoria').value='';}catch(e){}
   try{document.getElementById('p-descripcion').value='';}catch(e){}
   try{document.getElementById('p-nuevo').checked=true;}catch(e){}
-  try{document.getElementById('p-remate').checked=false;}catch(e){}
+  try{document.getElementById('p-remate').checked=false;document.getElementById('p-precio-remate').value='';togglePrecioRemateUI();}catch(e){}
   try{document.getElementById('p-activo').checked=true;
     var _propEl2=document.getElementById('p-propietario'); if(_propEl2) _propEl2.value='Ana';
     var _visEl2=document.getElementById('p-visible-web'); if(_visEl2) _visEl2.checked=true;
