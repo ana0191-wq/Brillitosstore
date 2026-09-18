@@ -1016,6 +1016,11 @@ tr:hover td{background:#fff8fc}
     <div class="form-group form-full"><label>Nombre de la promoción *</label><input type="text" id="desc-nombre" placeholder="Ej. Regreso a clases"></div>
     <div class="form-group"><label>Descuento (%) *</label><input type="number" id="desc-pct" min="0.01" max="100" step="1" placeholder="10"></div>
     <div class="form-group"><label>Aplicar desde ($)</label><input type="number" id="desc-minimo" min="0" step="0.5" value="0" placeholder="0 = sin mínimo"></div>
+    <div class="form-group"><label>Fecha de inicio</label><input type="date" id="desc-fecha-inicio"></div>
+    <div class="form-group"><label>Fecha de fin</label><input type="date" id="desc-fecha-fin"></div>
+    <div class="form-group form-full" style="margin-top:-4px">
+      <div style="font-size:11px;color:#777;background:#fff7fb;border:1px solid #f8bbd0;border-radius:9px;padding:8px 10px">📅 Si dejas el inicio vacío, la promoción empieza de inmediato. La fecha de fin incluye todo ese día.</div>
+    </div>
     <div class="form-group form-full">
       <label>¿A qué aplica?</label>
       <select id="desc-alcance" onchange="actualizarSelectorRegla()">
@@ -3528,7 +3533,7 @@ function reglaCoincideProducto(r,p){
 function reglaDescuentoAplicable(p,precioBase){
   var base=dineroNoNegativo(precioBase!==undefined?precioBase:(p&&p.precio));
   var candidatas=reglasDescuento().filter(function(r){
-    return r&&r.activo!==false&&clampDescuento(r.porcentaje)>0&&base>=dineroNoNegativo(r.monto_minimo)&&reglaCoincideProducto(r,p);
+    return r&&r.activo!==false&&reglaDentroVigencia(r)&&clampDescuento(r.porcentaje)>0&&base>=dineroNoNegativo(r.monto_minimo)&&reglaCoincideProducto(r,p);
   });
   if(!candidatas.length) return null;
   candidatas.sort(function(a,b){
@@ -3578,6 +3583,32 @@ function resumenAlcanceRegla(r){
   }
   return 'Todos los productos';
 }
+function reglaDentroVigencia(r){
+  if(!r) return false;
+  var hoy=hoyVEN();
+  if(r.fecha_inicio&&hoy<r.fecha_inicio) return false;
+  if(r.fecha_fin&&hoy>r.fecha_fin) return false;
+  return true;
+}
+function fechaPromoCorta(s){
+  if(!s) return '';
+  var p=String(s).split('-'), meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  if(p.length!==3) return s;
+  return parseInt(p[2],10)+' '+meses[(parseInt(p[1],10)||1)-1]+' '+p[0];
+}
+function estadoReglaDescuento(r){
+  var hoy=hoyVEN();
+  if(r.activo===false) return {key:'pausada',label:'⏸️ Pausada',bg:'#f5f5f5',color:'#666',border:'#ddd'};
+  if(r.fecha_inicio&&hoy<r.fecha_inicio) return {key:'programada',label:'🗓️ Programada',bg:'#eff6ff',color:'#1d4ed8',border:'#bfdbfe'};
+  if(r.fecha_fin&&hoy>r.fecha_fin) return {key:'vencida',label:'⌛ Vencida',bg:'#fff7ed',color:'#c2410c',border:'#fed7aa'};
+  return {key:'activa',label:'✅ Activa',bg:'#ecfdf5',color:'#047857',border:'#a7f3d0'};
+}
+function textoVigenciaRegla(r){
+  if(r.fecha_inicio&&r.fecha_fin) return fechaPromoCorta(r.fecha_inicio)+' → '+fechaPromoCorta(r.fecha_fin);
+  if(r.fecha_fin) return 'Ahora → '+fechaPromoCorta(r.fecha_fin);
+  if(r.fecha_inicio) return 'Desde '+fechaPromoCorta(r.fecha_inicio);
+  return 'Sin fecha límite';
+}
 function renderReglasDescuento(){
   var el=document.getElementById('discount-rules-list');
   if(!el) return;
@@ -3586,14 +3617,34 @@ function renderReglasDescuento(){
     el.innerHTML='<div style="font-size:12px;color:#888;padding:9px 0">No hay promociones creadas todavía.</div>';
     return;
   }
-  el.innerHTML=reglas.map(function(r){
+  var orden={activa:0,programada:1,pausada:2,vencida:3};
+  var ordenadas=reglas.slice().sort(function(a,b){
+    var ea=estadoReglaDescuento(a), eb=estadoReglaDescuento(b);
+    var d=(orden[ea.key]||0)-(orden[eb.key]||0);
+    if(d!==0) return d;
+    return String(a.fecha_fin||'9999-12-31').localeCompare(String(b.fecha_fin||'9999-12-31'));
+  });
+  var counts={activa:0,programada:0,pausada:0,vencida:0};
+  reglas.forEach(function(r){counts[estadoReglaDescuento(r).key]++;});
+  var resumen='<div style="display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 8px">'
+    +'<span style="font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;background:#ecfdf5;color:#047857">✅ '+counts.activa+' activas</span>'
+    +'<span style="font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;background:#eff6ff;color:#1d4ed8">🗓️ '+counts.programada+' programadas</span>'
+    +'<span style="font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;background:#f5f5f5;color:#666">⏸️ '+counts.pausada+' pausadas</span>'
+    +'<span style="font-size:10px;font-weight:800;padding:4px 8px;border-radius:999px;background:#fff7ed;color:#c2410c">⌛ '+counts.vencida+' vencidas</span>'
+    +'</div>';
+  el.innerHTML=resumen+ordenadas.map(function(r){
     var pct=clampDescuento(r.porcentaje);
     var min=dineroNoNegativo(r.monto_minimo);
-    return '<div style="display:flex;justify-content:space-between;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--border);border-radius:10px;background:#fff;margin-top:7px">'
-      +'<div><div style="font-size:12px;font-weight:900;color:#333">'+(r.nombre||'Promoción')+'</div>'
-      +'<div style="font-size:11px;color:#777;margin-top:2px"><strong style="color:#c2185b">'+pct+'%</strong>'+(min>0?' desde $'+min.toFixed(2):' sin mínimo')+' · '+resumenAlcanceRegla(r)+'</div></div>'
+    var estado=estadoReglaDescuento(r);
+    return '<div style="display:flex;justify-content:space-between;gap:12px;align-items:flex-start;padding:11px 12px;border:1.5px solid '+estado.border+';border-radius:12px;background:#fff;margin-top:7px;flex-wrap:wrap">'
+      +'<div style="min-width:220px;flex:1">'
+      +'<div style="display:flex;gap:7px;align-items:center;flex-wrap:wrap"><div style="font-size:12px;font-weight:900;color:#333">'+(r.nombre||'Promoción')+'</div>'
+      +'<span style="font-size:10px;font-weight:800;padding:3px 7px;border-radius:999px;background:'+estado.bg+';color:'+estado.color+'">'+estado.label+'</span></div>'
+      +'<div style="font-size:11px;color:#777;margin-top:4px"><strong style="color:#c2185b">'+pct+'%</strong>'+(min>0?' desde $'+min.toFixed(2):' sin mínimo')+' · '+resumenAlcanceRegla(r)+'</div>'
+      +'<div style="font-size:11px;color:#555;margin-top:3px">📅 <strong>Vigencia:</strong> '+textoVigenciaRegla(r)+'</div>'
+      +'</div>'
       +'<div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap">'
-      +'<label style="font-size:11px;font-weight:700;display:flex;gap:4px;align-items:center"><input type="checkbox" '+(r.activo===false?'':'checked')+' onchange="toggleReglaDescuento(\''+r.id+'\',this.checked)"> Activo</label>'
+      +'<label style="font-size:11px;font-weight:700;display:flex;gap:4px;align-items:center"><input type="checkbox" '+(r.activo===false?'':'checked')+' onchange="toggleReglaDescuento(\''+r.id+'\',this.checked)"> Habilitada</label>'
       +'<button class="btn btn-secondary btn-sm" onclick="abrirModalDescuento(\''+r.id+'\')">Editar</button>'
       +'<button class="btn btn-secondary btn-sm" style="color:#c62828" onclick="eliminarReglaDescuento(\''+r.id+'\')">Eliminar</button>'
       +'</div></div>';
@@ -3605,6 +3656,8 @@ function abrirModalDescuento(id){
   document.getElementById('desc-nombre').value=r?r.nombre||'':'';
   document.getElementById('desc-pct').value=r?clampDescuento(r.porcentaje):'';
   document.getElementById('desc-minimo').value=r?dineroNoNegativo(r.monto_minimo):0;
+  document.getElementById('desc-fecha-inicio').value=r&&r.fecha_inicio?r.fecha_inicio:'';
+  document.getElementById('desc-fecha-fin').value=r&&r.fecha_fin?r.fecha_fin:'';
   document.getElementById('desc-alcance').value=r?r.alcance||'todos':'todos';
   document.getElementById('desc-activo').checked=r?r.activo!==false:true;
   document.getElementById('modal-desc-title').textContent=r?'✏️ Editar descuento':'🏷️ Crear descuento';
@@ -3649,9 +3702,12 @@ async function guardarReglaDescuento(){
   var nombre=document.getElementById('desc-nombre').value.trim();
   var pct=clampDescuento(document.getElementById('desc-pct').value);
   var minimo=dineroNoNegativo(document.getElementById('desc-minimo').value);
+  var fechaInicio=document.getElementById('desc-fecha-inicio').value||'';
+  var fechaFin=document.getElementById('desc-fecha-fin').value||'';
   var alcance=document.getElementById('desc-alcance').value;
   if(!nombre){toast('Escribe un nombre para la promoción');return;}
   if(pct<=0){toast('El descuento debe ser mayor que 0%');return;}
+  if(fechaInicio&&fechaFin&&fechaFin<fechaInicio){toast('⚠️ La fecha de fin no puede ser anterior a la fecha de inicio');return;}
   var categorias=[],productoIds=[];
   if(alcance==='categorias'){
     categorias=[...document.querySelectorAll('.desc-cat-opt:checked')].map(function(x){return x.value;});
@@ -3662,7 +3718,7 @@ async function guardarReglaDescuento(){
     if(!productoIds.length){toast('Selecciona al menos un producto');return;}
   }
   var reglas=reglasDescuento().map(function(x){return Object.assign({},x);});
-  var nueva={id:id||('desc_'+Date.now()),nombre:nombre,porcentaje:pct,monto_minimo:minimo,alcance:alcance,categorias:categorias,producto_ids:productoIds,activo:document.getElementById('desc-activo').checked};
+  var nueva={id:id||('desc_'+Date.now()),nombre:nombre,porcentaje:pct,monto_minimo:minimo,fecha_inicio:fechaInicio||null,fecha_fin:fechaFin||null,alcance:alcance,categorias:categorias,producto_ids:productoIds,activo:document.getElementById('desc-activo').checked};
   var idx=reglas.findIndex(function(x){return String(x.id)===String(id);});
   if(idx>=0) reglas[idx]=nueva; else reglas.push(nueva);
   if(await guardarConfigDescuentos(reglas)){
