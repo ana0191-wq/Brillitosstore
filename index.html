@@ -1002,7 +1002,7 @@ function buildCats(){
   const cats=[...new Set(CATALOG.map(p=>p.categoria).filter(Boolean))].sort();
   document.getElementById('stat-cats').textContent=cats.length;
   const c=document.getElementById('cat-pills');
-  if(CATALOG.some(p=>p.enRemate)){
+  if(CATALOG.some(p=>getPriceInfo(p,p.precio).clearance)){
     const rem=document.createElement('button');
     rem.className='pill'; rem.dataset.cat='__remate__'; rem.textContent='Remate 🔥';
     rem.onclick=()=>setCat('__remate__'); c.appendChild(rem);
@@ -1048,7 +1048,7 @@ function toggleStock(){
 function applyFilters(){
   hideHomeSections();
   let res=CATALOG;
-  if(activeCat==='__remate__') res=res.filter(p=>p.enRemate===true);
+  if(activeCat==='__remate__') res=res.filter(p=>getPriceInfo(p,p.precio).clearance);
   else if(activeCat!=='all') res=res.filter(p=>p.categoria===activeCat);
   if(searchQ){
     const q=searchQ.toLowerCase();
