@@ -1576,8 +1576,12 @@ function buildOrderLines(){
   }).join('\n');
 }
 
+let _sendingWebOrder=false;
+
 async function sendWA(method){
+  if(_sendingWebOrder){showToast('Procesando tu pedido…');return;}
   if(cart.length===0){showToast('¡Agrega productos primero! 🌸');return;}
+  _sendingWebOrder=true;
   const lines=buildOrderLines();
   const sub=cartSubtotal();
   let payLine='';
@@ -1603,42 +1607,125 @@ async function sendWA(method){
   const msg='🌸 *Pedido Brillitos 2026* 🌸\n\n'+lines+'\n'+payLine+'\n\n¡Hola! Quiero hacer este pedido 💖';
   const num=document.getElementById('wa-num')?.value?.replace(/\D/g,'')||WA_NUMBER;
   const url=num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
-  // ── Guardar pedido en Supabase como "Por confirmar" ──
+  const waWindow=window.open('about:blank','_blank');
+  let registroOk=false;
   try{
-    const binancePct=method==='binance'?(parseFloat(document.getElementById('bnc-discount-pct').value)||10):0;
-    const totalPedido=method==='binance'?Math.max(0,sub-(sub*binancePct/100)):sub;
-    const aptData={
-      cliente_nombre: 'Web — '+(method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance':'Consulta'),
-      canal: 'Web',
-      metodo_pago: method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance/USDT':'Consulta',
-      estado: 'Por confirmar',
-      total: totalPedido,
-      abono: 0,
-      saldo: totalPedido,
-      notas: method==='binance'?'Pedido desde la web — Binance con 10% de descuento — pendiente de confirmación':'Pedido desde la web — pendiente de confirmación',
-      numero: 'WEB-'+Date.now()
-    };
-    const r=await fetch(SUPABASE_URL+'/rest/v1/apartados',{
-      method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify(aptData)
-    });
-    if(r.ok){
+    const esConsulta=!method;
+    const metodoLabel=method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance/USDT':'Consulta';
+    const fechaHoy=new Date(Date.now()-(4*60*60*1000)).toISOString().slice(0,10);
+
+    if(esConsulta){
+      const aptData={
+        cliente_nombre:'Web — Consulta',
+        canal:'Web',
+        metodo_pago:'Consulta',
+        estado:'Por confirmar',
+        total:sub,
+        abono:0,
+        saldo:sub,
+        notas:'Consulta enviada desde www.brillitosstore.com — pendiente de confirmación',
+        numero:'WEB-'+Date.now()
+      };
+      const r=await fetch(SUPABASE_URL+'/rest/v1/apartados',{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+        body:JSON.stringify(aptData)
+      });
+      if(!r.ok) throw new Error('No se pudo guardar la consulta ('+r.status+')');
       const apt=await r.json();
       const aid=apt[0]&&apt[0].id;
-      if(aid){
-        for(const it of cart){
-          await fetch(SUPABASE_URL+'/rest/v1/apartado_items',{
-            method:'POST',
-            headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
-            body:JSON.stringify({apartado_id:aid,producto_id:it.id,producto_nombre:it.nombre+(it.variant?' — '+it.variant:''),precio_unitario:it.precio||0,cantidad:it.qty||1,subtotal:(it.precio||0)*(it.qty||1)})
-          });
-        }
+      if(!aid) throw new Error('No se obtuvo el ID de la consulta');
+      for(const it of cart){
+        const ir=await fetch(SUPABASE_URL+'/rest/v1/apartado_items',{
+          method:'POST',
+          headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+          body:JSON.stringify({
+            apartado_id:aid,
+            producto_id:it.id,
+            producto_nombre:it.nombre+(it.variant?' — '+it.variant:''),
+            precio_unitario:it.precio||0,
+            cantidad:it.qty||1,
+            subtotal:(it.precio||0)*(it.qty||1)
+          })
+        });
+        if(!ir.ok) throw new Error('No se pudo guardar un producto de la consulta');
       }
+      registroOk=true;
+    }else{
+      const binancePct=method==='binance'?(parseFloat(document.getElementById('bnc-discount-pct').value)||10):0;
+      const descuentoPago=method==='binance'?sub*(binancePct/100):0;
+      const totalVenta=Math.max(0,sub-descuentoPago);
+      const ventaData={
+        numero:'WEB-'+Date.now(),
+        cliente_nombre:'Cliente web — '+metodoLabel,
+        canal:'Web',
+        metodo_pago:metodoLabel,
+        estado:'Pendiente',
+        subtotal:sub,
+        costo_envio:0,
+        descuento:descuentoPago,
+        total:totalVenta,
+        tipo_entrega:'Por coordinar',
+        fecha_venta:fechaHoy,
+        notas:'Venta creada desde www.brillitosstore.com — comprobante pendiente de verificar',
+        moneda_pago:method==='bolivares'?'Bs':method==='binance'?'USDT':'USD',
+        cuenta_cobro:method==='bolivares'?'bancaamiga_luisma':method==='binance'?'binance':'paypal',
+        stock_aplicado:false
+      };
+      if(method==='bolivares'){
+        const rate=parseFloat(document.getElementById('bs-rate').value)||0;
+        ventaData.tasa_bcv_usada=rate;
+        ventaData.monto_bs=rate>0?parseFloat((totalVenta*rate).toFixed(2)):0;
+      }
+      const r=await fetch(SUPABASE_URL+'/rest/v1/ventas',{
+        method:'POST',
+        headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
+        body:JSON.stringify(ventaData)
+      });
+      if(!r.ok){
+        const err=await r.text();
+        throw new Error('No se pudo registrar la venta ('+r.status+'): '+err.slice(0,100));
+      }
+      const venta=await r.json();
+      const vid=venta[0]&&venta[0].id;
+      if(!vid) throw new Error('No se obtuvo el ID de la venta');
+      try{
+        for(const it of cart){
+          const imagen=(it.imagenes&&it.imagenes[0])||it.imagen||null;
+          const ir=await fetch(SUPABASE_URL+'/rest/v1/venta_items',{
+            method:'POST',
+            headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
+            body:JSON.stringify({
+              venta_id:vid,
+              producto_id:it.id,
+              producto_nombre:it.nombre+(it.variant?' — '+it.variant:''),
+              variante_id:it.variante_id||null,
+              variante_nombre:it.variant||null,
+              imagen_url:imagen,
+              precio_unitario:it.precio||0,
+              cantidad:it.qty||1,
+              subtotal:(it.precio||0)*(it.qty||1)
+            })
+          });
+          if(!ir.ok) throw new Error('No se pudo guardar un producto de la venta');
+        }
+      }catch(itemErr){
+        await fetch(SUPABASE_URL+'/rest/v1/venta_items?venta_id=eq.'+vid,{method:'DELETE',headers:{'apikey':SUPABASE_KEY}});
+        await fetch(SUPABASE_URL+'/rest/v1/ventas?id=eq.'+vid,{method:'DELETE',headers:{'apikey':SUPABASE_KEY}});
+        throw itemErr;
+      }
+      registroOk=true;
+      showToast('✅ Pedido registrado en Brillitos · pendiente de verificar');
     }
-  }catch(e){ console.warn('No se pudo guardar pedido en Supabase:',e); }
+  }catch(e){
+    console.warn('No se pudo registrar el pedido en Supabase:',e);
+    showToast('⚠️ Se abrirá WhatsApp, pero el pedido no pudo guardarse en el sistema');
+  }finally{
+    _sendingWebOrder=false;
+  }
   // ── Abrir WhatsApp ──
-  window.open(url,'_blank');
+  if(waWindow) waWindow.location.href=url;
+  else window.open(url,'_blank');
 }
 
 
