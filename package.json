@@ -4,7 +4,9 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node scripts/sync-published.cjs",
+    "test": "node tests/frontend.cjs",
+    "test:browser": "node tests/browser.cjs",
     "preview": "vite preview"
   },
   "devDependencies": {

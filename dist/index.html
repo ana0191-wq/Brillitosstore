@@ -169,6 +169,11 @@ input[type=range]{accent-color:var(--pk);width:120px}
 }
 .cprice{font-weight:900;font-size:.88rem;color:var(--tx)}
 .cprice.nop{font-size:.75rem;color:var(--ts)}
+.cprice-old,.price-old{display:block;text-decoration:line-through;color:#999;font-size:.7rem;font-weight:700;line-height:1.1}
+.cprice-sale,.price-sale{color:#e11d48;font-weight:900}
+.sale-badge{position:absolute;bottom:8px;left:8px;background:linear-gradient(135deg,#ef4444,#e11d48);color:#fff;font-size:.7rem;font-weight:900;padding:4px 10px;border-radius:20px;z-index:4;box-shadow:0 2px 8px rgba(225,29,72,.35)}
+.pp-price .price-old{font-size:.9rem;margin-bottom:2px}
+.pp-price .price-sale{font-size:1.45rem}
 .cname{font-size:.78rem;font-weight:800;color:var(--tx);line-height:1.2;margin-bottom:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .cdesc{font-size:.68rem;color:var(--ts);margin-bottom:4px;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}
 .csubcat{font-size:.66rem;color:var(--ts);font-weight:600;margin-bottom:2px}
@@ -180,8 +185,30 @@ input[type=range]{accent-color:var(--pk);width:120px}
 
 /* ── PRODUCT GRID ── */
 #product-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:16px;padding:24px 40px}
-.lm-wrap{text-align:center;padding:16px}
+.lm-wrap{text-align:center;padding:18px 14px 34px}
 .lm-btn{background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;border:none;border-radius:var(--rb);padding:11px 32px;font-family:var(--fb);font-weight:800;font-size:.9rem;cursor:pointer}
+.pg-wrap{display:flex;justify-content:center;width:100%}
+.pg-shell{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;width:min(100%,760px);margin:0 auto;background:linear-gradient(135deg,#fff,#fff6fb);border:2px solid var(--pk-l);border-radius:24px;padding:12px 14px;box-shadow:0 10px 28px rgba(255,110,180,.16)}
+.pg-center{display:flex;flex:1;min-width:220px;flex-direction:column;align-items:center;gap:7px}
+.pg-pages{display:flex;align-items:center;justify-content:center;gap:7px;flex-wrap:wrap}
+.pg-btn,.pg-nav{font-family:var(--fb);font-weight:900;cursor:pointer;transition:all .18s ease}
+.pg-btn{min-width:42px;height:42px;padding:0 11px;border:2px solid var(--pk-l);border-radius:14px;background:#fff;color:var(--pk);font-size:.92rem;box-shadow:0 4px 10px rgba(255,110,180,.09)}
+.pg-btn:hover{background:var(--pk-p);border-color:var(--pk);transform:translateY(-1px)}
+.pg-btn.pg-active{background:linear-gradient(135deg,var(--pk),var(--pa));border-color:transparent;color:#fff;box-shadow:0 8px 18px rgba(243,135,195,.36);transform:translateY(-1px) scale(1.04)}
+.pg-nav{height:44px;padding:0 16px;border:0;border-radius:999px;background:linear-gradient(135deg,var(--pk),var(--pa));color:#fff;font-size:.86rem;display:inline-flex;align-items:center;gap:7px;box-shadow:0 7px 18px rgba(243,135,195,.28)}
+.pg-nav:hover{transform:translateY(-1px);box-shadow:0 10px 22px rgba(243,135,195,.34)}
+.pg-nav-ico{font-size:1.15rem;line-height:1}
+.pg-disabled{opacity:.38!important;pointer-events:none!important;box-shadow:none!important;transform:none!important}
+.pg-meta{font-size:.75rem;color:var(--ts);font-weight:700}
+.pg-meta strong{color:var(--pk)}
+.pg-dots{font-weight:900;color:var(--pk);padding:0 2px}
+@media(max-width:560px){
+  .lm-wrap{padding-left:10px;padding-right:10px}
+  .pg-shell{gap:9px;padding:11px 10px;border-radius:20px}
+  .pg-center{order:1;width:100%;min-width:100%}
+  .pg-nav{flex:1;justify-content:center;height:42px;padding:0 12px}
+  .pg-btn{min-width:38px;height:38px;padding:0 9px;border-radius:12px}
+}
 
 /* ── PRODUCT PAGE ── */
 #product-page{background:var(--bg);padding:0 14px 20px}
@@ -286,7 +313,10 @@ input[type=range]{accent-color:var(--pk);width:120px}
 .ci-qty{display:flex;align-items:center;gap:6px;margin-left:auto}
 .ci-qty button{background:var(--pk-p);border:none;border-radius:50%;width:22px;height:22px;font-weight:900;cursor:pointer;color:var(--pk)}
 .ci-qty span{font-size:.82rem;font-weight:800;min-width:18px;text-align:center}
-.ci-del{background:none;border:none;cursor:pointer;color:#e53e3e;font-size:.85rem;margin-left:4px}
+.ci-del{background:#fff1f2;border:1.5px solid #fecdd3;color:#be123c;cursor:pointer;font-size:.72rem;font-weight:900;padding:7px 9px;border-radius:10px;margin-left:4px;font-family:var(--fb);transition:all .15s;white-space:nowrap}
+.ci-del:hover{background:#be123c;color:#fff;border-color:#be123c}
+.cart-clear-btn{background:#fff1f2;border:1.5px solid #fecdd3;color:#be123c;border-radius:999px;padding:7px 11px;cursor:pointer;font-size:.76rem;font-weight:900;font-family:var(--fb);transition:all .15s}
+.cart-clear-btn:hover{background:#be123c;color:#fff;border-color:#be123c}
 .pay-panel{border-top:2px dashed var(--pk-l);padding:12px}
 .pay-tabs{display:flex;gap:4px;margin-bottom:10px;overflow-x:auto}
 .pay-tab{background:#fff;border:2px solid var(--br);border-radius:var(--rb);padding:5px 12px;font-family:var(--fb);font-size:.72rem;font-weight:800;color:var(--ts);cursor:pointer;white-space:nowrap;transition:all .2s}
@@ -385,6 +415,8 @@ input[type=range]{accent-color:var(--pk);width:120px}
 <div class="stores-banner">
   <button class="hero-cta-sec" onclick="window.location.href='pedidos.html'" style="width:100%;display:flex;align-items:center;justify-content:center">🛍️ Pedidos de tiendas online (Shein, Temu, AliExpress...)</button>
 </div>
+
+<div id="discount-banner" style="display:none;margin:10px 40px 0;padding:10px 16px;border-radius:14px;background:linear-gradient(135deg,#ffe4ef,#fff4d8);border:2px solid #ff9fc8;color:#9d174d;text-align:center;font-size:.85rem;font-weight:800"></div>
 
 <div class="stats-bar">
   <div class="stat"><div class="stat-num" id="stat-total">—</div><div class="stat-label">Productos</div></div>
@@ -518,7 +550,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
   <div class="cart-hdr">
     <span class="cart-ttl">Mi carrito 🛒</span>
     <div style="display:flex;align-items:center;gap:8px">
-      <button id="clear-cart-btn" onclick="clearCart()" title="Vaciar carrito" style="background:none;border:none;cursor:pointer;color:#e53e3e;font-size:.82rem;font-weight:800;font-family:var(--fb)">🗑️ Vaciar</button>
+      <button id="clear-cart-btn" class="cart-clear-btn" onclick="clearCart()" title="Vaciar carrito">🗑️ Vaciar carrito</button>
       <button class="cart-x" onclick="closeCart()">✕</button>
     </div>
   </div>
@@ -527,20 +559,31 @@ input[type=range]{accent-color:var(--pk);width:120px}
   </div>
   <div class="pay-panel">
     <div class="pay-tabs">
-      <button class="pay-tab active" onclick="switchTab('wa')" id="tab-wa">💬 WhatsApp</button>
+      <button class="pay-tab active" onclick="switchTab('bs')" id="tab-bs">🇻🇪 Pago móvil</button>
       <button class="pay-tab" onclick="switchTab('pp')" id="tab-pp">🅿️ PayPal</button>
       <button class="pay-tab" onclick="switchTab('bnc')" id="tab-bnc">₿ Binance</button>
-      <button class="pay-tab" onclick="switchTab('bs')" id="tab-bs">🇻🇪 Bs</button>
+      <button class="pay-tab" onclick="switchTab('wa')" id="tab-wa">💬 Consultar</button>
     </div>
     <div class="pay-content">
-      <div class="pay-section active" id="sec-wa">
-        <div class="subtotal-row"><span class="label">Subtotal</span><span class="val highlight" id="wa-sub">$0.00</span></div>
-        <div class="subtotal-row" style="margin-bottom:10px"><span class="label" style="font-size:.75rem;color:#aaa">+ costos de envío según tu zona</span></div>
-        <div class="wa-num-row">
-          <label>WhatsApp:</label>
-          <input type="tel" id="wa-num" placeholder="+58 4XX XXX XXXX" value="+584249006350">
+      <div class="pay-section active" id="sec-bs">
+        <div style="background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;margin-bottom:10px">
+          <div style="font-size:.9rem;font-weight:900;color:#9a3412;margin-bottom:9px">Pago móvil</div>
+          <div style="display:grid;grid-template-columns:86px 1fr;gap:7px 10px;font-size:.82rem;align-items:center">
+            <span style="color:#777;font-weight:700">Cédula</span><strong style="font-size:.9rem">V-26.239.265</strong>
+            <span style="color:#777;font-weight:700">Celular</span><strong style="font-size:.9rem">0424-9372490</strong>
+            <span style="color:#777;font-weight:700">Banco</span><strong style="font-size:.9rem">Bancamiga · 0172</strong>
+            <span style="color:#777;font-weight:700">Monto</span><strong id="bs-total" style="font-size:1.08rem;color:#c2410c">Bs. 0.00</strong>
+          </div>
         </div>
-        <button class="pay-action green" onclick="sendWA()">💬 Enviar pedido por WhatsApp</button>
+        <div class="subtotal-row"><span class="label">Total productos</span><span class="val" id="bs-sub">$0.00</span></div>
+        <div class="bs-row" style="margin-top:7px">
+          <label>Tasa BCV:</label>
+          <input type="number" id="bs-rate" value="40" step="0.01" min="0.01" oninput="calcBS()">
+          <button id="bs-refresh-btn" onclick="fetchBCVRates()" title="Actualizar tasa BCV" style="background:var(--pk);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.8rem">↻</button>
+        </div>
+        <div class="bs-note" id="bs-note-usd">⏳ Cargando tasa BCV…</div>
+        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Tasa usada</span><span class="val" id="bs-used-rate" style="font-size:.72rem">—</span></div>
+        <button class="pay-action pk" onclick="sendWA('bolivares')">📸 Ya pagué · Enviar comprobante</button>
       </div>
       <div class="pay-section" id="sec-pp">
         <div class="subtotal-row"><span class="label">Subtotal productos</span><span class="val" id="pp-sub">$0.00</span></div>
@@ -549,10 +592,10 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <input type="hidden" id="pp-pct" value="5.4">
         <input type="hidden" id="pp-fix" value="0.30">
         <div class="subtotal-row"><span class="label">Comisión PayPal</span><span class="val" id="pp-fee">$0.00</span></div>
-        <div class="subtotal-row"><span class="label">Total a cobrar al cliente</span><span class="val highlight" id="pp-total">$0.00</span></div>
-        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Tú recibirás aprox.</span><span class="val" id="pp-recv" style="font-size:.72rem">$0.00</span></div>
-        <div class="pp-note" style="margin-bottom:8px">📧 Tu PayPal: <strong>ana0191@gmail.com</strong></div>
-        <button class="pay-action blue" onclick="sendWA('paypal')">💬 Enviar con total PayPal</button>
+        <div class="subtotal-row"><span class="label">Total a enviar por PayPal</span><span class="val highlight" id="pp-total">$0.00</span></div>
+        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Monto de tu compra</span><span class="val" id="pp-recv" style="font-size:.72rem">$0.00</span></div>
+        <div class="pp-note" style="margin-bottom:8px">📧 PayPal: <strong>ana0191@gmail.com</strong></div>
+        <button class="pay-action blue" onclick="sendWA('paypal')">📸 Ya pagué por PayPal · Enviar comprobante</button>
       </div>
       <div class="pay-section" id="sec-bnc">
         <div class="subtotal-row"><span class="label">Subtotal en USD</span><span class="val" id="bnc-sub">$0.00</span></div>
@@ -561,25 +604,19 @@ input[type=range]{accent-color:var(--pk);width:120px}
           <label>1 USDT vale (USD):</label>
           <input type="number" id="bnc-rate" value="1" step="0.001" min="0.001" oninput="calcBNC()">
         </div>
-        <div class="pp-note">💡 USDT es estable: 1 USDT ≈ $1 USD.</div>
-        <div class="subtotal-row"><span class="label">Total a cobrar en USDT</span><span class="val highlight" id="bnc-total">0.00 USDT</span></div>
+        <div class="pp-note">🎉 Pagando con Binance tienes <strong>10% de descuento automático</strong>.</div>
+        <input type="hidden" id="bnc-discount-pct" value="10">
+        <div class="subtotal-row"><span class="label">Descuento Binance (10%)</span><span class="val" id="bnc-discount" style="color:#16a34a">-$0.00</span></div>
+        <div class="subtotal-row"><span class="label">Total a enviar en USDT</span><span class="val highlight" id="bnc-total">0.00 USDT</span></div>
         <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Equivale a</span><span class="val" id="bnc-usd" style="font-size:.72rem">$0.00</span></div>
-        <div class="pp-note" style="margin-bottom:8px">📧 Tu Binance Pay: <strong>ana0191@gmail.com</strong></div>
-        <button class="pay-action yellow" onclick="sendWA('binance')">💬 Enviar con total Binance</button>
+        <div class="pp-note" style="margin-bottom:8px">📧 Binance Pay: <strong>ana0191@gmail.com</strong></div>
+        <button class="pay-action yellow" onclick="sendWA('binance')">📸 Ya pagué por Binance · Enviar comprobante</button>
       </div>
-      <div class="pay-section" id="sec-bs">
-        <div class="subtotal-row"><span class="label">Subtotal USD</span><span class="val" id="bs-sub">$0.00</span></div>
-        <div class="divider"></div>
-        <div class="bs-row">
-          <label>Tasa BCV (Bs/$):</label>
-          <input type="number" id="bs-rate" value="40" step="0.01" min="0.01" oninput="calcBS()">
-          <button id="bs-refresh-btn" onclick="fetchBCVRates()" title="Actualizar tasa BCV" style="background:var(--pk);color:#fff;border:none;border-radius:50%;width:26px;height:26px;cursor:pointer;font-size:.8rem">↻</button>
-        </div>
-        <div class="bs-note" id="bs-note-usd">⏳ Cargando tasa BCV…</div>
-        <div class="subtotal-row"><span class="label">Total en Bolívares (Bs.)</span><span class="val highlight" id="bs-total">Bs. 0.00</span></div>
-        <div class="subtotal-row" style="margin-bottom:4px"><span class="label" style="font-size:.72rem">Tasa usada</span><span class="val" id="bs-used-rate" style="font-size:.72rem">—</span></div>
-        <div class="subtotal-row" style="margin-bottom:8px"><span class="label" style="font-size:.72rem">Pago móvil</span><span class="val" id="bs-pm" style="font-size:.72rem">04249372490 · Bancamiga</span></div>
-        <button class="pay-action pk" onclick="sendWA('bolivares')">💬 Enviar con total en Bs.</button>
+      <div class="pay-section" id="sec-wa">
+        <div class="subtotal-row"><span class="label">Subtotal</span><span class="val highlight" id="wa-sub">$0.00</span></div>
+        <div class="subtotal-row" style="margin-bottom:10px"><span class="label" style="font-size:.75rem;color:#aaa">+ costos de envío según tu zona</span></div>
+        <input type="hidden" id="wa-num" value="+584249006350">
+        <button class="pay-action green" onclick="sendWA()">💬 Consultar el pedido por WhatsApp</button>
       </div>
     </div>
   </div>
@@ -632,22 +669,30 @@ input[type=range]{accent-color:var(--pk);width:120px}
 <script>
 // v1777062456
 var CATALOG = [];
-var SUPABASE_URL = "https://jzhayqzmrpfesmhdxyaf.supabase.co";
-var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imp6aGF5cXptcnBmZXNtaGR4eWFmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA5NDI0NjAsImV4cCI6MjA5NjUxODQ2MH0._xMDStHXilbIisOF6vKIpxMLhQsFx0UMTgj79RN1PKU";
+var STORE_CONFIG = {id:1, descuento_reglas:[]};
+var SUPABASE_URL = "https://xavqokyzdmqzguicjsrq.supabase.co";
+var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhhdnFva3l6ZG1xemd1aWNqc3JxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY0NDAwNzUsImV4cCI6MjA5MjAxNjA3NX0.hiUCfH_SXYGO-JelO3HSRmq5PZUcMw_XrYq9WaDo_eU";
 
 async function cargarCatalogo() {
   try {
     // Query productos y variantes por separado para no depender del foreign key
-    var [respProds, respVars] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=eq.true&visible_web=neq.false&order=es_nuevo.desc,id.desc&limit=1000', {
+    var [respProds, respVars, respConfig] = await Promise.all([
+      fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=neq.false&visible_web=neq.false&order=es_nuevo.desc,id.desc&limit=1000', {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
       }),
       fetch(SUPABASE_URL + '/rest/v1/producto_variantes?select=*&activo=eq.true&order=id.asc', {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+      }),
+      fetch(SUPABASE_URL + '/rest/v1/configuracion_tienda?select=*&id=eq.1&limit=1', {
         headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
       })
     ]);
     var data = await respProds.json();
     var varsData = await respVars.json();
+    var configData = respConfig.ok ? await respConfig.json() : [];
+    if(Array.isArray(configData) && configData[0]) STORE_CONFIG = Object.assign({}, STORE_CONFIG, configData[0]);
+    if(!respProds.ok){ console.error('Supabase productos error:', data); }
+    if(!respVars.ok){ console.error('Supabase variantes error:', varsData); }
     // Agrupar variantes por producto_id
     var varsByProd = {};
     if(Array.isArray(varsData)){
@@ -671,29 +716,154 @@ async function cargarCatalogo() {
         imagen:       p.imagen || '',
         imagenes:     p.imagenes || [],
         esNuevo:      p.es_nuevo || false,
+        enRemate:     p.en_remate || false,
+        precioRemate: parseFloat(p.precio_remate) || 0,
         visible_web:  p.visible_web !== false
       };
     }).filter(function(p) {
-      if(!p.nombre) return false;
-      // Solo mostrar si visible_web no es explícitamente false
-      if(p.visible_web === false) return false;
-      // Productos con variantes: mostrar si al menos una tiene stock o precio
+      if(!p.nombre || p.visible_web === false) return false;
+      // La tienda solo muestra productos con foto principal o galería.
+      if(!p.imagen && !(p.imagenes && p.imagenes.length)) return false;
+      // Con variantes: basta una variante activa con stock real.
       if(p.variantes && p.variantes.length > 0){
-        return true;
+        return p.variantes.some(function(v){ return parseInt(v.stock||0) > 0; });
       }
-      // Productos sin variantes: solo necesitan precio > 0
-      return p.precio > 0;
+      // Sin variantes: stock y precio deben ser positivos.
+      return p.stock > 0 && p.precio > 0;
     });
-    
+
     // Actualizar contador
     var statEl = document.getElementById('stat-prods');
     if(statEl) statEl.textContent = CATALOG.length;
-    
+
+    // Re-sincronizar cualquier carrito guardado con los descuentos vigentes
+    syncCartPrices();
     // Re-inicializar
     init();
   } catch(e) {
     console.error('Error cargando catálogo:', e);
   }
+}
+
+
+function clampDiscountPct(v){
+  var n=parseFloat(v)||0;
+  return Math.max(0,Math.min(100,n));
+}
+function nonNegativeMoney(v){
+  var n=parseFloat(v)||0;
+  return Math.max(0,n);
+}
+function discountRules(){
+  return Array.isArray(STORE_CONFIG.descuento_reglas)?STORE_CONFIG.descuento_reglas:[];
+}
+function storeDateToday(){
+  return new Date(Date.now()-(4*60*60*1000)).toISOString().slice(0,10);
+}
+function ruleWithinSchedule(r){
+  if(!r) return false;
+  var today=storeDateToday();
+  if(r.fecha_inicio&&today<r.fecha_inicio) return false;
+  if(r.fecha_fin&&today>r.fecha_fin) return false;
+  return true;
+}
+function promoDateText(s){
+  if(!s) return '';
+  var p=String(s).split('-');
+  var meses=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  if(p.length!==3) return s;
+  return parseInt(p[2],10)+' de '+meses[(parseInt(p[1],10)||1)-1];
+}
+function normalizeCat(s){
+  return String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+function ruleMatchesProduct(r,p){
+  if(!r||r.activo===false||!p) return false;
+  if(r.alcance==='todos'||!r.alcance) return true;
+  if(r.alcance==='categorias'){
+    var cats=Array.isArray(r.categorias)?r.categorias:[];
+    return cats.some(function(x){return normalizeCat(x)===normalizeCat(p.categoria||'');});
+  }
+  if(r.alcance==='productos'){
+    var ids=Array.isArray(r.producto_ids)?r.producto_ids:[];
+    return ids.map(String).includes(String(p.id));
+  }
+  return false;
+}
+function getDiscountRule(p,basePrice){
+  var base=nonNegativeMoney(basePrice!==undefined?basePrice:(p&&p.precio));
+  var candidates=discountRules().filter(function(r){
+    return r&&r.activo!==false&&ruleWithinSchedule(r)&&clampDiscountPct(r.porcentaje)>0&&base>=nonNegativeMoney(r.monto_minimo)&&ruleMatchesProduct(r,p);
+  });
+  if(!candidates.length) return null;
+  candidates.sort(function(a,b){
+    var dp=clampDiscountPct(b.porcentaje)-clampDiscountPct(a.porcentaje);
+    if(dp!==0) return dp;
+    var weight={productos:3,categorias:2,todos:1};
+    return (weight[b.alcance]||0)-(weight[a.alcance]||0);
+  });
+  return candidates[0];
+}
+function getDiscountPct(p,basePrice){
+  var original=parseFloat(basePrice)||0;
+  var rem=parseFloat(p&&p.precioRemate)||0;
+  if(p&&p.enRemate&&rem>0&&original>0&&rem<original) return 0;
+  var r=getDiscountRule(p,basePrice);
+  return r?clampDiscountPct(r.porcentaje):0;
+}
+function getPriceInfo(p, basePrice){
+  var original=parseFloat(basePrice)||0;
+  var rem=parseFloat(p&&p.precioRemate)||0;
+  if(p&&p.enRemate&&rem>0&&original>0&&rem<original){
+    return {
+      original:original,
+      final:Math.round(rem*100)/100,
+      pct:Math.round((1-rem/original)*100),
+      rule:null,
+      clearance:true,
+      discounted:true
+    };
+  }
+  var rule=getDiscountRule(p,original);
+  var pct=rule?clampDiscountPct(rule.porcentaje):0;
+  var final=original;
+  if(original>0 && pct>0) final=Math.round(original*(1-pct/100)*100)/100;
+  return {original:original, final:final, pct:pct, rule:rule, clearance:false, discounted:original>0&&pct>0&&final<original};
+}
+function cardPriceHtml(p, basePrice){
+  var info=getPriceInfo(p,basePrice);
+  if(!(info.original>0)) return 'Consultar 💬';
+  var bs=window._bcvUSD>0?'<span class="cprice-bs">Bs. '+(info.final*window._bcvUSD).toFixed(0)+'</span>':'';
+  if(info.discounted){
+    return '<span class="cprice-old">$'+info.original.toFixed(2)+'</span><span class="cprice-sale">$'+info.final.toFixed(2)+'</span>'+bs;
+  }
+  return '$'+info.final.toFixed(2)+bs;
+}
+function productPriceHtml(p, basePrice, bsRate){
+  var info=getPriceInfo(p,basePrice);
+  if(!(info.original>0)) return '<span style="font-size:1.2rem">Consultar 💬</span>';
+  var html=info.discounted
+    ? '<span class="price-old">$'+info.original.toFixed(2)+'</span><span class="price-sale">$'+info.final.toFixed(2)+'</span>'
+    : '<span>$'+info.final.toFixed(2)+'</span>';
+  if(bsRate) html += '<div style="font-size:1rem;font-weight:600;color:#888;margin-top:4px">Bs. '+(info.final*bsRate).toLocaleString('es-VE',{maximumFractionDigits:2})+'</div>';
+  return html;
+}
+function syncCartPrices(){
+  if(!Array.isArray(cart)||!cart.length) return;
+  var changed=false;
+  cart.forEach(function(item){
+    var p=CATALOG.find(function(x){return x.id==item.id;});
+    if(!p) return;
+    var base=p.precio;
+    if(item.variante_id && p.variantes){
+      var v=p.variantes.find(function(x){return x.id==item.variante_id;});
+      if(v&&v.precio&&parseFloat(v.precio)>0) base=parseFloat(v.precio);
+    }
+    var final=getPriceInfo(p,base).final;
+    if(parseFloat(item.precio)!==final){ item.precio=final; changed=true; }
+    item.descuento_pct=getDiscountPct(p,base);
+  });
+  if(changed) saveCart();
 }
 
 var FEATURED_SECTIONS=[{"key": "stickers", "cats": ["🌟 Stickers", "Stickers"], "label": "✨ Stickers", "emoji": "✨"}, {"key": "washitape", "cats": ["Washitape"], "label": "🎁 Washi Tapes", "emoji": "🎁"}, {"key": "agendas", "cats": ["Agendas"], "label": "📅 Agendas", "emoji": "📅"}];
@@ -855,14 +1025,36 @@ let cart = JSON.parse(localStorage.getItem('brl_cart3')||'[]');
 function init(){
   buildCats();
   setupPriceRange();
+  renderDiscountBanner();
   updateCartUI();
   showHomeSections();
 }
-
+function renderDiscountBanner(){
+  var el=document.getElementById('discount-banner');
+  if(!el) return;
+  var active=discountRules().filter(function(r){
+    return r&&r.activo!==false&&ruleWithinSchedule(r)&&clampDiscountPct(r.porcentaje)>0;
+  });
+  if(!active.length){ el.style.display='none'; return; }
+  var preview=active.slice(0,3).map(function(r){
+    var min=nonNegativeMoney(r.monto_minimo);
+    var when='';
+    if(r.fecha_fin) when=' · hasta el '+promoDateText(r.fecha_fin);
+    else if(r.fecha_inicio) when=' · desde el '+promoDateText(r.fecha_inicio);
+    return '<strong>'+clampDiscountPct(r.porcentaje)+'% de descuento</strong>'+(min>0?' desde $'+min.toFixed(2):'')+' · '+(r.nombre||'Promoción')+when;
+  }).join(' &nbsp;|&nbsp; ');
+  el.innerHTML='🏷️ '+preview+(active.length>3?' &nbsp;+'+(active.length-3)+' promociones más':'');
+  el.style.display='block';
+}
 function buildCats(){
   const cats=[...new Set(CATALOG.map(p=>p.categoria).filter(Boolean))].sort();
   document.getElementById('stat-cats').textContent=cats.length;
   const c=document.getElementById('cat-pills');
+  if(CATALOG.some(p=>getPriceInfo(p,p.precio).clearance)){
+    const rem=document.createElement('button');
+    rem.className='pill'; rem.dataset.cat='__remate__'; rem.textContent='Remate 🔥';
+    rem.onclick=()=>setCat('__remate__'); c.appendChild(rem);
+  }
   cats.forEach(cat=>{
     const b=document.createElement('button');
     b.className='pill'; b.dataset.cat=cat; b.textContent=cat;
@@ -879,7 +1071,7 @@ function setCat(cat){
 }
 
 function setupPriceRange(){
-  const ps=CATALOG.map(p=>p.precio).filter(v=>v!==null);
+  const ps=CATALOG.map(p=>getPriceInfo(p,p.precio).final).filter(v=>v!==null);
   if(!ps.length) return;
   const mx=Math.ceil(Math.max(...ps));
   const r=document.getElementById('price-range');
@@ -904,18 +1096,19 @@ function toggleStock(){
 function applyFilters(){
   hideHomeSections();
   let res=CATALOG;
-  if(activeCat!=='all') res=res.filter(p=>p.categoria===activeCat);
+  if(activeCat==='__remate__') res=res.filter(p=>getPriceInfo(p,p.precio).clearance);
+  else if(activeCat!=='all') res=res.filter(p=>p.categoria===activeCat);
   if(searchQ){
     const q=searchQ.toLowerCase();
     res=res.filter(p=>(p.nombre||'').toLowerCase().includes(q)||(p.descripcion||'').toLowerCase().includes(q)||(p.subcategoria||'').toLowerCase().includes(q)||(p.categoria||'').toLowerCase().includes(q));
   }
   const rEl=document.getElementById('price-range');
-  if(rEl && maxPrice<parseFloat(rEl.max)) res=res.filter(p=>p.precio===null||p.precio<=maxPrice);
-  res=res.filter(p=>(p.stock===null||p.stock===undefined||p.stock>0));
+  if(rEl && maxPrice<parseFloat(rEl.max)) res=res.filter(p=>p.precio===null||getPriceInfo(p,p.precio).final<=maxPrice);
+  res=res.filter(function(p){ return p.variantes&&p.variantes.length ? p.variantes.some(function(v){return parseInt(v.stock||0)>0;}) : p.stock>0; });
   if(sortMode==='az') res=[...res].sort((a,b)=>a.nombre.localeCompare(b.nombre));
   else if(sortMode==='za') res=[...res].sort((a,b)=>b.nombre.localeCompare(a.nombre));
-  else if(sortMode==='price-asc') res=[...res].sort((a,b)=>(a.precio!==null?a.precio:999)-(b.precio!==null?b.precio:999));
-  else if(sortMode==='price-desc') res=[...res].sort((a,b)=>(b.precio!==null?b.precio:0)-(a.precio!==null?a.precio:0));
+  else if(sortMode==='price-asc') res=[...res].sort((a,b)=>(a.precio!==null?getPriceInfo(a,a.precio).final:999)-(b.precio!==null?getPriceInfo(b,b.precio).final:999));
+  else if(sortMode==='price-desc') res=[...res].sort((a,b)=>(b.precio!==null?getPriceInfo(b,b.precio).final:0)-(a.precio!==null?getPriceInfo(a,a.precio).final:0));
   filtered=res; currentPage=0; window._lastFiltered=[...res];
   document.getElementById('product-grid').innerHTML='';
   document.getElementById('results-count').textContent=filtered.length===0?'Sin resultados 🌸':(filtered.length+' producto'+(filtered.length!==1?'s':'')+' encontrados ✨');
@@ -939,7 +1132,7 @@ function renderPage(){
   const frag=document.createDocumentFragment();
   batch.forEach((p,i)=>frag.appendChild(buildCard(p,start+i)));
   grid.appendChild(frag);
-  
+
   grid.scrollIntoView({behavior:'smooth',block:'start'});
   renderPagination(totalPages);
 }
@@ -947,20 +1140,31 @@ function renderPagination(totalPages){
   const wrap=document.getElementById('lm-wrap');
   if(totalPages<=1){wrap.style.display='none';return;}
   wrap.style.display='block';
-  let btns='';
-  
-  btns+=`<button class="pg-btn${currentPage===0?' pg-disabled':''}" onclick="goPage(${currentPage-1})" ${currentPage===0?'disabled':''}>‹</button>`;
-  // Page numbers
+  let pageBtns='';
+
   for(let i=0;i<totalPages;i++){
-    if(totalPages>7&&i>1&&i<totalPages-1&&Math.abs(i-currentPage)>1){
-      if(i===2||i===totalPages-2) btns+='<span class="pg-dots">…</span>';
+    if(totalPages>7&&i>1&&i<totalPages-2&&Math.abs(i-currentPage)>1){
+      if(i===2||i===totalPages-3) pageBtns+='<span class="pg-dots">…</span>';
       continue;
     }
-    btns+=`<button class="pg-btn${i===currentPage?' pg-active':''}" onclick="goPage(${i})">${i+1}</button>`;
+    pageBtns+=`<button class="pg-btn${i===currentPage?' pg-active':''}" onclick="goPage(${i})" aria-label="Ir a la página ${i+1}" ${i===currentPage?'aria-current="page"':''}>${i+1}</button>`;
   }
-  // Next
-  btns+=`<button class="pg-btn${currentPage===totalPages-1?' pg-disabled':''}" onclick="goPage(${currentPage+1})" ${currentPage===totalPages-1?'disabled':''}>›</button>`;
-  wrap.innerHTML=`<div class="pg-wrap">${btns}</div>`;
+
+  wrap.innerHTML=`
+    <div class="pg-wrap">
+      <div class="pg-shell">
+        <button class="pg-nav${currentPage===0?' pg-disabled':''}" onclick="goPage(${currentPage-1})" ${currentPage===0?'disabled':''} aria-label="Página anterior">
+          <span class="pg-nav-ico">‹</span><span>Anterior</span>
+        </button>
+        <div class="pg-center">
+          <div class="pg-pages">${pageBtns}</div>
+          <div class="pg-meta">Página <strong>${currentPage+1}</strong> de <strong>${totalPages}</strong></div>
+        </div>
+        <button class="pg-nav${currentPage===totalPages-1?' pg-disabled':''}" onclick="goPage(${currentPage+1})" ${currentPage===totalPages-1?'disabled':''} aria-label="Página siguiente">
+          <span>Siguiente</span><span class="pg-nav-ico">›</span>
+        </button>
+      </div>
+    </div>`;
 }
 function goPage(p){
   const totalPages=Math.ceil(filtered.length/PAGE);
@@ -975,36 +1179,39 @@ function buildCard(p,idx){
   card.className='product-card';
   card.style.animationDelay=(idx%PAGE*0.03)+'s';
   const out=p.stock<=0;
-  const hasP=p.precio!==null&&p.precio!==undefined&&p.precio>0;
+  const priceInfo=getPriceInfo(p,p.precio);
+  const hasP=priceInfo.original>0;
   const catT=(p.categoria||'').replace(/[\u{1F000}-\u{1FFFF}]/gu,'').trim();
   const catFull=p.categoria||'';
   const imgs=((p.imagenes&&p.imagenes.length>0)?p.imagenes:[p.imagen]).filter(u=>u&&u.startsWith('http'));
 
   const hasMulti=imgs.length>1;
 
-  
+
   const nuevoBadge=p.esNuevo
     ?'<div style="position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#ff6eb4,#ff3d9a);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:4;box-shadow:0 2px 8px rgba(255,61,154,.45);animation:pulsenuevo 1.4s infinite">✨ NUEVO</div>'
     :'';
+  const saleBadge=priceInfo.discounted&&!priceInfo.clearance?'<div class="sale-badge" title="'+((priceInfo.rule&&priceInfo.rule.nombre)||'Promoción')+'">-'+priceInfo.pct+'%</div>':'';
+  const remateBadge=priceInfo.clearance?'<div style="position:absolute;bottom:8px;right:8px;background:linear-gradient(135deg,#ef4444,#b91c1c);color:white;font-size:.7rem;font-weight:900;padding:4px 10px;border-radius:20px;z-index:4;box-shadow:0 2px 8px rgba(185,28,28,.35)">🔥 REMATE</div>':'';
   const unicoBadge=(p.stock===1)
     ?'<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#ff6b35,#e53e3e);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(229,62,62,.4)">¡Único!</div>'
     :(p.stock>1&&p.stock<=3)
     ?'<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#dd6b20,#c05621);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(192,86,33,.4)">Solo '+p.stock+'</div>'
     :'';
 
-  
+
   const thumbsHtml=hasMulti
     ?'<div class="cthumbs">'+imgs.slice(0,5).map((src,i)=>'<img class="cthumb'+(i===0?' act':'')+('" src="')+src+'" alt="" loading="lazy" data-src="'+src+'" onerror="imgFallback(this)">').join('')+'</div>'
     :'';
 
-  
+
   const catIcon=catFull.match(/[\u{1F000}-\u{1FFFF}💎✨🌟🎀🎁📝✏️🖊️🔖🛒👜📅🗒️🎵🧸🎌📁👗]/gu)?catFull.match(/[\u{1F000}-\u{1FFFF}💎✨🌟🎀🎁📝✏️🖊️🔖🛒👜📅🗒️🎵🧸🎌📁👗]/gu)[0]:'🌸';
 
   card.innerHTML=
     '<div class="cimg">'+
     '<img class="cimg-main" loading="lazy" src="'+( imgs[0]||'' )+'" alt="'+esc(p.nombre)+'" onerror="imgFallback(this)">'+
     thumbsHtml+
-    nuevoBadge+unicoBadge+
+    nuevoBadge+unicoBadge+saleBadge+remateBadge+
     '</div>'+
     '<div class="cbody">'+
     '<div style="display:flex;align-items:center;gap:6px;margin-bottom:2px">'+
@@ -1014,7 +1221,7 @@ function buildCard(p,idx){
     '<div class="cname">'+esc(p.nombre)+'</div>'+
     (p.descripcion?'<div class="cdesc">'+esc(p.descripcion)+'</div>':'')+
     '<div class="cfoot">'+
-    '<div class="cprice'+(hasP?'':' nop')+'" data-usd="'+(hasP?p.precio:0)+'">'+(hasP?'$'+p.precio.toFixed(2)+(window._bcvUSD>0?' <span class="cprice-bs">Bs. '+(p.precio*window._bcvUSD).toFixed(0)+'</span>':''):'Consultar 💬')+'</div>'+
+    '<div class="cprice'+(hasP?'':' nop')+'" data-usd="'+(hasP?priceInfo.final:0)+'">'+cardPriceHtml(p,p.precio)+'</div>'+
     (function(){var _v=parseVariants(p.observaciones||'');var _lbl=out?'😢 Agotado':(_v.length>0?'🎨 Elegir opción':'+ Carrito');return '<button class="cadd"'+(out?' disabled':'')+' onclick="event.stopPropagation();cardAddToCart('+p.id+')">'+_lbl+'</button>';})()+
     '</div>'+
     '</div>';
@@ -1062,7 +1269,7 @@ if(imgs.length>0){
   mainImg.style.display='none';
   mainImg.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';
 }
-  
+
   document.querySelectorAll('.modal-ov button[onclick^="modal"]').forEach(b=>{
     b.style.display=imgs.length>1?'block':'none';
   });
@@ -1070,7 +1277,7 @@ if(imgs.length>0){
   mainImg.alt=p.nombre;
   mainImg.onerror=function(){this.onerror=null;this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';};
 
-  
+
   const thumbs=document.getElementById('modal-thumbs');
   thumbs.innerHTML='';
   if(imgs.length>1){
@@ -1091,25 +1298,25 @@ if(imgs.length>0){
     thumbs.style.display='none';
   }
 
-  
+
   const catT=(p.categoria||'').replace(/[\u{1F000}-\u{1FFFF}]/gu,'').trim();
   document.getElementById('m-cat').textContent=catT||'✨ Brillitos';
   document.getElementById('m-sub').textContent=p.subcategoria||'';
   document.getElementById('m-name').textContent=p.nombre;
 
-  
+
   const descEl=document.getElementById('m-desc');
   descEl.textContent=p.descripcion||'Producto kawaii lindo y de calidad 🌸';
 
-  
-  document.getElementById('m-price').textContent=p.precio!==null?'$'+p.precio.toFixed(2):'Consultar precio 💬';
 
-  
+  document.getElementById('m-price').innerHTML=p.precio!==null?productPriceHtml(p,p.precio,window._bsRate||null):'Consultar precio 💬';
+
+
   const sEl=document.getElementById('m-stk');
   if(p.stock<=0){sEl.textContent='😢 Agotado';sEl.className='modal-stk out';}
   else{sEl.textContent='✅ Stock disponible';sEl.className='modal-stk';}
 
-  
+
   const details=document.getElementById('m-details');
   details.innerHTML='';
   const chips=buildDetailChips(p);
@@ -1120,10 +1327,10 @@ if(imgs.length>0){
     details.appendChild(div);
   });
 
-  
+
   renderVariantPills(p);
 
-  
+
   const obsEl=document.getElementById('m-obs');
   if(p.observaciones){
     obsEl.textContent='📌 '+p.observaciones;
@@ -1132,7 +1339,7 @@ if(imgs.length>0){
     obsEl.style.display='none';
   }
 
-  
+
   const ab=document.getElementById('m-add');
   ab.disabled=p.stock<=0;
   ab.textContent=p.stock<=0?'😢 Agotado':'🛒 Agregar al carrito';
@@ -1141,7 +1348,7 @@ if(imgs.length>0){
   document.getElementById('modal-ov').classList.add('open');
   document.body.style.overflow='hidden';
 
-  
+
   const right=document.querySelector('.modal-right');
   if(right) right.scrollTop=0;
 }
@@ -1154,7 +1361,7 @@ function buildDetailChips(p){
   const obs=(p.observaciones||'').toLowerCase();
   const all=name+' '+desc+' '+obs;
 
-  
+
   if(all.includes('s925')||all.includes('925')||obs.toLowerCase().includes('s.925')) chips.push({label:'Material',value:'Plata S925 🥈'});
   else if(all.includes('dorado')||all.includes('gold')) chips.push({label:'Material',value:'Dorado ✨'});
   else if(all.includes('acrílico')||all.includes('acrilico')) chips.push({label:'Material',value:'Acrílico'});
@@ -1162,7 +1369,7 @@ function buildDetailChips(p){
   else if(all.includes('peluche')) chips.push({label:'Material',value:'Peluche 🧸'});
   else if(all.includes('holográf')||all.includes('holografico')) chips.push({label:'Acabado',value:'Holográfico ✨'});
 
-  
+
   const colors=[];
   const colorMap={
     'negro':'⚫ Negro','dorado':'🟡 Dorado','rosado':'🌸 Rosado','rosa':'🌸 Rosa',
@@ -1173,7 +1380,7 @@ function buildDetailChips(p){
   Object.entries(colorMap).forEach(([k,v])=>{if(all.includes(k)) colors.push(v);});
   if(colors.length) chips.push({label:'Colores',value:colors.slice(0,4).join(' ')});
 
-  
+
   const styles=[];
   if(all.includes('kawaii')) styles.push('Kawaii 🌸');
   if(all.includes('sanrio')) styles.push('Sanrio');
@@ -1185,7 +1392,7 @@ function buildDetailChips(p){
   if(all.includes('japonés')||all.includes('japones')||all.includes('japanese')) styles.push('Japonés 🎌');
   if(styles.length) chips.push({label:'Estilo',value:styles.slice(0,3).join(' · ')});
 
-  
+
   if(all.includes('set ')&&(all.includes('4')||all.includes('3')||all.includes('2'))) {
     const m=all.match(/set (\d+)/);
     if(m) chips.push({label:'Incluye',value:'Set de '+m[1]+' piezas'});
@@ -1196,16 +1403,16 @@ function buildDetailChips(p){
   if(all.includes('washi')) chips.push({label:'Tipo',value:'Washi Tape'});
   if(all.includes('sticker book')||all.includes('libro')) chips.push({label:'Formato',value:'Libro de stickers'});
 
-  
+
   const brandMatch=(p.observaciones||'').match(/marca\s+(\w+)/i);
   if(brandMatch) chips.push({label:'Marca',value:brandMatch[1]});
   else if(obs.includes('yuxian')) chips.push({label:'Marca',value:'YUXIAN'});
   else if(obs.includes('korean')) chips.push({label:'Origen',value:'Korean Style 🇰🇷'});
 
-  
+
   if(p.subcategoria) chips.push({label:'Categoría',value:p.subcategoria});
 
-  return chips.slice(0,8); 
+  return chips.slice(0,8);
 }
 
 function closeModal(){document.getElementById('modal-ov').classList.remove('open');document.body.style.overflow='';}
@@ -1228,7 +1435,7 @@ function cardAddToCart(id){
 function addToCart(id, variantOverride){
   const p=CATALOG.find(x=>x.id===id); if(!p) return;
   const tieneVariantes = p.variantes && p.variantes.length > 0;
-  let varObj = variantOverride || _ppVariant || null;
+  let varObj = variantOverride || (_ppProduct&&_ppProduct.id===id?_ppVariant:null) || null;
 
   if(tieneVariantes && !varObj){
     const msg = document.getElementById('m-variant-msg');
@@ -1238,10 +1445,13 @@ function addToCart(id, variantOverride){
 
   const cartKey = varObj ? id+'__'+(varObj.id||varObj.nombre) : String(id);
   const ex = cart.find(c=>c._cartKey===cartKey);
-  const precio = varObj&&varObj.precio ? parseFloat(varObj.precio) : p.precio;
+  const disponible=Number(varObj?varObj.stock:p.stock)||0;
+  if((ex?ex.qty:0)>=disponible){showToast('No hay más unidades disponibles');return;}
+  const precioBase = varObj&&varObj.precio ? parseFloat(varObj.precio) : p.precio;
+  const precio = getPriceInfo(p,precioBase).final;
 
   if(!ex){
-    cart.push({...p, precio, qty:1,
+    cart.push({...p, precio, precio_original:precioBase, descuento_pct:getDiscountPct(p,precioBase), qty:1,
       variant: varObj ? varObj.nombre : null,
       variante_id: varObj ? varObj.id : null,
       _cartKey: cartKey});
@@ -1252,10 +1462,18 @@ function addToCart(id, variantOverride){
   const label = varObj ? p.nombre+' ('+varObj.nombre+')' : p.nombre;
   showToast((ex?'Cantidad actualizada':'¡'+label+' agregado!')+' 🌸');
 }
-function clearCart(){cart=[];saveCart();updateCartUI();showToast('Carrito vaciado 🗑️');}
+function clearCart(){
+  if(!cart.length) return;
+  if(!confirm('¿Vaciar todo el carrito?')) return;
+  cart=[];saveCart();updateCartUI();showToast('Carrito vaciado 🗑️');
+}
 function removeFromCart(key){cart=cart.filter(c=>(c._cartKey||String(c.id))!==key);saveCart();updateCartUI();}
 function changeQty(key,delta){
   const ex=cart.find(c=>(c._cartKey||String(c.id))===key); if(!ex) return;
+  const producto=CATALOG.find(p=>p.id==ex.id);
+  const variante=producto&&(producto.variantes||[]).find(v=>v.id==ex.variante_id);
+  const disponible=Number(variante?variante.stock:producto&&producto.stock)||0;
+  if(delta>0&&(ex.qty||1)+delta>disponible){showToast('Stock máximo disponible: '+disponible);return;}
   ex.qty=Math.max(1,(ex.qty||1)+delta);
   saveCart(); updateCartUI();
 }
@@ -1276,6 +1494,7 @@ function updateCartUI(){
       const d=document.createElement('div'); d.className='cart-item';
       const catT=(p.categoria||'').replace(/[\u{1F000}-\u{1FFFF}]/gu,'').trim();
       const ck=p._cartKey||String(p.id);
+      const ckSafe=encodeURIComponent(ck);
       d.innerHTML=
         '<img class="ci-img" src="'+(p.imagen||'')+' " alt="'+esc(p.nombre)+'" onerror="imgFallback(this)">'+
         '<div class="ci-info">'+
@@ -1283,15 +1502,21 @@ function updateCartUI(){
         (p.variant?'<div class="ci-variant">✨ '+esc(p.variant)+'</div>':'')+
         '<div class="ci-cat">'+esc(catT)+'</div>'+
         '<div class="ci-price">'+(p.precio!==null?'$'+(p.precio*(p.qty||1)).toFixed(2)+' '+(p.qty>1?'(x'+p.qty+')':''):'Consultar 💬')+'</div>'+
-        '<div class="ci-qty ci-qty-ro" style="font-size:13px;color:#888;margin-top:4px">'+(p.qty>1?p.qty+' unidades':'')+'</div>'+'</div>';
+        '<div class="ci-qty">'+
+          '<button onclick="changeQty(decodeURIComponent(\''+ckSafe+'\'),-1)" aria-label="Restar unidad">−</button>'+
+          '<span>'+(p.qty||1)+'</span>'+
+          '<button onclick="changeQty(decodeURIComponent(\''+ckSafe+'\'),1)" aria-label="Sumar unidad">+</button>'+
+        '</div>'+
+        '</div>'+
+        '<button class="ci-del" onclick="removeFromCart(decodeURIComponent(\''+ckSafe+'\'))" title="Eliminar del carrito">🗑️ Eliminar</button>';
       frag.appendChild(d);
     });
     c.appendChild(frag);
   }
-  
+
   const ccb=document.getElementById('clear-cart-btn');
   if(ccb) ccb.style.display=cart.length>0?'block':'none';
-  
+
   const sf='$'+sub.toFixed(2);
   document.getElementById('wa-sub').textContent=sf;
   document.getElementById('pp-sub').textContent=sf;
@@ -1300,7 +1525,7 @@ function updateCartUI(){
   calcPP(); calcBNC(); calcBS();
 }
 
-function openCart(){document.getElementById('cart-drw').classList.add('open');document.getElementById('cart-ov').classList.add('open');document.body.style.overflow='hidden';}
+function openCart(){document.getElementById('cart-drw').classList.add('open');document.getElementById('cart-ov').classList.add('open');document.body.style.overflow='hidden';fetchBCVRates();}
 function closeCart(){document.getElementById('cart-drw').classList.remove('open');document.getElementById('cart-ov').classList.remove('open');document.body.style.overflow='';}
 
 
@@ -1311,14 +1536,18 @@ function switchTab(t){
     document.getElementById('tab-'+k).classList.toggle('active',k===t);
     document.getElementById('sec-'+k).classList.toggle('active',k===t);
   });
-  if(t==='bs') fetchBCVRates(); 
+  if(t==='bs') fetchBCVRates();
 }
 
 function calcPP(){
   const sub=cartSubtotal();
-  const pct=parseFloat(document.getElementById('pp-pct').value)||5.4;
-  const fix=parseFloat(document.getElementById('pp-fix').value)||0.30;
-  
+  const pct=5.4;
+  const fix=0.30;
+  document.getElementById('pp-pct').value=pct;
+  document.getElementById('pp-pct').readOnly=true;
+  document.getElementById('pp-fix').value=fix;
+  document.getElementById('pp-fix').readOnly=true;
+
   const charge=(sub+fix)/(1-pct/100);
   const fee=charge-sub;
   document.getElementById('pp-fee').textContent='$'+fee.toFixed(2);
@@ -1329,12 +1558,16 @@ function calcPP(){
 function calcBNC(){
   const sub=cartSubtotal();
   const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
-  const total=sub/rate;
+  const pct=10;
+  const discount=Math.round(sub*10)/100;
+  const discounted=Math.max(0,sub-discount);
+  const total=discounted/rate;
+  const discountEl=document.getElementById('bnc-discount');
+  if(discountEl) discountEl.textContent='-$'+discount.toFixed(2);
   document.getElementById('bnc-total').textContent=total.toFixed(2)+' USDT';
-  const feeEl=document.getElementById('bnc-fee');
-  if(feeEl) feeEl.textContent='';
+  const usdEl=document.getElementById('bnc-usd');
+  if(usdEl) usdEl.textContent='$'+discounted.toFixed(2);
 }
-
 function calcBS(){
   const sub=cartSubtotal();
   const rate=parseFloat(document.getElementById('bs-rate').value)||40;
@@ -1353,70 +1586,73 @@ function buildOrderLines(){
   }).join('\n');
 }
 
-async function sendWA(method){
-  if(cart.length===0){showToast('¡Agrega productos primero! 🌸');return;}
-  const lines=buildOrderLines();
-  const sub=cartSubtotal();
-  let payLine='';
-  if(method==='paypal'){
-    const pct=parseFloat(document.getElementById('pp-pct').value)||5.4;
-    const fix=parseFloat(document.getElementById('pp-fix').value)||0.30;
-    const charge=(sub+fix)/(1-pct/100);
-    payLine='\n🅿️ *Pago por PayPal*\nEnviar a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\nComisión PayPal ('+pct+'% + '+fix+'): '+(charge-sub).toFixed(2)+'\n💰 *Total a pagar: '+charge.toFixed(2)+' USD*';
-  } else if(method==='binance'){
-    const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
-    const pct=parseFloat(document.getElementById('bnc-pct').value)||0;
-    const fee=sub*(pct/100);
-    const total=(sub+fee)/rate;
-    payLine='\n₿ *Pago por Binance Pay (USDT)*\nEnviar a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\n💰 *Total a pagar: '+total.toFixed(4)+' USDT*';
-  } else if(method==='bolivares'){
-    const rate=parseFloat(document.getElementById('bs-rate').value)||40;
-    const bs=sub*rate;
-    payLine='\n🇻🇪 *Método de pago: Pago Móvil / Bolívares*\n📱 Teléfono: 04249372490 (Bancamiga)\n💰 *Total a pagar: Bs. '+bs.toFixed(2)+'*\n(Tasa BCV: Bs.'+rate+'/$)\n📸 Enviaré el comprobante por aquí';
-  } else {
-    payLine=sub>0?'\n💰 Subtotal estimado: $'+sub.toFixed(2)+' USD\n(productos sin precio se consultan aparte)':'\n(Precios a consultar)';
-  }
-  const msg='🌸 *Pedido Brillitos 2026* 🌸\n\n'+lines+'\n'+payLine+'\n\n¡Hola! Quiero hacer este pedido 💖';
-  const num=document.getElementById('wa-num')?.value?.replace(/\D/g,'')||WA_NUMBER;
-  const url=num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
-  // ── Guardar pedido en Supabase como "Por confirmar" ──
-  try{
-    const aptData={
-      cliente_nombre: 'Web — '+(method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance':'Consulta'),
-      canal: 'Web',
-      metodo_pago: method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance/USDT':'Consulta',
-      estado: 'Por confirmar',
-      total: sub,
-      abono: 0,
-      saldo: sub,
-      notas: 'Pedido desde la web — pendiente de confirmación',
-      numero: 'WEB-'+Date.now()
-    };
-    const r=await fetch(SUPABASE_URL+'/rest/v1/apartados',{
-      method:'POST',
-      headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-      body:JSON.stringify(aptData)
-    });
-    if(r.ok){
-      const apt=await r.json();
-      const aid=apt[0]&&apt[0].id;
-      if(aid){
-        for(const it of cart){
-          await fetch(SUPABASE_URL+'/rest/v1/apartado_items',{
-            method:'POST',
-            headers:{'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json'},
-            body:JSON.stringify({apartado_id:aid,producto_id:it.id,producto_nombre:it.nombre+(it.variant?' — '+it.variant:''),precio_unitario:it.precio||0,cantidad:it.qty||1,subtotal:(it.precio||0)*(it.qty||1)})
-          });
-        }
-      }
-    }
-  }catch(e){ console.warn('No se pudo guardar pedido en Supabase:',e); }
-  // ── Abrir WhatsApp ──
-  window.open(url,'_blank');
+let _sendingWebOrder=false;
+
+async function webRPC(name, data){
+  const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+name,{
+    method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  });
+  const result=await r.json();
+  if(!r.ok) throw new Error(result.message||'No se pudo registrar el pedido');
+  return result;
 }
-
-
-
+async function sendWA(method){
+  if(_sendingWebOrder)return;
+  if(!cart.length){showToast('¡Agrega productos primero! 🌸');return;}
+  _sendingWebOrder=true;
+  const buttons=[...document.querySelectorAll('[onclick*="sendWA("]')];
+  buttons.forEach(b=>b.disabled=true);
+  const waWindow=window.open('about:blank','_blank');
+  try{
+    const payment=method||'consulta';
+    const rate=payment==='binance'?Number(document.getElementById('bnc-rate').value):
+      payment==='bolivares'?Number(document.getElementById('bs-rate').value):1;
+    if(!Number.isFinite(rate)||rate<=0)throw new Error('Revisa la tasa de cambio');
+    const items=cart.map(it=>({producto_id:it.id,variante_id:it.variante_id||null,cantidad:it.qty||1}));
+    const signature=JSON.stringify({items,payment,rate});
+    let draft;
+    try{draft=JSON.parse(localStorage.getItem('brl_checkout')||'null');}catch(_){}
+    if(!draft||draft.signature!==signature){
+      draft={signature,key:crypto.randomUUID()};localStorage.setItem('brl_checkout',JSON.stringify(draft));
+    }
+    const q=await webRPC('brl_quote',{p_items:items,p_method:payment,p_rate:rate});
+    const before=Math.round(cartSubtotal()*100)/100;
+    if(before!==Number(q.subtotal)){
+      q.items.forEach(it=>{
+        const c=cart.find(x=>x.id==it.producto_id&&String(x.variante_id||'')===String(it.variante_id||''));
+        if(c){c.precio=Number(it.precio_unitario);c.precio_original=Number(it.precio_original);}
+      });
+      saveCart();updateCartUI();renderDiscountBanner();
+      throw new Error('El precio se actualizó. Revisa el nuevo total y vuelve a confirmar.');
+    }
+    const order=await webRPC('brl_checkout',{
+      p_key:draft.key,p_items:items,p_method:payment,p_rate:rate,p_expected:Number(q.monto_pago)
+    });
+    const money=n=>Number(n||0).toFixed(2);
+    const lines=order.items.map((i,n)=>(n+1)+'. '+i.producto_nombre+
+      (i.variante_nombre?' ['+i.variante_nombre+']':'')+' x'+i.cantidad+' — $'+money(i.precio_unitario)).join('\n');
+    const label=payment==='binance'?'Binance Pay':payment==='bolivares'?'Pago Móvil':payment==='paypal'?'PayPal':'Consulta';
+    const discounts=(Number(order.descuento_promocion)>0?'\nPromoción / remate: -$'+money(order.descuento_promocion):'')+
+      (payment==='binance'?'\nDescuento Binance (10%): -$'+money(order.descuento):'');
+    const details=payment==='bolivares'?'\nTasa BCV: '+rate+'\nBanco: Bancamiga (0172)\nCédula: V-26.239.265\nCelular: 0424-9372490':
+      payment==='binance'||payment==='paypal'?'\nEnviar a: ana0191@gmail.com':'';
+    const msg='🌸 Pedido Brillitos 🌸\n'+order.numero+'\n\n'+lines+
+      '\n\nSubtotal original: $'+money(order.subtotal_original)+discounts+
+      '\nTotal productos: $'+money(order.total)+'\n'+label+details+
+      '\nMonto a enviar: '+money(order.monto_pago)+' '+order.moneda_pago+
+      (payment==='paypal'?'\nIncluye comisión PayPal; neto de la venta: $'+money(order.total):'')+
+      '\n\n'+(payment==='consulta'?'Quiero consultar este pedido.':'Envío mi comprobante para verificar el pago.');
+    const num=document.getElementById('wa-num')?.value?.replace(/\D/g,'')||WA_NUMBER;
+    const url='https://wa.me/'+num+'?text='+encodeURIComponent(msg);
+    cart=[];saveCart();localStorage.removeItem('brl_checkout');updateCartUI();
+    showToast('✅ Pedido registrado: '+order.numero);
+    if(waWindow)waWindow.location.href=url;else window.location.href=url;
+  }catch(e){
+    if(waWindow)waWindow.close();
+    showToast('⚠️ '+e.message);
+  }finally{_sendingWebOrder=false;buttons.forEach(b=>b.disabled=false);}
+}
 
 function openOrders(focus){
   document.getElementById('orders-ov').classList.add('open');
@@ -1455,8 +1691,8 @@ cargarCatalogo();
 
 
 
-let _modalCurrentProduct = null; 
-let _selectedVariant = null;     
+let _modalCurrentProduct = null;
+let _selectedVariant = null;
 
 
 
@@ -1468,7 +1704,7 @@ function parseVariants(obs) {
   return match[1].split(',').map(s => s.trim()).filter(Boolean);
 }
 
- 
+
 function renderVariantPills(p) {
   _modalCurrentProduct = p;
   _selectedVariant = null;
@@ -1501,7 +1737,7 @@ function renderVariantPills(p) {
   });
 }
 
- 
+
 function clearVariants() {
   _selectedVariant = null;
   _modalCurrentProduct = null;
@@ -1516,7 +1752,7 @@ function clearVariants() {
 
 
 const BCV_CACHE_KEY = 'brillitos_bcv_cache';
-const BCV_CACHE_TTL = 60 * 60 * 1000; 
+const BCV_CACHE_TTL = 60 * 60 * 1000;
 
 
 
@@ -1526,7 +1762,7 @@ async function fetchBCVRates(forceRefresh = false) {
   const noteEl = document.getElementById('bs-note-usd');
   const eurEl  = document.getElementById('bs-eur-display');
 
-  
+
   if (!forceRefresh) {
     try {
       const cached = JSON.parse(localStorage.getItem(BCV_CACHE_KEY) || 'null');
@@ -1537,21 +1773,21 @@ async function fetchBCVRates(forceRefresh = false) {
     } catch(e) {}
   }
 
-  
+
   if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
   if (noteEl) noteEl.textContent = '⏳ Consultando tasa BCV…';
 
   try {
-    
+
     const res = await fetch('https://ve.dolarapi.com/v1/dolares', { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json(); 
+    const data = await res.json();
 
-    
+
     const usdObj = data.find(d => d.moneda === 'USD' && (d.fuente === 'oficial' || d.nombre?.toLowerCase().includes('oficial')));
     const eurObj = data.find(d => d.moneda === 'EUR');
 
-    
+
     const usdRate = usdObj?.promedio || data.find(d => d.moneda === 'USD')?.promedio;
     window._bsRate = usdRate || null;
     const eurRate = eurObj?.promedio || null;
@@ -1559,7 +1795,7 @@ async function fetchBCVRates(forceRefresh = false) {
 
     if (!usdRate) throw new Error('No se encontró tasa USD');
 
-    
+
     localStorage.setItem(BCV_CACHE_KEY, JSON.stringify({ usd: usdRate, eur: eurRate, fecha, ts: Date.now() }));
 
     applyBCVRates(usdRate, eurRate, fecha, false);
@@ -1586,7 +1822,7 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
   const eurEl  = document.getElementById('bs-eur-display');
   const input  = document.getElementById('bs-rate');
 
-  
+
   let fechaLabel = '';
   try {
     const d = new Date(fecha + (fecha.length === 10 ? 'T12:00:00' : ''));
@@ -1594,11 +1830,11 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
     fechaLabel = dias[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
   } catch(e) { fechaLabel = fecha; }
 
-  
+
   const hoy = new Date();
   const esViernes = hoy.getDay() === 5;
 
-  
+
   window._bcvUSD = parseFloat(usd)||0;
   if (input) {
     input.value = parseFloat(usd).toFixed(2);
@@ -1607,7 +1843,7 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
   // Actualizar precios Bs en todas las tarjetas
   if(window._bcvUSD>0) actualizarPreciosBs(window._bcvUSD);
 
-  
+
   if (noteEl) {
     const cache_tag = fromCache ? ' <span style="opacity:.6;font-size:.72em">(caché)</span>' : '';
     const viernes_tag = esViernes
@@ -1616,7 +1852,7 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
     noteEl.innerHTML = '✅ Tasa BCV oficial: <strong>Bs. '+parseFloat(usd).toFixed(2)+' / $</strong> · '+fechaLabel+cache_tag+viernes_tag;
   }
 
-  
+
   if (eurEl) {
     eurEl.textContent = eur ? 'Bs. '+parseFloat(eur).toFixed(2)+' / €' : '—';
   }
@@ -1680,16 +1916,16 @@ function openProductPage(p) {
 
   const imgs = ((p.imagenes&&p.imagenes.length>0)?p.imagenes:[p.imagen]).filter(u=>u&&u.startsWith('http'));
 
-  
+
   const mainImg = document.getElementById('pp-main-img');
   mainImg.src = imgs[0] || '';
   mainImg.alt = p.nombre;
 
-  
+
   document.querySelector('.pp-arrow-l').style.display = imgs.length>1?'flex':'none';
   document.querySelector('.pp-arrow-r').style.display = imgs.length>1?'flex':'none';
 
-  
+
   const thumbsEl = document.getElementById('pp-thumbs');
   thumbsEl.innerHTML = '';
   if(imgs.length>1){
@@ -1703,31 +1939,28 @@ function openProductPage(p) {
     });
   }
 
-  
+
   const badgesEl = document.getElementById('pp-badges');
   let badges = '';
   if(p.esNuevo) badges += '<span style="background:linear-gradient(135deg,#ff6eb4,#ff3d9a);color:white;font-size:.75rem;font-weight:800;padding:4px 12px;border-radius:20px;">✨ NUEVO</span>';
+  if(getPriceInfo(p,p.precio).clearance) badges += '<span style="background:#fee2e2;color:#b91c1c;font-size:.75rem;font-weight:900;padding:4px 12px;border-radius:20px;">🔥 REMATE</span>';
   if(p.categoria) badges += '<span style="background:var(--pk-light,#ffd6ec);color:var(--pk);font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:20px;">'+p.categoria+'</span>';
   if(p.subcategoria) badges += '<span style="background:#f0f0f0;color:#666;font-size:.75rem;font-weight:700;padding:4px 12px;border-radius:20px;">'+p.subcategoria+'</span>';
+  var _ppDiscount=getDiscountPct(p,p.precio); if(_ppDiscount>0) badges += '<span style="background:#fee2e2;color:#be123c;font-size:.75rem;font-weight:900;padding:4px 12px;border-radius:20px;">🏷️ -'+_ppDiscount+'%</span>';
   badgesEl.innerHTML = badges;
 
-  
+
   document.getElementById('pp-name').textContent = p.nombre;
 
-  
+
   const _precio = p.precio;
   function _renderPPPrice(){
     const bsRate = window._bsRate || null;
-    let priceHtml = _precio>0 ? '<span>$'+_precio.toFixed(2)+'</span>' : '<span style="font-size:1.2rem">Consultar 💬</span>';
-    if(bsRate && _precio>0){
-      const bs = (_precio*bsRate).toLocaleString('es-VE',{maximumFractionDigits:2});
-      priceHtml += '<div style="font-size:1rem;font-weight:600;color:#888;margin-top:4px;">Bs. '+bs+'</div>';
-    }
     const el = document.getElementById('pp-price');
-    if(el) el.innerHTML = priceHtml;
+    if(el) el.innerHTML = productPriceHtml(p,_precio,bsRate);
   }
   _renderPPPrice();
-  
+
   if(!window._bsRate && _precio>0){
     const _ppPriceRetry = setInterval(()=>{
       if(window._bsRate){ _renderPPPrice(); clearInterval(_ppPriceRetry); }
@@ -1735,7 +1968,7 @@ function openProductPage(p) {
     setTimeout(()=>clearInterval(_ppPriceRetry), 10000);
   }
 
-  
+
   const stockEl = document.getElementById('pp-stock');
   const tieneVarsStock = (p.variantes||[]).filter(function(v){return v.activo!==false;}).length > 0;
   if(tieneVarsStock){
@@ -1746,12 +1979,12 @@ function openProductPage(p) {
   else if(p.stock<=3){ stockEl.textContent='Solo '+p.stock+' disponibles'; stockEl.className='pp-stock low'; }
   else { stockEl.textContent='✅ Stock disponible'; stockEl.className='pp-stock in'; }
 
-  
+
   const descEl = document.getElementById('pp-desc-box');
   descEl.style.display = p.descripcion ? 'block' : 'none';
   descEl.textContent = p.descripcion || '';
 
-  
+
     const variantsEl = document.getElementById('pp-variants');
   const variantesReales = (p.variantes||[]).filter(function(v){ return v.activo!==false; });
   _ppVariants = variantesReales;
@@ -1762,7 +1995,9 @@ function openProductPage(p) {
     vhtml += '<div class="pp-variant-opts" style="display:flex;flex-wrap:wrap;gap:8px">';
     variantesReales.forEach(function(v, i){
       const sinStock = typeof v.stock !== "undefined" && v.stock !== null && v.stock <= 0;
-      const precioV = (v.precio && parseFloat(v.precio) > 0) ? '$'+parseFloat(v.precio).toFixed(2) : '';
+      const baseV = (v.precio && parseFloat(v.precio) > 0) ? parseFloat(v.precio) : p.precio;
+      const infoV = getPriceInfo(p,baseV);
+      const precioV = baseV>0 ? (infoV.discounted ? '$'+infoV.original.toFixed(2)+' → $'+infoV.final.toFixed(2) : '$'+infoV.final.toFixed(2)) : '';
       vhtml += '<button class="pp-variant-btn'+(sinStock?' agotado':'')+'" data-vi="'+i+'" '
         +(sinStock?'disabled title="Agotado"':'onclick="ppSelectVariant(this,'+i+')"')
         +' style="border:2px solid '+(sinStock?'#ddd':'var(--pk)')+';background:'+(sinStock?'#f5f5f5':'#fff')
@@ -1779,7 +2014,7 @@ function openProductPage(p) {
     variantsEl.style.display = 'none';
   }
 
-  
+
   const addBtn = document.getElementById('pp-add-btn');
   const tieneVars = variantesReales.length > 0;
   const hayStock = tieneVars
@@ -1788,12 +2023,12 @@ function openProductPage(p) {
   addBtn.disabled = !hayStock;
   addBtn.textContent = !hayStock ? '😢 Agotado' : '🛒 Agregar al carrito';
 
-  
+
   const _pool = (window._lastFiltered && window._lastFiltered.length>1)
     ? window._lastFiltered
     : CATALOG;
   let related = _pool.filter(r=>r.id!==p.id && r.stock>0);
-  
+
   const sameCat = related.filter(r=>r.categoria===p.categoria);
   const otherCat = related.filter(r=>r.categoria!==p.categoria);
   related = [...sameCat, ...otherCat].slice(0,8);
@@ -1808,7 +2043,7 @@ function openProductPage(p) {
     document.querySelector('.pp-related').style.display = 'none';
   }
 
-  
+
   document.querySelector('.hero') && (document.querySelector('.hero').style.display='none');
   document.querySelector('.store-banner') && (document.querySelector('.store-banner').style.display='none');
   document.querySelector('.stats-bar') && (document.querySelector('.stats-bar').style.display='none');
@@ -1826,7 +2061,7 @@ function closeProductPage(){
   document.querySelector('.stats-bar') && (document.querySelector('.stats-bar').style.display='');
   document.querySelector('.filters-bar') && (document.querySelector('.filters-bar').style.display='');
   document.querySelector('.grid-section') && (document.querySelector('.grid-section').style.display='');
-  
+
   currentPage = _catalogPage;
   renderPage();
   setTimeout(()=>window.scrollTo({top:_catalogScroll, behavior:'instant'}),50);
@@ -1889,9 +2124,7 @@ function ppSelectVariant(btn, vi){
   const el = document.getElementById('pp-price');
   if(el){
     const bsRate = window._bsRate||null;
-    let html = '<span>$'+precio.toFixed(2)+'</span>';
-    if(bsRate) html += '<div style="font-size:1rem;font-weight:600;color:#888;margin-top:4px">Bs. '+(precio*bsRate).toLocaleString('es-VE',{maximumFractionDigits:2})+'</div>';
-    el.innerHTML = html;
+    el.innerHTML = productPriceHtml(_ppProduct,precio,bsRate);
   }
   // Actualizar stock
   const stockEl = document.getElementById('pp-stock');

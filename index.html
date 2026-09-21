@@ -731,11 +731,11 @@ async function cargarCatalogo() {
       // Sin variantes: stock y precio deben ser positivos.
       return p.stock > 0 && p.precio > 0;
     });
-    
+
     // Actualizar contador
     var statEl = document.getElementById('stat-prods');
     if(statEl) statEl.textContent = CATALOG.length;
-    
+
     // Re-sincronizar cualquier carrito guardado con los descuentos vigentes
     syncCartPrices();
     // Re-inicializar
@@ -1132,7 +1132,7 @@ function renderPage(){
   const frag=document.createDocumentFragment();
   batch.forEach((p,i)=>frag.appendChild(buildCard(p,start+i)));
   grid.appendChild(frag);
-  
+
   grid.scrollIntoView({behavior:'smooth',block:'start'});
   renderPagination(totalPages);
 }
@@ -1187,7 +1187,7 @@ function buildCard(p,idx){
 
   const hasMulti=imgs.length>1;
 
-  
+
   const nuevoBadge=p.esNuevo
     ?'<div style="position:absolute;top:10px;right:10px;background:linear-gradient(135deg,#ff6eb4,#ff3d9a);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:4;box-shadow:0 2px 8px rgba(255,61,154,.45);animation:pulsenuevo 1.4s infinite">✨ NUEVO</div>'
     :'';
@@ -1199,12 +1199,12 @@ function buildCard(p,idx){
     ?'<div style="position:absolute;top:10px;left:10px;background:linear-gradient(135deg,#dd6b20,#c05621);color:white;font-size:.7rem;font-weight:800;padding:4px 11px;border-radius:20px;z-index:3;box-shadow:0 2px 8px rgba(192,86,33,.4)">Solo '+p.stock+'</div>'
     :'';
 
-  
+
   const thumbsHtml=hasMulti
     ?'<div class="cthumbs">'+imgs.slice(0,5).map((src,i)=>'<img class="cthumb'+(i===0?' act':'')+('" src="')+src+'" alt="" loading="lazy" data-src="'+src+'" onerror="imgFallback(this)">').join('')+'</div>'
     :'';
 
-  
+
   const catIcon=catFull.match(/[\u{1F000}-\u{1FFFF}💎✨🌟🎀🎁📝✏️🖊️🔖🛒👜📅🗒️🎵🧸🎌📁👗]/gu)?catFull.match(/[\u{1F000}-\u{1FFFF}💎✨🌟🎀🎁📝✏️🖊️🔖🛒👜📅🗒️🎵🧸🎌📁👗]/gu)[0]:'🌸';
 
   card.innerHTML=
@@ -1269,7 +1269,7 @@ if(imgs.length>0){
   mainImg.style.display='none';
   mainImg.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';
 }
-  
+
   document.querySelectorAll('.modal-ov button[onclick^="modal"]').forEach(b=>{
     b.style.display=imgs.length>1?'block':'none';
   });
@@ -1277,7 +1277,7 @@ if(imgs.length>0){
   mainImg.alt=p.nombre;
   mainImg.onerror=function(){this.onerror=null;this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';};
 
-  
+
   const thumbs=document.getElementById('modal-thumbs');
   thumbs.innerHTML='';
   if(imgs.length>1){
@@ -1298,25 +1298,25 @@ if(imgs.length>0){
     thumbs.style.display='none';
   }
 
-  
+
   const catT=(p.categoria||'').replace(/[\u{1F000}-\u{1FFFF}]/gu,'').trim();
   document.getElementById('m-cat').textContent=catT||'✨ Brillitos';
   document.getElementById('m-sub').textContent=p.subcategoria||'';
   document.getElementById('m-name').textContent=p.nombre;
 
-  
+
   const descEl=document.getElementById('m-desc');
   descEl.textContent=p.descripcion||'Producto kawaii lindo y de calidad 🌸';
 
-  
+
   document.getElementById('m-price').innerHTML=p.precio!==null?productPriceHtml(p,p.precio,window._bsRate||null):'Consultar precio 💬';
 
-  
+
   const sEl=document.getElementById('m-stk');
   if(p.stock<=0){sEl.textContent='😢 Agotado';sEl.className='modal-stk out';}
   else{sEl.textContent='✅ Stock disponible';sEl.className='modal-stk';}
 
-  
+
   const details=document.getElementById('m-details');
   details.innerHTML='';
   const chips=buildDetailChips(p);
@@ -1327,10 +1327,10 @@ if(imgs.length>0){
     details.appendChild(div);
   });
 
-  
+
   renderVariantPills(p);
 
-  
+
   const obsEl=document.getElementById('m-obs');
   if(p.observaciones){
     obsEl.textContent='📌 '+p.observaciones;
@@ -1339,7 +1339,7 @@ if(imgs.length>0){
     obsEl.style.display='none';
   }
 
-  
+
   const ab=document.getElementById('m-add');
   ab.disabled=p.stock<=0;
   ab.textContent=p.stock<=0?'😢 Agotado':'🛒 Agregar al carrito';
@@ -1348,7 +1348,7 @@ if(imgs.length>0){
   document.getElementById('modal-ov').classList.add('open');
   document.body.style.overflow='hidden';
 
-  
+
   const right=document.querySelector('.modal-right');
   if(right) right.scrollTop=0;
 }
@@ -1361,7 +1361,7 @@ function buildDetailChips(p){
   const obs=(p.observaciones||'').toLowerCase();
   const all=name+' '+desc+' '+obs;
 
-  
+
   if(all.includes('s925')||all.includes('925')||obs.toLowerCase().includes('s.925')) chips.push({label:'Material',value:'Plata S925 🥈'});
   else if(all.includes('dorado')||all.includes('gold')) chips.push({label:'Material',value:'Dorado ✨'});
   else if(all.includes('acrílico')||all.includes('acrilico')) chips.push({label:'Material',value:'Acrílico'});
@@ -1369,7 +1369,7 @@ function buildDetailChips(p){
   else if(all.includes('peluche')) chips.push({label:'Material',value:'Peluche 🧸'});
   else if(all.includes('holográf')||all.includes('holografico')) chips.push({label:'Acabado',value:'Holográfico ✨'});
 
-  
+
   const colors=[];
   const colorMap={
     'negro':'⚫ Negro','dorado':'🟡 Dorado','rosado':'🌸 Rosado','rosa':'🌸 Rosa',
@@ -1380,7 +1380,7 @@ function buildDetailChips(p){
   Object.entries(colorMap).forEach(([k,v])=>{if(all.includes(k)) colors.push(v);});
   if(colors.length) chips.push({label:'Colores',value:colors.slice(0,4).join(' ')});
 
-  
+
   const styles=[];
   if(all.includes('kawaii')) styles.push('Kawaii 🌸');
   if(all.includes('sanrio')) styles.push('Sanrio');
@@ -1392,7 +1392,7 @@ function buildDetailChips(p){
   if(all.includes('japonés')||all.includes('japones')||all.includes('japanese')) styles.push('Japonés 🎌');
   if(styles.length) chips.push({label:'Estilo',value:styles.slice(0,3).join(' · ')});
 
-  
+
   if(all.includes('set ')&&(all.includes('4')||all.includes('3')||all.includes('2'))) {
     const m=all.match(/set (\d+)/);
     if(m) chips.push({label:'Incluye',value:'Set de '+m[1]+' piezas'});
@@ -1403,16 +1403,16 @@ function buildDetailChips(p){
   if(all.includes('washi')) chips.push({label:'Tipo',value:'Washi Tape'});
   if(all.includes('sticker book')||all.includes('libro')) chips.push({label:'Formato',value:'Libro de stickers'});
 
-  
+
   const brandMatch=(p.observaciones||'').match(/marca\s+(\w+)/i);
   if(brandMatch) chips.push({label:'Marca',value:brandMatch[1]});
   else if(obs.includes('yuxian')) chips.push({label:'Marca',value:'YUXIAN'});
   else if(obs.includes('korean')) chips.push({label:'Origen',value:'Korean Style 🇰🇷'});
 
-  
+
   if(p.subcategoria) chips.push({label:'Categoría',value:p.subcategoria});
 
-  return chips.slice(0,8); 
+  return chips.slice(0,8);
 }
 
 function closeModal(){document.getElementById('modal-ov').classList.remove('open');document.body.style.overflow='';}
@@ -1435,7 +1435,7 @@ function cardAddToCart(id){
 function addToCart(id, variantOverride){
   const p=CATALOG.find(x=>x.id===id); if(!p) return;
   const tieneVariantes = p.variantes && p.variantes.length > 0;
-  let varObj = variantOverride || _ppVariant || null;
+  let varObj = variantOverride || (_ppProduct&&_ppProduct.id===id?_ppVariant:null) || null;
 
   if(tieneVariantes && !varObj){
     const msg = document.getElementById('m-variant-msg');
@@ -1445,6 +1445,8 @@ function addToCart(id, variantOverride){
 
   const cartKey = varObj ? id+'__'+(varObj.id||varObj.nombre) : String(id);
   const ex = cart.find(c=>c._cartKey===cartKey);
+  const disponible=Number(varObj?varObj.stock:p.stock)||0;
+  if((ex?ex.qty:0)>=disponible){showToast('No hay más unidades disponibles');return;}
   const precioBase = varObj&&varObj.precio ? parseFloat(varObj.precio) : p.precio;
   const precio = getPriceInfo(p,precioBase).final;
 
@@ -1468,6 +1470,10 @@ function clearCart(){
 function removeFromCart(key){cart=cart.filter(c=>(c._cartKey||String(c.id))!==key);saveCart();updateCartUI();}
 function changeQty(key,delta){
   const ex=cart.find(c=>(c._cartKey||String(c.id))===key); if(!ex) return;
+  const producto=CATALOG.find(p=>p.id==ex.id);
+  const variante=producto&&(producto.variantes||[]).find(v=>v.id==ex.variante_id);
+  const disponible=Number(variante?variante.stock:producto&&producto.stock)||0;
+  if(delta>0&&(ex.qty||1)+delta>disponible){showToast('Stock máximo disponible: '+disponible);return;}
   ex.qty=Math.max(1,(ex.qty||1)+delta);
   saveCart(); updateCartUI();
 }
@@ -1507,10 +1513,10 @@ function updateCartUI(){
     });
     c.appendChild(frag);
   }
-  
+
   const ccb=document.getElementById('clear-cart-btn');
   if(ccb) ccb.style.display=cart.length>0?'block':'none';
-  
+
   const sf='$'+sub.toFixed(2);
   document.getElementById('wa-sub').textContent=sf;
   document.getElementById('pp-sub').textContent=sf;
@@ -1530,14 +1536,18 @@ function switchTab(t){
     document.getElementById('tab-'+k).classList.toggle('active',k===t);
     document.getElementById('sec-'+k).classList.toggle('active',k===t);
   });
-  if(t==='bs') fetchBCVRates(); 
+  if(t==='bs') fetchBCVRates();
 }
 
 function calcPP(){
   const sub=cartSubtotal();
-  const pct=parseFloat(document.getElementById('pp-pct').value)||5.4;
-  const fix=parseFloat(document.getElementById('pp-fix').value)||0.30;
-  
+  const pct=5.4;
+  const fix=0.30;
+  document.getElementById('pp-pct').value=pct;
+  document.getElementById('pp-pct').readOnly=true;
+  document.getElementById('pp-fix').value=fix;
+  document.getElementById('pp-fix').readOnly=true;
+
   const charge=(sub+fix)/(1-pct/100);
   const fee=charge-sub;
   document.getElementById('pp-fee').textContent='$'+fee.toFixed(2);
@@ -1548,8 +1558,8 @@ function calcPP(){
 function calcBNC(){
   const sub=cartSubtotal();
   const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
-  const pct=parseFloat(document.getElementById('bnc-discount-pct').value)||10;
-  const discount=sub*(pct/100);
+  const pct=10;
+  const discount=Math.round(sub*10)/100;
   const discounted=Math.max(0,sub-discount);
   const total=discounted/rate;
   const discountEl=document.getElementById('bnc-discount');
@@ -1578,155 +1588,71 @@ function buildOrderLines(){
 
 let _sendingWebOrder=false;
 
+async function webRPC(name, data){
+  const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+name,{
+    method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  });
+  const result=await r.json();
+  if(!r.ok) throw new Error(result.message||'No se pudo registrar el pedido');
+  return result;
+}
 async function sendWA(method){
-  if(_sendingWebOrder){showToast('Procesando tu pedido…');return;}
-  if(cart.length===0){showToast('¡Agrega productos primero! 🌸');return;}
+  if(_sendingWebOrder)return;
+  if(!cart.length){showToast('¡Agrega productos primero! 🌸');return;}
   _sendingWebOrder=true;
-  const lines=buildOrderLines();
-  const sub=cartSubtotal();
-  let payLine='';
-  if(method==='paypal'){
-    const pct=parseFloat(document.getElementById('pp-pct').value)||5.4;
-    const fix=parseFloat(document.getElementById('pp-fix').value)||0.30;
-    const charge=(sub+fix)/(1-pct/100);
-    payLine='\n🅿️ *Pago por PayPal*\nEnvía a: ana0191@gmail.com\nSubtotal: '+sub.toFixed(2)+'\nComisión PayPal ('+pct+'% + '+fix+'): '+(charge-sub).toFixed(2)+'\n💰 *Total a enviar: '+charge.toFixed(2)+' USD*';
-  } else if(method==='binance'){
-    const rate=parseFloat(document.getElementById('bnc-rate').value)||1;
-    const pct=parseFloat(document.getElementById('bnc-discount-pct').value)||10;
-    const discount=sub*(pct/100);
-    const discounted=Math.max(0,sub-discount);
-    const total=discounted/rate;
-    payLine='\n₿ *Pago por Binance Pay (USDT)*\nEnvía a: ana0191@gmail.com\nSubtotal: $'+sub.toFixed(2)+'\n🎉 Descuento Binance ('+pct+'%): -$'+discount.toFixed(2)+'\n💰 *Total a enviar: '+total.toFixed(2)+' USDT*';
-  } else if(method==='bolivares'){
-    const rate=parseFloat(document.getElementById('bs-rate').value)||40;
-    const bs=sub*rate;
-    payLine='\n🇻🇪 *PAGO MÓVIL*\nCédula: V-26.239.265\nCelular: 0424-9372490\nBanco: Bancamiga (0172)\n💰 *Monto: Bs. '+bs.toFixed(2)+'*\nTasa BCV: Bs. '+rate+'/$\n\n📸 Envío el comprobante por aquí.';
-  } else {
-    payLine=sub>0?'\n💰 Subtotal estimado: $'+sub.toFixed(2)+' USD\n(productos sin precio se consultan aparte)':'\n(Precios a consultar)';
-  }
-  const msg='🌸 *Pedido Brillitos 2026* 🌸\n\n'+lines+'\n'+payLine+'\n\n¡Hola! Quiero hacer este pedido 💖';
-  const num=document.getElementById('wa-num')?.value?.replace(/\D/g,'')||WA_NUMBER;
-  const url=num?'https://wa.me/'+num+'?text='+encodeURIComponent(msg):'https://wa.me/?text='+encodeURIComponent(msg);
+  const buttons=[...document.querySelectorAll('[onclick*="sendWA("]')];
+  buttons.forEach(b=>b.disabled=true);
   const waWindow=window.open('about:blank','_blank');
   try{
-    const esConsulta=!method;
-    const metodoLabel=method==='bolivares'?'Pago Móvil':method==='paypal'?'PayPal':method==='binance'?'Binance/USDT':'Consulta';
-    const fechaHoy=new Date(Date.now()-(4*60*60*1000)).toISOString().slice(0,10);
-
-    if(esConsulta){
-      const aptData={
-        cliente_nombre:'Web — Consulta',
-        canal:'Web',
-        metodo_pago:'Consulta',
-        estado:'Por confirmar',
-        total:sub,
-        abono:0,
-        saldo:sub,
-        notas:'Consulta enviada desde www.brillitosstore.com — pendiente de confirmación',
-        numero:'WEB-'+Date.now()
-      };
-      const r=await fetch(SUPABASE_URL+'/rest/v1/apartados',{
-        method:'POST',
-        headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-        body:JSON.stringify(aptData)
-      });
-      if(!r.ok) throw new Error('No se pudo guardar la consulta ('+r.status+')');
-      const apt=await r.json();
-      const aid=apt[0]&&apt[0].id;
-      if(!aid) throw new Error('No se obtuvo el ID de la consulta');
-      for(const it of cart){
-        const ir=await fetch(SUPABASE_URL+'/rest/v1/apartado_items',{
-          method:'POST',
-          headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
-          body:JSON.stringify({
-            apartado_id:aid,
-            producto_id:it.id,
-            producto_nombre:it.nombre+(it.variant?' — '+it.variant:''),
-            precio_unitario:it.precio||0,
-            cantidad:it.qty||1,
-            subtotal:(it.precio||0)*(it.qty||1)
-          })
-        });
-        if(!ir.ok) throw new Error('No se pudo guardar un producto de la consulta');
-      }
-    }else{
-      const binancePct=method==='binance'?(parseFloat(document.getElementById('bnc-discount-pct').value)||10):0;
-      const descuentoPago=method==='binance'?sub*(binancePct/100):0;
-      const totalVenta=Math.max(0,sub-descuentoPago);
-      const ventaData={
-        numero:'WEB-'+Date.now(),
-        cliente_nombre:'Cliente web — '+metodoLabel,
-        canal:'Web',
-        metodo_pago:metodoLabel,
-        estado:'Pendiente',
-        subtotal:sub,
-        costo_envio:0,
-        descuento:descuentoPago,
-        total:totalVenta,
-        tipo_entrega:'Por coordinar',
-        fecha_venta:fechaHoy,
-        notas:'Venta creada desde www.brillitosstore.com — comprobante pendiente de verificar',
-        moneda_pago:method==='bolivares'?'Bs':method==='binance'?'USDT':'USD',
-        cuenta_cobro:method==='bolivares'?'bancaamiga_luisma':method==='binance'?'binance':'paypal',
-        stock_aplicado:false
-      };
-      if(method==='bolivares'){
-        const rate=parseFloat(document.getElementById('bs-rate').value)||0;
-        ventaData.tasa_bcv_usada=rate;
-        ventaData.monto_bs=rate>0?parseFloat((totalVenta*rate).toFixed(2)):0;
-      }
-      const r=await fetch(SUPABASE_URL+'/rest/v1/ventas',{
-        method:'POST',
-        headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'},
-        body:JSON.stringify(ventaData)
-      });
-      if(!r.ok){
-        const err=await r.text();
-        throw new Error('No se pudo registrar la venta ('+r.status+'): '+err.slice(0,100));
-      }
-      const venta=await r.json();
-      const vid=venta[0]&&venta[0].id;
-      if(!vid) throw new Error('No se obtuvo el ID de la venta');
-      try{
-        for(const it of cart){
-          const imagen=(it.imagenes&&it.imagenes[0])||it.imagen||null;
-          const ir=await fetch(SUPABASE_URL+'/rest/v1/venta_items',{
-            method:'POST',
-            headers:{'apikey':SUPABASE_KEY,'Content-Type':'application/json'},
-            body:JSON.stringify({
-              venta_id:vid,
-              producto_id:it.id,
-              producto_nombre:it.nombre+(it.variant?' — '+it.variant:''),
-              variante_id:it.variante_id||null,
-              variante_nombre:it.variant||null,
-              imagen_url:imagen,
-              precio_unitario:it.precio||0,
-              cantidad:it.qty||1,
-              subtotal:(it.precio||0)*(it.qty||1)
-            })
-          });
-          if(!ir.ok) throw new Error('No se pudo guardar un producto de la venta');
-        }
-      }catch(itemErr){
-        await fetch(SUPABASE_URL+'/rest/v1/venta_items?venta_id=eq.'+vid,{method:'DELETE',headers:{'apikey':SUPABASE_KEY}});
-        await fetch(SUPABASE_URL+'/rest/v1/ventas?id=eq.'+vid,{method:'DELETE',headers:{'apikey':SUPABASE_KEY}});
-        throw itemErr;
-      }
-      showToast('✅ Pedido registrado en Brillitos · pendiente de verificar');
+    const payment=method||'consulta';
+    const rate=payment==='binance'?Number(document.getElementById('bnc-rate').value):
+      payment==='bolivares'?Number(document.getElementById('bs-rate').value):1;
+    if(!Number.isFinite(rate)||rate<=0)throw new Error('Revisa la tasa de cambio');
+    const items=cart.map(it=>({producto_id:it.id,variante_id:it.variante_id||null,cantidad:it.qty||1}));
+    const signature=JSON.stringify({items,payment,rate});
+    let draft;
+    try{draft=JSON.parse(localStorage.getItem('brl_checkout')||'null');}catch(_){}
+    if(!draft||draft.signature!==signature){
+      draft={signature,key:crypto.randomUUID()};localStorage.setItem('brl_checkout',JSON.stringify(draft));
     }
+    const q=await webRPC('brl_quote',{p_items:items,p_method:payment,p_rate:rate});
+    const before=Math.round(cartSubtotal()*100)/100;
+    if(before!==Number(q.subtotal)){
+      q.items.forEach(it=>{
+        const c=cart.find(x=>x.id==it.producto_id&&String(x.variante_id||'')===String(it.variante_id||''));
+        if(c){c.precio=Number(it.precio_unitario);c.precio_original=Number(it.precio_original);}
+      });
+      saveCart();updateCartUI();renderDiscountBanner();
+      throw new Error('El precio se actualizó. Revisa el nuevo total y vuelve a confirmar.');
+    }
+    const order=await webRPC('brl_checkout',{
+      p_key:draft.key,p_items:items,p_method:payment,p_rate:rate,p_expected:Number(q.monto_pago)
+    });
+    const money=n=>Number(n||0).toFixed(2);
+    const lines=order.items.map((i,n)=>(n+1)+'. '+i.producto_nombre+
+      (i.variante_nombre?' ['+i.variante_nombre+']':'')+' x'+i.cantidad+' — $'+money(i.precio_unitario)).join('\n');
+    const label=payment==='binance'?'Binance Pay':payment==='bolivares'?'Pago Móvil':payment==='paypal'?'PayPal':'Consulta';
+    const discounts=(Number(order.descuento_promocion)>0?'\nPromoción / remate: -$'+money(order.descuento_promocion):'')+
+      (payment==='binance'?'\nDescuento Binance (10%): -$'+money(order.descuento):'');
+    const details=payment==='bolivares'?'\nTasa BCV: '+rate+'\nBanco: Bancamiga (0172)\nCédula: V-26.239.265\nCelular: 0424-9372490':
+      payment==='binance'||payment==='paypal'?'\nEnviar a: ana0191@gmail.com':'';
+    const msg='🌸 Pedido Brillitos 🌸\n'+order.numero+'\n\n'+lines+
+      '\n\nSubtotal original: $'+money(order.subtotal_original)+discounts+
+      '\nTotal productos: $'+money(order.total)+'\n'+label+details+
+      '\nMonto a enviar: '+money(order.monto_pago)+' '+order.moneda_pago+
+      (payment==='paypal'?'\nIncluye comisión PayPal; neto de la venta: $'+money(order.total):'')+
+      '\n\n'+(payment==='consulta'?'Quiero consultar este pedido.':'Envío mi comprobante para verificar el pago.');
+    const num=document.getElementById('wa-num')?.value?.replace(/\D/g,'')||WA_NUMBER;
+    const url='https://wa.me/'+num+'?text='+encodeURIComponent(msg);
+    cart=[];saveCart();localStorage.removeItem('brl_checkout');updateCartUI();
+    showToast('✅ Pedido registrado: '+order.numero);
+    if(waWindow)waWindow.location.href=url;else window.location.href=url;
   }catch(e){
-    console.warn('No se pudo registrar el pedido en Supabase:',e);
-    showToast('⚠️ Se abrirá WhatsApp, pero el pedido no pudo guardarse en el sistema');
-  }finally{
-    _sendingWebOrder=false;
-  }
-  // ── Abrir WhatsApp ──
-  if(waWindow) waWindow.location.href=url;
-  else window.open(url,'_blank');
+    if(waWindow)waWindow.close();
+    showToast('⚠️ '+e.message);
+  }finally{_sendingWebOrder=false;buttons.forEach(b=>b.disabled=false);}
 }
-
-
-
 
 function openOrders(focus){
   document.getElementById('orders-ov').classList.add('open');
@@ -1765,8 +1691,8 @@ cargarCatalogo();
 
 
 
-let _modalCurrentProduct = null; 
-let _selectedVariant = null;     
+let _modalCurrentProduct = null;
+let _selectedVariant = null;
 
 
 
@@ -1778,7 +1704,7 @@ function parseVariants(obs) {
   return match[1].split(',').map(s => s.trim()).filter(Boolean);
 }
 
- 
+
 function renderVariantPills(p) {
   _modalCurrentProduct = p;
   _selectedVariant = null;
@@ -1811,7 +1737,7 @@ function renderVariantPills(p) {
   });
 }
 
- 
+
 function clearVariants() {
   _selectedVariant = null;
   _modalCurrentProduct = null;
@@ -1826,7 +1752,7 @@ function clearVariants() {
 
 
 const BCV_CACHE_KEY = 'brillitos_bcv_cache';
-const BCV_CACHE_TTL = 60 * 60 * 1000; 
+const BCV_CACHE_TTL = 60 * 60 * 1000;
 
 
 
@@ -1836,7 +1762,7 @@ async function fetchBCVRates(forceRefresh = false) {
   const noteEl = document.getElementById('bs-note-usd');
   const eurEl  = document.getElementById('bs-eur-display');
 
-  
+
   if (!forceRefresh) {
     try {
       const cached = JSON.parse(localStorage.getItem(BCV_CACHE_KEY) || 'null');
@@ -1847,21 +1773,21 @@ async function fetchBCVRates(forceRefresh = false) {
     } catch(e) {}
   }
 
-  
+
   if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
   if (noteEl) noteEl.textContent = '⏳ Consultando tasa BCV…';
 
   try {
-    
+
     const res = await fetch('https://ve.dolarapi.com/v1/dolares', { cache: 'no-store' });
     if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json(); 
+    const data = await res.json();
 
-    
+
     const usdObj = data.find(d => d.moneda === 'USD' && (d.fuente === 'oficial' || d.nombre?.toLowerCase().includes('oficial')));
     const eurObj = data.find(d => d.moneda === 'EUR');
 
-    
+
     const usdRate = usdObj?.promedio || data.find(d => d.moneda === 'USD')?.promedio;
     window._bsRate = usdRate || null;
     const eurRate = eurObj?.promedio || null;
@@ -1869,7 +1795,7 @@ async function fetchBCVRates(forceRefresh = false) {
 
     if (!usdRate) throw new Error('No se encontró tasa USD');
 
-    
+
     localStorage.setItem(BCV_CACHE_KEY, JSON.stringify({ usd: usdRate, eur: eurRate, fecha, ts: Date.now() }));
 
     applyBCVRates(usdRate, eurRate, fecha, false);
@@ -1896,7 +1822,7 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
   const eurEl  = document.getElementById('bs-eur-display');
   const input  = document.getElementById('bs-rate');
 
-  
+
   let fechaLabel = '';
   try {
     const d = new Date(fecha + (fecha.length === 10 ? 'T12:00:00' : ''));
@@ -1904,11 +1830,11 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
     fechaLabel = dias[d.getDay()]+' '+d.getDate()+'/'+(d.getMonth()+1)+'/'+d.getFullYear();
   } catch(e) { fechaLabel = fecha; }
 
-  
+
   const hoy = new Date();
   const esViernes = hoy.getDay() === 5;
 
-  
+
   window._bcvUSD = parseFloat(usd)||0;
   if (input) {
     input.value = parseFloat(usd).toFixed(2);
@@ -1917,7 +1843,7 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
   // Actualizar precios Bs en todas las tarjetas
   if(window._bcvUSD>0) actualizarPreciosBs(window._bcvUSD);
 
-  
+
   if (noteEl) {
     const cache_tag = fromCache ? ' <span style="opacity:.6;font-size:.72em">(caché)</span>' : '';
     const viernes_tag = esViernes
@@ -1926,7 +1852,7 @@ function applyBCVRates(usd, eur, fecha, fromCache) {
     noteEl.innerHTML = '✅ Tasa BCV oficial: <strong>Bs. '+parseFloat(usd).toFixed(2)+' / $</strong> · '+fechaLabel+cache_tag+viernes_tag;
   }
 
-  
+
   if (eurEl) {
     eurEl.textContent = eur ? 'Bs. '+parseFloat(eur).toFixed(2)+' / €' : '—';
   }
@@ -1990,16 +1916,16 @@ function openProductPage(p) {
 
   const imgs = ((p.imagenes&&p.imagenes.length>0)?p.imagenes:[p.imagen]).filter(u=>u&&u.startsWith('http'));
 
-  
+
   const mainImg = document.getElementById('pp-main-img');
   mainImg.src = imgs[0] || '';
   mainImg.alt = p.nombre;
 
-  
+
   document.querySelector('.pp-arrow-l').style.display = imgs.length>1?'flex':'none';
   document.querySelector('.pp-arrow-r').style.display = imgs.length>1?'flex':'none';
 
-  
+
   const thumbsEl = document.getElementById('pp-thumbs');
   thumbsEl.innerHTML = '';
   if(imgs.length>1){
@@ -2013,7 +1939,7 @@ function openProductPage(p) {
     });
   }
 
-  
+
   const badgesEl = document.getElementById('pp-badges');
   let badges = '';
   if(p.esNuevo) badges += '<span style="background:linear-gradient(135deg,#ff6eb4,#ff3d9a);color:white;font-size:.75rem;font-weight:800;padding:4px 12px;border-radius:20px;">✨ NUEVO</span>';
@@ -2023,10 +1949,10 @@ function openProductPage(p) {
   var _ppDiscount=getDiscountPct(p,p.precio); if(_ppDiscount>0) badges += '<span style="background:#fee2e2;color:#be123c;font-size:.75rem;font-weight:900;padding:4px 12px;border-radius:20px;">🏷️ -'+_ppDiscount+'%</span>';
   badgesEl.innerHTML = badges;
 
-  
+
   document.getElementById('pp-name').textContent = p.nombre;
 
-  
+
   const _precio = p.precio;
   function _renderPPPrice(){
     const bsRate = window._bsRate || null;
@@ -2034,7 +1960,7 @@ function openProductPage(p) {
     if(el) el.innerHTML = productPriceHtml(p,_precio,bsRate);
   }
   _renderPPPrice();
-  
+
   if(!window._bsRate && _precio>0){
     const _ppPriceRetry = setInterval(()=>{
       if(window._bsRate){ _renderPPPrice(); clearInterval(_ppPriceRetry); }
@@ -2042,7 +1968,7 @@ function openProductPage(p) {
     setTimeout(()=>clearInterval(_ppPriceRetry), 10000);
   }
 
-  
+
   const stockEl = document.getElementById('pp-stock');
   const tieneVarsStock = (p.variantes||[]).filter(function(v){return v.activo!==false;}).length > 0;
   if(tieneVarsStock){
@@ -2053,12 +1979,12 @@ function openProductPage(p) {
   else if(p.stock<=3){ stockEl.textContent='Solo '+p.stock+' disponibles'; stockEl.className='pp-stock low'; }
   else { stockEl.textContent='✅ Stock disponible'; stockEl.className='pp-stock in'; }
 
-  
+
   const descEl = document.getElementById('pp-desc-box');
   descEl.style.display = p.descripcion ? 'block' : 'none';
   descEl.textContent = p.descripcion || '';
 
-  
+
     const variantsEl = document.getElementById('pp-variants');
   const variantesReales = (p.variantes||[]).filter(function(v){ return v.activo!==false; });
   _ppVariants = variantesReales;
@@ -2088,7 +2014,7 @@ function openProductPage(p) {
     variantsEl.style.display = 'none';
   }
 
-  
+
   const addBtn = document.getElementById('pp-add-btn');
   const tieneVars = variantesReales.length > 0;
   const hayStock = tieneVars
@@ -2097,12 +2023,12 @@ function openProductPage(p) {
   addBtn.disabled = !hayStock;
   addBtn.textContent = !hayStock ? '😢 Agotado' : '🛒 Agregar al carrito';
 
-  
+
   const _pool = (window._lastFiltered && window._lastFiltered.length>1)
     ? window._lastFiltered
     : CATALOG;
   let related = _pool.filter(r=>r.id!==p.id && r.stock>0);
-  
+
   const sameCat = related.filter(r=>r.categoria===p.categoria);
   const otherCat = related.filter(r=>r.categoria!==p.categoria);
   related = [...sameCat, ...otherCat].slice(0,8);
@@ -2117,7 +2043,7 @@ function openProductPage(p) {
     document.querySelector('.pp-related').style.display = 'none';
   }
 
-  
+
   document.querySelector('.hero') && (document.querySelector('.hero').style.display='none');
   document.querySelector('.store-banner') && (document.querySelector('.store-banner').style.display='none');
   document.querySelector('.stats-bar') && (document.querySelector('.stats-bar').style.display='none');
@@ -2135,7 +2061,7 @@ function closeProductPage(){
   document.querySelector('.stats-bar') && (document.querySelector('.stats-bar').style.display='');
   document.querySelector('.filters-bar') && (document.querySelector('.filters-bar').style.display='');
   document.querySelector('.grid-section') && (document.querySelector('.grid-section').style.display='');
-  
+
   currentPage = _catalogPage;
   renderPage();
   setTimeout(()=>window.scrollTo({top:_catalogScroll, behavior:'instant'}),50);

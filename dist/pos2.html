@@ -578,6 +578,7 @@ button{cursor:pointer;border:none;background:none;font-family:inherit}
   pointer-events:none;
 }
 </style>
+<script src="./bunny-upload.js"></script>
 </head>
 <body>
 
@@ -1765,8 +1766,6 @@ function mostrarModalVariantePOS(p, variantes){
 // ══════════════════════════════════════════
 // PRODUCTO RÁPIDO
 // ══════════════════════════════════════════
-const BUNNY_STORAGE_POS = 'https://storage.bunnycdn.com/brillitos';
-const BUNNY_KEY_POS = 'd5221d2d-53eb-4513-a919885f03f0-5a1f-4857';
 const BUNNY_CDN_POS = 'https://Brillitos.b-cdn.net';
 var _qpFotoUrlPos = '';
 
@@ -1948,7 +1947,7 @@ async function qp2SubirFoto(input){
   try{
     var ext=file.name.split('.').pop().toLowerCase()||'jpg';
     var nombre='productos/'+Date.now()+'_'+Math.random().toString(36).slice(2)+'.'+ext;
-    var r=await fetch(BUNNY_STORAGE_POS+'/'+nombre,{method:'PUT',headers:{'AccessKey':BUNNY_KEY_POS,'Content-Type':file.type||'image/jpeg'},body:file});
+    var r=await brlUploadPhoto(nombre,file);
     if(r.ok||r.status===201){
       _qpFotoUrlPos=BUNNY_CDN_POS+'/'+nombre;
       var img=document.getElementById('qp2-foto-img');

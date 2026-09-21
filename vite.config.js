@@ -6,7 +6,9 @@ export default defineConfig(({ mode }) => {
   const supabaseUrl = env.VITE_SUPABASE_URL || 'https://jzhayqzmrpfesmhdxyaf.supabase.co'
 
   return {
+    base: './',
     build: {
+      copyPublicDir: false,
       rollupOptions: {
         input: {
           main: resolve(__dirname, 'index.html'),
