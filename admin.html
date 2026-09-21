@@ -553,6 +553,7 @@ tr:hover td{background:#fff8fc}
     <div id="resumen-donaciones" style="display:none;margin:0 0 12px;padding:12px 15px;border-radius:12px;background:#f5f3ff;border:1px solid #ddd6fe;color:#4c1d95;font-size:13px"></div>
     <div class="inventory-toolbar">
       <div id="productos-resumen" role="status"></div>
+      <div class="inventory-view" role="group" aria-label="Vista de productos"><button id="prod-view-cards" type="button" onclick="cambiarVistaProductos('cards')" aria-pressed="true">Tarjetas</button><button id="prod-view-list" type="button" onclick="cambiarVistaProductos('list')" aria-pressed="false">Lista</button></div>
       <label>Ordenar <select id="orden-prods" onchange="filtrarProds()"><option value="reciente">Más recientes</option><option value="nombre">Nombre A–Z</option><option value="stock">Menor stock</option></select></label>
       <div><button id="prod-prev" class="btn btn-secondary btn-sm" onclick="paginaProductos(-1)">Anterior</button> <button id="prod-next" class="btn btn-secondary btn-sm" onclick="paginaProductos(1)">Siguiente</button></div>
     </div>
@@ -3714,6 +3715,39 @@ async function eliminarReglaDescuento(id){
 
 // ===== PRODUCTOS =====
 let productosPagina=1;
+let productosVista='cards';
+try{if(localStorage.getItem('brl-products-view')==='list')productosVista='list';}catch(e){}
+function cambiarVistaProductos(vista){
+  productosVista=vista==='list'?'list':'cards';
+  try{localStorage.setItem('brl-products-view',productosVista);}catch(e){}
+  filtrarProds(false);
+}
+function aplicarVistaProductos(){
+  const host=document.getElementById('tbody-prods'),list=productosVista==='list';
+  document.getElementById('prod-view-cards').setAttribute('aria-pressed',String(!list));
+  document.getElementById('prod-view-list').setAttribute('aria-pressed',String(list));
+  host.className=list?'inventory-table-wrap':'inventory-grid';
+  if(!list||!host.querySelector('.inventory-card'))return;
+  const table=document.createElement('table');
+  table.className='inventory-table';
+  table.innerHTML='<caption class="inventory-sr-only">Inventario de productos</caption><thead><tr>'+['Producto','Precio de venta','Stock','Costo unitario','Estado / Propietario','Acciones'].map(t=>'<th scope="col">'+t+'</th>').join('')+'</tr></thead><tbody></tbody>';
+  const body=table.querySelector('tbody');
+  host.querySelectorAll('.inventory-card').forEach(card=>{
+    const row=body.insertRow(),cells=Array.from({length:6},()=>row.insertCell());
+    const move=(selector,cell)=>{const el=card.querySelector(selector);if(el)cell.append(el);};
+    move('.inventory-tags',cells[4]);
+    move('.inventory-top',cells[0]);
+    move('.inventory-variants',cells[0]);
+    const metrics=card.querySelector('.inventory-metrics');
+    [...metrics.children].forEach((el,i)=>{el.querySelector('small')?.remove();cells[i+1].append(el);});
+    move('.inventory-stock',cells[2]);
+    move('.inventory-note',cells[2]);
+    move('.inventory-promo',cells[1]);
+    move('.inventory-actions',cells[5]);
+    move('.inventory-more',cells[5]);
+  });
+  host.replaceChildren(table);
+}
 function paginaProductos(delta){productosPagina=Math.max(1,productosPagina+delta);filtrarProds(false);}
 function renderProductos(lista){
   const base=lista||productos;
@@ -3772,6 +3806,7 @@ function renderProductos(lista){
       '<button class="btn btn-secondary btn-sm" onclick="donarProducto('+p.id+')">Donar</button>':'')+
       '<button class="btn btn-danger btn-sm" onclick="eliminarProd('+p.id+')">Eliminar</button></div></details></article>';
   }).join('')||'<div class="inventory-empty">No hay productos con estos filtros. Prueba otra búsqueda o categoría.</div>';
+  aplicarVistaProductos();
   const rd=resumenDonaciones(),rdEl=document.getElementById('resumen-donaciones');
   rdEl.style.display=verArchivo&&rd.productos?'block':'none';
   rdEl.textContent='Donaciones: '+rd.productos+' productos · '+rd.unidades+' unidades · Valor '+money(rd.venta);

@@ -20,3 +20,24 @@
 .inventory-note{font-size:11px;color:#946627}.inventory-more{border-top:1px solid #f3eaf0;margin-top:13px;font-size:11px;color:#8b7582}
 .inventory-more>div{display:flex;gap:7px;flex-wrap:wrap;padding-top:6px}.inventory-empty{grid-column:1/-1;text-align:center;padding:50px 20px;background:white;border-radius:16px;color:#897584}
 @media(max-width:600px){.inventory-grid{grid-template-columns:1fr}.inventory-card{padding:15px}.inventory-toolbar{align-items:flex-start}.inventory-photo{width:90px;height:96px}}
+.inventory-view{display:flex;padding:3px;background:#f5eaf1;border-radius:10px;gap:3px}
+.inventory-view button{border:0;background:transparent;color:#785568;border-radius:8px;padding:8px 13px;cursor:pointer;font:inherit;font-weight:600}
+.inventory-view button[aria-pressed=true]{background:#fff;color:#bd307c;box-shadow:0 1px 5px #62314b15}
+.inventory-view button:focus-visible{outline:2px solid #c83284;outline-offset:2px}
+.inventory-table-wrap{max-width:100%;overflow-x:auto;border:1px solid #eadce5;border-radius:14px;background:#fff}
+.inventory-table{width:100%;min-width:1020px;border-collapse:separate;border-spacing:0;table-layout:fixed;text-align:left;font-size:12px;color:#594350}
+.inventory-table th{background:#faf1f6;color:#836474;font-size:11px;font-weight:600;padding:13px 14px;border-bottom:1px solid #eadce5;white-space:nowrap}
+.inventory-table th:first-child{width:29%}.inventory-table th:nth-child(2){width:16%}.inventory-table th:nth-child(3){width:11%}.inventory-table th:nth-child(4){width:10%}.inventory-table th:nth-child(5){width:14%}.inventory-table th:last-child{width:20%}
+.inventory-table td{padding:14px;vertical-align:top;border-bottom:1px solid #f0e5ec;overflow-wrap:anywhere}
+.inventory-table tr:last-child td{border-bottom:0}.inventory-table tbody tr:nth-child(even){background:#fffbfd}.inventory-table tbody tr:hover{background:#fff3f9}
+.inventory-table .inventory-photo{width:52px;height:58px;border-radius:9px;padding:3px;font-size:22px}
+.inventory-table .inventory-top{gap:10px}.inventory-table .inventory-info h3{font-size:13px;margin:4px 0;font-weight:600}
+.inventory-table td>div>strong{font-size:13px;font-variant-numeric:tabular-nums;display:block;color:#402c39}.inventory-table td>div>strong.stock-low{color:#b75e16}
+.inventory-table del{display:block;font-size:11px;color:#9e8c96;margin-top:4px}.inventory-table strong small{font-size:10px;font-weight:400}
+.inventory-table .inventory-tags{flex-direction:column;align-items:flex-start}.inventory-table .inventory-tags span{line-height:1.5}
+.inventory-table .inventory-stock{font-size:0;margin:8px 0 0}.inventory-table .inventory-stock input{font-size:12px;width:65px;padding:6px}
+.inventory-table .inventory-variants{margin:4px 0 0}.inventory-table .inventory-variants summary{font-size:11px;padding:5px 0}
+.inventory-table .inventory-promo{font-size:10px;padding:6px 7px;margin:7px 0 0}
+.inventory-table .inventory-actions{margin:0;gap:5px}.inventory-table .inventory-actions .btn{font-size:10px;padding:6px 8px;min-height:29px}
+.inventory-table .inventory-more{margin-top:8px}.inventory-table .inventory-more summary{padding:5px 0}.inventory-table .inventory-more>div{flex-direction:column;align-items:flex-start}
+.inventory-sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
