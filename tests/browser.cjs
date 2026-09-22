@@ -28,7 +28,7 @@ const server=http.createServer((req,res)=>{
         const name=u.pathname.split('/').pop();
         if(u.pathname.includes('/rpc/')){
           const args=route.request().postDataJSON();calls.push({name,args});
-          if(name==='brl_quote'||name==='brl_checkout'){
+          if(name==='brl_quote'||name==='brl_checkout_customer'){
             if(mode==='failure')return route.fulfill({status:400,json:{message:'Stock insuficiente'}});
             const unit=mode==='changed'?100:80,sub=unit*args.p_items.reduce((n,x)=>n+x.cantidad,0);
             body={id:101,numero:'WEB-test',items:args.p_items.map(x=>({...x,producto_nombre:'Libreta',precio_original:100,precio_unitario:unit,subtotal:unit*x.cantidad})),subtotal_original:100,subtotal:sub,descuento_promocion:100-sub,descuento:sub*.1,total:sub*.9,moneda_pago:'USDT',monto_pago:sub*.9};
@@ -36,6 +36,9 @@ const server=http.createServer((req,res)=>{
         }else if(route.request().method()!=='GET')throw Error('Unexpected direct mutation: '+u.pathname);
         else if(name==='productos')body=prods;
         else if(name==='producto_variantes')body=prods.flatMap(p=>p.producto_variantes);
+        else if(name==='clientes')body=[{id:1,nombre:'Cliente de prueba',telefono:'584241234567'},{id:2,nombre:'Otra persona',telefono:'584249876543'}];
+        else if(name==='ventas')body=[{id:501,numero:'WEB-V000501',cliente_id:1,cliente_nombre:'Cliente de prueba',canal:'Web',estado:'Pendiente',total:72,creado_en:'2026-09-21T15:00:00Z',venta_items:[{producto_id:1,producto_nombre:'Libreta',cantidad:1}]},{id:502,numero:'V-502',cliente_id:1,cliente_nombre:'Cliente de prueba',canal:'WhatsApp',estado:'Cotización',total:10,creado_en:'2026-09-21T14:00:00Z',venta_items:[]}];
+        else if(name==='apartados')body=[{id:601,numero:'WEB-C000601',cliente_id:2,cliente_nombre:'Otra persona',canal:'Web',estado:'Por confirmar',total:10,saldo:10,creado_en:'2026-09-21T13:00:00Z',apartado_items:[]}];
         else if(name==='configuracion_tienda')body=[{id:1,descuento_reglas:rules}];
       }else if(u.hostname.includes('dolarapi'))body={promedio:100};
       return route.fulfill({status:200,json:body});
@@ -55,18 +58,42 @@ const server=http.createServer((req,res)=>{
     await page.screenshot({path:'/workspace/scratch/344196d2d43c/admin-mobile.png'});
     await page.evaluate(async()=>{await cambiarEstadoVenta(1,'Pagado');});
     assert(calls.some(c=>c.name==='brl_sale_state'));
+    await page.evaluate(()=>irA('pedidos-clientes'));
+    await page.waitForFunction(()=>document.querySelectorAll('.customer-order').length===3);
+    assert.equal(await page.locator('.order-customer').count(),2,'Orders grouped by customer ID');
+    await page.locator('#orders-state').selectOption('nuevos');
+    assert.equal(await page.locator('.customer-order').count(),2);
+    await page.evaluate(()=>marcarPedidoRevisado('venta',501));
+    assert.equal(await page.locator('.customer-order').count(),1);
+    await page.locator('#orders-state').selectOption('');
+    await page.locator('#orders-search').fill('WEB-V000501');
+    assert.equal(await page.locator('.customer-order').count(),1);
+    await page.locator('#orders-search').fill('');
+    await page.locator('#orders-manual-customer').selectOption('1');
+    await page.evaluate(()=>nuevoPedidoCliente());
+    assert.equal(await page.locator('#v-cliente-id').inputValue(),'1');
+    assert.equal(await page.locator('#v-estado').inputValue(),'Cotización');
+    await page.evaluate(()=>cerrarModal('modal-venta'));
+    await page.screenshot({path:'/workspace/scratch/344196d2d43c/customer-orders-mobile.png'});
+    assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true,'Orders mobile overflow');
+    await page.setViewportSize({width:1440,height:1050});
+    await page.screenshot({path:'/workspace/scratch/344196d2d43c/customer-orders-desktop.png'});
     const shop=await ctx.newPage();shop.on('pageerror',e=>errors.push(e.message));
     await shop.goto(base);await shop.waitForFunction(()=>CATALOG.length===30);
     await shop.evaluate(()=>{addToCart(1);window.open=()=>({location:{href:''},close(){}});});
     assert.equal(await shop.locator('#bnc-total').textContent(),'72.00 USDT');
     await shop.evaluate(()=>sendWA('binance'));
-    assert(calls.some(c=>c.name==='brl_checkout'&&c.args.p_expected===72));
+    assert(!calls.some(c=>c.name==='brl_checkout_customer'),'Missing customer blocks checkout');
+    await shop.evaluate(()=>{document.getElementById('order-customer-name').value='Cliente de prueba';document.getElementById('order-customer-phone').value='04241234567';});
+    await shop.evaluate(()=>sendWA('binance'));
+    assert(calls.some(c=>c.name==='brl_checkout_customer'&&c.args.p_expected===72));
+    assert.equal(calls.find(c=>c.name==='brl_checkout_customer').args.p_customer.nombre,'Cliente de prueba');
     assert.equal(await shop.evaluate(()=>cart.length),0);
     mode='failure';await shop.evaluate(()=>{addToCart(1);return sendWA('binance');});
     assert.equal(await shop.evaluate(()=>cart.length),1,'Failure keeps cart');
-    mode='changed';const previous=calls.filter(c=>c.name==='brl_checkout').length;
+    mode='changed';const previous=calls.filter(c=>c.name==='brl_checkout_customer').length;
     await shop.evaluate(()=>sendWA('binance'));
-    assert.equal(calls.filter(c=>c.name==='brl_checkout').length,previous,'Changed price requires confirmation');
+    assert.equal(calls.filter(c=>c.name==='brl_checkout_customer').length,previous,'Changed price requires confirmation');
     assert.equal(await shop.evaluate(()=>cart[0].precio),100);
     const uploads=[];let uploadStatus=201;
     await page.route('https://storage.bunnycdn.com/brillitos/**',async route=>{

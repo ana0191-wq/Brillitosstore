@@ -19,7 +19,7 @@ for(const tz of ['UTC','America/Caracas','Asia/Tokyo']){
   assert.equal(c.hoyVEN(),'2026-09-30',tz);
   fixed.now=()=>new realDate('2026-10-01T04:00:00Z').getTime();assert.equal(c.hoyVEN(),'2026-10-01',tz);
 }
-assert(shop.includes("webRPC('brl_checkout'"));
+assert(shop.includes("webRPC('brl_checkout_customer'"));
 assert(!shop.includes("'/rest/v1/ventas',"),'Web checkout must use atomic RPC');
 for(const fn of ['brl_save_sale','brl_sale_state','brl_convert_apartado','brl_update_sales'])assert(admin.includes("brlRPC('"+fn+"'"));
 assert(admin.includes('class="inventory-grid"'));assert(admin.includes('variante_id:it.variante_id||null'));

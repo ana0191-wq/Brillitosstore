@@ -303,6 +303,7 @@ tr:hover td{background:#fff8fc}
   <div class="nav-item" onclick="irA('apartados');cerrarMobNav()"><span class="nav-icon">&#128204;</span> Apartados</div>
   <div class="nav-item" onclick="irA('productos');cerrarMobNav()"><span class="nav-icon">&#128230;</span> Productos</div>
   <div class="nav-item" onclick="irA('clientes');cerrarMobNav()"><span class="nav-icon">&#128101;</span> Clientes</div>
+  <div class="nav-item" onclick="irA('pedidos-clientes');cerrarMobNav()"><span class="nav-icon">📦</span> Pedidos por cliente<span class="orders-new-count"></span></div>
   <div class="nav-item" onclick="irA('eventos');cerrarMobNav()"><span class="nav-icon">&#127914;</span> Eventos</div>
   <div class="nav-item" onclick="irA('gastos');cerrarMobNav()"><span class="nav-icon">📒</span> Contabilidad</div>
   <div class="nav-item" onclick="irA('entregas');cerrarMobNav()"><span class="nav-icon">&#128666;</span> Entregas</div>
@@ -320,6 +321,7 @@ tr:hover td{background:#fff8fc}
   <div class="nav-item" onclick="irA('apartados')"><span class="nav-icon">📌</span> Apartados</div>
   <div class="nav-item" onclick="irA('productos')"><span class="nav-icon">📦</span> Productos</div>
   <div class="nav-item" onclick="irA('clientes')"><span class="nav-icon">👥</span> Clientes</div>
+  <div class="nav-item" onclick="irA('pedidos-clientes')"><span class="nav-icon">📦</span> Pedidos por cliente<span class="orders-new-count"></span></div>
   <div class="nav-item" onclick="irA('eventos')"><span class="nav-icon">🎪</span> Eventos</div>
   <div class="nav-item" onclick="irA('gastos')"><span class="nav-icon">📒</span> Contabilidad</div>
   <div class="nav-item" onclick="irA('entregas')"><span class="nav-icon">🚚</span> Entregas</div>
@@ -582,6 +584,16 @@ tr:hover td{background:#fff8fc}
   </div>
 </div>
 
+<div class="page" id="page-pedidos-clientes">
+  <div class="page-header"><button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none">☰</button><div class="page-title">📦 Pedidos por cliente</div><div class="header-actions"><button class="btn btn-secondary" onclick="cargarPedidosClientes()">Actualizar</button><button class="btn btn-secondary" onclick="activarAvisosPedidos()">Activar avisos</button></div></div>
+  <div class="content">
+    <div class="card"><strong id="orders-new-summary">Pedidos web</strong><p id="orders-status" role="status">Cargando pedidos…</p><small>Pedidos web automáticos y pedidos manuales en un solo lugar. Los avisos de navegador requieren mantener el Admin abierto; el correo aún no está configurado.</small></div>
+    <div class="inventory-toolbar"><select id="orders-manual-customer" aria-label="Cliente del pedido manual"><option value="">Selecciona un cliente para un pedido manual</option></select><button class="btn btn-primary" onclick="nuevoPedidoCliente()">+ Pedido manual</button><button class="btn btn-secondary" onclick="abrirModalCliente()">+ Cliente</button></div>
+    <p style="font-size:12px;color:#806778">Los pedidos manuales empiezan como cotización sin descontar stock. Puedes cambiar su estado al guardarlos.</p>
+    <div class="inventory-toolbar"><input id="orders-search" placeholder="Cliente, WhatsApp, número o producto…" aria-label="Buscar pedidos" oninput="renderPedidosClientes(true)"><select id="orders-state" aria-label="Estado de pedidos" onchange="renderPedidosClientes(true)"><option value="activos">En curso</option><option value="nuevos">Web sin revisar</option><option value="">Todos</option><option>Pendiente</option><option>Pagado</option><option>Entregado</option><option>Cotización</option><option>Por confirmar</option><option>Activo</option><option>Cancelado</option></select><span id="orders-page"></span><div><button id="orders-prev" class="btn btn-secondary btn-sm" onclick="paginaPedidosClientes(-1)">Anterior</button> <button id="orders-next" class="btn btn-secondary btn-sm" onclick="paginaPedidosClientes(1)">Siguiente</button></div></div>
+    <div id="orders-groups"></div>
+  </div>
+</div>
 <!-- EVENTOS -->
 <div class="page" id="page-eventos">
   <div class="page-header">
@@ -871,6 +883,7 @@ tr:hover td{background:#fff8fc}
     <div class="form-group">
       <label>Estado</label>
       <select id="v-estado">
+        <option value="Cotización">Cotización · sin reservar stock</option>
         <option>Pendiente</option><option>Pagado</option><option>Entregado</option><option>Cancelado</option>
       </select>
     </div>
@@ -2123,6 +2136,7 @@ function irA(p){
   else if(p==='apartados') renderApartados();
   else if(p==='productos') renderProductos();
   else if(p==='clientes') renderClientes();
+  else if(p==='pedidos-clientes') cargarPedidosClientes();
   else if(p==='eventos') renderEventos();
   else if(p==='gastos') renderGastosGlobal();
   else if(p==='entregas'){ renderEntregas(); cargarEntregasSueltas(); }
@@ -2653,6 +2667,7 @@ async function recargarVentasStock(){
     sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200')
   ]);
   renderVentas();refrescarProductosConFiltros();renderApartados();renderPOS();cargarDashboard();
+  if(typeof cargarPedidosClientes==='function')await cargarPedidosClientes(true);
 }
 function prepararVentaItems(items){
   return items.map(it=>{
@@ -4266,6 +4281,7 @@ async function guardarCliente(){
   if(editClienteId){ await sbPatch('clientes',editClienteId,data); const i=clientes.findIndex(c=>c.id===editClienteId); if(i>=0) clientes[i]={...clientes[i],...data}; }
   else{ const res=await sbPost('clientes',data); if(res[0]) clientes.push(res[0]); }
   cerrarModal('modal-cliente'); renderClientes(); toast('✅ Guardado');
+  if(typeof cargarPedidosClientes==='function')await cargarPedidosClientes(true);
 }
 async function eliminarCliente(id){ if(!confirm('¿Eliminar?'))return; await sbDelete('clientes','id=eq.'+id); clientes=clientes.filter(c=>c.id!==id); renderClientes(); toast('🗑️ Eliminado'); }
 
@@ -6529,5 +6545,6 @@ function renderMovimientosBancaAmiga(){
   window.addEventListener('load',function(){setTimeout(window.verificarVersionApp,500);});
 })();
 </script>
+<script src="./admin-orders.js"></script>
 </body>
 </html>

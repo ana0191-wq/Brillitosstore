@@ -21,3 +21,15 @@ Usar productos y pedidos de prueba identificables. Anotar el stock inicial de ca
 Las pruebas automatizadas SQL usan transacciones con rollback. La autenticación y los permisos quedan pendientes de una revisión separada.
 
 La clave privada de Bunny se retiró del código actual. La solución temporal de carga conserva la clave introducida solo en memoria de la pestaña. No elimina su exposición histórica: debe rotarse en Bunny. La carga autenticada mediante servidor sigue pendiente.
+
+## Pedidos por cliente
+
+1. En la tienda, intentar enviar un pedido sin nombre o WhatsApp: debe solicitar los datos antes de guardarlo.
+2. Completar los datos y enviar una compra de prueba. Confirmar el número `WEB-V…` (o `WEB-C…` para consulta) y el nombre en WhatsApp y en Admin → Pedidos por cliente.
+3. Hacer otro pedido con el mismo nombre y teléfono: ambos deben aparecer bajo el mismo cliente. Clientes con nombres iguales y teléfonos diferentes deben permanecer separados.
+4. En Pedidos por cliente, seleccionar un cliente y pulsar + Pedido manual. Debe abrir una cotización sin reserva de stock; guardar productos y verificar que aparece en su grupo.
+5. Buscar por cliente, número y producto; filtrar pedidos web sin revisar; marcar uno revisado. Recargar y verificar que conserva esa marca en ese navegador.
+6. Asignar un pedido antiguo al cliente correcto. Confirmar que cambia de grupo sin cambiar importes, productos ni stock. Si falla la conexión, el formulario debe informar el fallo.
+7. Activar avisos y mantener el Admin abierto. Registrar un nuevo pedido web desde otro navegador y esperar hasta un minuto: debe actualizar el contador y mostrar el aviso. Los navegadores pueden limitar los avisos en segundo plano.
+
+No hay envío por correo configurado. Los avisos actuales necesitan el Admin abierto; no sustituyen un servicio de correo o notificaciones push en segundo plano.

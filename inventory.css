@@ -41,3 +41,8 @@
 .inventory-table .inventory-actions{margin:0;gap:5px}.inventory-table .inventory-actions .btn{font-size:10px;padding:6px 8px;min-height:29px}
 .inventory-table .inventory-more{margin-top:8px}.inventory-table .inventory-more summary{padding:5px 0}.inventory-table .inventory-more>div{flex-direction:column;align-items:flex-start}
 .inventory-sr-only{position:absolute;width:1px;height:1px;padding:0;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+.order-customer{margin-bottom:16px}.order-customer>summary{cursor:pointer;padding:8px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:center}.order-customer>summary span{font-size:12px;color:#836474}
+.customer-order{border-top:1px solid #f0dfe9;padding:16px 0}.customer-order-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.customer-order-head span,.customer-order p{font-size:12px;color:#806778}.order-new{font-size:10px;background:#fce4ef;color:#ba2870;padding:4px 8px;border-radius:8px}
+.customer-order-items{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.customer-order-items span{background:#fff5fa;padding:6px 9px;border-radius:6px;font-size:12px}
+#orders-search{flex:1;min-width:180px;padding:10px;border:1px solid #e7d9e2;border-radius:10px}#orders-manual-customer{max-width:100%;flex:1;min-width:180px}#orders-status{font-size:12px;color:#836474}
+.order-assign-dialog{border:1px solid #e7d9e2;border-radius:16px;padding:24px;max-width:420px;width:calc(100% - 40px)}.order-assign-dialog select{max-width:100%;width:100%;padding:10px;margin-bottom:15px}

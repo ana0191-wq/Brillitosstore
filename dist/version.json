@@ -1,6 +1,6 @@
 {
-  "version": "v20260921-product-views",
-  "updatedAt": "2026-09-21",
+  "version": "v20260922-customer-orders",
+  "updatedAt": "2026-09-22",
   "admin": "admin.html",
   "pos": "pos.html"
 }
