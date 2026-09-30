@@ -364,6 +364,15 @@ input[type=range]{accent-color:var(--pk);width:120px}
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
+  body{padding-top:60px}
+  .cart-drw{width:100vw;height:100dvh;max-height:100dvh}
+  .cart-items{min-height:0;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .pay-panel{flex:0 1 auto;max-height:55dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .pay-panel input,.pay-panel button{touch-action:manipulation}
+  .pay-action{min-height:46px}
+  #order-customer-name,#order-customer-phone{font-size:16px!important}
+  .pay-tabs{padding-bottom:3px}
+}
   header{padding:0 16px;height:60px}
   .hero{padding:28px 20px 22px}
   .hero-title{font-size:1.6rem}
@@ -1629,13 +1638,26 @@ function buildOrderLines(){
 let _sendingWebOrder=false;
 
 async function webRPC(name, data){
-  const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+name,{
-    method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify(data)
-  });
-  const result=await r.json();
-  if(!r.ok) throw new Error(result.message||'No se pudo registrar el pedido');
-  return result;
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),12000);
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+name,{
+      method:'POST',
+      headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify(data),
+      signal:controller.signal
+    });
+    const text=await r.text();
+    let result={};
+    try{result=text?JSON.parse(text):{};}catch(_){}
+    if(!r.ok) throw new Error(result.message||result.error||'No se pudo registrar el pedido');
+    return result;
+  }catch(e){
+    if(e.name==='AbortError') throw new Error('La conexión está tardando demasiado. Revisa tu internet e inténtalo de nuevo.');
+    throw e;
+  }finally{
+    clearTimeout(timer);
+  }
 }
 async function sendWA(method){
   if(_sendingWebOrder)return;
@@ -1645,8 +1667,9 @@ async function sendWA(method){
   if(customer.telefono.length<10||customer.telefono.length>15){showToast('Escribe tu WhatsApp con código de país');document.getElementById('order-customer-phone').focus();return;}
   _sendingWebOrder=true;
   const buttons=[...document.querySelectorAll('[onclick*="sendWA("]')];
-  buttons.forEach(b=>b.disabled=true);
-  const waWindow=window.open('about:blank','_blank');
+  buttons.forEach(b=>{b.disabled=true;b.dataset.originalText=b.textContent;b.textContent='⏳ Procesando…';});
+  const activeButton=buttons.find(b=>b.matches(':focus'))||buttons[0];
+  const waWindow=null;
   try{
     const payment=method||'consulta';
     const rate=payment==='binance'?Number(document.getElementById('bnc-rate').value):
@@ -1690,11 +1713,17 @@ async function sendWA(method){
     const url='https://wa.me/'+num+'?text='+encodeURIComponent(msg);
     cart=[];saveCart();localStorage.removeItem('brl_checkout');updateCartUI();
     showToast('✅ Pedido registrado: '+order.numero);
-    if(waWindow)waWindow.location.href=url;else window.location.href=url;
+    window.location.href=url;
   }catch(e){
     if(waWindow)waWindow.close();
     showToast('⚠️ '+e.message);
-  }finally{_sendingWebOrder=false;buttons.forEach(b=>b.disabled=false);}
+  }finally{
+    _sendingWebOrder=false;
+    buttons.forEach(b=>{
+      b.disabled=false;
+      if(b.dataset.originalText){b.textContent=b.dataset.originalText;delete b.dataset.originalText;}
+    });
+  }
 }
 
 function openOrders(focus){
