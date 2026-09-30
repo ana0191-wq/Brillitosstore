@@ -575,11 +575,12 @@ input[type=range]{accent-color:var(--pk);width:120px}
         <div style="background:#fff7ed;border:2px solid #fdba74;border-radius:14px;padding:12px;margin-bottom:10px">
           <div style="font-size:.9rem;font-weight:900;color:#9a3412;margin-bottom:9px">Pago móvil</div>
           <div style="display:grid;grid-template-columns:86px 1fr;gap:7px 10px;font-size:.82rem;align-items:center">
-            <span style="color:#777;font-weight:700">Cédula</span><span style="display:flex;align-items:center;gap:6px"><strong style="font-size:.9rem">V-26.239.265</strong><button type="button" onclick="copyPaymentText('V-26.239.265',this)" style="border:1px solid #f3c4d8;background:#fff;border-radius:7px;padding:3px 7px;cursor:pointer;font-size:.68rem">Copiar</button></span>
-            <span style="color:#777;font-weight:700">Celular</span><span style="display:flex;align-items:center;gap:6px"><strong style="font-size:.9rem">0424-9372490</strong><button type="button" onclick="copyPaymentText('0424-9372490',this)" style="border:1px solid #f3c4d8;background:#fff;border-radius:7px;padding:3px 7px;cursor:pointer;font-size:.68rem">Copiar</button></span>
-            <span style="color:#777;font-weight:700">Banco</span><span style="display:flex;align-items:center;gap:6px"><strong style="font-size:.9rem">Bancamiga · 0172</strong><button type="button" onclick="copyPaymentText('Bancamiga 0172',this)" style="border:1px solid #f3c4d8;background:#fff;border-radius:7px;padding:3px 7px;cursor:pointer;font-size:.68rem">Copiar</button></span>
-            <span style="color:#777;font-weight:700">Monto</span><span style="display:flex;align-items:center;gap:6px"><strong id="bs-total" style="font-size:1.08rem;color:#c2410c">Bs. 0.00</strong><button type="button" onclick="copyPaymentText(document.getElementById('bs-total').textContent.replace(/^Bs\.\s*/,'').trim(),this)" style="border:1px solid #f3c4d8;background:#fff;border-radius:7px;padding:3px 7px;cursor:pointer;font-size:.68rem">Copiar</button></span>
+            <span style="color:#777;font-weight:700">Cédula</span><strong style="font-size:.9rem">V-26.239.265</strong>
+            <span style="color:#777;font-weight:700">Celular</span><strong style="font-size:.9rem">0424-9372490</strong>
+            <span style="color:#777;font-weight:700">Banco</span><strong style="font-size:.9rem">Bancamiga · 0172</strong>
+            <span style="color:#777;font-weight:700">Monto</span><strong id="bs-total" style="font-size:1.08rem;color:#c2410c">Bs. 0.00</strong>
           </div>
+          <button type="button" onclick="copyPaymentDetails(this)" style="width:100%;margin-top:10px;border:1px solid #f3c4d8;background:#fff;border-radius:9px;padding:8px 10px;cursor:pointer;font-family:var(--fb);font-size:.76rem;font-weight:800;color:var(--pk)">📋 Copiar todos los datos</button>
         </div>
         <div class="subtotal-row"><span class="label">Total productos</span><span class="val" id="bs-sub">$0.00</span></div>
         <div class="bs-row" style="margin-top:7px">
@@ -1574,19 +1575,37 @@ function calcBNC(){
   const usdEl=document.getElementById('bnc-usd');
   if(usdEl) usdEl.textContent='$'+discounted.toFixed(2);
 }
-async function copyPaymentText(value,btn){
+async function copyPaymentDetails(btn){
+  const montoEl=document.getElementById('bs-total');
+  const monto=montoEl ? montoEl.textContent.trim() : 'Bs. 0.00';
+  const texto=[
+    'Pago Móvil',
+    'Cédula: V-26.239.265',
+    'Celular: 0424-9372490',
+    'Banco: Bancamiga · 0172',
+    'Monto: '+monto
+  ].join('\n');
   try{
-    await navigator.clipboard.writeText(String(value||''));
-    var old=btn.textContent;
-    btn.textContent='✓ Copiado';
-    setTimeout(function(){btn.textContent=old;},1400);
+    await navigator.clipboard.writeText(texto);
+    const old=btn.textContent;
+    btn.textContent='✓ ¡Todos copiados!';
+    setTimeout(function(){btn.textContent=old;},1600);
   }catch(e){
-    var ta=document.createElement('textarea');
-    ta.value=String(value||''); ta.style.position='fixed'; ta.style.opacity='0';
-    document.body.appendChild(ta); ta.select();
-    try{document.execCommand('copy');btn.textContent='✓ Copiado';}catch(err){showToast('No se pudo copiar automáticamente');}
+    const ta=document.createElement('textarea');
+    ta.value=texto;
+    ta.style.position='fixed';
+    ta.style.opacity='0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{
+      document.execCommand('copy');
+      const old=btn.textContent;
+      btn.textContent='✓ ¡Todos copiados!';
+      setTimeout(function(){btn.textContent=old;},1600);
+    }catch(err){
+      showToast('No se pudo copiar automáticamente');
+    }
     ta.remove();
-    setTimeout(function(){btn.textContent='Copiar';},1400);
   }
 }
 function calcBS(){
