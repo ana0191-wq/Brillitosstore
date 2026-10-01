@@ -553,6 +553,10 @@ tr:hover td{background:#fff8fc}
       </select>
     </div>
     <div id="resumen-donaciones" style="display:none;margin:0 0 12px;padding:12px 15px;border-radius:12px;background:#f5f3ff;border:1px solid #ddd6fe;color:#4c1d95;font-size:13px"></div>
+    <div id="resumen-archivados" style="margin:0 0 12px;padding:12px 15px;border-radius:12px;background:#fff8fb;border:1.5px solid #f3c4d9;color:#7a3557;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
+      <div><strong>📦 Productos archivados</strong><div id="resumen-archivados-text" style="font-size:12px;margin-top:3px;color:#8a6577">Productos retirados de la tienda, como agotados o donados.</div></div>
+      <button class="btn btn-secondary btn-sm" type="button" onclick="verArchivados()">Ver archivados</button>
+    </div>
     <div class="inventory-toolbar">
       <div id="productos-resumen" role="status"></div>
       <div class="inventory-view" role="group" aria-label="Vista de productos"><button id="prod-view-cards" type="button" onclick="cambiarVistaProductos('cards')" aria-pressed="true">Tarjetas</button><button id="prod-view-list" type="button" onclick="cambiarVistaProductos('list')" aria-pressed="false">Lista</button></div>
@@ -3828,8 +3832,25 @@ function renderProductos(lista){
   const rd=resumenDonaciones(),rdEl=document.getElementById('resumen-donaciones');
   rdEl.style.display=verArchivo&&rd.productos?'block':'none';
   rdEl.textContent='Donaciones: '+rd.productos+' productos · '+rd.unidades+' unidades · Valor '+money(rd.venta);
+  const ra=productos.filter(p=>!!p.archivado_en);
+  const raText=document.getElementById('resumen-archivados-text');
+  if(raText) raText.textContent=ra.length+' productos archivados · '+ra.reduce((n,p)=>n+stock(p),0)+' unidades · incluye agotados y donados.';
+  const raBtn=document.querySelector('#resumen-archivados button');
+  if(raBtn) raBtn.textContent=verArchivo?'↩ Volver a productos activos':'Ver archivados';
   const sel=document.getElementById('filtro-cat-prod'),val=sel.value;
   sel.innerHTML='<option value="">Todas las categorías</option>'+[...new Set(productos.map(p=>p.categoria).filter(Boolean))].sort().map(c=>'<option value="'+h(c)+'"'+(c===val?' selected':'')+'>'+h(c)+'</option>').join('');
+}
+function verArchivados(){
+  const buscador=document.getElementById('search-prods');
+  const cat=document.getElementById('filtro-cat-prod');
+  const prop=document.getElementById('filtro-propietario-prod');
+  if(buscador) buscador.value='';
+  if(cat) cat.value='';
+  if(prop) prop.value='Archivo';
+  productosPagina=1;
+  filtrarProds(false);
+  const host=document.getElementById('tbody-prods');
+  if(host) host.scrollIntoView({behavior:'smooth',block:'start'});
 }
 function filtrarProds(reset=true){
   if(reset)productosPagina=1;
