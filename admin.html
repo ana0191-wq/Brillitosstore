@@ -3776,14 +3776,17 @@ function renderProductos(lista){
   const list=base.filter(p=>verArchivo?!!p.archivado_en:(!p.archivado_en&&p.activo!==false)).sort((a,b)=>
     sort==='nombre'?String(a.nombre).localeCompare(String(b.nombre),'es'):
     sort==='stock'?stock(a)-stock(b):Number(b.id)-Number(a.id));
-  const pages=Math.max(1,Math.ceil(list.length/24));
+  const PAGE_SIZE=60;
+  const pages=Math.max(1,Math.ceil(list.length/PAGE_SIZE));
   productosPagina=Math.min(productosPagina,pages);
   const money=n=>'$'+Number(n||0).toFixed(2);
   const h=escVentaHtml;
-  document.getElementById('productos-resumen').textContent=list.length+' productos · '+list.reduce((n,p)=>n+stock(p),0)+' unidades · Página '+productosPagina+' de '+pages;
+  const desde=(productosPagina-1)*PAGE_SIZE+1;
+  const hasta=Math.min(productosPagina*PAGE_SIZE,list.length);
+  document.getElementById('productos-resumen').textContent=list.length+' productos · '+list.reduce((n,p)=>n+stock(p),0)+' unidades · Mostrando '+(list.length?desde+'–'+hasta:0)+' · Página '+productosPagina+' de '+pages;
   document.getElementById('prod-prev').disabled=productosPagina<=1;
   document.getElementById('prod-next').disabled=productosPagina>=pages;
-  document.getElementById('tbody-prods').innerHTML=list.slice((productosPagina-1)*24,productosPagina*24).map(p=>{
+  document.getElementById('tbody-prods').innerHTML=list.slice((productosPagina-1)*PAGE_SIZE,productosPagina*PAGE_SIZE).map(p=>{
     const vars=(p.producto_variantes||[]).filter(v=>v.activo!==false);
     const price=precioConDescuentoAdmin(p.precio,p), rule=reglaDescuentoAplicable(p,p.precio);
     const img=p.imagen||(p.imagenes||[])[0]||'';
