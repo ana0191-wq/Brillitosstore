@@ -3814,7 +3814,7 @@ function renderProductos(lista){
       '<div><small>Costo unitario</small><strong>'+money(p.precio_costo)+'</strong></div></div>'+
       (rule&&!remateActivo(p,p.precio)?'<div class="inventory-promo">'+h(rule.nombre)+' · '+clampDescuento(rule.porcentaje)+'%'+(rule.fecha_fin?' · hasta '+h(fechaPromoCorta(rule.fecha_fin)):'')+'</div>':'')+
       (vars.length?'<details class="inventory-variants"><summary>'+vars.length+' variantes · ver stock y precios</summary><ul>'+
-        vars.map(v=>'<li><span>'+h(v.nombre)+'</span><b>'+money(precioConDescuentoAdmin(Number(v.precio)>0?Number(v.precio):p.precio,p))+'</b><span>'+Number(v.stock||0)+' uds.</span></li>').join('')+
+        vars.map(v=>'<li><span>'+h(v.nombre)+'</span><b>'+money(precioConDescuentoAdmin(Number(v.precio)>0?Number(v.precio):p.precio,p))+'</b><label style="display:flex;align-items:center;gap:5px;margin-left:auto"><span style="font-size:11px;color:#806778">Stock</span><input aria-label="Stock de '+h(p.nombre)+' - '+h(v.nombre)+'" type="number" min="0" step="1" value="'+Number(v.stock||0)+'" style="width:72px;padding:5px 7px;border:1px solid var(--border);border-radius:8px;font-size:13px;text-align:center" onchange="actualizarStockVar('+p.id+','+v.id+',this.value)"><span style="font-size:11px;color:#806778">uds.</span></label></li>').join('')+
         '</ul><button class="btn btn-secondary btn-sm" onclick="abrirModalProducto('+p.id+')">Editar variantes</button></details>':
         '<label class="inventory-stock">Actualizar stock <input aria-label="Stock de '+h(p.nombre)+'" type="number" min="0" step="1" value="'+count+'" onchange="actualizarStockProd('+p.id+',this.value)"></label>')+
       (reserved?'<div class="inventory-note">'+reserved+' unidades en apartados</div>':'')+
@@ -4012,6 +4012,20 @@ async function marcarProductoVendidoRapido(id){
   finally{ventasEnProceso.delete('quick'+id);}
 }
 
+async function actualizarStockVar(productoId,varianteId,val){
+  const p=productos.find(x=>x.id===productoId);
+  if(!p)return;
+  const v=(p.producto_variantes||p.variantes||[]).find(x=>x.id===varianteId);
+  if(!v)return;
+  const stock=Math.max(0,parseInt(val,10)||0);
+  const r=await sbPatch('producto_variantes',varianteId,{stock});
+  if(!r||!r.ok)return;
+  v.stock=stock;
+  await sincronizarArchivoPorStock(p);
+  refrescarProductosConFiltros();
+  renderPOS();
+  toast('✅ Stock de '+(v.nombre||'la variante')+' actualizado');
+}
 async function actualizarStockProd(id,val){
   const stock=Math.max(0,parseInt(val)||0);
   const p=productos.find(x=>x.id===id);
