@@ -546,6 +546,10 @@ tr:hover td{background:#fff8fc}
       </div>
       <div id="discount-rules-list" style="margin-top:10px"></div>
     </div>
+    <div class="inventory-tabs" role="tablist" aria-label="Inventario">
+      <button id="prod-tab-activos" type="button" role="tab" onclick="cambiarPestanaProductos('activos')" aria-selected="true">📦 Activos <span id="prod-tab-activos-count"></span></button>
+      <button id="prod-tab-archivados" type="button" role="tab" onclick="cambiarPestanaProductos('archivados')" aria-selected="false">🗄️ Archivados <span id="prod-tab-archivados-count"></span></button>
+    </div>
     <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
       <input style="flex:1;min-width:150px;padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Buscar..." id="search-prods" oninput="filtrarProds()">
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-propietario-prod" onchange="filtrarProds()"><option value="">Todos</option><option value="Ana">Míos</option><option value="Mamá">Mamá</option><option value="Remate">🔥 Remate</option><option value="Archivo">📦 Archivo</option><option value="Vendido">✅ Agotados</option><option value="Donado">🎁 Donados</option></select><select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-cat-prod" onchange="filtrarProds()">
@@ -553,10 +557,6 @@ tr:hover td{background:#fff8fc}
       </select>
     </div>
     <div id="resumen-donaciones" style="display:none;margin:0 0 12px;padding:12px 15px;border-radius:12px;background:#f5f3ff;border:1px solid #ddd6fe;color:#4c1d95;font-size:13px"></div>
-    <div id="resumen-archivados" style="margin:0 0 12px;padding:12px 15px;border-radius:12px;background:#fff8fb;border:1.5px solid #f3c4d9;color:#7a3557;display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap">
-      <div><strong>📦 Productos archivados</strong><div id="resumen-archivados-text" style="font-size:12px;margin-top:3px;color:#8a6577">Productos retirados de la tienda, como agotados o donados.</div></div>
-      <button class="btn btn-secondary btn-sm" type="button" onclick="verArchivados()">Ver archivados</button>
-    </div>
     <div class="inventory-toolbar">
       <div id="productos-resumen" role="status"></div>
       <div class="inventory-view" role="group" aria-label="Vista de productos"><button id="prod-view-cards" type="button" onclick="cambiarVistaProductos('cards')" aria-pressed="true">Tarjetas</button><button id="prod-view-list" type="button" onclick="cambiarVistaProductos('list')" aria-pressed="false">Lista</button></div>
@@ -1484,6 +1484,7 @@ const BUNNY_CDN = "https://Brillitos.b-cdn.net";
 
 // ===== ESTADO =====
 let productos=[], ventas=[], clientes=[], eventos=[], apartados=[], gastosEvento=[], gastosGlobales=[];
+let productosPestana='activos';
 let tiendaConfig={id:1,descuento_reglas:[]};
 let editVentaId=null, editProdId=null, editClienteId=null, editEventoId=null, editAptId=null;
 let ventaItems=[], aptItems=[], fotosSubidas=[];
@@ -3771,7 +3772,7 @@ function paginaProductos(delta){productosPagina=Math.max(1,productosPagina+delta
 function renderProductos(lista){
   const base=lista||productos;
   const estadoFiltro=document.getElementById('filtro-propietario-prod').value;
-  const verArchivo=['Archivo','Vendido','Donado'].includes(estadoFiltro);
+  const verArchivo=productosPestana==='archivados';
   const sort=document.getElementById('orden-prods').value;
   const stock=p=>{
     const vars=(p.producto_variantes||[]).filter(v=>v.activo!==false);
@@ -3832,26 +3833,25 @@ function renderProductos(lista){
   const rd=resumenDonaciones(),rdEl=document.getElementById('resumen-donaciones');
   rdEl.style.display=verArchivo&&rd.productos?'block':'none';
   rdEl.textContent='Donaciones: '+rd.productos+' productos · '+rd.unidades+' unidades · Valor '+money(rd.venta);
-  const ra=productos.filter(p=>!!p.archivado_en);
-  const raText=document.getElementById('resumen-archivados-text');
-  if(raText) raText.textContent=ra.length+' productos archivados · '+ra.reduce((n,p)=>n+stock(p),0)+' unidades · incluye agotados y donados.';
-  const raBtn=document.querySelector('#resumen-archivados button');
-  if(raBtn) raBtn.textContent=verArchivo?'↩ Volver a productos activos':'Ver archivados';
+  const ra=productos.filter(p=>!!p.archivado_en), ac=productos.filter(p=>!p.archivado_en&&p.activo!==false);
+  const acEl=document.getElementById('prod-tab-activos-count'), raEl=document.getElementById('prod-tab-archivados-count');
+  if(acEl) acEl.textContent='('+ac.length+')';
+  if(raEl) raEl.textContent='('+ra.length+')';
   const sel=document.getElementById('filtro-cat-prod'),val=sel.value;
   sel.innerHTML='<option value="">Todas las categorías</option>'+[...new Set(productos.map(p=>p.categoria).filter(Boolean))].sort().map(c=>'<option value="'+h(c)+'"'+(c===val?' selected':'')+'>'+h(c)+'</option>').join('');
 }
-function verArchivados(){
-  const buscador=document.getElementById('search-prods');
-  const cat=document.getElementById('filtro-cat-prod');
-  const prop=document.getElementById('filtro-propietario-prod');
+function cambiarPestanaProductos(vista){
+  productosPestana=vista==='archivados'?'archivados':'activos';
+  productosPagina=1;
+  const buscador=document.getElementById('search-prods'),cat=document.getElementById('filtro-cat-prod'),prop=document.getElementById('filtro-propietario-prod');
   if(buscador) buscador.value='';
   if(cat) cat.value='';
-  if(prop) prop.value='Archivo';
-  productosPagina=1;
+  if(prop) prop.value='';
+  document.getElementById('prod-tab-activos').setAttribute('aria-selected',String(productosPestana==='activos'));
+  document.getElementById('prod-tab-archivados').setAttribute('aria-selected',String(productosPestana==='archivados'));
   filtrarProds(false);
-  const host=document.getElementById('tbody-prods');
-  if(host) host.scrollIntoView({behavior:'smooth',block:'start'});
 }
+function verArchivados(){ cambiarPestanaProductos('archivados'); }
 function filtrarProds(reset=true){
   if(reset)productosPagina=1;
   const q=document.getElementById('search-prods').value.toLowerCase();
@@ -3862,7 +3862,7 @@ function filtrarProds(reset=true){
   renderProductos(productos.filter(p=>{
     if(q&&!((p.nombre||'')+' '+p.id+' '+(p.producto_variantes||[]).map(v=>v.nombre).join(' ')).toLowerCase().includes(q))return false;
     if(cat&&p.categoria!==cat)return false;
-    if(viendoArchivo){
+    if(productosPestana==='archivados'){
       if(!p.archivado_en)return false;
       if(prop==='Donado'&&!p.donado_en)return false;
       if(prop==='Vendido'&&!(p.motivo_archivo==='Agotado'||p.vendido_en))return false;
