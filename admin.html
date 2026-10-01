@@ -546,9 +546,9 @@ tr:hover td{background:#fff8fc}
       </div>
       <div id="discount-rules-list" style="margin-top:10px"></div>
     </div>
-    <div class="inventory-tabs" role="tablist" aria-label="Inventario">
-      <button id="prod-tab-activos" type="button" role="tab" onclick="cambiarPestanaProductos('activos')" aria-selected="true">📦 Activos <span id="prod-tab-activos-count"></span></button>
-      <button id="prod-tab-archivados" type="button" role="tab" onclick="cambiarPestanaProductos('archivados')" aria-selected="false">🗄️ Archivados <span id="prod-tab-archivados-count"></span></button>
+    <div class="inventory-tabs" role="tablist" aria-label="Inventario" style="display:flex;gap:0;margin-bottom:14px;border-bottom:2px solid var(--border);overflow-x:auto">
+      <button id="prod-tab-activos" type="button" role="tab" onclick="cambiarPestanaProductos('activos')" aria-selected="true" style="border:none;background:#fff5fa;padding:10px 18px;margin-bottom:-2px;border-bottom:3px solid var(--pink);color:var(--pink);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">📦 Activos <span id="prod-tab-activos-count"></span></button>
+      <button id="prod-tab-archivados" type="button" role="tab" onclick="cambiarPestanaProductos('archivados')" aria-selected="false" style="border:none;background:transparent;padding:10px 18px;margin-bottom:-2px;border-bottom:3px solid transparent;color:#806778;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">🗄️ Archivados <span id="prod-tab-archivados-count"></span></button>
     </div>
     <div style="display:flex;gap:7px;margin-bottom:12px;flex-wrap:wrap">
       <input style="flex:1;min-width:150px;padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Buscar..." id="search-prods" oninput="filtrarProds()">
@@ -3847,8 +3847,15 @@ function cambiarPestanaProductos(vista){
   if(buscador) buscador.value='';
   if(cat) cat.value='';
   if(prop) prop.value='';
-  document.getElementById('prod-tab-activos').setAttribute('aria-selected',String(productosPestana==='activos'));
-  document.getElementById('prod-tab-archivados').setAttribute('aria-selected',String(productosPestana==='archivados'));
+  const tabA=document.getElementById('prod-tab-activos'),tabR=document.getElementById('prod-tab-archivados');
+  tabA.setAttribute('aria-selected',String(productosPestana==='activos'));
+  tabR.setAttribute('aria-selected',String(productosPestana==='archivados'));
+  tabA.style.cssText=productosPestana==='activos'
+    ? 'border:none;background:#fff5fa;padding:10px 18px;margin-bottom:-2px;border-bottom:3px solid var(--pink);color:var(--pink);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap'
+    : 'border:none;background:transparent;padding:10px 18px;margin-bottom:-2px;border-bottom:3px solid transparent;color:#806778;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap';
+  tabR.style.cssText=productosPestana==='archivados'
+    ? 'border:none;background:#fff5fa;padding:10px 18px;margin-bottom:-2px;border-bottom:3px solid var(--pink);color:var(--pink);font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap'
+    : 'border:none;background:transparent;padding:10px 18px;margin-bottom:-2px;border-bottom:3px solid transparent;color:#806778;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap';
   filtrarProds(false);
 }
 function verArchivados(){ cambiarPestanaProductos('archivados'); }
