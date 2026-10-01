@@ -1682,18 +1682,8 @@ async function sendWA(method){
     if(!draft||draft.signature!==signature){
       draft={signature,key:crypto.randomUUID()};localStorage.setItem('brl_checkout',JSON.stringify(draft));
     }
-    const q=await webRPC('brl_quote',{p_items:items,p_method:payment,p_rate:rate});
-    const before=Math.round(cartSubtotal()*100)/100;
-    if(before!==Number(q.subtotal)){
-      q.items.forEach(it=>{
-        const c=cart.find(x=>x.id==it.producto_id&&String(x.variante_id||'')===String(it.variante_id||''));
-        if(c){c.precio=Number(it.precio_unitario);c.precio_original=Number(it.precio_original);}
-      });
-      saveCart();updateCartUI();renderDiscountBanner();
-      throw new Error('El precio se actualizó. Revisa el nuevo total y vuelve a confirmar.');
-    }
     const order=await webRPC('brl_checkout_customer',{
-      p_key:draft.key,p_items:items,p_method:payment,p_rate:rate,p_expected:Number(q.monto_pago),p_customer:customer
+      p_key:draft.key,p_items:items,p_method:payment,p_rate:rate,p_expected:null,p_customer:customer
     });
     const money=n=>Number(n||0).toFixed(2);
     const lines=order.items.map((i,n)=>(n+1)+'. '+i.producto_nombre+
