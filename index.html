@@ -299,6 +299,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 .cart-drw.open{transform:translateX(0)}
 .cart-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:2px dashed var(--pk-l);background:var(--ye)}
 .cart-ttl{font-family:var(--fh);font-size:1rem;color:var(--pk)}
+.cart-back{background:#fff;border:1.5px solid var(--br);color:var(--ts);border-radius:999px;padding:7px 10px;cursor:pointer;font-size:.72rem;font-weight:900;font-family:var(--fb);white-space:nowrap}.cart-back:hover{background:var(--pk-p);color:var(--pk);border-color:var(--pk-l)}
 .cart-x{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ts)}
 .cart-items{flex:1;min-height:100px;overflow-y:auto;padding:12px}
 .cart-empty{text-align:center;color:var(--ts);font-size:.85rem;font-weight:700;padding:40px 20px}
@@ -560,7 +561,8 @@ input[type=range]{accent-color:var(--pk);width:120px}
     <span class="cart-ttl">Mi carrito 🛒</span>
     <div style="display:flex;align-items:center;gap:8px">
       <button id="clear-cart-btn" class="cart-clear-btn" onclick="clearCart()" title="Vaciar carrito">🗑️ Vaciar carrito</button>
-      <button class="cart-x" onclick="closeCart()">✕</button>
+      <button class="cart-back" onclick="closeCart();document.getElementById('productos')?.scrollIntoView({behavior:'smooth',block:'start'})" title="Seguir comprando">← Seguir comprando</button>
+      <button class="cart-x" onclick="closeCart()" aria-label="Cerrar carrito">✕</button>
     </div>
   </div>
   <div class="cart-items" id="cart-items">
