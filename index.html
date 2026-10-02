@@ -1270,31 +1270,7 @@ document.addEventListener('click', function(e){
 });
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function imgFallback(el){
-  if(!el) return;
-  var current=el.getAttribute('src')||el.src||'';
-  var retried=el.dataset.brlImgRetry==='1';
-  if(!retried && current){
-    try{
-      var u=new URL(current,window.location.href);
-      var path=u.pathname||'';
-      var name=path.split('/').filter(Boolean).pop()||'';
-      if(name && !/^\/productos\//i.test(path)){
-        el.dataset.brlImgRetry='1';
-        el.dataset.originalSrc=current;
-        el.onerror=function(){ imgFallback(this); };
-        el.src=u.origin+'/productos/'+name;
-        return;
-      }
-    }catch(e){}
-  }
-  el.onerror=null;
-  el.style.display='none';
-  var fb=document.createElement('div');
-  fb.className='img-fb';
-  fb.textContent='🌸';
-  if(el.parentElement) el.parentElement.appendChild(fb);
-}
+function imgFallback(el){el.onerror=null;el.style.display='none';var fb=document.createElement('div');fb.className='img-fb';fb.textContent='🌸';el.parentElement.appendChild(fb);}
 
 
 
@@ -1317,7 +1293,7 @@ if(imgs.length>0){
   });
 
   mainImg.alt=p.nombre;
-  mainImg.onerror=function(){imgFallback(this);};
+  mainImg.onerror=function(){this.onerror=null;this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#FFB3D9,#FFF0F8)';};
 
 
   const thumbs=document.getElementById('modal-thumbs');
