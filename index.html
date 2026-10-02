@@ -1270,34 +1270,7 @@ document.addEventListener('click', function(e){
 });
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function imgFallback(el){
-  if(!el) return;
-  // Bunny puede devolver temporalmente una respuesta fallida desde caché/CDN.
-  // Reintentar una sola vez con cache-busting antes de mostrar el placeholder.
-  if(!el.dataset.imgRetry){
-    el.dataset.imgRetry='1';
-    var original=el.dataset.originalSrc || el.currentSrc || el.src || '';
-    el.dataset.originalSrc=original;
-    if(original){
-      var sep=original.indexOf('?')>=0?'&':'?';
-      el.onerror=function(){ imgFallbackFinal(this); };
-      el.src=original+sep+'brlimg='+Date.now();
-      return;
-    }
-  }
-  imgFallbackFinal(el);
-}
-function imgFallbackFinal(el){
-  el.onerror=null;
-  el.style.display='none';
-  var parent=el.parentElement;
-  if(!parent) return;
-  if(parent.querySelector('.img-fb')) return;
-  var fb=document.createElement('div');
-  fb.className='img-fb';
-  fb.textContent='🌸';
-  parent.appendChild(fb);
-}
+function imgFallback(el){el.onerror=null;el.style.display='none';var fb=document.createElement('div');fb.className='img-fb';fb.textContent='🌸';el.parentElement.appendChild(fb);}
 
 
 
