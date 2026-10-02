@@ -685,7 +685,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 <div class="toast" id="toast"></div>
 
 <script>
-// v1777062456
+// v1777062457
 var CATALOG = [];
 var STORE_CONFIG = {id:1, descuento_reglas:[]};
 var SUPABASE_URL = "https://xavqokyzdmqzguicjsrq.supabase.co";
@@ -693,24 +693,54 @@ var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 
 async function cargarCatalogo() {
   try {
-    // Query productos y variantes por separado para no depender del foreign key
-    var [respProds, respVars, respConfig] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=neq.false&visible_web=neq.false&order=es_nuevo.desc,id.desc&limit=1000', {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-      }),
-      fetch(SUPABASE_URL + '/rest/v1/producto_variantes?select=*&activo=eq.true&order=id.asc', {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-      }),
-      fetch(SUPABASE_URL + '/rest/v1/configuracion_tienda?select=*&id=eq.1&limit=1', {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-      })
-    ]);
+    // Cargar productos primero. Las tablas auxiliares no deben impedir que
+    // el catálogo público se muestre si alguna solicitud secundaria falla.
+    var prodUrl = SUPABASE_URL + '/rest/v1/productos?select=*&activo=neq.false&visible_web=neq.false&order=es_nuevo.desc,id.desc&limit=1000';
+    var prodHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+    var respProds;
+    try {
+      respProds = await fetch(prodUrl, { headers: prodHeaders, cache: 'no-store' });
+    } catch (err) {
+      throw new Error('No se pudo conectar con Supabase para cargar los productos.');
+    }
+
     var data = await respProds.json();
-    var varsData = await respVars.json();
-    var configData = respConfig.ok ? await respConfig.json() : [];
-    if(Array.isArray(configData) && configData[0]) STORE_CONFIG = Object.assign({}, STORE_CONFIG, configData[0]);
-    if(!respProds.ok){ console.error('Supabase productos error:', data); }
-    if(!respVars.ok){ console.error('Supabase variantes error:', varsData); }
+    if (!respProds.ok || !Array.isArray(data)) {
+      console.error('Supabase productos error:', data);
+      throw new Error('Supabase no pudo devolver el catálogo de productos.');
+    }
+
+    var varsData = [];
+    try {
+      var respVars = await fetch(
+        SUPABASE_URL + '/rest/v1/producto_variantes?select=*&activo=eq.true&order=id.asc',
+        { headers: prodHeaders, cache: 'no-store' }
+      );
+      if (respVars.ok) {
+        var parsedVars = await respVars.json();
+        if (Array.isArray(parsedVars)) varsData = parsedVars;
+      } else {
+        console.warn('Supabase variantes error:', respVars.status);
+      }
+    } catch (err) {
+      console.warn('No se pudieron cargar las variantes:', err);
+    }
+
+    try {
+      var respConfig = await fetch(
+        SUPABASE_URL + '/rest/v1/configuracion_tienda?select=*&id=eq.1&limit=1',
+        { headers: prodHeaders, cache: 'no-store' }
+      );
+      if (respConfig.ok) {
+        var configData = await respConfig.json();
+        if (Array.isArray(configData) && configData[0]) {
+          STORE_CONFIG = Object.assign({}, STORE_CONFIG, configData[0]);
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo cargar la configuración de la tienda:', err);
+    }
+
     // Agrupar variantes por producto_id
     var varsByProd = {};
     if(Array.isArray(varsData)){
@@ -719,6 +749,7 @@ async function cargarCatalogo() {
         varsByProd[v.producto_id].push(v);
       });
     }
+
     CATALOG = data.map(function(p) {
       var variantes = (varsByProd[p.id] || []).filter(function(v){ return v.activo !== false; });
       return {
@@ -760,9 +791,15 @@ async function cargarCatalogo() {
     init();
   } catch(e) {
     console.error('Error cargando catálogo:', e);
+    var grid = document.getElementById('product-grid');
+    var home = document.getElementById('home-sections');
+    if(grid) {
+      grid.style.display = '';
+      grid.innerHTML = '<div class="state-msg"><span class="em">⚠️</span>No pudimos cargar el catálogo. Recarga la página e inténtalo de nuevo.</div>';
+    }
+    if(home) home.style.display = 'none';
   }
 }
-
 
 function clampDiscountPct(v){
   var n=parseFloat(v)||0;
