@@ -1270,7 +1270,34 @@ document.addEventListener('click', function(e){
 });
 
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function imgFallback(el){el.onerror=null;el.style.display='none';var fb=document.createElement('div');fb.className='img-fb';fb.textContent='🌸';el.parentElement.appendChild(fb);}
+function imgFallback(el){
+  if(!el) return;
+  // Bunny puede devolver temporalmente una respuesta fallida desde caché/CDN.
+  // Reintentar una sola vez con cache-busting antes de mostrar el placeholder.
+  if(!el.dataset.imgRetry){
+    el.dataset.imgRetry='1';
+    var original=el.dataset.originalSrc || el.currentSrc || el.src || '';
+    el.dataset.originalSrc=original;
+    if(original){
+      var sep=original.indexOf('?')>=0?'&':'?';
+      el.onerror=function(){ imgFallbackFinal(this); };
+      el.src=original+sep+'brlimg='+Date.now();
+      return;
+    }
+  }
+  imgFallbackFinal(el);
+}
+function imgFallbackFinal(el){
+  el.onerror=null;
+  el.style.display='none';
+  var parent=el.parentElement;
+  if(!parent) return;
+  if(parent.querySelector('.img-fb')) return;
+  var fb=document.createElement('div');
+  fb.className='img-fb';
+  fb.textContent='🌸';
+  parent.appendChild(fb);
+}
 
 
 
@@ -2198,24 +2225,3 @@ function ppSelectVariant(btn, vi){
     else if(s===1){ stockEl.textContent='¡Último disponible!'; stockEl.className='pp-stock low'; }
     else if(s<=3){ stockEl.textContent='Solo '+s+' disponibles'; stockEl.className='pp-stock low'; }
     else { stockEl.textContent='✅ Disponible'; stockEl.className='pp-stock in'; }
-  }
-}
-function ppAddToCart(){
-  if(!_ppProduct) return;
-  const tieneVariantes = _ppProduct.variantes && _ppProduct.variantes.length > 0;
-  if(tieneVariantes && !_ppVariant){
-    // Resaltar el aviso de variante
-    const msg = document.getElementById('m-variant-msg');
-    if(msg){ msg.style.display='block'; msg.scrollIntoView({behavior:'smooth',block:'nearest'}); }
-    // Vibrar el bloque de variantes para llamar atención
-    const varEl = document.getElementById('pp-variants');
-    if(varEl){ varEl.style.animation='none'; setTimeout(()=>{ varEl.style.animation='shake .3s ease'; },10); }
-    return;
-  }
-  addToCart(_ppProduct.id, _ppVariant);
-}
-
-
-</script>
-</body>
-</html>
