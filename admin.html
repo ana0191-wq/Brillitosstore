@@ -1482,25 +1482,6 @@ const KEY = "sb_publishable_3-T6uev-fVXw7TB_kbrogA_m-MKct3v";
 const H = {'apikey':KEY,'Content-Type':'application/json','Accept':'application/json'};
 const BUNNY_CDN = "https://Brillitos.b-cdn.net";
 
-function instalarFallbackFotosAdmin(){
-  if(window.__brillitosAdminImgFallback)return;
-  window.__brillitosAdminImgFallback=true;
-  document.addEventListener('error',function(e){
-    var img=e.target;
-    if(!img||img.tagName!=='IMG')return;
-    var src=img.currentSrc||img.src||'';
-    if(!/^https:\/\/brillitos\.b-cdn\.net\//i.test(src))return;
-    if(img.dataset.brlBunnyRetry)return;
-    var u;
-    try{u=new URL(src);}catch(_){return;}
-    var path=u.pathname||'';
-    if(!path||path.toLowerCase().indexOf('/productos/')===0)return;
-    img.dataset.brlBunnyRetry='1';
-    img.src='https://Brillitos.b-cdn.net/productos/'+path.replace(/^\\//,'');
-  },true);
-}
-instalarFallbackFotosAdmin();
-
 // ===== ESTADO =====
 let productos=[], ventas=[], clientes=[], eventos=[], apartados=[], gastosEvento=[], gastosGlobales=[];
 let productosPestana='activos';
