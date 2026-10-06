@@ -3819,6 +3819,7 @@ function renderProductos(lista){
         '<label class="inventory-stock">Actualizar stock <input aria-label="Stock de '+h(p.nombre)+'" type="number" min="0" step="1" value="'+count+'" onchange="actualizarStockProd('+p.id+',this.value)"></label>')+
       (reserved?'<div class="inventory-note">'+reserved+' unidades en apartados</div>':'')+
       '<div class="inventory-actions"><button class="btn btn-primary btn-sm" onclick="abrirModalProducto('+p.id+')">Editar</button>'+
+      (!archived&&count>0?'<button class="btn btn-success btn-sm" onclick="marcarProductoVendidoRapido('+p.id+')" title="Registrar 1 unidad vendida">Vendido</button>':'')+
       '<a class="btn btn-secondary btn-sm" href="'+url+'" target="_blank" rel="noopener">Ver producto ↗</a>'+
       '<button class="btn btn-secondary btn-sm" onclick="verQRProducto('+p.id+')">QR</button></div>'+
       '<details class="inventory-more"><summary>Más acciones</summary><div>'+
