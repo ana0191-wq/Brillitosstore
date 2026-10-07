@@ -6,6 +6,7 @@
 <title>Brillitos 2026 ✨ Tienda Kawaii</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 :root {
   --pk:#F387C3; --pk-l:#FCACC7; --pk-p:#FDF0F8; --pk-d:#D45FA0;
@@ -419,6 +420,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
   <p class="hero-sub">Tu tienda de cositas kawaii más bonitas ✨💕</p>
   <div class="hero-btns">
     <a class="hero-cta" href="#productos">Ver colección ✨</a>
+    <button class="hero-cta-sec" type="button" onclick="generarCatalogoAgotadosPDF()">📕 Catálogo para encargar</button>
   </div>
 </section>
 
