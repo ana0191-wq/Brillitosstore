@@ -121,3 +121,85 @@ async function activarAvisosPedidos(){
 }
 setTimeout(()=>cargarPedidosClientes(true),1500);
 setInterval(()=>cargarPedidosClientes(true),60000);
+
+
+// ===== CATÁLOGO DE PRODUCTOS PARA ENCARGOS =====
+function generarCatalogoEncargosPDF(){
+  var prods=(Array.isArray(window.productos)?window.productos:[]).filter(function(p){
+    return p && parseInt(p.stock||0,10)<=0 && !p.donado_en;
+  });
+  if(!prods.length){ if(typeof toast==='function')toast('❌ No hay productos agotados para encargar'); return; }
+
+  function esSticker(p){
+    var t=((p.nombre||'')+' '+(p.categoria||'')+' '+(p.subcategoria||'')).toLowerCase();
+    return /sticker|sticker book|stickerbook|librito|libro.*pegatina|álbum.*sticker|album.*sticker/.test(t);
+  }
+  prods.sort(function(a,b){
+    var sa=esSticker(a)?0:1,sb=esSticker(b)?0:1;
+    if(sa!==sb)return sa-sb;
+    return (a.nombre||'').localeCompare(b.nombre||'','es');
+  });
+
+  function precioStr(p){
+    var vars=(p.producto_variantes||[]).filter(function(v){return parseFloat(v.precio||0)>0;});
+    if(vars.length){
+      var vals=vars.map(function(v){return parseFloat(v.precio);});
+      var min=Math.min.apply(null,vals),max=Math.max.apply(null,vals);
+      if(min!==max)return '$'+min.toFixed(0)+' – $'+max.toFixed(0);
+      return '$'+min.toFixed(min%1===0?0:2);
+    }
+    var pr=parseFloat(p.precio||0);
+    return '$'+pr.toFixed(pr%1===0?0:2);
+  }
+
+  var cards=prods.map(function(p){
+    var img=p.imagen||(p.imagenes&&p.imagenes[0])||'';
+    var image=img
+      ? '<img src="'+img+'" style="width:100%;height:150px;object-fit:cover;display:block" onerror="this.style.display=\'none\'">'
+      : '<div style="height:150px;display:flex;align-items:center;justify-content:center;font-size:40px">📦</div>';
+    return '<div style="break-inside:avoid;border:1px solid #f0dcea;border-radius:14px;overflow:hidden;background:#fff">'+
+      '<div style="height:150px;overflow:hidden;background:#fff5fa">'+image+'</div>'+
+      '<div style="padding:10px 11px"><div style="font-size:11px;font-weight:700;line-height:1.35;color:#3d2040">'+(p.nombre||'Producto')+'</div>'+
+      (esSticker(p)?'<div style="display:inline-block;margin-top:5px;padding:3px 7px;border-radius:8px;background:#fff0f6;color:#c2185b;font-size:9px;font-weight:800">✨ STICKERS</div>':'')+
+      '<div style="font-size:13px;font-weight:800;color:#c2185b;margin-top:6px">Precio referencia: '+precioStr(p)+'</div>'+
+      '<div style="font-size:9px;color:#777;margin-top:3px">Disponible para encargar</div></div></div>';
+  }).join('');
+
+  var html='<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Brillitos — Catálogo para encargar</title>'+
+    '<style>@page{size:A4;margin:12mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;color:#3d2040;margin:0}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px}@media print{.no-print{display:none}}</style>'+
+    '</head><body><section style="min-height:245mm;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;break-after:page">'+
+    '<div style="font-size:50px">📕</div><h1 style="font-size:30px;color:#c2185b;margin:14px 0 5px">Brillitos</h1>'+
+    '<h2 style="font-size:24px;color:#3d2040;margin:0">Catálogo para encargar</h2>'+
+    '<p style="font-size:15px;color:#806778">Productos agotados disponibles por encargo</p>'+
+    '<p style="font-size:12px;color:#999;margin-top:10px">'+prods.length+' productos · stickers y libros de stickers primero</p>'+
+    '</section><section><h2 style="color:#c2185b;font-size:19px">Productos disponibles para encargar</h2>'+
+    '<div class="grid">'+cards+'</div>'+
+    '<div style="margin-top:18px;padding:10px;border-top:1px solid #f0dcea;text-align:center;font-size:9px;color:#999">Brillitos · Los precios son de referencia y pueden variar según disponibilidad.</div>'+
+    '</section></body></html>';
+
+  var win=window.open('','_blank');
+  if(!win){if(typeof toast==='function')toast('⚠️ Permite ventanas emergentes para generar el catálogo');return;}
+  win.document.write(html);win.document.close();
+  win.onload=function(){setTimeout(function(){win.focus();win.print();},700);};
+}
+
+(function(){
+  function instalarBotonEncargos(){
+    var btns=document.querySelectorAll('.header-actions');
+    var host=null;
+    for(var i=0;i<btns.length;i++){
+      if(btns[i].querySelector('[onclick*="generarCatalogoPDF"]')){host=btns[i];break;}
+    }
+    if(!host || host.querySelector('[onclick*="generarCatalogoEncargosPDF"]'))return;
+    var b=document.createElement('button');
+    b.className='btn btn-secondary';
+    b.textContent='📕 Encargos';
+    b.style.cssText='background:#fff0f6;color:#c2185b;border-color:#f2a8cc';
+    b.onclick=generarCatalogoEncargosPDF;
+    var cat=host.querySelector('[onclick*="generarCatalogoPDF"]');
+    cat.insertAdjacentElement('afterend',b);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',instalarBotonEncargos);
+  else instalarBotonEncargos();
+  setTimeout(instalarBotonEncargos,1000);
+})();
