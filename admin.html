@@ -529,7 +529,7 @@ tr:hover td{background:#fff8fc}
     <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">📦 Productos</div>
     <div class="header-actions">
       <button class="btn btn-secondary" onclick="exportarProductosCSV()">📊 Excel</button>
-      <button class="btn btn-secondary" onclick="generarCatalogoPDF()" style="background:#fdf2f8;color:#db2777;border-color:#db2777">🌸 Catálogo</button>
+      <button class="btn btn-secondary" onclick="abrirGeneradorCatalogo()" style="background:#fdf2f8;color:#db2777;border-color:#db2777">🌸 Catálogo</button>
       <button class="btn btn-secondary" onclick="abrirImprimirQR()" title="Ver e imprimir QR de todos los productos">🔲 QR</button>
       <button class="btn btn-secondary" onclick="abrirProdRapido(false)" style="background:#fff0f6;color:var(--pink);border-color:var(--pink)">⚡ Rápido</button>
       <button class="btn btn-primary" onclick="abrirModalProducto()">+ Producto</button>
@@ -1194,6 +1194,34 @@ tr:hover td{background:#fff8fc}
 </div>
 </div>
 
+<!-- MODAL: GENERADOR DE CATÁLOGO -->
+<div class="modal-bg" id="modal-generador-catalogo" onclick="if(event.target===this)cerrarGeneradorCatalogo()">
+<div class="modal" style="max-width:1050px;width:96vw;max-height:92vh;overflow:hidden;display:flex;flex-direction:column">
+  <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;border-bottom:1px solid #f3e8f0;padding-bottom:12px">
+    <div><h2 style="margin:0;color:#7c3aed">🌸 Crear catálogo</h2><div id="catalogo-selected-count" style="font-size:12px;color:#db2777;font-weight:800;margin-top:3px">0 seleccionados</div></div>
+    <button class="btn btn-secondary" type="button" onclick="cerrarGeneradorCatalogo()">Cerrar</button>
+  </div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;padding:12px 0">
+    <select id="catalogo-categoria" onchange="catalogoCategoria=this.value;renderGeneradorCatalogo()" style="padding:9px 12px;border:2px solid var(--border);border-radius:10px;background:white;min-width:210px"></select>
+    <input id="catalogo-busqueda" oninput="renderGeneradorCatalogo()" placeholder="🔍 Buscar producto..." style="flex:1;min-width:180px;padding:9px 12px;border:2px solid var(--border);border-radius:10px">
+    <button id="catalogo-select-all" class="btn btn-secondary" type="button" onclick="seleccionarCatalogoCategoria()">Seleccionar</button>
+    <button class="btn btn-secondary" type="button" onclick="limpiarCatalogoSeleccion()">Limpiar selección</button>
+  </div>
+  <div style="display:flex;justify-content:space-between;align-items:center;padding:0 0 8px;color:#64748b;font-size:12px"><span id="catalogo-count">0 productos</span><label style="display:flex;gap:6px;align-items:center;font-weight:700;color:#475569"><input id="catalogo-todas-fotos" type="checkbox" checked> Incluir todas las fotos</label></div>
+  <div id="catalogo-productos-grid" style="overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px;padding:4px 3px 12px;min-height:180px"></div>
+  <div style="border-top:1px solid #f3e8f0;padding-top:12px;display:flex;justify-content:flex-end;gap:8px">
+    <button class="btn btn-secondary" type="button" onclick="cerrarGeneradorCatalogo()">Cancelar</button>
+    <button class="btn btn-primary" type="button" onclick="generarCatalogoPDF()">📄 Generar PDF</button>
+  </div>
+</div></div>
+<style>
+.catalogo-select-card{position:relative;border:1.5px solid #eadcf2;background:white;border-radius:12px;padding:7px;text-align:left;cursor:pointer;display:flex;flex-direction:column;min-width:0;transition:.12s}
+.catalogo-select-card:hover{border-color:#d8a4c4}.catalogo-select-card.selected{border:2px solid #db2777;background:#fff7fb;box-shadow:0 0 0 2px rgba(219,39,119,.08)}
+.catalogo-select-card>img,.catalogo-noimg{width:100%;height:145px;object-fit:contain;background:#fafafa;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:38px}
+.catalogo-check{position:absolute;top:10px;right:10px;width:24px;height:24px;border-radius:50%;background:#fff;border:2px solid #d8c8d8;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;z-index:2}
+.catalogo-select-card.selected .catalogo-check{background:#db2777;border-color:#db2777}
+.catalogo-card-body{display:flex;flex-direction:column;gap:3px;padding:7px 3px 2px;min-width:0}.catalogo-card-body strong{font-size:12px;line-height:1.3;color:#1e293b}.catalogo-card-body span{font-size:10px;color:#94a3b8}.catalogo-card-body b{font-size:14px;color:#db2777}.catalogo-card-body small{font-size:10px;color:#7c3aed;font-weight:700}
+</style>
 <!-- MODAL: VER QR INDIVIDUAL -->
 <div class="modal-bg" id="modal-qr-single" onclick="if(event.target===this)cerrarModal('modal-qr-single')">
 <div class="modal" style="max-width:320px;text-align:center">
@@ -5429,90 +5457,150 @@ window.addEventListener('DOMContentLoaded', function(){
 });
 
 // ===== CATÁLOGO PDF =====
+var catalogoSeleccionados = new Set();
+var catalogoCategoria = '';
+var catalogoIncluirTodasFotos = true;
+
+function abrirGeneradorCatalogo(){
+  catalogoSeleccionados = new Set();
+  catalogoCategoria = '';
+  catalogoIncluirTodasFotos = true;
+  renderGeneradorCatalogo();
+  var m=document.getElementById('modal-generador-catalogo');
+  if(m) m.style.display='flex';
+}
+
+function cerrarGeneradorCatalogo(){
+  var m=document.getElementById('modal-generador-catalogo');
+  if(m) m.style.display='none';
+}
+
+function catalogoProductosVisibles(){
+  var q=(document.getElementById('catalogo-busqueda')?.value||'').toLowerCase().trim();
+  return productos.filter(function(p){
+    if(p.activo===false) return false;
+    if(catalogoCategoria && (p.categoria||'Sin categoría')!==catalogoCategoria) return false;
+    if(q && !((p.nombre||'')+' '+(p.categoria||'')).toLowerCase().includes(q)) return false;
+    return true;
+  });
+}
+
+function catalogoImagenes(p){
+  var arr=[];
+  function add(v){ if(v && typeof v==='string' && arr.indexOf(v)<0) arr.push(v); }
+  add(p.imagen);
+  add(p.foto);
+  (p.imagenes||[]).forEach(add);
+  (p.producto_imagenes||[]).forEach(function(x){ add(typeof x==='string'?x:(x.url||x.imagen||x.src)); });
+  return arr;
+}
+
+function catalogoPrecio(p){
+  var vars=(p.producto_variantes||[]).filter(function(v){return parseFloat(v.precio||0)>0;});
+  if(vars.length){
+    var vals=vars.map(function(v){return parseFloat(v.precio);});
+    var min=Math.min.apply(null,vals), max=Math.max.apply(null,vals);
+    if(min!==max) return '$'+min.toFixed(min%1?2:0)+' – $'+max.toFixed(max%1?2:0);
+    return '$'+min.toFixed(min%1?2:0);
+  }
+  var n=parseFloat(p.precio||0);
+  return '$'+n.toFixed(n%1?2:0);
+}
+
+function toggleCatalogoProducto(id, ev){
+  if(ev){ ev.preventDefault(); ev.stopPropagation(); }
+  id=String(id);
+  if(catalogoSeleccionados.has(id)) catalogoSeleccionados.delete(id);
+  else catalogoSeleccionados.add(id);
+  renderGeneradorCatalogo();
+}
+
+function seleccionarCatalogoCategoria(){
+  var visibles=catalogoProductosVisibles();
+  visibles.forEach(function(p){catalogoSeleccionados.add(String(p.id));});
+  renderGeneradorCatalogo();
+}
+
+function limpiarCatalogoSeleccion(){
+  catalogoSeleccionados.clear();
+  renderGeneradorCatalogo();
+}
+
+function renderGeneradorCatalogo(){
+  var catSel=document.getElementById('catalogo-categoria');
+  var bus=document.getElementById('catalogo-busqueda');
+  if(!catSel) return;
+  var cats=[];
+  productos.filter(function(p){return p.activo!==false;}).forEach(function(p){
+    var c=p.categoria||'Sin categoría';
+    if(cats.indexOf(c)<0) cats.push(c);
+  });
+  cats.sort(function(a,b){return a.localeCompare(b,'es');});
+  var oldCat=catalogoCategoria;
+  catSel.innerHTML='<option value="">Todas las categorías</option>'+cats.map(function(c){
+    return '<option value="'+String(c).replace(/"/g,'&quot;')+'">'+c+'</option>';
+  }).join('');
+  catSel.value=oldCat;
+  if(bus && bus.value===undefined) bus.value='';
+  var visibles=catalogoProductosVisibles();
+  var grid=document.getElementById('catalogo-productos-grid');
+  var count=document.getElementById('catalogo-count');
+  var selectedCount=document.getElementById('catalogo-selected-count');
+  var selectAllBtn=document.getElementById('catalogo-select-all');
+  if(selectedCount) selectedCount.textContent=catalogoSeleccionados.size+' seleccionados';
+  if(count) count.textContent=visibles.length+' productos';
+  if(selectAllBtn) selectAllBtn.textContent=visibles.length?'Seleccionar '+(catalogoCategoria?'todos de esta categoría':'todos visibles'):'Sin productos';
+  if(!grid) return;
+  if(!visibles.length){
+    grid.innerHTML='<div style="grid-column:1/-1;padding:35px;text-align:center;color:#94a3b8">No hay productos con este filtro.</div>';
+    return;
+  }
+  grid.innerHTML=visibles.map(function(p){
+    var id=String(p.id), sel=catalogoSeleccionados.has(id), imgs=catalogoImagenes(p), img=imgs[0]||'';
+    return '<button type="button" class="catalogo-select-card '+(sel?'selected':'')+'" onclick="toggleCatalogoProducto('+JSON.stringify(p.id)+',event)">'
+      +'<span class="catalogo-check">'+(sel?'✓':'')+'</span>'
+      +(img?'<img src="'+img+'" alt="" loading="lazy" onerror="this.style.visibility=\'hidden\'">':'<span class="catalogo-noimg">📦</span>')
+      +'<span class="catalogo-card-body"><strong>'+String(p.nombre||'Sin nombre').replace(/</g,'&lt;')+'</strong><span>'+(p.categoria||'Sin categoría')+'</span><b>'+catalogoPrecio(p)+'</b>'
+      +(imgs.length>1?'<small>'+imgs.length+' fotos</small>':'')+'</span>'
+      +'</button>';
+  }).join('');
+}
+
 function generarCatalogoPDF(){
-  var prods = productos.filter(function(p){ return p.activo !== false; });
-  if(!prods.length){ toast('❌ No hay productos'); return; }
-  toast('🌸 Generando catálogo...');
-
-  var grupos = {};
-  prods.forEach(function(p){
-    var cat = p.categoria || 'Sin categoría';
-    if(!grupos[cat]) grupos[cat] = [];
-    grupos[cat].push(p);
+  var seleccionados=productos.filter(function(p){return catalogoSeleccionados.has(String(p.id)) && p.activo!==false;});
+  if(!seleccionados.length){toast('⚠️ Selecciona al menos un producto');return;}
+  var incluirTodas=document.getElementById('catalogo-todas-fotos');
+  var todas=incluirTodas?incluirTodas.checked:true;
+  var fecha=new Date().toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'});
+  var items=seleccionados.map(function(p){
+    var imgs=catalogoImagenes(p);
+    if(!todas) imgs=imgs.slice(0,1);
+    return {p:p,imgs:imgs};
   });
-
-  function precioStr(p){
-    var vars = (p.producto_variantes||[]).filter(function(v){ return parseFloat(v.precio||0)>0; });
-    if(vars.length){
-      var min = Math.min.apply(null, vars.map(function(v){ return parseFloat(v.precio); }));
-      var max = Math.max.apply(null, vars.map(function(v){ return parseFloat(v.precio); }));
-      if(min !== max) return '$'+min.toFixed(0)+' – $'+max.toFixed(0);
-      return '$'+min.toFixed(min%1===0?0:2);
-    }
-    var pr = parseFloat(p.precio||0);
-    return '$'+pr.toFixed(pr%1===0?0:2);
-  }
-
-  function tarjeta(p){
-    var img = p.imagen || (p.imagenes && p.imagenes[0]) || '';
-    var imgHtml = img
-      ? '<img src="'+img+'" style="width:100%;height:130px;object-fit:cover;display:block" onerror="this.style.display=\'none\'">'
-      : '<div style="font-size:36px;display:flex;align-items:center;justify-content:center;height:130px">📦</div>';
-    return '<div style="border-radius:12px;overflow:hidden;border:1px solid #f3e8ff;background:#fff;box-shadow:0 2px 10px rgba(168,85,247,.07)">'
-      +'<div style="width:100%;height:130px;overflow:hidden;background:linear-gradient(135deg,#fdf2f8,#f5f3ff)">'+imgHtml+'</div>'
-      +'<div style="padding:8px 10px 10px;display:flex;justify-content:space-between;align-items:flex-end;gap:6px">'
-      +'<div style="font-size:10.5px;font-weight:600;color:#1e293b;line-height:1.35;flex:1">'+p.nombre+'</div>'
-      +'<div style="font-size:14px;font-weight:900;color:#db2777;white-space:nowrap;background:#fdf2f8;padding:3px 8px;border-radius:16px;flex-shrink:0">'+precioStr(p)+'</div>'
-      +'</div></div>';
-  }
-
-  var seccionesHtml = '';
-  Object.keys(grupos).forEach(function(cat){
-    var items = grupos[cat];
-    var tarjetas = items.map(tarjeta).join('');
-    seccionesHtml += '<div style="margin-bottom:28px">'
-      +'<div style="display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#fdf2f8,#f5f3ff);padding:9px 14px;border-radius:10px;border-left:4px solid #db2777;margin-bottom:14px">'
-      +'<span style="font-size:14px;font-weight:800;color:#7c3aed">'+cat+'</span>'
-      +'<span style="font-size:10px;background:#db2777;color:white;padding:2px 9px;border-radius:20px;font-weight:700">'+items.length+'</span>'
-      +'</div>'
-      +'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">'+tarjetas+'</div>'
-      +'</div>';
+  var html='<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Catálogo Brillitos</title><style>'
+    +'*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#1e293b;background:#fff}'
+    +'@page{size:A4;margin:10mm}.catalogo{max-width:190mm;margin:auto}.cab{padding:12px 0 10px;border-bottom:2px solid #f9a8d4;margin-bottom:14px;display:flex;justify-content:space-between;align-items:end}.marca{font-size:24px;font-weight:900;color:#db2777}.fecha{font-size:10px;color:#94a3b8}.cat{margin:18px 0 8px;padding:7px 10px;background:#fdf2f8;border-left:4px solid #db2777;color:#7c3aed;font-weight:800;font-size:13px;break-after:avoid}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}.producto{border:1px solid #f1d5e6;border-radius:10px;padding:7px;break-inside:avoid;background:#fff}.fotos{display:flex;flex-wrap:wrap;gap:5px;align-items:center;justify-content:center;background:#fafafa;border-radius:7px;padding:5px;min-height:100px}.fotos img{width:100%;max-height:190px;object-fit:contain;display:block}.fotos.multi img{width:calc(50% - 3px);max-height:125px}.info{padding:7px 2px 1px;display:flex;justify-content:space-between;gap:8px;align-items:start}.nombre{font-size:11px;font-weight:700;line-height:1.3}.precio{font-size:13px;font-weight:900;color:#db2777;white-space:nowrap}.sin{font-size:32px;padding:30px}.pie{font-size:9px;color:#94a3b8;margin-top:4px}.no-print{display:block;padding:12px;margin-bottom:10px;background:#fdf2f8;border-radius:8px}@media print{.no-print{display:none}.cab{margin-top:0}}</style></head><body><div class="no-print">Usa <b>Imprimir → Guardar como PDF</b> para crear el archivo.</div><div class="catalogo"><div class="cab"><div class="marca">🌸 Brillitos</div><div class="fecha">Catálogo · '+fecha+' · '+seleccionados.length+' productos</div></div>';
+  var grupos={};
+  items.forEach(function(x){var c=x.p.categoria||'Sin categoría';(grupos[c]||(grupos[c]=[])).push(x);});
+  Object.keys(grupos).sort(function(a,b){return a.localeCompare(b,'es');}).forEach(function(cat){
+    html+='<div class="cat">'+cat+'</div><div class="grid">';
+    grupos[cat].forEach(function(x){
+      var p=x.p, imgs=x.imgs;
+      html+='<div class="producto"><div class="fotos '+(imgs.length>1?'multi':'')+'">';
+      if(imgs.length) imgs.forEach(function(u){html+='<img src="'+u.replace(/"/g,'&quot;')+'" alt="">';});
+      else html+='<div class="sin">📦</div>';
+      html+='</div><div class="info"><div class="nombre">'+String(p.nombre||'Sin nombre').replace(/</g,'&lt;')+'</div><div class="precio">'+catalogoPrecio(p)+'</div></div>';
+      if(imgs.length>1) html+='<div class="pie">'+imgs.length+' fotos</div>';
+      html+='</div>';
+    });
+    html+='</div>';
   });
-
-  var total = prods.length;
-  var fecha = new Date().toLocaleDateString('es-VE',{day:'2-digit',month:'long',year:'numeric'});
-
-  var coverHtml = '<div style="width:794px;height:1122px;background:linear-gradient(135deg,#fdf2f8 0%,#f5f3ff 50%,#fce7f3 100%);display:flex;flex-direction:column;align-items:center;justify-content:center;page-break-after:always;position:relative;overflow:hidden">'
-    +'<div style="position:absolute;width:350px;height:350px;border-radius:50%;background:#db2777;opacity:.1;top:-100px;right:-80px"></div>'
-    +'<div style="position:absolute;width:250px;height:250px;border-radius:50%;background:#9333ea;opacity:.1;bottom:80px;left:-60px"></div>'
-    +'<div style="position:absolute;width:180px;height:180px;border-radius:50%;background:#f472b6;opacity:.12;bottom:-30px;right:100px"></div>'
-    +'<div style="font-size:70px;margin-bottom:12px">🌸</div>'
-    +'<div style="font-size:54px;font-weight:900;background:linear-gradient(135deg,#db2777,#9333ea);-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:-1px;margin-bottom:8px">Brillitos</div>'
-    +'<div style="font-size:16px;color:#9333ea;font-weight:600;letter-spacing:3px;text-transform:uppercase;margin-bottom:40px">Catálogo de Productos</div>'
-    +'<div style="background:linear-gradient(135deg,#db2777,#9333ea);color:white;padding:12px 32px;border-radius:50px;font-size:14px;font-weight:700;letter-spacing:1px;box-shadow:0 8px 32px rgba(219,39,119,.35)">✨ '+total+' productos · Precios en USD</div>'
-    +'<div style="position:absolute;bottom:48px;font-size:12px;color:#a855f7;font-weight:500;letter-spacing:2px;opacity:.8">'+fecha+'</div>'
-    +'</div>';
-
-  var contenidoHtml = '<div style="width:794px;padding:32px 36px">'
-    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;padding-bottom:12px;border-bottom:2px solid #fce7f3">'
-    +'<span style="font-size:14px;font-weight:800;color:#db2777;letter-spacing:1px">🌸 Brillitos</span>'
-    +'<span style="font-size:11px;color:#a855f7;font-weight:500">Catálogo · Precios en USD · '+fecha+'</span>'
-    +'</div>'
-    +seccionesHtml
-    +'</div>';
-
-  var html = '<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">'
-    +'<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Inter,Arial,sans-serif;background:#fff;width:794px}'
-    +'@page{size:A4;margin:0}@media print{html,body{width:794px;margin:0;padding:0}}</style>'
-    +'</head><body>'+coverHtml+contenidoHtml+'</body></html>';
-
-  var win = window.open('', '_blank');
-  win.document.write(html);
-  win.document.close();
-  win.onload = function(){
-    setTimeout(function(){ win.focus(); win.print(); }, 800);
-  };
-  toast('✅ Catálogo listo — guárdalo como PDF 🌸');
+  html+='</div></body></html>';
+  var win=window.open('','_blank');
+  if(!win){toast('⚠️ El navegador bloqueó la ventana del catálogo');return;}
+  win.document.open();win.document.write(html);win.document.close();
+  setTimeout(function(){win.focus();win.print();},700);
+  toast('✅ Catálogo preparado. Elige “Guardar como PDF”.');
 }
 
 // ===== BOTTOM SHEET BÚSQUEDA PRODUCTOS =====
