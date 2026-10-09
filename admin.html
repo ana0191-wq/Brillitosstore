@@ -5478,6 +5478,14 @@ function cerrarGeneradorCatalogo(){
   if(m) m.style.display='none';
 }
 
+function catalogoTextoNormalizado(v){
+  return String(v||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[_-]+/g,' ').replace(/\s+/g,' ').trim();
+}
+function catalogoCategoriaProducto(p){
+  var texto=catalogoTextoNormalizado((p&&p.categoria||'')+' '+(p&&p.nombre||''));
+  if(/\bsticker books?\b/.test(texto) || /\blibros? de stickers?\b/.test(texto)) return 'Libros de stickers';
+  return (p&&p.categoria)||'Sin categoría';
+}
 function catalogoEsAgotado(p){
   return !!(p && (p.motivo_archivo==='Agotado' || (p.archivado_en && p.vendido_en && p.activo===false)));
 }
@@ -5491,7 +5499,7 @@ function catalogoProductosBase(){
 function catalogoProductosVisibles(){
   var q=(document.getElementById('catalogo-busqueda')?.value||'').toLowerCase().trim();
   return catalogoProductosBase().filter(function(p){
-    if(catalogoCategoria && (p.categoria||'Sin categoría')!==catalogoCategoria) return false;
+    if(catalogoCategoria && catalogoCategoriaProducto(p)!==catalogoCategoria) return false;
     if(q && !((p.nombre||'')+' '+(p.categoria||'')).toLowerCase().includes(q)) return false;
     return true;
   });
@@ -5546,7 +5554,7 @@ function renderGeneradorCatalogo(){
   if(estadoSel) estadoSel.value=catalogoEstado;
   var cats=[];
   catalogoProductosBase().forEach(function(p){
-    var c=p.categoria||'Sin categoría';
+    var c=catalogoCategoriaProducto(p);
     if(cats.indexOf(c)<0) cats.push(c);
   });
   cats.sort(function(a,b){return a.localeCompare(b,'es');});
@@ -5595,7 +5603,7 @@ function generarCatalogoPDF(){
     +'*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:#1e293b;background:#fff}'
     +'@page{size:A4;margin:6mm}.catalogo{max-width:196mm;margin:auto}.cab{padding:5px 0 7px;border-bottom:2px solid #f9a8d4;margin-bottom:8px;display:flex;justify-content:space-between;align-items:end}.marca{font-size:21px;font-weight:900;color:#db2777}.fecha{font-size:9px;color:#94a3b8}.cat{margin:7px 0 4px;padding:5px 8px;background:#fdf2f8;border-left:4px solid #db2777;color:#7c3aed;font-weight:800;font-size:12px;break-after:avoid}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.producto{border:1px solid #f1d5e6;border-radius:8px;padding:6px;break-inside:avoid;background:#fff}.fotos{display:flex;flex-wrap:wrap;gap:4px;align-items:center;justify-content:center;background:#fffafd;border-radius:6px;padding:4px;min-height:150px}.fotos img{width:100%;height:230px;max-height:230px;object-fit:contain;display:block}.fotos.multi img{width:calc(50% - 2px);height:145px;max-height:145px}.info{padding:6px 2px 2px;display:flex;justify-content:space-between;gap:6px;align-items:start}.nombre{font-size:11px;font-weight:700;line-height:1.3}.precio{font-size:14px;font-weight:900;color:#db2777;white-space:nowrap}.sin{font-size:32px;padding:30px}.pie{font-size:9px;color:#94a3b8;margin-top:4px}.no-print{display:block;padding:12px;margin-bottom:10px;background:#fdf2f8;border-radius:8px}@media print{.no-print{display:none}.cab{margin-top:0}}</style></head><body><div class="no-print">Usa <b>Imprimir → Guardar como PDF</b> para crear el archivo.</div><div class="catalogo"><div class="cab"><div class="marca">🌸 Brillitos</div><div class="fecha">Catálogo de encargos · '+fecha+' · '+seleccionados.length+' productos</div></div>';
   var grupos={};
-  items.forEach(function(x){var c=x.p.categoria||'Sin categoría';(grupos[c]||(grupos[c]=[])).push(x);});
+  items.forEach(function(x){var c=catalogoCategoriaProducto(x.p);(grupos[c]||(grupos[c]=[])).push(x);});
   Object.keys(grupos).sort(function(a,b){return a.localeCompare(b,'es');}).forEach(function(cat){
     html+='<div class="cat">'+cat+'</div><div class="grid">';
     grupos[cat].forEach(function(x){
