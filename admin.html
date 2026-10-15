@@ -3201,11 +3201,16 @@ async function guardarVenta(){
     };
     const items=prepararVentaItems(ventaItems);
     const key=claveOperacion('venta',JSON.stringify({data,items}));
-    await brlRPC('brl_save_sale',{p_id:editVentaId||null,p_data:data,p_items:items,p_key:key});
+    const guardada=await brlRPC('brl_save_sale',{p_id:editVentaId||null,p_data:data,p_items:items,p_key:key});
+    let errorReserva=null;
+    if(data.estado==='Cotización'){
+      try{ await brlRPC('brl_reserve_quote',{p_id:guardada.id}); }catch(e){ errorReserva=e; }
+    }
     sessionStorage.removeItem('brl_admin_venta');
     cerrarModal('modal-venta');
     await recargarVentasStock();
-    toast('✅ Venta e inventario guardados');
+    if(errorReserva) toast('⚠️ Cotización guardada, pero no se reservó el stock: '+errorReserva.message,7000);
+    else toast(data.estado==='Cotización'?'✅ Cotización guardada; stock reservado por 1 hora':'✅ Venta e inventario guardados');
   }catch(err){toast('❌ '+err.message,7000);}
   finally{restoreBtn();}
 }
@@ -3314,8 +3319,12 @@ async function guardarCotizacion(){
     const key=claveOperacion('cotizacion',JSON.stringify({data,items}));
     const v=await brlRPC('brl_save_sale',{p_id:_cotizacionVentaId||null,p_data:data,p_items:items,p_key:key});
     _cotizacionVentaId=v.id;d.ventaId=v.id;d.numero=v.numero;
+    let errorReserva=null;
+    try{ await brlRPC('brl_reserve_quote',{p_id:v.id}); }catch(e){ errorReserva=e; }
     sessionStorage.removeItem('brl_admin_cotizacion');await recargarVentasStock();
-    mostrarCotizacion(d);toast('✅ Cotización guardada sin descontar stock');
+    mostrarCotizacion(d);
+    if(errorReserva) toast('⚠️ Cotización guardada, pero no se reservó el stock: '+errorReserva.message,7000);
+    else toast('✅ Cotización guardada; stock reservado por 1 hora');
   }catch(e){toast('❌ '+e.message,7000);}
   finally{guardandoCotizacion=false;}
 }
