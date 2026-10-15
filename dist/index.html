@@ -299,6 +299,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 .cart-drw.open{transform:translateX(0)}
 .cart-hdr{display:flex;align-items:center;justify-content:space-between;padding:16px;border-bottom:2px dashed var(--pk-l);background:var(--ye)}
 .cart-ttl{font-family:var(--fh);font-size:1rem;color:var(--pk)}
+.cart-back{background:#fff;border:1.5px solid var(--br);color:var(--ts);border-radius:999px;padding:7px 10px;cursor:pointer;font-size:.72rem;font-weight:900;font-family:var(--fb);white-space:nowrap}.cart-back:hover{background:var(--pk-p);color:var(--pk);border-color:var(--pk-l)}
 .cart-x{background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--ts)}
 .cart-items{flex:1;min-height:100px;overflow-y:auto;padding:12px}
 .cart-empty{text-align:center;color:var(--ts);font-size:.85rem;font-weight:700;padding:40px 20px}
@@ -364,6 +365,15 @@ input[type=range]{accent-color:var(--pk);width:120px}
 
 /* ── RESPONSIVE ── */
 @media(max-width:768px){
+  body{padding-top:60px}
+  .cart-drw{width:100vw;height:100dvh;max-height:100dvh}
+  .cart-items{min-height:0;flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+  .pay-panel{flex:0 1 auto;max-height:55dvh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:max(12px,env(safe-area-inset-bottom))}
+  .pay-panel input,.pay-panel button{touch-action:manipulation}
+  .pay-action{min-height:46px}
+  #order-customer-name,#order-customer-phone{font-size:16px!important}
+  .pay-tabs{padding-bottom:3px}
+}
   header{padding:0 16px;height:60px}
   .hero{padding:28px 20px 22px}
   .hero-title{font-size:1.6rem}
@@ -551,7 +561,8 @@ input[type=range]{accent-color:var(--pk);width:120px}
     <span class="cart-ttl">Mi carrito 🛒</span>
     <div style="display:flex;align-items:center;gap:8px">
       <button id="clear-cart-btn" class="cart-clear-btn" onclick="clearCart()" title="Vaciar carrito">🗑️ Vaciar carrito</button>
-      <button class="cart-x" onclick="closeCart()">✕</button>
+      <button class="cart-back" onclick="closeCart();document.getElementById('productos')?.scrollIntoView({behavior:'smooth',block:'start'})" title="Seguir comprando">← Seguir comprando</button>
+      <button class="cart-x" onclick="closeCart()" aria-label="Cerrar carrito">✕</button>
     </div>
   </div>
   <div class="cart-items" id="cart-items">
@@ -580,6 +591,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
             <span style="color:#777;font-weight:700">Banco</span><strong style="font-size:.9rem">Bancamiga · 0172</strong>
             <span style="color:#777;font-weight:700">Monto</span><strong id="bs-total" style="font-size:1.08rem;color:#c2410c">Bs. 0.00</strong>
           </div>
+          <button type="button" onclick="copyPaymentDetails(this)" style="width:100%;margin-top:10px;border:1px solid #f3c4d8;background:#fff;border-radius:9px;padding:8px 10px;cursor:pointer;font-family:var(--fb);font-size:.76rem;font-weight:800;color:var(--pk)">📋 Copiar datos y monto</button>
         </div>
         <div class="subtotal-row"><span class="label">Total productos</span><span class="val" id="bs-sub">$0.00</span></div>
         <div class="bs-row" style="margin-top:7px">
@@ -673,7 +685,7 @@ input[type=range]{accent-color:var(--pk);width:120px}
 <div class="toast" id="toast"></div>
 
 <script>
-// v1777062456
+// v1777062457
 var CATALOG = [];
 var STORE_CONFIG = {id:1, descuento_reglas:[]};
 var SUPABASE_URL = "https://xavqokyzdmqzguicjsrq.supabase.co";
@@ -681,24 +693,70 @@ var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 
 async function cargarCatalogo() {
   try {
-    // Query productos y variantes por separado para no depender del foreign key
-    var [respProds, respVars, respConfig] = await Promise.all([
-      fetch(SUPABASE_URL + '/rest/v1/productos?select=*&activo=neq.false&visible_web=neq.false&order=es_nuevo.desc,id.desc&limit=1000', {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-      }),
-      fetch(SUPABASE_URL + '/rest/v1/producto_variantes?select=*&activo=eq.true&order=id.asc', {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-      }),
-      fetch(SUPABASE_URL + '/rest/v1/configuracion_tienda?select=*&id=eq.1&limit=1', {
-        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
-      })
-    ]);
-    var data = await respProds.json();
-    var varsData = await respVars.json();
-    var configData = respConfig.ok ? await respConfig.json() : [];
-    if(Array.isArray(configData) && configData[0]) STORE_CONFIG = Object.assign({}, STORE_CONFIG, configData[0]);
-    if(!respProds.ok){ console.error('Supabase productos error:', data); }
-    if(!respVars.ok){ console.error('Supabase variantes error:', varsData); }
+    // Cargar productos primero. Las tablas auxiliares no deben impedir que
+    // el catálogo público se muestre si alguna solicitud secundaria falla.
+    var prodUrl = SUPABASE_URL + '/rest/v1/productos?select=*&activo=neq.false&visible_web=neq.false&order=es_nuevo.desc,id.desc&limit=1000';
+    var prodHeaders = { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY };
+    var respProds;
+    var data;
+    var usingStaticCache = false;
+    try {
+      respProds = await fetch(prodUrl, { headers: prodHeaders, cache: 'no-store' });
+      data = await respProds.json();
+    } catch (err) {
+      console.warn('No se pudo consultar Supabase; usando respaldo estático.', err);
+    }
+
+    if (!respProds || !respProds.ok || !Array.isArray(data)) {
+      try {
+        var cacheResp = await fetch('./productos-cache.json', { cache: 'no-store' });
+        var cacheData = await cacheResp.json();
+        if (!Array.isArray(cacheData)) throw new Error('Respaldo inválido');
+        data = cacheData;
+        usingStaticCache = true;
+        console.warn('Catálogo cargado desde productos-cache.json.');
+      } catch (cacheErr) {
+        console.error('Supabase y respaldo del catálogo fallaron.', cacheErr);
+        throw new Error('No se pudo cargar el catálogo de productos.');
+      }
+    }
+
+    var varsData = [];
+    if(usingStaticCache){
+      data.forEach(function(p){
+        if(Array.isArray(p.variantes)) varsData = varsData.concat(p.variantes);
+      });
+    }
+    try {
+      var respVars = await fetch(
+        SUPABASE_URL + '/rest/v1/producto_variantes?select=*&activo=eq.true&order=id.asc',
+        { headers: prodHeaders, cache: 'no-store' }
+      );
+      if (respVars.ok) {
+        var parsedVars = await respVars.json();
+        if (Array.isArray(parsedVars)) varsData = parsedVars;
+      } else {
+        console.warn('Supabase variantes error:', respVars.status);
+      }
+    } catch (err) {
+      console.warn('No se pudieron cargar las variantes:', err);
+    }
+
+    try {
+      var respConfig = await fetch(
+        SUPABASE_URL + '/rest/v1/configuracion_tienda?select=*&id=eq.1&limit=1',
+        { headers: prodHeaders, cache: 'no-store' }
+      );
+      if (respConfig.ok) {
+        var configData = await respConfig.json();
+        if (Array.isArray(configData) && configData[0]) {
+          STORE_CONFIG = Object.assign({}, STORE_CONFIG, configData[0]);
+        }
+      }
+    } catch (err) {
+      console.warn('No se pudo cargar la configuración de la tienda:', err);
+    }
+
     // Agrupar variantes por producto_id
     var varsByProd = {};
     if(Array.isArray(varsData)){
@@ -707,6 +765,7 @@ async function cargarCatalogo() {
         varsByProd[v.producto_id].push(v);
       });
     }
+
     CATALOG = data.map(function(p) {
       var variantes = (varsByProd[p.id] || []).filter(function(v){ return v.activo !== false; });
       return {
@@ -748,9 +807,15 @@ async function cargarCatalogo() {
     init();
   } catch(e) {
     console.error('Error cargando catálogo:', e);
+    var grid = document.getElementById('product-grid');
+    var home = document.getElementById('home-sections');
+    if(grid) {
+      grid.style.display = '';
+      grid.innerHTML = '<div class="state-msg"><span class="em">⚠️</span>No pudimos cargar el catálogo. Recarga la página e inténtalo de nuevo.</div>';
+    }
+    if(home) home.style.display = 'none';
   }
 }
-
 
 function clampDiscountPct(v){
   var n=parseFloat(v)||0;
@@ -1574,6 +1639,39 @@ function calcBNC(){
   const usdEl=document.getElementById('bnc-usd');
   if(usdEl) usdEl.textContent='$'+discounted.toFixed(2);
 }
+async function copyPaymentDetails(btn){
+  const montoEl=document.getElementById('bs-total');
+  const monto=montoEl ? montoEl.textContent.trim() : 'Bs. 0.00';
+  const texto=[
+    'Pago Móvil',
+    'Cédula: V-26.239.265',
+    'Celular: 0424-9372490',
+    'Banco: Bancamiga · 0172',
+    'Monto: '+monto
+  ].join('\n');
+  try{
+    await navigator.clipboard.writeText(texto);
+    const old=btn.textContent;
+    btn.textContent='✓ ¡Todos copiados!';
+    setTimeout(function(){btn.textContent=old;},1600);
+  }catch(e){
+    const ta=document.createElement('textarea');
+    ta.value=texto;
+    ta.style.position='fixed';
+    ta.style.opacity='0';
+    document.body.appendChild(ta);
+    ta.select();
+    try{
+      document.execCommand('copy');
+      const old=btn.textContent;
+      btn.textContent='✓ ¡Todos copiados!';
+      setTimeout(function(){btn.textContent=old;},1600);
+    }catch(err){
+      showToast('No se pudo copiar automáticamente');
+    }
+    ta.remove();
+  }
+}
 function calcBS(){
   const sub=cartSubtotal();
   const rate=parseFloat(document.getElementById('bs-rate').value)||40;
@@ -1595,13 +1693,26 @@ function buildOrderLines(){
 let _sendingWebOrder=false;
 
 async function webRPC(name, data){
-  const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+name,{
-    method:'POST',headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
-    body:JSON.stringify(data)
-  });
-  const result=await r.json();
-  if(!r.ok) throw new Error(result.message||'No se pudo registrar el pedido');
-  return result;
+  const controller=new AbortController();
+  const timer=setTimeout(()=>controller.abort(),12000);
+  try{
+    const r=await fetch(SUPABASE_URL+'/rest/v1/rpc/'+name,{
+      method:'POST',
+      headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+      body:JSON.stringify(data),
+      signal:controller.signal
+    });
+    const text=await r.text();
+    let result={};
+    try{result=text?JSON.parse(text):{};}catch(_){}
+    if(!r.ok) throw new Error(result.message||result.error||'No se pudo registrar el pedido');
+    return result;
+  }catch(e){
+    if(e.name==='AbortError') throw new Error('La conexión está tardando demasiado. Revisa tu internet e inténtalo de nuevo.');
+    throw e;
+  }finally{
+    clearTimeout(timer);
+  }
 }
 async function sendWA(method){
   if(_sendingWebOrder)return;
@@ -1611,8 +1722,9 @@ async function sendWA(method){
   if(customer.telefono.length<10||customer.telefono.length>15){showToast('Escribe tu WhatsApp con código de país');document.getElementById('order-customer-phone').focus();return;}
   _sendingWebOrder=true;
   const buttons=[...document.querySelectorAll('[onclick*="sendWA("]')];
-  buttons.forEach(b=>b.disabled=true);
-  const waWindow=window.open('about:blank','_blank');
+  buttons.forEach(b=>{b.disabled=true;b.dataset.originalText=b.textContent;b.textContent='⏳ Procesando…';});
+  const activeButton=buttons.find(b=>b.matches(':focus'))||buttons[0];
+  const waWindow=null;
   try{
     const payment=method||'consulta';
     const rate=payment==='binance'?Number(document.getElementById('bnc-rate').value):
@@ -1625,18 +1737,8 @@ async function sendWA(method){
     if(!draft||draft.signature!==signature){
       draft={signature,key:crypto.randomUUID()};localStorage.setItem('brl_checkout',JSON.stringify(draft));
     }
-    const q=await webRPC('brl_quote',{p_items:items,p_method:payment,p_rate:rate});
-    const before=Math.round(cartSubtotal()*100)/100;
-    if(before!==Number(q.subtotal)){
-      q.items.forEach(it=>{
-        const c=cart.find(x=>x.id==it.producto_id&&String(x.variante_id||'')===String(it.variante_id||''));
-        if(c){c.precio=Number(it.precio_unitario);c.precio_original=Number(it.precio_original);}
-      });
-      saveCart();updateCartUI();renderDiscountBanner();
-      throw new Error('El precio se actualizó. Revisa el nuevo total y vuelve a confirmar.');
-    }
     const order=await webRPC('brl_checkout_customer',{
-      p_key:draft.key,p_items:items,p_method:payment,p_rate:rate,p_expected:Number(q.monto_pago),p_customer:customer
+      p_key:draft.key,p_items:items,p_method:payment,p_rate:rate,p_expected:null,p_customer:customer
     });
     const money=n=>Number(n||0).toFixed(2);
     const lines=order.items.map((i,n)=>(n+1)+'. '+i.producto_nombre+
@@ -1656,11 +1758,17 @@ async function sendWA(method){
     const url='https://wa.me/'+num+'?text='+encodeURIComponent(msg);
     cart=[];saveCart();localStorage.removeItem('brl_checkout');updateCartUI();
     showToast('✅ Pedido registrado: '+order.numero);
-    if(waWindow)waWindow.location.href=url;else window.location.href=url;
+    window.location.href=url;
   }catch(e){
     if(waWindow)waWindow.close();
     showToast('⚠️ '+e.message);
-  }finally{_sendingWebOrder=false;buttons.forEach(b=>b.disabled=false);}
+  }finally{
+    _sendingWebOrder=false;
+    buttons.forEach(b=>{
+      b.disabled=false;
+      if(b.dataset.originalText){b.textContent=b.dataset.originalText;delete b.dataset.originalText;}
+    });
+  }
 }
 
 function openOrders(focus){
