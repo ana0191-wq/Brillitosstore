@@ -3310,8 +3310,27 @@ async function descargarCotizacionImagen(){
 async function copiarCotizacion(){
   const d=_cotizacionData;
   if(!d)return;
-  const lineas=(d.items||[]).map(i=>'• '+(i.producto_nombre||'Producto')+' x'+(i.cantidad||1)+' — 
-
+  const lineas=(d.items||[]).map(i=>'• '+(i.producto_nombre||'Producto')+' x'+(i.cantidad||1)+' — $'+Number(i.subtotal||0).toFixed(2));
+  if(d.envio>0)lineas.push('Envío — $'+Number(d.envio).toFixed(2));
+  if(d.desc>0)lineas.push('Descuento — -$'+Number(d.desc).toFixed(2));
+  lineas.push('TOTAL — $'+Number(d.total||0).toFixed(2));
+  await copiarTextoBrillitos(lineas.join('\n'),'Cotización copiada');
+}
+async function copiarDatosPagoCotizacion(){
+  const d=_cotizacionData;if(!d)return;
+  const m=(d.metodo||'').toLowerCase(),tasa=Number(d.tasa||bcvHoy||0),bs=Number(d.total||0)*tasa;
+  let lineas=[];
+  if(m.includes('móvil')||m.includes('movil')||m.includes('bcv')||m.includes('bs'))lineas=['Cédula: V-26239265','Teléfono: 0424-9372490','Banco: Bancamiga (0172)','Monto: Bs. '+bs.toFixed(2)];
+  else if(m.includes('binance'))lineas=['Binance/USDT: ana0191@gmail.com','Monto: $'+Number(d.total||0).toFixed(2)];
+  else if(m.includes('paypal'))lineas=['PayPal: ana0191@gmail.com','Monto: $'+Number(d.total||0).toFixed(2)];
+  else if(m.includes('zelle'))lineas=['Zelle: ana0191@gmail.com','Monto: $'+Number(d.total||0).toFixed(2)];
+  else lineas=['Monto: $'+Number(d.total||0).toFixed(2)];
+  await copiarTextoBrillitos(lineas.join('\n'),'Datos de pago y monto copiados');
+}
+async function copiarTextoBrillitos(texto,mensaje){
+  try{await navigator.clipboard.writeText(texto);toast('📋 '+mensaje);}
+  catch(e){const ta=document.createElement('textarea');ta.value=texto;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();const ok=document.execCommand('copy');ta.remove();toast(ok?'📋 '+mensaje:'❌ No se pudo copiar');}
+}
 
 // ===== APARTADOS =====
 async function confirmarPedidoWeb(id){
