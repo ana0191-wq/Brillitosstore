@@ -3391,7 +3391,7 @@ function copiarCotizacion(){
 }
 function copiarDatosPagoCotizacion(){
   if(!_cotizacionData){toast('⚠️ No hay cotización activa');return;}
-  const d=_cotizacionData;return copiarTextoAdmin(textoDatosPagoAdmin(d.metodo,d.total,d.tasa,d.montoBs||Number(d.total||0)*Number(d.tasa||0),d.montoPago,d.monedaPago),'Datos de pago copiados');
+  const d=_cotizacionData;return copiarTextoAdmin(textoDatosPagoAdmin(d.metodo,d.total,d.tasa,Number(d.total||0)*Number(d.tasa||0),d.montoPago,d.monedaPago),'Datos de pago copiados');
 }
 function copiarDatosVenta(id){
   const v=ventas.find(x=>String(x.id)===String(id));
@@ -3410,7 +3410,7 @@ function copiarDatosVenta(id){
     Number(v.monto_bs||0)>0?'Total en Bs.: '+Number(v.monto_bs).toFixed(2):'',
     'Método de pago: '+(v.metodo_pago||'—'),
     'Estado: '+(v.estado||'Pendiente'),
-    textoDatosPagoAdmin(v.metodo_pago,v.total,v.tasa_bcv_usada,v.monto_bs,v.monto_pago,v.moneda_pago)
+    textoDatosPagoAdmin(v.metodo_pago,v.total,v.tasa_bcv_usada,v.estado==='Cotización'?Number(v.total||0)*Number(v.tasa_bcv_usada||0):v.monto_bs,v.monto_pago,v.moneda_pago)
   ].filter(Boolean).join('\n');
   return copiarTextoAdmin(texto,'Datos de venta copiados');
 }
