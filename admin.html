@@ -3375,6 +3375,8 @@ async function descargarCotizacionImagen(){
 }
 
 async function copiarTextoAdmin(texto, etiqueta){
+  // Normalizar saltos de línea literales que puedan venir de datos antiguos.
+  texto = String(texto || '').replace(/\\n/g, '\n');
   try{
     if(navigator.clipboard && window.isSecureContext){
       await navigator.clipboard.writeText(texto);
