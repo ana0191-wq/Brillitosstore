@@ -3016,8 +3016,10 @@ function actualizarItem(i,campo,val,t){
   if(campo==='cantidad') arr[i].cantidad=parseInt(val)||1;
   if(campo==='nombre'){
     arr[i].producto_nombre=val;
-    // Si el nombre se escribe a mano (sin seleccionar de lista), limpiar producto_id
-    if(!val.trim()) arr[i].producto_id=null;
+    // Un nombre escrito manualmente no debe conservar el ID del producto anterior.
+    arr[i].producto_id=null;
+    arr[i].variante_id=null;
+    arr[i].variante_nombre=null;
   }
   arr[i].subtotal=arr[i].precio_unitario*arr[i].cantidad;
   if(t==='v'){ const s=document.querySelectorAll('#items-lista .item-subtotal'); if(s[i]) s[i].textContent='$'+arr[i].subtotal.toFixed(2); calcularTotal(); }
