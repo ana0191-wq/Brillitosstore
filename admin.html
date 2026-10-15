@@ -508,7 +508,7 @@ tr:hover td{background:#fff8fc}
 <div class="page" id="page-cotizaciones">
   <div class="page-header">
     <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">📄 Cotizaciones</div>
-    <div class="header-actions"><span id="cotizaciones-count" style="font-size:12px;color:var(--sub)"></span><button class="btn btn-primary" onclick="abrirModalVenta()">+ Nueva cotización</button></div>
+    <div class="header-actions"><span id="cotizaciones-count" style="font-size:12px;color:var(--sub)"></span><button class="btn btn-primary" onclick="nuevaCotizacionAdmin()">+ Nueva cotización</button></div>
   </div>
   <div class="content">
     <div style="font-size:12px;color:var(--sub);margin-bottom:10px">Las cotizaciones se muestran aquí separadas de las ventas.</div>
@@ -2919,6 +2919,20 @@ function filtrarVentas(){
     }
     return true;
   }));
+}
+function nuevaCotizacionAdmin(){
+  abrirModalVenta();
+  setTimeout(()=>{
+    const sel=document.getElementById('v-estado');
+    if(sel && !Array.from(sel.options).some(o=>o.value==='Cotización')){
+      const opt=document.createElement('option');opt.value='Cotización';opt.textContent='Cotización';sel.appendChild(opt);
+    }
+    if(sel)sel.value='Cotización';
+    const title=document.getElementById('modal-venta-title');
+    if(title)title.textContent='📄 Nueva cotización';
+    const btnG=document.querySelector('#modal-venta .modal-footer .btn-primary, #modal-venta [onclick*="guardarVenta"]');
+    if(btnG)btnG.textContent='💾 Guardar cotización';
+  },80);
 }
 function abrirModalVenta(v=null){
   editVentaId=v?v.id:null;
