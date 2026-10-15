@@ -300,6 +300,7 @@ tr:hover td{background:#fff8fc}
   <div class="nav-item" onclick="irA('dashboard');cerrarMobNav()"><span class="nav-icon">&#128202;</span> Dashboard</div>
   <div class="nav-item" onclick="irA('pos');cerrarMobNav()"><span class="nav-icon">&#127978;</span> POS</div>
   <div class="nav-item" onclick="irA('ventas');cerrarMobNav()"><span class="nav-icon">&#128722;</span> Ventas</div>
+  <div class="nav-item" onclick="irA('cotizaciones');cerrarMobNav()"><span class="nav-icon">📄</span> Cotizaciones</div>
   <div class="nav-item" onclick="irA('apartados');cerrarMobNav()"><span class="nav-icon">&#128204;</span> Apartados</div>
   <div class="nav-item" onclick="irA('productos');cerrarMobNav()"><span class="nav-icon">&#128230;</span> Productos</div>
   <div class="nav-item" onclick="irA('clientes');cerrarMobNav()"><span class="nav-icon">&#128101;</span> Clientes</div>
@@ -318,6 +319,7 @@ tr:hover td{background:#fff8fc}
   <div class="nav-item active" onclick="irA('dashboard')"><span class="nav-icon">📊</span> Dashboard</div>
   <div class="nav-item" onclick="irA('pos')"><span class="nav-icon">🏪</span> POS — Venta rápida</div>
   <div class="nav-item" onclick="irA('ventas')"><span class="nav-icon">🛒</span> Ventas</div>
+  <div class="nav-item" onclick="irA('cotizaciones')"><span class="nav-icon">📄</span> Cotizaciones</div>
   <div class="nav-item" onclick="irA('apartados')"><span class="nav-icon">📌</span> Apartados</div>
   <div class="nav-item" onclick="irA('productos')"><span class="nav-icon">📦</span> Productos</div>
   <div class="nav-item" onclick="irA('clientes')"><span class="nav-icon">👥</span> Clientes</div>
@@ -439,7 +441,7 @@ tr:hover td{background:#fff8fc}
     <div style="display:flex;gap:7px;margin-bottom:8px;flex-wrap:wrap">
       <input style="flex:1;min-width:150px;padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;outline:none" placeholder="🔍 Buscar..." id="search-ventas" oninput="filtrarVentas()">
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-estado-venta" onchange="filtrarVentas()">
-        <option value="">Todos los estados</option><option value="Pendiente">Pendiente</option><option value="Pagado">Pagado</option><option value="Entregado">Entregado</option><option value="Cancelado">Cancelado</option><option value="Cotización">Cotización</option>
+        <option value="">Todos los estados</option><option value="Pendiente">Pendiente</option><option value="Pagado">Pagado</option><option value="Entregado">Entregado</option><option value="Cancelado">Cancelado</option>
       </select>
       <select style="padding:8px 12px;border:2px solid var(--border);border-radius:20px;font-size:13px;background:white;outline:none" id="filtro-canal-venta" onchange="filtrarVentas()">
         <option value="">Todos los canales</option><option>WhatsApp</option><option>Instagram</option><option>Evento</option><option>Web</option><option>POS</option>
@@ -499,6 +501,19 @@ tr:hover td{background:#fff8fc}
       <table id="tabla-ventas"><thead><tr><th style="width:32px"><input type="checkbox" id="chk-all-ventas" onchange="toggleAllVentas(this)" title="Seleccionar todas"></th><th>#</th><th>Fecha</th><th>Cliente</th><th>Canal</th><th>Productos</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Cuenta</th><th>Estado</th><th></th></tr></thead>
       <tbody id="tbody-ventas"></tbody></table>
     </div></div>
+  </div>
+</div>
+
+<!-- COTIZACIONES -->
+<div class="page" id="page-cotizaciones">
+  <div class="page-header">
+    <button class="mob-menu-btn" onclick="abrirMobNav()" style="display:none;background:none;border:none;font-size:22px;cursor:pointer;color:var(--pink);padding:0 8px 0 0;flex-shrink:0;line-height:1">&#9776;</button><div class="page-title">📄 Cotizaciones</div>
+    <div class="header-actions"><span id="cotizaciones-count" style="font-size:12px;color:var(--sub)"></span><button class="btn btn-primary" onclick="abrirModalVenta()">+ Nueva cotización</button></div>
+  </div>
+  <div class="content">
+    <div style="font-size:12px;color:var(--sub);margin-bottom:10px">Las cotizaciones se muestran aquí separadas de las ventas.</div>
+    <input id="search-cotizaciones" oninput="renderCotizaciones()" placeholder="🔍 Buscar por cliente o número..." style="width:100%;box-sizing:border-box;padding:9px 13px;border:2px solid var(--border);border-radius:20px;font-size:13px;margin-bottom:10px">
+    <div class="card" style="padding:0"><div class="table-wrap"><table><thead><tr><th>#</th><th>Fecha</th><th>Cliente</th><th>Productos</th><th>Total $</th><th>Bs.</th><th>Pago</th><th>Vence</th><th>Acciones</th></tr></thead><tbody id="tbody-cotizaciones"></tbody></table></div></div>
   </div>
 </div>
 
@@ -2168,6 +2183,7 @@ function irA(p){
   if(p==='dashboard') cargarDashboard();
   else if(p==='pos') renderPOS();
   else if(p==='ventas') renderVentas();
+  else if(p==='cotizaciones') renderCotizaciones();
   else if(p==='apartados') renderApartados();
   else if(p==='productos') renderProductos();
   else if(p==='clientes') renderClientes();
@@ -2731,7 +2747,7 @@ async function cambiarEstadoVenta(id,nuevoEstado){
 }
 function renderVentas(lista){
   ventasFiltradas=lista||ventas;
-  const l=ventasFiltradas;
+  const l=ventasFiltradas.filter(v=>v.estado!=='Cotización');
   actualizarBarraMasiva();
   document.getElementById('tbody-ventas').innerHTML=l.map(v=>
     '<tr data-id="'+v.id+'">'
@@ -2866,6 +2882,23 @@ async function poblarEventosMasivo(){
       const o=document.createElement('option');o.value=c.id;o.textContent=c.emoji+' '+c.nombre+' ('+c.tipo+')';sc.appendChild(o);
     });
   }
+}
+
+function renderCotizaciones(){
+  const el=document.getElementById('tbody-cotizaciones'); if(!el)return;
+  const q=(document.getElementById('search-cotizaciones')?.value||'').trim().toLowerCase();
+  const lista=(ventas||[]).filter(v=>v.estado==='Cotización'&&(!q||(v.cliente_nombre||'').toLowerCase().includes(q)||(v.numero||'').toLowerCase().includes(q)));
+  const count=document.getElementById('cotizaciones-count'); if(count)count.textContent=lista.length+' cotización(es)';
+  el.innerHTML=lista.map(v=>{
+    const expira=v.cotizacion_expira_en?new Date(v.cotizacion_expira_en).toLocaleString('es-VE',{dateStyle:'short',timeStyle:'short'}):'—';
+    const bs=Number(v.total||0)*Number(v.tasa_bcv_usada||0);
+    return '<tr><td><strong>'+(v.numero||'#'+v.id)+'</strong></td><td>'+formatFecha(v.fecha_venta||v.creado_en)+'</td><td>'+(v.cliente_nombre||'Cliente')+'</td><td>'+renderVentaProductos(v)+'</td><td><strong>$'+Number(v.total||0).toFixed(2)+'</strong></td><td>Bs. '+bs.toFixed(2)+'</td><td>'+(v.metodo_pago||'—')+'</td><td>'+expira+'</td><td style="white-space:nowrap">'+
+      '<button class="btn btn-blue btn-sm" title="Ver cotización" onclick="verCotizacionVenta('+v.id+')">📄</button> '+
+      '<button class="btn btn-secondary btn-sm" title="Copiar datos con monto" onclick="copiarDatosVenta('+v.id+')">📋</button> '+
+      '<button class="btn btn-warning btn-sm" title="Editar" onclick="editarCotizacion('+v.id+')">✏️</button> '+
+      '<button class="btn btn-success btn-sm" title="Confirmar pago y convertir en venta" onclick="cambiarEstadoVenta('+v.id+',\'Pagado\')">✅</button> '+
+      '<button class="btn btn-danger btn-sm" title="Cancelar cotización" onclick="cambiarEstadoVenta('+v.id+',\'Cancelado\')">✖</button></td></tr>';
+  }).join('')||'<tr><td colspan="9" style="text-align:center;padding:24px;color:var(--sub)">No hay cotizaciones guardadas.</td></tr>';
 }
 
 function filtrarVentas(){
@@ -3205,7 +3238,7 @@ function verCotizacion(){
 }
 function verCotizacionVenta(id){
   const v=ventas.find(x=>x.id===id); if(!v) return;
-  mostrarCotizacion({nombre:v.cliente_nombre||'Cliente',metodo:v.metodo_pago,entrega:v.tipo_entrega,envio:parseFloat(v.costo_envio||0),desc:parseFloat(v.descuento||0),subtotal:parseFloat(v.subtotal||0),total:parseFloat(v.total||0),tasa:v.tasa_bcv_usada||0,fecha:formatFecha(v.fecha_venta||v.creado_en),items:v.venta_items||[],numero:v.numero});
+  mostrarCotizacion({ventaId:v.id,nombre:v.cliente_nombre||'Cliente',metodo:v.metodo_pago,entrega:v.tipo_entrega,envio:parseFloat(v.costo_envio||0),desc:parseFloat(v.descuento||0),subtotal:parseFloat(v.subtotal||0),total:parseFloat(v.total||0),tasa:v.tasa_bcv_usada||0,montoBs:v.monto_bs||0,fecha:formatFecha(v.fecha_venta||v.creado_en),items:v.venta_items||[],numero:v.numero});
   abrirModal('modal-cotizacion');
 }
 
@@ -3216,6 +3249,11 @@ var _cotizacionData = null;
 var _cotizacionVentaId = null;
 
 function mostrarCotizacion(d){
+  if(d&&Array.isArray(d.items)){
+    const sub=d.items.reduce((s,i)=>s+Number(i.subtotal!=null?i.subtotal:(Number(i.precio_unitario||0)*Number(i.cantidad||1))||0),0);
+    d.subtotal=sub;
+    d.total=Math.max(0,sub+Number(d.envio||0)-Number(d.desc||0));
+  }
   _cotizacionData = d;
   _cotizacionVentaId = d.ventaId || null;
   const tasa = d.tasa || bcvHoy || 484.74;
@@ -3267,6 +3305,8 @@ async function guardarCotizacion(){
   guardandoCotizacion=true;
   try{
     const d=_cotizacionData,tasa=d.tasa||bcvHoy||0;
+    d.subtotal=(d.items||[]).reduce((s,i)=>s+Number(i.subtotal!=null?i.subtotal:(Number(i.precio_unitario||0)*Number(i.cantidad||1))||0),0);
+    d.total=Math.max(0,d.subtotal+Number(d.envio||0)-Number(d.desc||0));
     const data={cliente_nombre:d.nombre||'Cliente',canal:d.canal||'WhatsApp',metodo_pago:d.metodo||'Pago Móvil',
       tipo_entrega:d.entrega||'Por coordinar',estado:'Cotización',costo_envio:d.envio||0,
       descuento:d.desc||0,fecha_venta:hoyVEN(),tasa_bcv_usada:tasa,monto_bs:d.total*tasa};
@@ -3329,16 +3369,21 @@ async function copiarTextoAdmin(texto, etiqueta){
     return false;
   }
 }
-function textoDatosPagoAdmin(metodo){
+function textoDatosPagoAdmin(metodo,total,tasa,montoBs,montoPago,monedaPago){
   const m=String(metodo||'Pago Móvil').toLowerCase();
+  const usd=Number(total||0),rate=Number(tasa||0),bs=Number(montoBs||usd*rate),pay=Number(montoPago||0);
   const lineas=[];
-  if(m.includes('móvil')||m.includes('movil')||m.includes('bcv')||m.includes('bs')) lineas.push('Pago Móvil: Bancamiga 0172\nTeléfono: 0424-9372490\nC.I.: V-26239265');
-  if(m.includes('binance')) lineas.push('Binance/USDT: ana0191@gmail.com');
-  if(m.includes('paypal')) lineas.push('PayPal: ana0191@gmail.com');
-  if(m.includes('zelle')) lineas.push('Zelle: ana0191@gmail.com');
-  if(m.includes('efectivo')) lineas.push('Método de pago: Efectivo');
-  return lineas.length?lineas.join('\n\n'):'Pago Móvil: Bancamiga 0172\nTeléfono: 0424-9372490\nC.I.: V-26239265';
+  if(m.includes('móvil')||m.includes('movil')||m.includes('bcv')||m.includes('bs')){
+    lineas.push('Pago Móvil: Bancamiga 0172\\nTeléfono: 0424-9372490\\nC.I.: V-26239265');
+    lineas.push('Monto a pagar: Bs. '+bs.toFixed(2)+' (Total: $'+usd.toFixed(2)+(rate>0?' · Tasa: '+rate.toFixed(2):'')+')');
+  }
+  if(m.includes('binance')) lineas.push('Binance/USDT: ana0191@gmail.com\\nMonto a pagar: '+(pay>0?pay:usd).toFixed(2)+' '+(monedaPago||'USDT'));
+  if(m.includes('paypal')) lineas.push('PayPal: ana0191@gmail.com\\nMonto a pagar: '+(pay>0?pay:usd).toFixed(2)+' USD');
+  if(m.includes('zelle')) lineas.push('Zelle: ana0191@gmail.com\\nMonto a pagar: $'+usd.toFixed(2));
+  if(m.includes('efectivo')) lineas.push('Método de pago: Efectivo\\nMonto a pagar: $'+usd.toFixed(2));
+  return lineas.length?lineas.join('\\n\\n'):'Pago Móvil: Bancamiga 0172\\nTeléfono: 0424-9372490\\nC.I.: V-26239265\\nMonto a pagar: Bs. '+bs.toFixed(2);
 }
+
 function copiarCotizacion(){
   const el=document.getElementById('cot-print');
   if(!el){toast('⚠️ No hay cotización para copiar');return;}
@@ -3346,7 +3391,7 @@ function copiarCotizacion(){
 }
 function copiarDatosPagoCotizacion(){
   if(!_cotizacionData){toast('⚠️ No hay cotización activa');return;}
-  return copiarTextoAdmin(textoDatosPagoAdmin(_cotizacionData.metodo),'Datos de pago copiados');
+  const d=_cotizacionData;return copiarTextoAdmin(textoDatosPagoAdmin(d.metodo,d.total,d.tasa,d.montoBs||Number(d.total||0)*Number(d.tasa||0),d.montoPago,d.monedaPago),'Datos de pago copiados');
 }
 function copiarDatosVenta(id){
   const v=ventas.find(x=>String(x.id)===String(id));
@@ -3365,7 +3410,7 @@ function copiarDatosVenta(id){
     Number(v.monto_bs||0)>0?'Total en Bs.: '+Number(v.monto_bs).toFixed(2):'',
     'Método de pago: '+(v.metodo_pago||'—'),
     'Estado: '+(v.estado||'Pendiente'),
-    textoDatosPagoAdmin(v.metodo_pago)
+    textoDatosPagoAdmin(v.metodo_pago,v.total,v.tasa_bcv_usada,v.monto_bs,v.monto_pago,v.moneda_pago)
   ].filter(Boolean).join('\n');
   return copiarTextoAdmin(texto,'Datos de venta copiados');
 }
