@@ -3399,14 +3399,13 @@ function textoDatosPagoAdmin(metodo,total,tasa,montoBs,montoPago,monedaPago){
   const usd=Number(total||0),rate=Number(tasa||0),bs=Number(montoBs||usd*rate),pay=Number(montoPago||0);
   const lineas=[];
   if(m.includes('móvil')||m.includes('movil')||m.includes('bcv')||m.includes('bs')){
-    lineas.push('Pago Móvil: Bancamiga 0172\\nTeléfono: 0424-9372490\\nC.I.: V-26239265');
-    lineas.push('Monto a pagar: Bs. '+bs.toFixed(2)+' (Total: $'+usd.toFixed(2)+(rate>0?' · Tasa: '+rate.toFixed(2):'')+')');
+    return 'Teléfono: 0424-9372490\nCédula: V-26239265\nBanco: Bancamiga 0172\nMonto: Bs. '+bs.toFixed(2);
   }
-  if(m.includes('binance')) lineas.push('Binance/USDT: ana0191@gmail.com\\nMonto a pagar: '+(pay>0?pay:usd).toFixed(2)+' '+(monedaPago||'USDT'));
-  if(m.includes('paypal')) lineas.push('PayPal: ana0191@gmail.com\\nMonto a pagar: '+(pay>0?pay:usd).toFixed(2)+' USD');
-  if(m.includes('zelle')) lineas.push('Zelle: ana0191@gmail.com\\nMonto a pagar: $'+usd.toFixed(2));
-  if(m.includes('efectivo')) lineas.push('Método de pago: Efectivo\\nMonto a pagar: $'+usd.toFixed(2));
-  return lineas.length?lineas.join('\\n\\n'):'Pago Móvil: Bancamiga 0172\\nTeléfono: 0424-9372490\\nC.I.: V-26239265\\nMonto a pagar: Bs. '+bs.toFixed(2);
+  if(m.includes('binance')) lineas.push('Binance/USDT: ana0191@gmail.com\nMonto: '+(pay>0?pay:usd).toFixed(2)+' '+(monedaPago||'USDT'));
+  if(m.includes('paypal')) lineas.push('PayPal: ana0191@gmail.com\nMonto: '+(pay>0?pay:usd).toFixed(2)+' USD');
+  if(m.includes('zelle')) lineas.push('Zelle: ana0191@gmail.com\nMonto: $'+usd.toFixed(2));
+  if(m.includes('efectivo')) lineas.push('Método de pago: Efectivo\nMonto: $'+usd.toFixed(2));
+  return lineas.length?lineas.join('\n\n'):'Teléfono: 0424-9372490\nCédula: V-26239265\nBanco: Bancamiga 0172\nMonto: Bs. '+bs.toFixed(2);
 }
 
 function copiarCotizacion(){
