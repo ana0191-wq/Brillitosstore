@@ -954,7 +954,8 @@ tr:hover td{background:#fff8fc}
   <div id="cotizacion-contenido"></div>
   <div class="modal-footer" style="flex-wrap:wrap;gap:6px">
     <button class="btn btn-secondary" onclick="cerrarModal('modal-cotizacion')">Cerrar</button>
-    <button class="btn btn-success" onclick="copiarCotizacion()">📋 Copiar</button>
+    <button class="btn btn-success" onclick="copiarCotizacion()">📋 Copiar cotización</button>
+    <button class="btn btn-secondary" onclick="copiarDatosPagoCotizacion()">💳 Copiar datos de pago</button>
     <button class="btn btn-primary" onclick="descargarCotizacionImagen()">🖼️ Imagen</button>
     <button class="btn" style="background:#10b981;color:white" onclick="guardarCotizacion()">💾 Guardar cotización</button>
     <button id="btn-confirmar-cot" class="btn" style="background:#10b981;color:white;display:none" onclick="confirmarCotizacion()">✅ Confirmar pago</button><button id="btn-cancelar-cot" class="btn" style="background:#ef4444;color:white;display:none" onclick="cancelarCotizacion()">❌ Cancelar cotización</button>
@@ -2750,8 +2751,9 @@ function renderVentas(lista){
     +(()=>{const colores={Pagado:'background:#e8f5e9;color:#2e7d32',Pendiente:'background:#fff3e0;color:#e65100',Cancelado:'background:#ffebee;color:#c62828',Entregado:'background:#e3f2fd;color:#1565c0',Cotización:'background:#f3e8ff;color:#7c3aed'};const cur=v.estado||'Pendiente';const st=colores[cur]||'background:#f5f5f5;color:#333';return '<td><select style="font-size:11px;border-radius:12px;border:none;padding:3px 6px;cursor:pointer;font-weight:600;'+st+'" onchange="cambiarEstadoVenta('+v.id+',this.value)">'+['Cotización','Pendiente','Pagado','Entregado','Cancelado'].map(s=>'<option value="'+s+'"'+(cur===s?' selected':'')+'>'+s+'</option>').join('')+'</select></td>';})()
     +'<td style="white-space:nowrap">'
     +(v.estado!=='Entregado'&&v.estado!=='Cancelado'?'<button class="btn btn-sm" onclick="marcarEntregado(&quot;venta&quot;,'+v.id+')" style="background:#10b981;color:white;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px" title="Marcar entregado">✅</button> ':'')+(v.estado==='Cotización'?'<button class="btn btn-sm" style="background:#7c3aed;color:white;border:none;border-radius:8px;padding:4px 8px;cursor:pointer;font-size:12px" onclick="editarCotizacion('+v.id+')">✏️ Editar</button> ':'<button class="btn btn-warning btn-sm" onclick="editarVenta('+v.id+')">✏️</button> ')
-    +'<button class="btn btn-blue btn-sm" onclick="verCotizacionVenta('+v.id+')">📄</button> '
-    +'<button class="btn btn-warning btn-sm" style="font-size:11px" onclick="cancelarVenta('+v.id+')">↩️</button> <button class="btn btn-danger btn-sm" onclick="eliminarVenta('+v.id+')">🗑️</button>'
+    +'<button class="btn btn-blue btn-sm" onclick="verCotizacionVenta('+v.id+')" title="Ver cotización">📄</button> '
+    +'<button class="btn btn-secondary btn-sm" onclick="copiarDatosVenta('+v.id+')" title="Copiar datos de venta">📋</button> '
+    +'<button class="btn btn-warning btn-sm" style="font-size:11px" onclick="cancelarVenta('+v.id+')" title="Revertir">↩️</button> <button class="btn btn-danger btn-sm" onclick="eliminarVenta('+v.id+')" title="Eliminar">🗑️</button>'
     +'</td></tr>').join('');
 }
 // ── SELECCIÓN Y EDICIÓN MASIVA ──
@@ -3307,7 +3309,66 @@ async function descargarCotizacionImagen(){
   } catch(e){ toast('❌ Error al generar imagen: '+e.message); console.error(e); }
 }
 
-function copiarCotizacion(){ navigator.clipboard.writeText(document.getElementById('cot-print').innerText); toast('📋 Copiado'); }
+async function copiarTextoAdmin(texto, etiqueta){
+  try{
+    if(navigator.clipboard && window.isSecureContext){
+      await navigator.clipboard.writeText(texto);
+    }else{
+      const campo=document.createElement('textarea');
+      campo.value=texto;campo.setAttribute('readonly','');
+      campo.style.position='fixed';campo.style.opacity='0';campo.style.pointerEvents='none';
+      document.body.appendChild(campo);campo.select();
+      const ok=document.execCommand('copy');document.body.removeChild(campo);
+      if(!ok) throw new Error('El navegador no permitió copiar');
+    }
+    toast('📋 '+(etiqueta||'Datos copiados'));
+    return true;
+  }catch(e){
+    console.error('No se pudo copiar:',e);
+    toast('⚠️ No se pudo copiar. Revisa los permisos del navegador.',5000);
+    return false;
+  }
+}
+function textoDatosPagoAdmin(metodo){
+  const m=String(metodo||'Pago Móvil').toLowerCase();
+  const lineas=[];
+  if(m.includes('móvil')||m.includes('movil')||m.includes('bcv')||m.includes('bs')) lineas.push('Pago Móvil: Bancamiga 0172\nTeléfono: 0424-9372490\nC.I.: V-26239265');
+  if(m.includes('binance')) lineas.push('Binance/USDT: ana0191@gmail.com');
+  if(m.includes('paypal')) lineas.push('PayPal: ana0191@gmail.com');
+  if(m.includes('zelle')) lineas.push('Zelle: ana0191@gmail.com');
+  if(m.includes('efectivo')) lineas.push('Método de pago: Efectivo');
+  return lineas.length?lineas.join('\n\n'):'Pago Móvil: Bancamiga 0172\nTeléfono: 0424-9372490\nC.I.: V-26239265';
+}
+function copiarCotizacion(){
+  const el=document.getElementById('cot-print');
+  if(!el){toast('⚠️ No hay cotización para copiar');return;}
+  return copiarTextoAdmin(el.innerText,'Cotización copiada');
+}
+function copiarDatosPagoCotizacion(){
+  if(!_cotizacionData){toast('⚠️ No hay cotización activa');return;}
+  return copiarTextoAdmin(textoDatosPagoAdmin(_cotizacionData.metodo),'Datos de pago copiados');
+}
+function copiarDatosVenta(id){
+  const v=ventas.find(x=>String(x.id)===String(id));
+  if(!v){toast('⚠️ No se encontró la venta');return;}
+  const items=(v.venta_items||[]).map(i=>'• '+(i.producto_nombre||'Producto')+' x'+(i.cantidad||1)+' — $'+Number(i.subtotal||0).toFixed(2)).join('\n');
+  const texto=[
+    'Brillitos — '+(v.numero||'#'+v.id),
+    'Fecha: '+formatFecha(v.fecha_venta||v.creado_en),
+    'Cliente: '+(v.cliente_nombre||'—'),
+    'Canal: '+(v.canal||'—'),
+    'Productos:',items||'—',
+    'Subtotal: $'+Number(v.subtotal||0).toFixed(2),
+    Number(v.costo_envio||0)>0?'Envío: $'+Number(v.costo_envio).toFixed(2):'',
+    Number(v.descuento||0)>0?'Descuento: -$'+Number(v.descuento).toFixed(2):'',
+    'Total: $'+Number(v.total||0).toFixed(2),
+    Number(v.monto_bs||0)>0?'Total en Bs.: '+Number(v.monto_bs).toFixed(2):'',
+    'Método de pago: '+(v.metodo_pago||'—'),
+    'Estado: '+(v.estado||'Pendiente'),
+    textoDatosPagoAdmin(v.metodo_pago)
+  ].filter(Boolean).join('\n');
+  return copiarTextoAdmin(texto,'Datos de venta copiados');
+}
 
 
 // ===== APARTADOS =====
