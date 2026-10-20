@@ -1656,18 +1656,36 @@ window.addEventListener('popstate',function(){
 });
 // ===== BCV AUTOMÁTICO =====
 async function getBCV(fecha){
-  const hoy = new Date().toISOString().slice(0,10);
+  const hoy = typeof hoyVEN==='function' ? hoyVEN() : new Intl.DateTimeFormat('en-CA',{timeZone:'America/Caracas'}).format(new Date());
   const target = fecha || hoy;
   if(bcvCache[target]) return bcvCache[target];
   try {
-    const timeout = new Promise(function(_,rej){ setTimeout(function(){ rej(new Error('timeout')); }, 3000); });
-    const fetchP = fetch('https://ve.dolarapi.com/v1/dolares/oficial').then(function(r){ return r.json(); });
-    const d = await Promise.race([fetchP, timeout]);
-    const tasa = parseFloat(d.promedio||d.price||d.ventaBcv||0);
-    if(tasa>0){ bcvHoy=tasa; bcvCache[hoy]=tasa; bcvCache[target]=tasa; return tasa; }
-  } catch(e){ console.warn('BCV timeout/error:', e.message); }
-  bcvHoy=bcvHoy||484.74; bcvCache[target]=bcvHoy; return bcvHoy;
-  return bcvCache[target];
+    const res = await fetch(SB+'/functions/v1/bcv-historico?fecha='+encodeURIComponent(target), {
+      headers: H,
+      cache: 'no-store'
+    });
+    const data = await res.json();
+    const tasa = Number(data.tasa||0);
+    if(!res.ok || !(tasa>0)) throw new Error(data.error||('HTTP '+res.status));
+    bcvCache[target]=tasa;
+    if(target===hoy) bcvHoy=tasa;
+    return tasa;
+  } catch(e) {
+    console.warn('BCV histórico no disponible para '+target+':',e.message);
+    // Solo para hoy se permite consultar la tasa actual como respaldo.
+    // Para fechas pasadas nunca se sustituye una tasa histórica por la de hoy.
+    if(target===hoy) {
+      try {
+        const r=await fetch('https://ve.dolarapi.com/v1/dolares/oficial',{cache:'no-store'});
+        if(r.ok){
+          const d=await r.json();
+          const actual=Number(d.promedio||d.price||d.precio||d.ventaBcv||0);
+          if(actual>0){bcvHoy=actual;bcvCache[target]=actual;return actual;}
+        }
+      } catch(_) {}
+    }
+    return 0;
+  }
 }
 
 async function mostrarBCVDash(){
@@ -2533,9 +2551,11 @@ async function _ejecutarCobroPOS(total,tasa,montoBs){
   cobrandoPOS=true;
   try{
     const cliente=document.getElementById('pos-cliente').value.trim()||'Cliente POS';
+    const esBsPOS=['Pago Móvil','BCV','Efectivo Bs'].includes(posMetodoActual);
     const data={cliente_nombre:cliente,canal:'POS',metodo_pago:posMetodoActual,
       tipo_entrega:document.getElementById('pos-entrega').value,estado:'Pagado',
-      costo_envio:0,descuento:0,fecha_venta:hoyVEN(),tasa_bcv_usada:tasa||0,monto_bs:montoBs||0};
+      costo_envio:0,descuento:0,fecha_venta:hoyVEN(),tasa_bcv_usada:tasa||0,
+      tasa_bcv_fecha:esBsPOS&&Number(tasa)>0?hoyVEN():null,monto_bs:montoBs||0};
     const items=prepararVentaItems(posCarrito.map(it=>({...it,producto_id:it.id,producto_nombre:it.nombre,precio_unitario:it.precio})));
     const key=claveOperacion('pos',JSON.stringify({data,items}));
     const venta=await brlRPC('brl_save_sale',{p_id:null,p_data:data,p_items:items,p_key:key});
@@ -3210,6 +3230,7 @@ async function guardarVenta(){
       descuento:     desc,
       total,
       tasa_bcv_usada: tasa||0,
+      tasa_bcv_fecha: esBs ? (document.getElementById('v-fecha-venta').value || hoyVEN()) : null,
       monto_bs:      parseFloat(monto_bs)||0,
       moneda_pago:   esBs ? 'Bs' : 'USD',
       cuenta_cobro:  cuentaEl ? cuentaEl.value||null : null,
@@ -3330,7 +3351,8 @@ async function guardarCotizacion(){
     d.total=Math.max(0,d.subtotal+Number(d.envio||0)-Number(d.desc||0));
     const data={cliente_nombre:d.nombre||'Cliente',canal:d.canal||'WhatsApp',metodo_pago:d.metodo||'Pago Móvil',
       tipo_entrega:d.entrega||'Por coordinar',estado:'Cotización',costo_envio:d.envio||0,
-      descuento:d.desc||0,fecha_venta:hoyVEN(),tasa_bcv_usada:tasa,monto_bs:d.total*tasa};
+      descuento:d.desc||0,fecha_venta:hoyVEN(),tasa_bcv_usada:tasa,
+      tasa_bcv_fecha:Number(tasa)>0?hoyVEN():null,monto_bs:d.total*tasa};
     const items=prepararVentaItems(d.items||[]);
     const key=claveOperacion('cotizacion',JSON.stringify({data,items}));
     const v=await brlRPC('brl_save_sale',{p_id:_cotizacionVentaId||null,p_data:data,p_items:items,p_key:key});
