@@ -1537,7 +1537,7 @@ async function ejecutarCobro(){
   try{
     const res=await POST('ventas',{cliente_nombre:cliente,canal:canalPOS,evento_id:getEventoSeleccionado(),metodo_pago:met,estado:'Pagado',
       subtotal:sub,costo_envio:0,descuento:desc,total,fecha_venta:hoy(),
-      tasa_bcv_usada:esBs?tasa:0,monto_bs:esBs?bs:0,moneda_pago:esBs?'Bs':'USD',
+      tasa_bcv_usada:esBs?tasa:0,tasa_bcv_fecha:esBs&&Number(tasa)>0?hoy():null,monto_bs:esBs?bs:0,moneda_pago:esBs?'Bs':'USD',
       cuenta_cobro:cuenta||null,numero:'POS-'+Date.now()});
     const vid=res&&res[0]&&res[0].id;
     if(vid){
