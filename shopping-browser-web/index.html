@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Brillitos Shopping</title>
+<style>
+:root{--pink:#f5e7f2;--purple:#805d91;--ink:#34283a;--muted:#786e7d;--line:#e8dfe9;--bg:#fbf9fc}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+header{background:var(--pink);padding:22px max(18px,calc((100vw - 1080px)/2));display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.logo{width:48px;height:48px;border-radius:15px;background:var(--purple);color:white;display:grid;place-items:center;font-size:24px}
+h1{font-size:22px;margin:0}header p{margin:3px 0 0;color:#695773;font-size:13px}.tag{margin-left:auto;background:#fff9;padding:7px 10px;border-radius:999px;font-size:12px}
+main{max-width:1080px;margin:24px auto;padding:0 16px;display:grid;grid-template-columns:minmax(0,1fr) minmax(320px,.9fr);gap:18px}
+.panel{background:white;border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 4px 18px #34283a08}
+h2{font-size:17px;margin:0 0 12px}p.help{font-size:13px;color:var(--muted);margin:0 0 14px}
+label{display:block;font-size:12px;font-weight:650;color:#67586d;margin:12px 0 5px}
+input,textarea,select{font:inherit;width:100%;border:1px solid #dcd1e1;border-radius:10px;padding:10px 11px;background:white;color:var(--ink)}
+textarea{min-height:150px;resize:vertical}.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+button,.button{border:0;border-radius:10px;padding:10px 13px;font:600 13px system-ui;cursor:pointer;background:var(--purple);color:white}
+button.secondary{background:#f1eaf4;color:#594369}button.danger{background:#fff0f1;color:#a33346}.stores{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}.stores button{background:#f2edf4;color:#66526e}.stores button.active{background:var(--purple);color:white}
+.notice{padding:11px 12px;background:#f7f1fa;border-radius:10px;font-size:13px;color:#5c4b66;margin:12px 0}
+.item{border:1px solid var(--line);border-radius:13px;padding:13px;margin-top:10px}.itemhead{display:flex;justify-content:space-between;gap:8px;align-items:start}.itemhead strong{font-size:14px}.small{font-size:12px;color:var(--muted)}.fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}.fields label{margin-top:9px}
+.empty{border:1px dashed #d8c9df;border-radius:12px;padding:25px 15px;text-align:center;color:var(--muted);font-size:13px}
+footer{max-width:1080px;padding:0 16px 28px;margin:auto;color:var(--muted);font-size:12px}
+@media(max-width:760px){main{grid-template-columns:1fr;margin-top:14px}.tag{margin-left:0}header{padding:18px} .panel{padding:16px}}
+</style></head>
+<body>
+<header><div class="logo">✿</div><div><h1>Brillitos Shopping</h1><p>Importador de pedidos de tiendas online</p></div><span class="tag">Versión web de prueba</span></header>
+<main>
+<section class="panel">
+<h2>1. Importar carrito</h2><p class="help">Abre tu carrito en la tienda, copia el texto de los productos y pégalo aquí. También puedes añadir productos manualmente.</p>
+<div class="stores" id="stores"><button class="active" data-store="SHEIN">SHEIN</button><button data-store="Amazon">Amazon</button><button data-store="Temu">Temu</button><button data-store="AliExpress">AliExpress</button><button data-store="Otra tienda">Otra tienda</button></div>
+<label for="cartText">Texto copiado del carrito</label><textarea id="cartText" placeholder="Pega aquí el texto copiado del carrito: nombres de productos, precios, variantes y cantidades…"></textarea>
+<div class="btns"><button id="parse">Procesar texto</button><button class="secondary" id="clearText">Limpiar texto</button></div>
+<div class="notice">Limitación del navegador: las tiendas bloquean que una web externa lea su carrito directamente. Esta versión permite probar con datos reales pegando el texto copiado, sin compartir contraseñas ni iniciar sesión aquí.</div>
+<h2 style="margin-top:22px">O añadir un producto manualmente</h2>
+<label for="manualName">Nombre del producto</label><input id="manualName" placeholder="Ej. Estuche de gatito">
+<div class="fields"><div><label for="manualPrice">Precio (USD)</label><input id="manualPrice" type="number" min="0" step=".01" placeholder="5.99"></div><div><label for="manualQty">Cantidad</label><input id="manualQty" type="number" min="1" step="1" value="1"></div></div>
+<label for="manualVariant">Color, talla o variante</label><input id="manualVariant" placeholder="Ej. Rosa, talla M">
+<label for="manualUrl">Enlace del producto (opcional)</label><input id="manualUrl" type="url" placeholder="https://…">
+<div class="btns"><button id="add">Añadir producto</button></div>
+</section>
+<section class="panel">
+<h2>2. Revisar pedido</h2><p class="help">Revisa y corrige los datos antes de exportarlos a Brillitos Admin.</p>
+<div class="fields"><div><label for="customer">Cliente</label><input id="customer" placeholder="Nombre del cliente"></div><div><label for="orderRef">Referencia</label><input id="orderRef" placeholder="Opcional"></div></div>
+<div id="items"><div class="empty">Todavía no hay productos. Pega un carrito o añade un producto manualmente.</div></div>
+<div id="total" class="notice">Total: $0.00 USD · 0 unidades</div>
+<div class="btns"><button id="export">Descargar pedido JSON</button><button class="secondary" id="copy">Copiar datos</button><button class="secondary" id="save">Guardar en este navegador</button><button class="danger" id="reset">Vaciar pedido</button></div>
+<div id="status" class="small" role="status" aria-live="polite" style="margin-top:12px">Los cambios se quedan en esta página hasta que guardes o exportes.</div>
+</section></main>
+<footer>Prototipo independiente. No compra productos, no accede a las cuentas de las tiendas y aún no envía pedidos al Admin de Brillitos.</footer>
+<script>
+(function(){
+const $=id=>document.getElementById(id);let store='SHEIN',items=[];
+const money=n=>Number.isFinite(Number(n))?'$'+Number(n).toFixed(2):'—';
+function say(s){$('status').textContent=s}
+document.querySelectorAll('[data-store]').forEach(b=>b.onclick=()=>{store=b.dataset.store;document.querySelectorAll('[data-store]').forEach(x=>x.classList.toggle('active',x===b));});
+function render(){const box=$('items');box.innerHTML='';if(!items.length){box.innerHTML='<div class="empty">Todavía no hay productos. Pega un carrito o añade un producto manualmente.</div>'}
+items.forEach((it,i)=>{const el=document.createElement('div');el.className='item';el.innerHTML='<div class="itemhead"><strong></strong><button class="danger remove">Eliminar</button></div><div class="fields"><div><label>Precio USD</label><input class="price" type="number" min="0" step=".01"></div><div><label>Cantidad</label><input class="qty" type="number" min="1" step="1"></div></div><label>Producto</label><input class="name"><label>Variante</label><input class="variant"><label>Enlace</label><input class="url" type="url">';el.querySelector('strong').textContent='Producto '+(i+1);el.querySelector('.name').value=it.name||'';el.querySelector('.price').value=it.price??'';el.querySelector('.qty').value=it.quantity||1;el.querySelector('.variant').value=it.variant||'';el.querySelector('.url').value=it.url||'';el.querySelectorAll('input').forEach(inp=>inp.onchange=()=>{const key={name:'name',price:'price',qty:'quantity',variant:'variant',url:'url'}[inp.className];it[key]=key==='price'||key==='quantity'?Number(inp.value):inp.value;if(key==='quantity'&&it.quantity<1)it.quantity=1;renderTotalOnly();});el.querySelector('.remove').onclick=()=>{items.splice(i,1);render();};box.appendChild(el);});renderTotalOnly()}
+function renderTotalOnly(){const total=items.reduce((s,x)=>s+(Number(x.price)||0)*(Number(x.quantity)||1),0),units=items.reduce((s,x)=>s+(Number(x.quantity)||1),0);$('total').textContent='Total: '+money(total)+' USD · '+units+' unidades';}
+function parseText(){const txt=$('cartText').value.trim();if(!txt){say('Pega primero el texto copiado del carrito.');return}const lines=txt.split(/\n+/).map(x=>x.trim()).filter(Boolean);let added=0;for(let i=0;i<lines.length;i++){const line=lines[i];const priceMatches=[...line.matchAll(/(?:US\$|USD\s*|\$\s*)(\d{1,5}(?:[.,]\d{1,2})?)/gi)];const p=priceMatches.length?Number(priceMatches[priceMatches.length-1][1].replace(',','.')):null;const qtyMatch=line.match(/(?:qty|quantity|cantidad|x)\s*[:x]?\s*(\d{1,3})/i);const qty=qtyMatch?Math.max(1,Number(qtyMatch[1])):1;let name=line.replace(/(?:US\$|USD\s*|\$\s*)\d{1,5}(?:[.,]\d{1,2})?/gi,'').replace(/(?:qty|quantity|cantidad)\s*:?\s*\d+/ig,'').replace(/\s{2,}/g,' ').trim();if(name.length>2&&!/^(subtotal|total|checkout|continue shopping|envío|shipping|descuento|discount|ahorro|save|eliminar|remove|editar|edit|cantidad|quantity)$/i.test(name)){if(/^(\d+\s*(items?|artículos?|productos?)|your bag|mi carrito|shopping bag|carrito de compras)/i.test(name))continue;const similar=items.find(x=>x.name.toLowerCase()===name.toLowerCase()&&x.price===p);if(similar){similar.quantity+=qty}else{items.push({name,price:p,quantity:qty,variant:'',url:'',store});}added++;}}
+if(!added){const chunks=txt.split(/\n\s*\n/).map(x=>x.trim()).filter(x=>x.length>4);chunks.forEach(chunk=>items.push({name:chunk.slice(0,180),price:null,quantity:1,variant:'Revisar datos importados',url:'',store}));added=chunks.length;}
+render();say('Se procesó el texto. Se añadieron '+added+' líneas candidatas; verifica nombres, precios y cantidades. El formato de cada tienda puede variar.');}
+function add(){const name=$('manualName').value.trim();if(!name){say('Escribe el nombre del producto.');return}const price=$('manualPrice').value;items.push({name,price:price===''?null:Number(price),quantity:Math.max(1,Number($('manualQty').value)||1),variant:$('manualVariant').value.trim(),url:$('manualUrl').value.trim(),store});$('manualName').value='';$('manualPrice').value='';$('manualQty').value='1';$('manualVariant').value='';$('manualUrl').value='';render();say('Producto añadido.')}
+function payload(){return {source:'Brillitos Shopping web prototype',store,customer:$('customer').value.trim(),reference:$('orderRef').value.trim(),created_at:new Date().toISOString(),currency:'USD',items:items.map(x=>({...x})),total_usd:items.reduce((s,x)=>s+(Number(x.price)||0)*(Number(x.quantity)||1),0)}}
+$('parse').onclick=parseText;$('clearText').onclick=()=>{$('cartText').value='';say('Texto limpiado.')};$('add').onclick=add;
+$('export').onclick=()=>{if(!items.length){say('Añade al menos un producto antes de exportar.');return}const blob=new Blob([JSON.stringify(payload(),null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='brillitos-pedido-'+new Date().toISOString().slice(0,10)+'.json';a.click();URL.revokeObjectURL(a.href);say('Archivo JSON preparado para descargar.')};
+$('copy').onclick=async()=>{try{await navigator.clipboard.writeText(JSON.stringify(payload(),null,2));say('Datos copiados.')}catch(e){say('El navegador no permitió copiar automáticamente. Usa Descargar pedido JSON.')}};
+$('save').onclick=()=>{try{localStorage.setItem('brillitosShoppingDraft',JSON.stringify({payload:payload(),cartText:$('cartText').value}));say('Pedido guardado en este navegador.')}catch(e){say('No se pudo guardar en este navegador.')}};
+$('reset').onclick=()=>{if(confirm('¿Vaciar todos los productos de este pedido?')){items=[];render();say('Pedido vacío.')}};
+try{const saved=localStorage.getItem('brillitosShoppingDraft');if(saved){const s=JSON.parse(saved);items=s.payload.items||[];$('customer').value=s.payload.customer||'';$('orderRef').value=s.payload.reference||'';$('cartText').value=s.cartText||'';store=s.payload.store||store;document.querySelectorAll('[data-store]').forEach(b=>b.classList.toggle('active',b.dataset.store===store));render();say('Se recuperó el borrador guardado en este navegador.')}}catch(e){}
+})();
+</script></body></html>
