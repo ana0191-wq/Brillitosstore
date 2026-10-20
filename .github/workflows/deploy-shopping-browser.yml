@@ -1,0 +1,38 @@
+name: Deploy Brillitos Shopping web demo
+
+on:
+  push:
+    branches:
+      - feature/brillitos-shopping-browser
+    paths:
+      - "shopping-browser-web/**"
+      - ".github/workflows/deploy-shopping-browser.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages-shopping-demo"
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Configure GitHub Pages
+        uses: actions/configure-pages@v5
+      - name: Upload web demo
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: shopping-browser-web
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
