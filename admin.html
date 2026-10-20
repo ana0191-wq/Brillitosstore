@@ -1907,56 +1907,60 @@ document.addEventListener('input',ev=>{if(ev.target&&['po-costo','po-envio','po-
 
 // ===== INIT =====
 async function init(){
-  toast('Cargando Brillitos... 🌸');
-  console.log('🌸 init() arrancó');
-  try{ const fv=document.getElementById('v-fecha-venta'); if(fv) fv.value=hoyVEN(); }catch(e){}
-  const results = await Promise.allSettled([
-    sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000'),
-    sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500'),
-    sbGet('clientes','select=*&order=nombre.asc'),
-    sbGet('eventos','select=*&order=fecha.desc'),
-    sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200'),
-    sbGet('gastos_globales','select=*&order=fecha.desc&limit=500'),
-    sbGet('categorias','select=*&activo=eq.true&order=nombre.asc'),
-    sbGet('configuracion_tienda','select=*&id=eq.1&limit=1')
-  ]);
-  productos = results[0].status==='fulfilled'?results[0].value:[];
-  ventas    = results[1].status==='fulfilled'?results[1].value:[];
-  clientes  = results[2].status==='fulfilled'?results[2].value:[];
-  eventos   = results[3].status==='fulfilled'?results[3].value:[];
-  apartados = results[4].status==='fulfilled'?results[4].value:[];
-  console.log('📦 productos:',productos.length,'ventas:',ventas.length,'clientes:',clientes.length,'status0:',results[0].status,'status1:',results[1].status);
-  gastosGlobales = results[5].status==='fulfilled'&&Array.isArray(results[5].value)?results[5].value:[];
-  var catData=results[6]&&results[6].status==='fulfilled'?results[6].value:[];
-  var cfgData=results[7]&&results[7].status==='fulfilled'?results[7].value:[];
-  if(Array.isArray(cfgData)&&cfgData[0]) tiendaConfig=Object.assign({},tiendaConfig,cfgData[0]);
-  renderReglasDescuento();
-  if(Array.isArray(catData)){dbCategorias=catData.filter(function(c){return c.tipo==='categoria';}).map(function(c){return c.nombre;});dbSubcategorias=catData.filter(function(c){return c.tipo==='subcategoria';}).map(function(c){return c.nombre;});dbSubcategorias.forEach(function(s){Object.keys(CAT_SUBCAT_MAP).forEach(function(cat){if(!CAT_SUBCAT_MAP[cat].includes(s))CAT_SUBCAT_MAP[cat].push(s);});});}
-  // Limpiar errores de Supabase (respuestas con "code")
-  if(!Array.isArray(productos)) productos=[];
-  if(!Array.isArray(ventas)) ventas=[];
-  if(!Array.isArray(clientes)) clientes=[];
-  if(!Array.isArray(eventos)) eventos=[];
-  if(!Array.isArray(apartados)) apartados=[];
-  if(!Array.isArray(gastosGlobales)) gastosGlobales=[];
-
-  toast('✅ Cargado: '+productos.length+' productos, '+ventas.length+' ventas', 5000);
-  mostrarBCVDash().catch(e=>{ console.warn('BCV falló:',e); });
-  renderProductos();
-  renderVentas();
-  renderClientes();
-  renderEventos();
-  renderApartados();
-  renderGastosGlobal();
-  cargarDashboard();
-  poblarEventosSelect();
-  poblarEventosGastoGlobal();
-  poblarSelectorAnio(); cargarReporteAnual();
-  poblarMesesFiltroGasto(); poblarFiltroEventosGasto();
-  verificarApartadosVencidos();
-  iniciarVozReconocimiento();
-  renderPOS();
-  cargarEntregasSueltas();
+  var etapaInit='inicio';
+  function initStep(nombre,fn){
+    etapaInit=nombre;
+    try{var r=fn();if(r&&typeof r.catch==='function')r.catch(function(e){console.error('[Brillitos init] '+nombre,e);toast('⚠️ Falló '+nombre+': '+(e&&e.message||e),8000);});}
+    catch(e){console.error('[Brillitos init] '+nombre,e);toast('⚠️ Falló '+nombre+': '+(e&&e.message||e),8000);}
+  }
+  try{
+    toast('Cargando Brillitos...');
+    console.log('[Brillitos init] arrancó');
+    var fv=document.getElementById('v-fecha-venta');if(fv)fv.value=hoyVEN();
+    etapaInit='consulta inicial a Supabase';
+    var results=await Promise.allSettled([
+      sbGet('productos','select=*,producto_variantes(*)&order=id.desc&limit=1000'),
+      sbGet('ventas','select=*,venta_items(*)&order=creado_en.desc&limit=500'),
+      sbGet('clientes','select=*&order=nombre.asc'),
+      sbGet('eventos','select=*&order=fecha.desc'),
+      sbGet('apartados','select=*,apartado_items(*)&order=creado_en.desc&limit=200'),
+      sbGet('gastos_globales','select=*&order=fecha.desc&limit=500'),
+      sbGet('categorias','select=*&activo=eq.true&order=nombre.asc'),
+      sbGet('configuracion_tienda','select=*&id=eq.1&limit=1')
+    ]);
+    productos=results[0].status==='fulfilled'&&Array.isArray(results[0].value)?results[0].value:[];
+    ventas=results[1].status==='fulfilled'&&Array.isArray(results[1].value)?results[1].value:[];
+    clientes=results[2].status==='fulfilled'&&Array.isArray(results[2].value)?results[2].value:[];
+    eventos=results[3].status==='fulfilled'&&Array.isArray(results[3].value)?results[3].value:[];
+    apartados=results[4].status==='fulfilled'&&Array.isArray(results[4].value)?results[4].value:[];
+    gastosGlobales=results[5].status==='fulfilled'&&Array.isArray(results[5].value)?results[5].value:[];
+    var catData=results[6].status==='fulfilled'&&Array.isArray(results[6].value)?results[6].value:[];
+    var cfgData=results[7].status==='fulfilled'&&Array.isArray(results[7].value)?results[7].value:[];
+    if(cfgData[0])tiendaConfig=Object.assign({},tiendaConfig,cfgData[0]);
+    console.log('[Brillitos init] Supabase:',results.map(function(r){return r.status==='fulfilled'?'ok':'error';}).join(','),'productos:',productos.length,'ventas:',ventas.length,'clientes:',clientes.length);
+    initStep('reglas de descuento',renderReglasDescuento);
+    if(Array.isArray(catData)){dbCategorias=catData.filter(function(c){return c.tipo==='categoria';}).map(function(c){return c.nombre;});dbSubcategorias=catData.filter(function(c){return c.tipo==='subcategoria';}).map(function(c){return c.nombre;});dbSubcategorias.forEach(function(sub){Object.keys(CAT_SUBCAT_MAP).forEach(function(cat){if(!CAT_SUBCAT_MAP[cat].includes(sub))CAT_SUBCAT_MAP[cat].push(sub);});});}
+    toast('Datos recibidos: '+productos.length+' productos, '+ventas.length+' ventas',5000);
+    initStep('indicador BCV',function(){return mostrarBCVDash();});
+    initStep('productos',renderProductos);
+    initStep('ventas',renderVentas);
+    initStep('clientes',renderClientes);
+    initStep('eventos',renderEventos);
+    initStep('apartados',renderApartados);
+    initStep('gastos',renderGastosGlobal);
+    initStep('dashboard',cargarDashboard);
+    initStep('selector de eventos',poblarEventosSelect);
+    initStep('selector de gastos',poblarEventosGastoGlobal);
+    initStep('reporte anual',function(){poblarSelectorAnio();return cargarReporteAnual();});
+    initStep('filtros de gastos',function(){poblarMesesFiltroGasto();poblarFiltroEventosGasto();});
+    initStep('apartados vencidos',verificarApartadosVencidos);
+    initStep('voz',iniciarVozReconocimiento);
+    initStep('punto de venta',renderPOS);
+    initStep('entregas',cargarEntregasSueltas);
+  }catch(e){
+    console.error('[Brillitos init] Error fatal en etapa: '+etapaInit,e);
+    toast('❌ Admin detenido en '+etapaInit+': '+(e&&e.message||e),10000);
+  }
 }
 
 // ===== SCANNER QR / CÓDIGO DE BARRAS =====
