@@ -1691,7 +1691,7 @@ async function getBCV(fecha){
 async function mostrarBCVDash(){
   const tasa = await getBCV();
   const bcvEl=document.getElementById('bcv-rate-dash');
-  bcvEl.textContent='Bs. '+parseFloat(tasa).toFixed(2);
+  bcvEl.textContent=Number(tasa)>0?'Bs. '+Number(tasa).toFixed(2):'No disponible';
   bcvEl.style.cursor='pointer';
   bcvEl.title='Toca para editar manualmente';
   bcvEl.onclick=function(){
@@ -1703,19 +1703,29 @@ async function mostrarBCVDash(){
     if(posEl) posEl.textContent='Bs. '+bcvHoy.toFixed(2);
     toast('✅ Tasa actualizada a Bs. '+bcvHoy.toFixed(2));
   };
-  document.getElementById('bcv-fecha-dash').textContent = 'Tasa oficial BCV del día';
+  document.getElementById('bcv-fecha-dash').textContent = Number(tasa)>0?'Tasa oficial BCV del día':'No se pudo consultar la tasa';
   const el = document.getElementById('pos-bcv-rate');
   if(el) el.textContent = 'Bs. '+parseFloat(tasa).toFixed(2);
 }
 
 async function cargarBCVVenta(){
-  const fecha = document.getElementById('v-fecha-venta').value || new Date().toISOString().slice(0,10);
+  const fecha = document.getElementById('v-fecha-venta').value || hoyVEN();
   const tasa = await getBCV(fecha);
-  const hoy = new Date().toISOString().slice(0,10);
-  document.getElementById('bcv-rate-venta').textContent = 'Bs. '+parseFloat(tasa).toFixed(2);
-  document.getElementById('bcv-info-venta').textContent = fecha===hoy ? '✅ Tasa de hoy' : '⚠️ Tasa aprox. — ajusta si sabes el valor exacto';
-  document.getElementById('v-tasa-bcv').value = parseFloat(tasa).toFixed(2);
-  bcvHoy = parseFloat(tasa); // actualizar variable global también
+  const hoy = hoyVEN();
+  const tasaEl=document.getElementById('bcv-rate-venta');
+  const infoEl=document.getElementById('bcv-info-venta');
+  const inputEl=document.getElementById('v-tasa-bcv');
+  if(!(Number(tasa)>0)){
+    tasaEl.textContent='No disponible';
+    infoEl.textContent='No se pudo recuperar la tasa histórica de '+fecha+'. No se sustituirá por la tasa de hoy.';
+    inputEl.value='';
+    document.getElementById('v-total-bs').value='';
+    return;
+  }
+  tasaEl.textContent = 'Bs. '+Number(tasa).toFixed(2);
+  infoEl.textContent = fecha===hoy ? 'Tasa vigente de hoy' : 'Tasa histórica consultada para '+fecha;
+  inputEl.value = Number(tasa).toFixed(2);
+  bcvHoy = Number(tasa);
   if(!v_bs_manual) calcularMontoBs();
 }
 
