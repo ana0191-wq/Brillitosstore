@@ -1,0 +1,30 @@
+{
+  "manifest_version": 3,
+  "name": "Brillitos Shopping — Lector de carrito",
+  "version": "0.1.0",
+  "description": "Lee productos visibles en el carrito abierto en la pestaña actual y permite exportarlos para Brillitos.",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "action": {
+    "default_title": "Leer carrito de Brillitos",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://*.shein.com/*",
+        "https://*.shein.co.uk/*",
+        "https://*.amazon.com/*",
+        "https://*.amazon.co.uk/*",
+        "https://*.temu.com/*",
+        "https://*.aliexpress.com/*"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "run_at": "document_idle"
+    }
+  ]
+}
