@@ -3129,7 +3129,12 @@ function _selItem(idx,pid,t){
   if(!p) return;
   var resId=t==="v"?"prod-res-"+idx:"apt-prod-res-"+idx;
   var el=document.getElementById(resId); if(el) el.style.display="none";
-  var vars=(p.producto_variantes||[]).filter(function(v){return v.activo!==false;});
+  // La relación de Supabase normalmente llega como producto_variantes,
+  // pero algunos objetos pueden traerla con el alias variantes.
+  var fuenteVars = Array.isArray(p.producto_variantes) && p.producto_variantes.length
+    ? p.producto_variantes
+    : (Array.isArray(p.variantes) ? p.variantes : []);
+  var vars=fuenteVars.filter(function(v){return v && v.activo!==false;});
   if(vars.length){ _abrirVariantesInline(idx,p,vars,t); }
   else { selProdItem(idx,p.nombre,p.precio,p.id,t); }
 }
@@ -3150,10 +3155,13 @@ function _abrirVariantesInline(idx,p,vars,t){
     btn.type='button';
     btn.style.cssText='padding:6px 14px;border:2px solid var(--pink);border-radius:20px;background:white;cursor:pointer;font-size:13px;font-weight:600;color:var(--pink-dark)';
     btn.textContent=v.nombre+(v.stock>=0?' ('+v.stock+')':'')+' $'+parseFloat(v.precio||p.precio||0).toFixed(2);
-    btn.onclick=function(){
-      selProdItem(idx,p.nombre+' - '+v.nombre,v.precio||p.precio,p.id,t,v.id);
-      panel.remove();
-    };
+    btn.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      // Guardar la variante seleccionada antes de volver a renderizar la lista.
+      selProdItem(idx,p.nombre+' - '+v.nombre,(v.precio!==null&&v.precio!==undefined&&v.precio!==''?v.precio:p.precio),p.id,t,v.id);
+      if(panel.isConnected) panel.remove();
+    });
     panel.appendChild(btn);
   });
   var cancel=document.createElement('button');
