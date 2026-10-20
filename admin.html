@@ -7094,7 +7094,8 @@ async function poRegistrarPago(id){
   }
   const saved=await sbPost('pagos_pedidos_tiendas_online',payment);
   if(!Array.isArray(saved)||!saved.length){toast('No se pudo guardar el abono.');return;}
-  const estado=poEstadoPago({...p});
+  poPagos.push(saved[0]);
+  const estado=poEstadoPago(p);
   await sbPatch('pedidos_tiendas_online',p.id,{estado_pago:estado,actualizado_en:new Date().toISOString()});
   toast('Abono guardado.');
   await poCargar();
