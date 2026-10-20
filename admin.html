@@ -6933,7 +6933,7 @@ function renderMovimientosBancaAmiga(){
 <script id="version-status-script">
 (function(){
   var chip=document.getElementById('version-status-chip'), text=chip&&chip.querySelector('.vs-text'); if(!chip||!text)return;
-  var localVersion='v1789737000';
+  var localVersion='v20261020-admin-repair';
   function versionActual(){return new URLSearchParams(location.search).get('v')||'';}
   function mostrar(clase,mensaje,titulo){chip.className=clase||'';text.textContent=mensaje;chip.title=titulo||mensaje;}
   window.verificarVersionApp=function(){
