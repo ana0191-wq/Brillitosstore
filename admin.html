@@ -1544,7 +1544,35 @@ tr:hover td{background:#fff8fc}
 
 <div class="toast" id="toast"></div>
 
+<script id="admin-boot-guard">
+(function(){
+  function mostrarErrorAdmin(msg){
+    var id='admin-boot-error', box=document.getElementById(id);
+    if(!box){box=document.createElement('div');box.id=id;box.style.cssText='position:fixed;z-index:100000;top:12px;left:12px;right:12px;background:#8b1e3f;color:#fff;padding:14px 16px;border-radius:10px;font:14px/1.45 system-ui,sans-serif;box-shadow:0 4px 18px rgba(0,0,0,.25);white-space:pre-wrap';document.body.appendChild(box);}
+    box.textContent='Brillitos Admin: error al iniciar. '+msg;
+  }
+  window.addEventListener('error',function(e){
+    if(e&&e.message)mostrarErrorAdmin(e.message+(e.lineno?' (línea '+e.lineno+')':''));
+  },true);
+  window.addEventListener('unhandledrejection',function(e){
+    var r=e&&e.reason, msg=r&&r.message?r.message:String(r||'Error desconocido');
+    mostrarErrorAdmin(msg);
+  });
+  window.addEventListener('load',function(){
+    setTimeout(function(){
+      if(window.__BRILLITOS_INIT_STARTED)return;
+      if(typeof window.init==='function'){
+        console.warn('[Brillitos boot] init no arrancó con DOMContentLoaded; intentando recuperación');
+        window.init();
+      }else{
+        mostrarErrorAdmin('El script principal no terminó de cargar. Recarga la página; si continúa, la versión publicada está incompleta.');
+      }
+    },1200);
+  });
+})();
+</script>
 <script>
+
 
 // ===== CONFIG =====
 // v1777083087
@@ -1907,6 +1935,8 @@ document.addEventListener('input',ev=>{if(ev.target&&['po-costo','po-envio','po-
 
 // ===== INIT =====
 async function init(){
+  if(window.__BRILLITOS_INIT_STARTED)return;
+  window.__BRILLITOS_INIT_STARTED=true;
   var etapaInit='inicio';
   function initStep(nombre,fn){
     etapaInit=nombre;
@@ -6933,7 +6963,7 @@ function renderMovimientosBancaAmiga(){
 <script id="version-status-script">
 (function(){
   var chip=document.getElementById('version-status-chip'), text=chip&&chip.querySelector('.vs-text'); if(!chip||!text)return;
-  var localVersion='v20261020-admin-repair';
+  var localVersion='v20261020-admin-bootfix';
   function versionActual(){return new URLSearchParams(location.search).get('v')||'';}
   function mostrar(clase,mensaje,titulo){chip.className=clase||'';text.textContent=mensaje;chip.title=titulo||mensaje;}
   window.verificarVersionApp=function(){
