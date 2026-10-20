@@ -1,6 +1,6 @@
 {
-  "version": "v20260922-customer-orders",
-  "updatedAt": "2026-09-22",
+  "version": "v20261020-admin-repair",
+  "updatedAt": "2026-10-20",
   "admin": "admin.html",
   "pos": "pos.html"
 }
