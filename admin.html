@@ -5037,7 +5037,7 @@ function renderDeudaMama(cid){
     +'<span style="font-size:20px;font-weight:900;color:#c2185b">$'+dm.total.toFixed(2)+'</span>'
     +'</div>'
     +'<div id="deuda-det-'+cid+'" style="display:none">'+filas+'</div>'
-    +'<button onclick="toggleDeudaDetalle('+JSON.stringify(cid)+')" class="btn btn-secondary btn-sm" style="font-size:11px;width:100%;margin-top:8px">Ver detalle ('+dm.detalle.length+')</button>'
+    +'<button onclick=\'toggleDeudaDetalle('+JSON.stringify(cid)+')\' class="btn btn-secondary btn-sm" style="font-size:11px;width:100%;margin-top:8px">Ver detalle ('+dm.detalle.length+')</button>'
     +'<div style="font-size:10px;color:#aaa;margin-top:6px">Evento: precio−costo−$0.50 · Fuera de evento: precio−costo</div>'
     +'</div>';
 }
